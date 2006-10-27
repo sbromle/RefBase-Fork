@@ -1,0 +1,82 @@
+IPOE Lit DB Grep Patterns
+=========================
+
+Finde Initialen mit Leerzeichen dazwischen
+------------------------------------------
+Script:	Find in Chosen Records
+Field(s):	Author Generic [A_13]
+Search:	[[:upper:]] +-? *[[:upper:]]([^[:lower:]]|$)
+Comments:	search case sensitive!
+
+
+Leerzeichen zwischen Initialen entfernen
+----------------------------------------
+Script:	Find/Replace in Chosen Records
+Field(s):	Author, Analytic [01] & Author, Monographic [07]
+Search:	([[:upper:]]) *(-?) *(?=[[:upper:]]([^[:lower:]]|$))
+Replace:	\1\2
+Comments:	
+
+
+Finde fehlendes Komma zwischen Nachname & Initialen
+---------------------------------------------------
+Script:	Find in Chosen Records
+Field(s):	Author Generic [A_13]
+Search:	[[:lower:]][^-,[:lower:][:upper:]]+[[:upper:]]
+Comments:	search case sensitive!; will find 'false positives' (e.g.: "Subba Rao, DV")!
+
+
+"/"-Delimiter -> "; "-Delimiter umwandeln
+-----------------------------------------
+Script:	Find/Replace in Chosen Records
+Field(s):	Keywords [45]
+Search:	(?<=\w) *\/+ *(?=\w)
+Replace:	; 
+Comments:	Semikolon<space>; lookbehind/lookahead vermeidet Konvertierung von "</sub>" etc.
+
+
+Finde ausgeschriebene Vornamen
+------------------------------
+Script:	Find in Chosen Records
+Field(s):	Author Generic [A_13]
+Search:	, *[^;[:lower:]]+[[:lower:]]
+Comments:	search case sensitive!; will find 'false positives' (e.g.: "Piepenburg, D (ed)")!
+
+
+ausgeschriebene Vornamen auf Initial verkürzen
+----------------------------------------------
+Script:	Find/Replace in Chosen Records
+Field(s):	Author, Analytic [01] & Author, Monographic [07]
+Search:	(?<=,)([^[:lower:];]+)([[:upper:]])[[:lower:]]+
+Replace:	\1\2
+Comments:	- mehrmals ausführen!
+			- ACHTUNG: "Jr" darf nicht hinter Initialen stehen (sonst wird es zu "J" verkürzt!) -> sollte stattdessen nach Nachname stehen.
+			           Also "Smith Jr, WO" und nicht "Smith, WO Jr" o.ä.!!
+			- ACHTUNG: Higher ASCII Chars werden durch [:lower:] NICHT erkannt!!
+
+
+Initial und Nachname in richtige Reihenfolge bringen
+----------------------------------------------------
+Script:	Find/Replace in Chosen Records
+Field(s)??:	Author, Analytic [01] & Author, Monographic [07]
+Search:	(^[[:upper:]]) ([[:upper:][:lower:]+])
+Replace:	\2\1
+Comments:	geht noch nicht
+
+
+Benutzer eigene Signatur standardisieren
+----------------------------------------
+Script:	Find/Replace in Chosen Records
+Field(s)??:	Call No. [44]
+Search:	(\w+)
+Replace:	IPÖ @ ort(z.B mschmid) @ \1
+Comments:	vorher alle IPÖ @ ausschliessen, für Ort den benutzer einsetzen
+
+
+Zwei Datenfelder vereinen (hier die beiden Letzen)
+--------------------------------------------------
+Script:	in bbedit
+Field(s)??:	--
+Search:	([^\t]+)\t(.+)$
+Replace:	\1\2\t
+Comments:	nur für Prof Spindler relevant, da Signatur auf zwei Felder aufgeteilt

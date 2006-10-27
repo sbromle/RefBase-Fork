@@ -1,0 +1,55 @@
+MySQL database "literature", table "user_formats"
+=================================================
+
+field names
+-----------
+
+fields available in table "user_formats"	description
+----------------------------------------	-----------
+
+user_format_id	the unique ID number of this user format entry
+format_id	the unique ID number of the referenced export format (which corresponds to the format_id number of the format's entry within the "export_formats" table)
+user_id	the user's unique ID number (which corresponds to the user_id number of the user's record entry within the "users" table)
+show_format	specifies whether the referenced export format will be displayed within the formats popup ('true') or not ('false')
+
+
+
+column types
+------------
+
+user_format_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+format_id	MEDIUMINT UNSIGNED NOT NULL
+user_id	MEDIUMINT UNSIGNED NOT NULL
+show_format	ENUM("true","false") NOT NULL
+
+INDEX	(format_id,user_id)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE user_formats (user_format_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, format_id MEDIUMINT UNSIGNED NOT NULL, user_id MEDIUMINT UNSIGNED NOT NULL, show_format ENUM("true","false") NOT NULL, INDEX (format_id,user_id));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/user_formats.txt" INTO TABLE user_formats;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/user_formats.txt"
+

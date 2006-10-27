@@ -1,0 +1,420 @@
+This file presents a summary of the main fixes and enhancements.
+See the 'ChangeLog' or the cvs entries on SourceForge for a detailed history:
+  <http://refbase.cvs.sourceforge.net/refbase/>
+
+refbase-0.9.0
+-------------
+[27-Oct-2006]
+
+  Feature additions
+-------------------
+
+Installation/Update:
+
+- Searches path and common locations for supporting binaries
+  <http://install.refbase.net>
+
+Import/Add Records:
+
+- Import from Endnote, Reference Manager (RIS), RefWorks, BibTeX, MODS XML,
+  ISI Web of Science, PubMed (MEDLINE or XML), Cambridge Scientific Abstracts
+  and COPAC (with automatic detection of bibliographic format)
+  <http://import.refbase.net>
+
+- Import of multiple records
+
+- Import from a file or from PubMed ID
+
+- Automatic file renaming and creation of subdirectories via placeholders
+  <http://placeholders.refbase.net>
+
+- Command line client to batch import records <http://cli.refbase.net>
+
+Search/Display:
+
+- Improved query API with short, permanent links to records
+  <http://linking.refbase.net>
+
+- SRU/W (Search & Retrieve via URL) web service <http://sru.refbase.net>
+
+- OpenURL support <http://openurl.refbase.net>
+
+- Embedding of COinS metadata within HTML pages <http://coins.refbase.net>
+
+- UnAPI support <http://unapi.refbase.net>
+
+- Command line client to search & retrieve records <http://cli.refbase.net>
+
+- "Show All" link
+
+- Links that display all records which were added/edited since a user's last
+  login
+
+- "is within range" and "is within list" searching of numeric fields
+
+- French localization
+
+Export/Citation:
+
+- ODF XML export for use with OpenOffice.org <http://openoffice.refbase.net>
+
+- Formatted citation export (RTF, PDF, LaTeX, Markdown, ASCII)
+
+- Automatic generation of user-specific cite keys and text citations
+
+- Sort by resource type (i.e., peer-reviewed publications, monographs, book
+  contributions, theses, etc) when outputting citations
+
+- Better transliteration between character sets
+
+
+  Changes
+---------
+
+- Masking of fields which may contain e-mail addresses to prevent spam
+
+- The number of records that are returned by default can now be customized
+
+- Improved localization support
+
+- Better quoting of MySQL queries (user-inputted data can contain slashes and
+  quotation marks)
+
+- refbase will now work independent of the 'magic_quotes_gpc' setting in your
+  PHP configuration file 'php.ini'.
+
+- Improvements in session management
+
+- Search queries may be submitted via GET rather than POST
+
+- The admin can now control which links shall be displayed in List view and
+  Citation view
+
+
+  Bug fixes
+-----------
+
+- Improvements in protection against disallowed searches
+
+- Fixes to MODS XML export
+
+- Short opening tags have been replaced with '<?php' for compatibility
+
+- The user-specific language setting is now honoured correctly
+
+- The contents of the 'file' field will now only be revealed if the user has
+  permission to view/download files
+
+- refbase now issues a correct error message if the size of the uploaded file
+  exceeds 'post_max_size'
+
+
+
+refbase-0.8.0
+-------------
+[05-Apr-2005]
+
+  Feature additions
+-------------------
+
+Installation:
+
+- New 'update.php' script and 'update.sql' to update refbase-0.7 to 0.8.0.
+
+- 'install.php' and 'update.php' both work on Windows servers.
+
+Export/citation:
+
+- Export to MODS XML: refbase can output records in MODS format, a bibliographic
+  XML standard developed by the Library of Congress:
+    <http://www.loc.gov/standards/mods/>
+
+- Export to Endnote/Bibtex/RIS: refbase supports export of records to common
+  bibliographic formats by use of bibutils:
+    <http://www.scripps.edu/~cdputnam/software/bibutils/>
+
+- User-specific cite keys: The new user-specific field "Cite Key" allows users
+  to specify a custom identifier for each record. Cite keys will be supported
+  in export formats (MODS XML & Bibtex) and text citations as well as when
+  generating reference lists.
+
+Adding/editing/deleting of records:
+
+- Unicode support: You can now set the default character set to 'utf8' (Unicode)
+  when installing refbase on MySQL 4.1.x or greater. This provides support for
+  double-byte languages.
+
+- RSS support: Users can now track queries using RSS, i.e. users are able to
+  convert any query into a dynamic RSS feed and subscribe to it using their
+  favorite news aggregator. The feed will display all newly added records
+  matching the users query.
+  
+- Print view: Added a print-friendly view which eases printing or copying of
+  records.
+
+- Includes an Endnote style file and PHP script to ease the manual batch import
+  of bibliographic records.
+  
+- Started localization: Provided core structure to support web interfaces in
+  different languages. Note that the localization feature isn't finished nor
+  enabled yet and will be available in a future release.
+
+Admin features:
+
+- User-specific permissions: The admin can now assign access rights individually
+  for each user. Permission settings are provided for basic actions like
+  add/edit/delete records or file upload/download as well as other features like
+  import, export or cite.
+
+- Reference types, citation styles and export formats can be enabled/disabled by
+  the admin for each user individually. The user, in turn, can choose which of
+  the enabled types/styles/formats shall be visible.
+
+- User- and criteria-specific file downloads: Download links can be made
+  available to either everyone, logged-in users only or on a user-specific
+  basis. In addition, you can optionally specify a condition where files will
+  be always made visible.
+
+- The admin interface now allows to group particular database users.
+
+User customization:
+
+- User-specific groups: Users can now add records to user-specific groups. A
+  drop-down menu on the main page (or any search results list) provides quick
+  access to all records belonging to a particular group.
+
+- Saved queries: It is now possible to permanently save any search query
+  together with the current display settings. Saved queries can be easily
+  recalled or edited from the main page.
+
+- Link records: A new user-specific field ("Related") enables users to link
+  records to other records in the database. Links can be either static (by
+  explicitly linking to particular record serials) or dynamic (by entering
+  queries like "author:lee; title:ecosystem").
+
+
+  Changes
+---------
+
+- The MySQL database used by refbase has undergone some significant changes.
+  Please use the 'update.php' script to update any old refbase MySQL database.
+
+- refbase will now work independent of the 'register_globals' setting in your
+  PHP configuration file 'php.ini'.
+
+- Links to particular pages/features will be only made visible if the user has
+  appropriate access rights.
+
+- Re-designed the "Search within Results" form.
+
+- Users can now choose on every search results page which fields and how many
+  records shall be displayed.
+
+- Logged-in users can now use user-specific cite keys (instead of serial
+  numbers) as record identifiers when generating a reference list using
+  'extract.php'.
+
+- Citation style and export format definitions now reside in individual files
+  (within the 'cite/' and 'export/' sub-directories, respectively) and are
+  managed via MySQL tables. This enables users to develop custom styles and/or
+  formats.
+
+- Added support for fields 'keywords', 'notes', 'marked' and 'language' within
+  the admin interface.
+
+- Custom CSS style sheets can be specified within 'ini.inc.php' to change the
+  visual appearance of the served web pages.
+
+- You can now define (in 'initialize/ini.inc.php') what will be searched by
+  script 'library_search.php'.
+
+- Added variables to the database configuration file ('initialize/db.inc.php')
+  which allow to use custom names for the refbase MySQL tables.
+
+- Renamed the v0.7 'Export' feature to 'Cite' to better reflect its purpose and
+  to make room for the new export capabilities.
+
+- Include files and configuration files were moved to separate sub-directories.
+
+- refbase now tries harder to prevent a malicious user from hacking the database
+  by use of a custom SQL query.
+
+- A lot of internal code re-structuring.
+
+
+  Bug fixes
+-----------
+
+- When adding records, entered values will be reloaded correctly if an error
+  occurs.
+
+
+
+
+refbase-0.7
+-----------
+[11-Jan-2004]
+
+  Feature additions
+-------------------
+
+Installation:
+
+- Provided a web interface ('install.php') as well as a MySQL dump file for
+  installation. This should make it a lot easier to setup the database. Besides
+  the database structure, the MySQL dump file includes a temporary admin user
+  and twelve sample records.
+
+User customization:
+
+- The database now offers six user-specific fields. These fields are stored
+  individually for each user within a separate table. You can use these fields
+  to store personal information for a particular record (for example your
+  personal keywords or notes). These fields are only provided to logged-in users
+  and can't be viewed by other users.
+
+- After login, a 'Show My Refs' form will allow you to easily display all of
+  your own literature. This form also offers a quick way of searching your own
+  literature by your personal fields (such as your personal keywords or notes).
+
+Display features:
+
+- Provided display support for rich text (like italics, super-/subscript or
+  greek symbols) within the title, keywords and abstract fields by use of a
+  configurable, extensible and human readable markup syntax.
+
+- A direct download link to any file that's associated with a particular
+  record will be shown to logged in users.
+
+- By default, exported records will now feature a 'show details' link to the
+  right.
+
+- Export output can now optionally list records in blocks sorted by year.
+
+- Provided support for custom header messages within database queries: by
+  including the 'headerMsg' parameter within query URLs it is now possible to
+  include any information string within a link. As an example, a query URL
+  pointing to articles written by a particular author can now include the
+  appropriate author information (e.g. "Articles by Matthias Steffens:") which
+  will show up as a header message on every results page.
+
+User management:
+
+- 'Search within Results' functionality now also works when managing users.
+
+- It is now possible to delete any non-admin user via the user management
+  interface.
+
+- Two new fields will store information about the date & time of the last login
+  as well as the total number of logins for a particular user.
+
+Admin features:
+
+- The admin user is allowed to execute custom SQL statements other than SELECT
+  queries (according to his GRANT privileges). This will enable him to make
+  batch changes to the database.
+
+Adding/editing/deleting of records: 
+
+- Added record announcement capabilities: If a new record has been added to the
+  database a short email announcement can be sent to a mailing list email
+  address.
+
+- Provided some magic that figures out what do to depending on the state of the
+  new 'is Editor' check box and the content of the 'author', 'editor' and 'type'
+  fields.
+
+- Introduced a new field 'thesis' which enables you to specify the type of
+  degree ("Bachelor's thesis", "Master's thesis", "Ph.D. thesis", "Diploma
+  thesis", "Doctoral thesis" or "Habilitation thesis") that was achieved by a
+  publication.
+
+- Provided support for online publications by the introduction of two new
+  database fields: 'online_publication' & 'online_citation'. If the field
+  'online_publication' is set to 'yes' by marking the appropriate checkbox, the
+  export view will display the doi number as well as any string that was entered
+  into the 'online_citation' field.
+
+- Introduced a new field 'contribution_id'. By marking the appropriate checkbox
+  within the 'record' form your institutional abbreviation will be added to the
+  contents of the 'contribution_id' field. This serves as an easy method to tag
+  all those records that were published by your own institution.
+
+- 'record.php' now enables you to upload a file that's associated with a
+  particular record entry. If the root directory where your files will be stored
+  (specified in 'ini.inc.php') contains a sub-directory whose name matches the
+  string provided within the 'abbrev_journal' field (after converting the string
+  to lowercase and stripping all characters but ascii letters) the uploaded file
+  will be placed inside that sub-directory. As an example, if you've created a
+  sub-directory named 'polarbiol' within your files root directory, any uploaded
+  file will be copied to that sub-directory if its accompanying record contains
+  the string 'Polar Biol.' within its 'abbrev_journal' field.
+
+- Depending on the value of the 'locationSelector' drop-down, the user's name
+  and email address will be added/removed from the 'location' field
+  automatically.
+
+
+  Changes
+---------
+
+- The format of the MySQL tables has changed (added & renamed some fields and
+  changed some field types). You'll need to update your table definitions in
+  order to use this version! See the online documentation for further help:
+    <http://sourceforge.net/docman/?group_id=64647>
+
+- File 'db.inc': Removed 'root' as default value for '$username' (the use of a
+  separate mysql user with more restrictive permissions is highly recommended).
+
+- Non-admin users will be only shown their own call number information. This is
+  done to ease data entry and to prevent non-admin users from messing with other
+  user's call number information. The data entered by the user will be
+  automatically completed with the user's correct call number prefix.
+
+- Instead of deleting data, deleted records will now be moved to the 'deleted'
+  table. Data will be stored within the 'deleted' table until they are removed
+  manually. This is to provide the admin with a simple recovery method in case
+  a user did delete some data by accident.
+
+
+  Bug fixes
+-----------
+
+- Fixed a (potentially disastrous) security hole where non-admin users were
+  allowed to execute custom queries other than SELECT queries.
+
+- When adding/updating a record the fields 'created_date', 'created_time',
+  'created_by', 'modified_date', 'modified_time', 'modified_by' will be set
+  correctly now.
+
+- Similarly, when adding/updating a record, the calculation fields
+  'first_author', 'author_count' and 'first_page' will be setup correctly now.
+
+- Modifying the SQL query of a particular search result now also works properly
+  for details and export view.
+
+The following known issues have been fixed:
+
+- If you clicked on login/logout within the first of any query results pages
+  before clicking somewhere else, you did get an 'Error 1065: Query was empty'.
+
+- Export as 'Text Citation' didn't work properly on records that were added via
+  the web interface.
+
+
+
+
+refbase-0.6.1b1
+---------------
+[30-Jun-2003]
+
+- Fixes a bug which made it impossible to setup the first user of the database.
+
+- A user management interface is provided to admins.
+
+- Users can now change their password later on.
+
+- Variable settings from 'ini.inc.php' are now honoured correctly.
+
+- Provided a search form that shows up on the main page after successful login
+  which will allow a user to easily search his *own* literature only.

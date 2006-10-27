@@ -1,0 +1,48 @@
+This file lists the current members of the refbase development team and other
+contributors.
+
+Please avoid sending e-mail with refbase-related questions directly to them;
+your questions are likely to be answered much faster if you post them to one of
+the mailing lists or forums on sourceforge:
+  <http://sourceforge.net/projects/refbase/>
+
+- Matthias Steffens <refbase@extracts.de>:
+  Project manager, lead developer, application engineering & design
+
+- Richard Karnesky <karnesky@gmail.com>:
+  Project manager, application engineering, MODS XML export, Endnote style,
+  COinS, update.php, some bugfixes & docs
+
+- Michael Bartz <michaelbartz@users.sourceforge.net>:
+  Project manager, application design
+
+- Jochen Wendebaum <wendebaum@users.sourceforge.net>:
+  Localization, german translation
+
+- Daniel Stepputtis <antedon@users.sourceforge.net>:
+  Documentation & general support
+
+Thanks to:
+
+- Joachim Almergren <jlacan@users.sourceforge.net>:
+  Various patches
+
+- Chris Putnam <cdputnam@scripps.edu>:
+  Developer of Bibutils, a set of command line programs that interconvert
+  between various bibliography formats using a common XML intermediate.
+  <http://www.scripps.edu/~cdputnam/software/bibutils/bibutils.html>
+
+- Mark Grimshaw <sirfragalot@users.sourceforge.net>:
+  Developer of MINIMALRTF, a minimal set of RTF coding methods to produce
+  Rich Text Format documents on the fly. <http://bibliophile.sourceforge.net>
+
+- Wayne Munro at R&OS New Zealand:
+  Developer of the module-free pdf-PHP class that allows to dynamically create
+  PDF documents with PHP. <http://www.ros.co.nz/pdf>
+
+- nijel and garvinhicking of the phpMyAdmin project:
+  Developers of zip.inc.php, which is used to zip OpenDocument files.
+  <http://www.phpmyadmin.net>
+
+Many other people have contributed to this project with feature requests, bug
+reports, testing, and helpful suggestions.

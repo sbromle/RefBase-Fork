@@ -1,0 +1,92 @@
+refbase 0.9.0 README
+====================
+
+About refbase
+-------------
+  refbase is a web-based solution for managing scientific literature,
+  references and citations.
+  
+  Currently, the following features have been implemented for:
+  EVERYONE
+    - search the database using different search forms
+    - search within results
+    - browse found records and view selected records in detail
+    - display rich text (i.e., italics, super/sub-script, greek letters)
+    - extract citations from a text & build an appropriate reference list
+    - track queries using RSS
+    - a print-friendly view
+    - display selected records in different citation styles & output formats
+    - a webservice that allows clients to access a refbase database using a
+      standard query syntax and retrieve results in structured XML format
+    - search a refbase online database from the command line and retrieve
+      results in various export & citation formats
+  LOGGED IN USERS
+    - user-specific fields which are stored individually for each user
+    - display or search within only the user's own literature
+    - export selected records to MODS XML, ODF XML and (via the GPLed bibutils
+      programs) to BibTeX, EndNote, and RIS
+    - import of records from common bibliographic formats and online databases
+    - automatic email announcements for newly added records
+    - save and recall search queries
+    - adding records to user-specific groups
+    - add/edit/delete records as well as file upload & download links
+  ADMINISTRATOR
+    - user management interface provided to the database admin
+    - set access permissions on a per-user basis
+
+  More information is given at:
+    <http://features.refbase.net>
+
+Credits
+-------
+  See AUTHORS
+
+Requirements
+------------
+  refbase requires:
+  - a web server (like the Apache HTTP Server <http://httpd.apache.org/>)
+  - PHP <http://www.php.net/> (version 4.1.0 or greater) with enabled
+    session support
+  - MySQL <http://www.mysql.com/> (version 4.1.x or greater required for
+    Unicode support)
+  
+  - for Endnote/RIS/Bibtex export and Endnote/Bibtex import:
+    bibutils <http://www.scripps.edu/~cdputnam/software/bibutils/bibutils.html>
+    (version 3.21 or greater)
+
+  More detailed information is available at:
+    <http://requirements.refbase.net>
+
+Installation & Import
+---------------------
+  See INSTALL
+
+Update
+------
+  See UPDATE
+
+New Features
+------------
+  See NEWS
+
+Changelog
+---------
+  See ChangeLog
+
+Known issues
+------------
+  See BUGS
+
+What is missing?
+----------------
+  See TODO
+
+License
+-------
+  See COPYING
+
+Further information
+-------------------
+  For more information about the refbase project and pointers to working
+  examples of refbase please visit:
+    <http://www.refbase.net/>  or  <http://refbase.sourceforge.net/>

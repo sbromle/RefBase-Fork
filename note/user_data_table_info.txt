@@ -1,0 +1,71 @@
+MySQL database "literature", table "user_data"
+==============================================
+
+field names
+-----------
+
+fields available in table "user_data"	description
+-------------------------------------	-----------
+
+data_id	the unique ID number of this user data entry
+user_id	the user's unique ID number (which corresponds to the user_id number of the user's record entry within the "users" table)
+record_id	the unique ID number of the record this data entry is referring to (which corresponds to the 'serial' number of the record's entry within the "refs" table)
+marked	has the user marked this record?
+copy	has the user a printed copy of this record?
+selected	has the user selected this publication? (by that he can label publications that are important to him/her OR, if he/she's among the authors, indicate that this is one of the "better" publications)
+user_keys	the user's personal keywords for this record
+user_notes	the user's personal notes for this record
+user_file	if the user owns a digital copy of this record, he can specify its file name/path here
+user_groups	the user's personal groups to which this record belongs (note that this field contains names of *reference* groups for this user, which must not be confused with the *user* groups from table 'users')
+cite_key	the unique citation key for this record which uniquely identifies this record when citing
+related	contains pointers to related records. Pointers can be serial numbers or partial queries, e.g.: '1234; 2678; 1988; author=steffens' -> items separated by ";" will be connected by OR. Pure-digit items: assumed to be record serials. Dynamic items: 'field=content' syntax will be resolved to 'field RLIKE "content"'
+
+
+
+column types
+------------
+
+data_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+user_id	MEDIUMINT UNSIGNED NOT NULL
+record_id	MEDIUMINT UNSIGNED NOT NULL
+marked	ENUM("no","yes") NOT NULL
+copy	ENUM("false","true","ordered","fetch") NOT NULL
+selected	ENUM("no","yes") NOT NULL
+user_keys	TEXT
+user_notes	TEXT
+user_file	VARCHAR(255)
+user_groups	TEXT
+cite_key	VARCHAR(255)
+related	TEXT
+
+INDEX	(user_id,record_id)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE user_data (data_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id MEDIUMINT UNSIGNED NOT NULL, record_id MEDIUMINT UNSIGNED NOT NULL, marked ENUM("no","yes") NOT NULL, copy ENUM("false","true","ordered","fetch") NOT NULL, selected ENUM("no","yes") NOT NULL, user_keys TEXT, user_notes TEXT, user_file VARCHAR(255), user_groups TEXT, cite_key VARCHAR(255), related TEXT, INDEX (user_id,record_id));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/user_data.txt" INTO TABLE user_data;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/user_data.txt"
+

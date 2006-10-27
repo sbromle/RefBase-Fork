@@ -1,0 +1,21 @@
+refbase command line clients
+============================
+
+Author
+------
+  Matthias Steffens  <refbase@extracts.de>
+
+About
+-----
+  'refbase' is a command line client (written in perl) to search refbase.
+  'refbase_import' is a client to import references into refbase.
+
+Use
+---
+  Part I: Configuration
+  - Both scripts may be edited in a text editor.  It is suggested that you set:
+    - %hosts
+    - %loginParams
+  Part II: Use
+  - Both scripts will print help if run with an argument of '-h' or '--help'
+  - They will print usage examples if run with '-X' or '--examples'

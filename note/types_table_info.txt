@@ -1,0 +1,57 @@
+MySQL database "literature", table "types"
+==========================================
+
+field names
+-----------
+
+fields available in table "types"	description
+---------------------------------	-----------
+
+type_id	the unique ID number of this document type entry
+type_name	the display name of this document type as it occurs within the 'type' popup
+type_enabled	specifies globally whether the referenced document type can be displayed within the 'type' popup ('true') [if a user chooses so] or not ('false')
+base_type_id	the unique ID number of the document type that this type is based on (i.e., the fall-back type which will be used for export/citation in case this type wasn't specified within a particular export format or citation style)
+order_by	a string that specifies the primary sort order for this entry (secondary sort order is by type name)
+
+
+
+column types
+------------
+
+type_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+type_name	VARCHAR(100)
+type_enabled	ENUM("true","false") NOT NULL
+base_type_id	MEDIUMINT UNSIGNED
+order_by	VARCHAR(25)
+
+INDEX	(type_name)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE types (type_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, type_name VARCHAR(100), type_enabled ENUM("true","false") NOT NULL, base_type_id MEDIUMINT UNSIGNED, order_by VARCHAR(25), INDEX (type_name));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/types.txt" INTO TABLE types;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/types.txt"
+

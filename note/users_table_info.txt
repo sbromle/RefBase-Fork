@@ -1,0 +1,105 @@
+MySQL database "literature", table "users"
+==========================================
+
+field names
+-----------
+
+fields available in table "users"	description
+---------------------------------	-----------
+
+first_name	the users first name (required!) --> needed for building the user's full name
+last_name	the user's surname (required!) --> needed for building the user's full name
+title	the user's job title
+institution	the name of the employing institution
+abbrev_institution	the abbreviated name of the employing institution (required!) --> needed for building a correct call_number for any record
+corporate_institution	the name of the corporate institution
+address_line_1	any additional address information required for the institution's postal address (such as building, p.o. box, street, etc.)
+address_line_2	any additional address information required for the institution's postal address (such as building, p.o. box, street, etc.)
+address_line_3	any additional address information required for the institution's postal address (such as building, p.o. box, street, etc.)
+zip_code	the zip code of the institution's postal address
+city	the city of the institution
+state	the state of the institution
+country	the country of the institution
+phone	the user's phone number at work
+email	the user's email address at work (required!) -> needed for logging into the database (must be unique among all users!)
+url	the user's (professional) web page
+keywords	any keys for this user
+notes	any notes for this user
+last_login	date & time of the user's last successful login to the database -> future versions may use this info to ask the user for a new password
+logins	total number of successful logins for this user -> future versions may offer simple usage statistics
+language	the user's preferred language -> future versions might offer language customization
+user_id	the user's unique ID number (which is simply the unique serial number of this record)
+user_groups	the user groups to which this user belongs (note that this field contains names of *user* groups, which must not be confused with the user's personal groups that list groups of particular *references*)
+marked	gives the possibility to set a flag for this record
+created_date	the creation date of this record
+created_time	the creation time of this record
+created_by	who created this record
+modified_date	the modification date of this record
+modified_time	the modification time of this record
+modified_by	who modified this record
+
+
+
+column types
+------------
+
+first_name	VARCHAR(50)
+last_name	VARCHAR(50)
+title	VARCHAR(25)
+institution	VARCHAR(255)
+abbrev_institution	VARCHAR(25)
+corporate_institution	VARCHAR(255)
+address_line_1	VARCHAR(50)
+address_line_2	VARCHAR(50)
+address_line_3	VARCHAR(50)
+zip_code	VARCHAR(25)
+city	VARCHAR(40)
+state	VARCHAR(50)
+country	VARCHAR(40)
+phone	VARCHAR(50)
+email	VARCHAR(50)
+url	VARCHAR(255)
+keywords	TEXT
+notes	TEXT
+last_login	DATETIME
+logins	MEDIUMINT UNSIGNED NOT NULL
+language	VARCHAR(50)
+user_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+user_groups	TEXT
+marked	ENUM('no','yes') NOT NULL
+created_date	DATE
+created_time	TIME
+created_by	VARCHAR(100)
+modified_date	DATE
+modified_time	TIME
+modified_by	VARCHAR(100)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE users (first_name VARCHAR(50), last_name VARCHAR(50), title VARCHAR(25), institution VARCHAR(255), abbrev_institution VARCHAR(25), corporate_institution VARCHAR(255), address_line_1 VARCHAR(50), address_line_2 VARCHAR(50), address_line_3 VARCHAR(50), zip_code VARCHAR(25), city VARCHAR(40), state VARCHAR(50), country VARCHAR(40), phone VARCHAR(50), email VARCHAR(50), url VARCHAR(255), keywords TEXT, notes TEXT, last_login DATETIME, logins MEDIUMINT UNSIGNED NOT NULL, language VARCHAR(50), user_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, user_groups TEXT, marked ENUM('no','yes') NOT NULL, created_date DATE, created_time TIME, created_by VARCHAR(100), modified_date DATE, modified_time TIME, modified_by VARCHAR(100));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/users.txt" INTO TABLE users;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/users.txt"
+

@@ -1,0 +1,51 @@
+MySQL database "literature", table "auth"
+=========================================
+
+field names
+-----------
+
+fields available in table "auth"	description
+--------------------------------	-----------
+
+user_id	the user's unique ID number (which corresponds to the user_id number of the user's record entry within the "users" table)
+email	the user's email address at work (required!) -> needed for logging into the database (must be unique among all users!)
+password	the user's password (required!) -> needed for logging into the database
+
+
+
+column types
+------------
+
+user_id	MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY
+email	VARCHAR(50) NOT NULL
+password	VARCHAR(15) NOT NULL
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE auth (user_id MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY, email VARCHAR(50) NOT NULL, password VARCHAR(15) NOT NULL);
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/auth.txt" INTO TABLE auth;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/auth.txt"
+

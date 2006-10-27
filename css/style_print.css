@@ -1,0 +1,75 @@
+	/* Project:    Web Reference Database (refbase) <http://www.refbase.net> */
+	/* Copyright:  Matthias Steffens <mailto:refbase@extracts.de> */
+	/*             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY. */
+	/*             Please see the GNU General Public License for more details. */
+	/* File:       ./style_print.css */
+	/* Created:    20-Oct-02, 15:08 */
+	/* Modified:   24-Oct-06, 18:44 */
+
+	/* refbase CSS definitions - print view style */
+
+
+body           { background:#FFFFFF; color:#000000; }
+
+pre,code       { font-family:monaco,courier,monospace; font-size:7pt; }
+
+.spacer        { padding-top:0.5em; }
+
+.spacer2       { padding-bottom:0.3em; }
+
+.tiny          { font-size:x-small; }
+
+.smaller       { font-size:smaller; }
+
+.small         { font-size:small; }
+
+.smallup       { font-size:small; position:relative; top:-10px; }
+
+.smallsans     { font-family:helvetica,arial,sans-serif; font-size:x-small; }
+
+.moveup        { position:relative; top:-8px; }
+
+.header        { font-family:helvetica,arial,sans-serif; }
+
+.footer        { font-family:helvetica,arial,sans-serif; font-size:x-small; color:#999999; }
+
+.unapi         { font-size:smaller; }
+
+.Z3988         { font-size:smaller; }
+
+.ok            { color:#009900; }
+
+.warning       { color:red; }
+
+.warning2      { color:red; font-family:helvetica,arial,sans-serif; font-size:small; }
+
+.mainfieldsbg  { background-color:#FFFFFF; }
+
+.otherfieldsbg { background-color:#FFFFFF; }
+
+.userfieldsbg  { background-color:#FFFFFF; }
+
+.outline       { list-style-type:none; font-size:small; position:relative; left:-15px; }
+
+.category      { font-family:helvetica,arial,sans-serif; font-weight: bold; }
+
+th             { font-family:helvetica,arial,sans-serif; font-size:small; }
+
+td,div         { font-family:"times new roman",garamond,times,serif; font-size:small; }
+
+p              { font-family:"times new roman",garamond,times,serif; font-size:small; }
+
+A:link         { color:#000000; text-decoration:underline; }
+
+A:visited      { color:#000000; text-decoration:underline; }
+
+A:active       { color:#000000; text-decoration:underline; }
+
+A:hover        { color:#3366FF; text-decoration:underline; }
+
+h1,h2,h3,h4    { font-family:helvetica,arial,sans-serif; }
+
+h5,h6          { font-family:helvetica,arial,sans-serif; }
+
+h2,h3          { margin-top:1em; margin-bottom:0.5em; }
+

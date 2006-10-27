@@ -1,0 +1,53 @@
+MySQL database "literature", table "depends"
+============================================
+
+field names
+-----------
+
+fields available in table "depends"	description
+-----------------------------------	-----------
+
+depends_id	the unique ID number of this depends entry
+depends_external	the unique name of the external utility that is required for a particular import or export format (specified in table 'formats')
+depends_enabled	specifies globally whether the external utility is available and can be used ('true') or not ('false')
+depends_path	the absolute path to the external utility
+
+
+
+column types
+------------
+
+depends_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+depends_external	VARCHAR(100)
+depends_enabled	ENUM("true","false") NOT NULL
+depends_path	VARCHAR(255)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE depends (depends_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, depends_external VARCHAR(100), depends_enabled ENUM("true","false") NOT NULL, depends_path VARCHAR(255));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/depends.txt" INTO TABLE depends;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/depends.txt"
+

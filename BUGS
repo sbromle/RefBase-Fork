@@ -1,0 +1,18 @@
+We are aware of the following problems, bugs and/or limitations:
+
+- The simple and advanced search forms employ lots of dynamic drop-down menus to
+  ease user entry of data. This works well for small databases (<10,000
+  records) but may cause significant speed problems for larger databases!
+
+- There's no support for transactions. This means that multiple users will be
+  able to edit the same record at the same time. This will usually cause the
+  record to be overwritten by the last submitter, but it could cause surprising
+  results. Please remember to reload record data if you kept a record's "edit"
+  form open for a long period of time.
+
+- The 'allow_edit_call_number' permission setting isn't honoured yet.
+
+- The process of internationalization and localization has not been completed
+  yet.
+
+- There are some referrer-related bugs (particularly in unapi and show.php).

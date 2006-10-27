@@ -1,0 +1,59 @@
+MySQL database "literature", table "styles"
+===========================================
+
+field names
+-----------
+
+fields available in table "styles"	description
+----------------------------------	-----------
+
+style_id	the unique ID number of this citation style entry
+style_name	the display name of this citation style as it occurs within the styles popup
+style_enabled	specifies globally whether the referenced citation style can be displayed within the styles popup ('true') [if a user chooses so] or not ('false')
+style_spec	the unique name of the file holding the citation function that will output this citation style (style files must be located within the 'cite' directory)
+order_by	a string that specifies the primary sort order for this entry (secondary sort order is by style name)
+depends_id	the unique ID number of the referenced external utility that's required for this style (the ID corresponds to the depends_id number of the utility's entry within the "depends" table)
+
+
+
+column types
+------------
+
+style_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+style_name	VARCHAR(100)
+style_enabled	ENUM("true","false") NOT NULL
+style_spec	VARCHAR(255)
+order_by	VARCHAR(25)
+depends_id	MEDIUMINT UNSIGNED NOT NULL
+
+INDEX	(style_name)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE styles (style_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, style_name VARCHAR(100), style_enabled ENUM("true","false") NOT NULL, style_spec VARCHAR(255), order_by VARCHAR(25), depends_id MEDIUMINT UNSIGNED NOT NULL, INDEX (style_name));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/styles.txt" INTO TABLE styles;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/styles.txt"
+

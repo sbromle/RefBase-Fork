@@ -1,0 +1,63 @@
+Suggestions for improving refbase:
+
+- Increase number of supported resource types and allow users to add their own
+  types. A hierarchical system with basic fallback types would be desirable.
+
+- Provide additional citation formats, preferably via the use of a plugin
+  mechanism which would make it easy to add your own citation styles.
+
+- Improved search capabilities which, e.g., allow for 'OR' searches and/or a
+  Google-like search syntax. More flexible handling of accented characters and
+  umlauts would be also desirable.
+
+- Cross-site searches (both through other copies of refbase and through other
+  bibliographic databases).
+
+- More user-specific and record-specific rights management.
+
+- Improved export through both revisions to the current MODS XML/bibutils system
+  and through adding more native export options which wouldn't require bibutils.
+
+- Easier import of bibliographic data from web sources via bookmarklets and/or
+  scrapers.
+
+- Offer a notes/comment system where multiple notes (of unlimited length) would
+  be allowed for a particular record and where notes would be searchable, and
+  could be made public, group-specific or private.
+
+- Open up the refbase group (aka tagging) mechanism so that groups can be made
+  public, group-specific or private.
+
+- Implement auto-completion mechanisms for authors, keywords, groups, etc.
+
+- Provide a machine-readable interface in form of an API that allows clients to
+  query a refbase database, retrieve results in a structured format and modify
+  any database information.
+
+- More embedding of citation metadata in HTML pages in a machine-readable form
+  (such as embedded RDF or microformats) which may be processed by clients.
+
+- User customization: provide a user-specific preferences page where one can
+  specify the default columns that are visible in query results or the default
+  fields that are visible in particular search forms.
+
+- Simplify manual data input by providing record type specific forms. These
+  forms could guide a user by only showing those fields that are required for a
+  particular record type (like journal articles, book chapters or whole books).
+
+- Validation of data entered/imported by the user.
+
+- Important configuration settings should be made available via the web
+  interface upon installation or update.
+
+- Provide better interface customization via a templating mechanism and/or
+  improved CSS styling.
+
+- Offer the user means for handling duplicate database entries.
+
+- Provide an administrative interface to deleted records.
+
+- Enable remembering of marked records across different requests.
+
+A more detailed list of planned feature additions is given at:
+  <http://wiki.refbase.net/index.php/Planned_feature_additions>

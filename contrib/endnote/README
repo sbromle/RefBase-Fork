@@ -1,0 +1,42 @@
+endnote2refbase
+===============
+
+Author
+------
+  Richard Karnesky <karnesky@gmail.com>
+
+About
+-----
+  This is an alternative to refbase's web-based import of Endnote data.  It
+  allows  Endnote users to export a text file which can be imported into the
+  refbase MySQL database.
+
+Use
+---
+  Part I: Endnote
+  - Copy refbase.ens into your Endnote styles directory.
+    On win32 systems, this is typically:
+      C:\Program Files\Endnote\Styles
+    On Mac systems, this is typically:
+      Macintosh HD\Applications\EndNote #\Styles
+    (where # corresponds to a version #)
+  - Open the Endnote file you wish to import into refbase.
+  - Choose the refbase Output Style
+  - Export to 'endnote.txt'
+  Part II: PHP [*]
+  - Executing 'php endnote2mysql.php' will produce 'import.txt'
+    ('php' must be in your path or you should prefix it with the path to php)
+  Part III: Check it!
+  - As this is a preliminary script that has undergone little testing, it is
+    suggested that you look at 'import.txt' in spreadsheet software.
+  - New versions of Endnote dump UTF-8 data.  You should be able to use this as
+    is if you have a UTF-8 database.  If you don't have a UTF-8 database, you
+    should convert the file to the character encoding you do use (using iconv,
+    recode, or <http://www.motobit.com/util/charset-codepage-conversion.asp>).
+  Part IV: MySQL [*]
+  - From within your MySQL command line interpreter (mysql -u root literature -p):
+      LOAD DATA LOCAL INFILE "import.txt" INTO TABLE refs; 
+
+[*]If you are comfortable that the script works and are on a system with a POSIX
+   shell (nearly all *nix, including OS X; Windows through Cygwin or similar),
+   you may use Andreas Czerniak's en-importer.sh to automate Parts II-IV.

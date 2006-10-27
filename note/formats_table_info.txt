@@ -1,0 +1,61 @@
+MySQL database "literature", table "formats"
+============================================
+
+field names
+-----------
+
+fields available in table "formats"	description
+-----------------------------------	-----------
+
+format_id	the unique ID number of this format entry
+format_name	the display name of this format as it occurs within the formats popup
+format_type	the type of this format, either 'import' or 'export'
+format_enabled	specifies globally whether the referenced format can be displayed within the formats popup ('true') [if a user chooses so] or not ('false')
+format_spec	the unique name of the file holding the function that will output this format (format files must be located either within the 'export' or the 'import' directory)
+order_by	a string that specifies the primary sort order for this entry (secondary sort order is by format name)
+depends_id	the unique ID number of the referenced external utility that's required for this format (the ID corresponds to the depends_id number of the utility's entry within the "depends" table)
+
+
+
+column types
+------------
+
+format_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+format_name	VARCHAR(100)
+format_type	ENUM("export","import") NOT NULL
+format_enabled	ENUM("true","false") NOT NULL
+format_spec	VARCHAR(255)
+order_by	VARCHAR(25)
+depends_id	MEDIUMINT UNSIGNED NOT NULL
+
+INDEX	(format_name)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE formats (format_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, format_name VARCHAR(100), format_type ENUM("export","import") NOT NULL, format_enabled ENUM("true","false") NOT NULL, format_spec VARCHAR(255), order_by VARCHAR(25), depends_id MEDIUMINT UNSIGNED NOT NULL, INDEX (format_name));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/formats.txt" INTO TABLE formats;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/formats.txt"
+

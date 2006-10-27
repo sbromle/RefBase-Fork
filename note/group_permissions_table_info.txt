@@ -1,0 +1,87 @@
+MySQL database "literature", table "group_permissions"
+======================================================
+
+field names
+-----------
+
+fields available in table "group_permissions"	description
+---------------------------------------------	-----------
+
+group_permission_id	the unique ID number of this group permission entry
+group_id	the group's unique ID number (which corresponds to the group_id number of the group's record entry within the "groups" table)
+allow_add	specifies whether this group is allowed to add records to the database
+allow_edit	specifies whether this group is allowed to edit records in the database
+allow_delete	specifies whether this group is allowed to delete records from the database
+allow_download	specifies whether this group is allowed to download files which are associated with particular records
+allow_upload	specifies whether this group is allowed to upload files to the database
+allow_details_view	specifies whether this group is allowed to view any record details
+allow_print_view	specifies whether this group is allowed to view records in print view
+allow_cite	specifies whether this group is allowed to build a reference list from selected records
+allow_import	specifies whether this group is allowed to import records into the database
+allow_batch_import	specifies whether this group is allowed to batch import records into the database
+allow_export	specifies whether this group is allowed to export records from the database
+allow_batch_export	specifies whether this group is allowed to batch export records from the database
+allow_user_groups	specifies whether this group is allowed to use the 'user groups' feature
+allow_user_queries	specifies whether this group is allowed to use the 'user queries' feature
+allow_rss_feeds	specifies whether this group is allowed to generate dynamic RSS feeds from any query
+allow_sql_search	specifies whether this group is allowed to execute custom SQL queries via 'sql_search.php'
+allow_modify_options	specifies whether this group is allowed to change his personal data (like name, address or password)
+allow_edit_call_number	specifies whether this group is allowed to fully edit the contents of the 'call_number' field (like the database admin)
+
+
+
+column types
+------------
+
+group_permission_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+group_id	MEDIUMINT UNSIGNED NOT NULL
+allow_add	ENUM('yes','no') NOT NULL
+allow_edit	ENUM('yes','no') NOT NULL
+allow_delete	ENUM('yes','no') NOT NULL
+allow_download	ENUM('yes','no') NOT NULL
+allow_upload	ENUM('yes','no') NOT NULL
+allow_details_view	ENUM('yes','no') NOT NULL
+allow_print_view	ENUM('yes','no') NOT NULL
+allow_cite	ENUM('yes','no') NOT NULL
+allow_import	ENUM('yes','no') NOT NULL
+allow_batch_import	ENUM('yes','no') NOT NULL
+allow_export	ENUM('yes','no') NOT NULL
+allow_batch_export	ENUM('yes','no') NOT NULL
+allow_user_groups	ENUM('yes','no') NOT NULL
+allow_user_queries	ENUM('yes','no') NOT NULL
+allow_rss_feeds	ENUM('yes','no') NOT NULL
+allow_sql_search	ENUM('yes','no') NOT NULL
+allow_modify_options	ENUM('yes','no') NOT NULL
+allow_edit_call_number	ENUM('no','yes') NOT NULL
+
+INDEX	(group_id)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE group_permissions (group_permission_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, group_id MEDIUMINT UNSIGNED NOT NULL, allow_add ENUM('yes','no') NOT NULL, allow_edit ENUM('yes','no') NOT NULL, allow_delete ENUM('yes','no') NOT NULL, allow_download ENUM('yes','no') NOT NULL, allow_upload ENUM('yes','no') NOT NULL, allow_details_view ENUM('yes','no') NOT NULL, allow_print_view ENUM('yes','no') NOT NULL, allow_cite ENUM('yes','no') NOT NULL, allow_import ENUM('yes','no') NOT NULL, allow_batch_import ENUM('yes','no') NOT NULL, allow_export ENUM('yes','no') NOT NULL, allow_batch_export ENUM('yes','no') NOT NULL, allow_user_groups ENUM('yes','no') NOT NULL, allow_user_queries ENUM('yes','no') NOT NULL, allow_rss_feeds ENUM('yes','no') NOT NULL, allow_sql_search ENUM('yes','no') NOT NULL, allow_modify_options ENUM('yes','no') NOT NULL, allow_edit_call_number ENUM('no','yes') NOT NULL, INDEX (group_id));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/group_permissions.txt" INTO TABLE group_permissions;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/group_permissions.txt"
+

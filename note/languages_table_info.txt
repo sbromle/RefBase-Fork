@@ -1,0 +1,55 @@
+MySQL database "literature", table "languages"
+==============================================
+
+field names
+-----------
+
+fields available in table "languages"	description
+-------------------------------------	-----------
+
+language_id	the unique ID number of this language entry
+language_name	the display name of this language as it occurs within the languages popup
+language_enabled	specifies globally whether the referenced language can be displayed within the languages popup ('true') [if a user chooses so] or not ('false')
+order_by	a string that specifies the primary sort order for this entry (secondary sort order is by language name)
+
+
+
+column types
+------------
+
+language_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+language_name	VARCHAR(50)
+language_enabled	ENUM("true","false") NOT NULL
+order_by	VARCHAR(25)
+
+INDEX	(language_name)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE languages (language_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, language_name VARCHAR(50), language_enabled ENUM("true","false") NOT NULL, order_by VARCHAR(25), INDEX (language_name));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/languages.txt" INTO TABLE languages;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/languages.txt"
+

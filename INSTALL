@@ -1,0 +1,140 @@
+How to install?
+---------------
+- You'll need a web server and an existing PHP and MySQL installation.
+  If you require help on installation of these packages please visit
+  <http://httpd.apache.org/>, <http://www.php.net/> and
+  <http://www.mysql.com/>.
+
+- Move all refbase-0.9.0 files to your web directory.
+
+- Open the file 'initialize/db.inc.php' in a text editor and edit the values of
+  the variables '$databaseName', '$username' and '$password' to fit your needs.
+  (Note that you'll be able to use the refbase package without modifying
+   these variables, but we highly recommend not to use the default values!)
+
+- Now, open a web browser and access the 'install.php' script by typing:
+
+    <http://SERVER_ADDRESS/PATH_ON_SERVER/install.php>
+       
+  (where the string 'SERVER_ADDRESS' is replaced by your server name and
+   'PATH_ON_SERVER' is the actual path to your refbase-0.9.0 web directory)
+
+  This should bring up the install form. Edit the contents of all text entry
+  fields to match your server setup and supply the MySQL admin password, then
+  click the 'Install' button to install the database.
+
+  WIN32: Be sure to set a password for the MySQL root user. The path to MySQL
+         is probably '/Program Files/MySQL/bin/mysql.exe' or
+         '/wamp/mysql/bin/mysql.exe', depending on how you installed MySQL.
+
+Solutions for known problems and general troubleshooting tips are given at:
+  <http://wiki.refbase.net/index.php/Installation-Troubleshooting>
+  <http://wiki.refbase.net/index.php/Troubleshooting>
+  <http://install.refbase.net>
+
+
+
+How to setup your own admin user?
+---------------------------------
+- After you've successfully installed the database (see above), open the main
+  page ('index.php') and login with:
+
+    email address  =  user@refbase.net
+    password       =  start
+
+  You should see now a welcome message at the top right corner of the page
+  confirming your successful login.
+
+- Click on 'Add User' which should bring up an empty form. At a minimum, you
+  have to specify the admin's first name & last name, his institutional
+  abbreviation as well as his email address and password. Then click the 'Add
+  User' button. You will be shown a receipt page with the account details you
+  just entered.
+
+- Now open the file 'initialize/ini.inc.php' in a text editor and change the
+  value of the '$adminLoginEmail' variable to the email address you've specified
+  for your new admin user.
+
+- Log out from the database, then login again using the email address and
+  password of your newly created admin account.
+
+- You can now delete the initial user by choosing 'Manage Users' and clicking
+  the appropriate trash icon. (However, we recommend to keep this user until
+  you've explored the example records that come with the database)
+
+
+
+How to configure the database?
+------------------------------
+In order to properly configure your database you'll need to edit the global
+configuration file:
+
+- Open the file 'initialize/ini.inc.php' & edit all values of the contained
+  variables to fit your needs. Please see the comments within the file for
+  further guidance.
+
+  Especially note that if you've chosen 'utf8' (Unicode) as default character
+  set on installation, you must re-save the file 'ini.inc.php' with Unicode
+  encoding (UTF-8, no BOM) and set variable '$contentTypeCharset' to 'UTF-8'.
+
+See also:
+  <http://configure.refbase.net>
+
+
+
+Import Options
+--------------
+refbase offers batch import of records via the web interface ('import.php') or
+the command line ('contrib/command_line/refbase_import'). These scripts allow to
+import records from various common bibliographic formats (Endnote tagged text,
+RIS, RefWorks, BibTeX, Copac or MODS XML) as well as from online databases (ISI
+Web of Science, PubMed (MEDLINE & XML) and Cambridge Scientific Abstracts).
+
+If you're coming from Endnote you may want to try out the Endnote style file and
+PHP script that's included with refbase. This style file and PHP script allows
+Endnote users to transfer data into refbase at the command line (see the README
+file in the 'contrib/endnote' directory for further information).
+
+In addition, refbase allows PHP developers to write their own import parsers and
+use the provided templates to import their records into the refbase database (see
+the 'contrib/import_templates' directory for available templates).
+
+If you can't use any of the above mentioned import options, you might be able to
+convert your data into a tab-delimited text format that can be imported directly
+into the MySQL database. Here are some notes how to prepare tab-delimited data
+for direct upload into your newly created MySQL tables:
+
+- Fields are separated by tabs, records are separated by returns
+  (if not specified otherwise within the LOAD DATA statement).
+
+- The order of fields must resemble the field order specified in the MySQL table
+  'refs'. Field information for table 'refs' is given at:
+    <http://wiki.refbase.net/index.php/Table_refs>
+
+- DATE format must be YYYY-MM-DD and TIME format must be HH:MM:SS.
+
+- Carriage returns *within* fields must be represented by a newline character
+  ('\n', ASCII character 10).
+
+- Empty fields must be indicated by \N.
+
+- Character encoding: if you've chose 'latin1' as default character set upon
+  installation, higher ASCII chars must be encoded as ISO-8859-1 aka 'Western
+  (ISO Latin 1)', otherwise data should be encoded as Unicode (UTF-8, no BOM).
+
+- File encoding must be UNIX.
+
+- Assuming your data file is named 'refs.txt', you should be able to upload your
+  data via use of the 'mysql' command line interpreter:
+
+    LOAD DATA LOCAL INFILE "/PATH/TO/FILE/refs.txt" INTO TABLE refs;
+
+  or, alternatively, use something like the following from your shell:
+
+    mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/refs.txt"
+
+  Note that if you're going to use the mysqlimport data import program the data
+  file *must* be named 'refs.txt'.
+
+See also:
+  <http://import.refbase.net>

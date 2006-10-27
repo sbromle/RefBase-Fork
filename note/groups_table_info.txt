@@ -1,0 +1,52 @@
+MySQL database "literature", table "groups"
+===========================================
+
+field names
+-----------
+
+fields available in table "groups"	description
+----------------------------------	-----------
+
+group_id	the unique ID number of this group entry
+group_name	the display name of this group as it occurs within the groups popup in the user management interface
+order_by	a string that specifies the primary sort order for this entry (secondary sort order is by group name)
+
+
+column types
+------------
+
+group_id	MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+group_name	VARCHAR(100)
+order_by	VARCHAR(25)
+
+INDEX	(group_name)
+
+
+
+table creation code
+-------------------
+
+CREATE TABLE groups (group_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, group_name VARCHAR(100), order_by VARCHAR(25), INDEX (group_name));
+
+
+rules for data import
+---------------------
+- fields are separated by tabs, records are separated by returns (if not specified otherwise within the LOAD DATA statement)
+- order of fields must resemble the above field order!
+- DATE format must be YYYY-MM-DD
+- TIME format must be HH:MM:SS
+- carriage returns *within* fields (ASCII character 11) must be replaced with a "UNIX return" (ASCII character 10) -> Search for:  (\x0B)  Replace with: \\n
+- empty fields are indicated by \N -> Search for: (?<=\t|^)(?=\t|$)   Replace with: \\N
+- character encoding: higher ASCII chars must be encoded as ISO-8859-1
+- file encoding must be UNIX
+
+
+load data code
+--------------
+
+LOAD DATA LOCAL INFILE "/PATH/TO/FILE/groups.txt" INTO TABLE groups;
+
+or, alternatively, use something like the following from your shell:
+
+mysqlimport --local -u root -p YOUR_DB_NAME "/PATH/TO/FILE/groups.txt"
+
