@@ -1,0 +1,16 @@
+mediawiki-monobook skin for refbase
+===================================
+
+Author
+------
+  Richard Karnesky <karnesky@gmail.com>
+
+About
+-----
+  These files mimic the Monobook skin from MediaWiki:
+    <http://www.mediawiki.org/>
+  This is the default skin for the Wikipedia:
+    <http://wikipedia.org/>
+  An installation of refbase that uses this skin is the Northwestern University
+  Center for Atom-Probe Tomography:
+    <http://arc.nucapt.northwestern.edu/refbase/>
