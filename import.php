@@ -260,7 +260,7 @@
 				. "\n\t<td valign=\"top\"><input type=\"radio\" name=\"importRecordsRadio\" value=\"all\"$importRecordsRadioAllChecked title=\"choose 'All' if you want to import all pasted records at once\">&nbsp;All</td>"
 				. "\n</tr>"
 				. "\n<tr>"
-				. "\n\t<td valign=\"top\">" . fieldError("importRecords", $errors) . "<input type=\"radio\" name=\"importRecordsRadio\" value=\"only\"$importRecordsRadioOnlyChecked title=\"choose 'Only' if you just want to import particular records from the pasted source data\">&nbsp;Only:&nbsp;&nbsp;<input type=\"text\" name=\"importRecords\" value=\"$importRecords\" size=\"5\" title=\"enter the record number(s) here: e.g. enter '1-5' to import the first five records; or enter '1 3-5 7' to import records 1, 3, 4, 5 and 7\"></td>";
+				. "\n\t<td valign=\"top\">" . fieldError("importRecords", $errors) . "<input type=\"radio\" name=\"importRecordsRadio\" value=\"only\"$importRecordsRadioOnlyChecked title=\"choose 'Only' if you just want to import particular records\">&nbsp;Only:&nbsp;&nbsp;<input type=\"text\" name=\"importRecords\" value=\"$importRecords\" size=\"5\" title=\"enter record number(s): e.g. '1-5 7' imports the first five and the seventh\"></td>";
 	}
 //	else
 //	{
