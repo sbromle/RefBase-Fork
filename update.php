@@ -292,7 +292,10 @@
 		$values = "(NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '6', '1')";
 		$resultArray["Table 'styles': inserted style 'J Glaciol'"] = insertIfNotExists("style_name", "J Glaciol", $tableStyles, $values);
 
-		$query = "UPDATE " . $tableStyles . " SET order_by = '7' WHERE style_name = 'Text Citation'";
+		$values = "(NULL, 'APA', 'true', 'styles/APA.php', '7', '1')";
+		$resultArray["Table 'styles': inserted style 'APA'"] = insertIfNotExists("style_name", "APA", $tableStyles, $values);
+
+		$query = "UPDATE " . $tableStyles . " SET order_by = '8' WHERE style_name = 'Text Citation'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'styles': updated 'Text Citation' style. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 

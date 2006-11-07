@@ -335,13 +335,15 @@ CREATE TABLE `styles` (
 # data for table `styles`
 #
 
-INSERT INTO `styles` VALUES (1, 'Polar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', '1', 1),
-(2, 'Mar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', '2', 1),
-(3, 'MEPS', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', '3', 1),
-(4, 'Deep Sea Res', 'true', 'styles/cite_DeepSeaRes.php', '4', 1),
-(5, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '5', 1),
-(6, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '6', 1),
-(7, 'Text Citation', 'true', 'styles/cite_TextCitation.php', '7', 1);
+INSERT INTO `styles` VALUES
+(1, 'APA', 'true', 'styles/cite_APA.php', '1', 1),
+(2, 'Polar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', '2', 1),
+(3, 'Mar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', '3', 1),
+(4, 'MEPS', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', '4', 1),
+(5, 'Deep Sea Res', 'true', 'styles/cite_DeepSeaRes.php', '5', 1),
+(6, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '6', 1),
+(7, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '7', 1),
+(8, 'Text Citation', 'true', 'styles/cite_TextCitation.php', '8', 1);
 
 # --------------------------------------------------------
 

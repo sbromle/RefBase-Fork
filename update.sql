@@ -77,7 +77,10 @@ UPDATE `styles` SET `style_spec` = REPLACE(`style_spec`,"cite_","styles/cite_") 
 INSERT INTO `styles` VALUES (NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '5', 1),
 (NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '6', 1);
 
-UPDATE `styles` SET `order_by` = '7' WHERE `style_name` = 'Text Citation';
+(INSERT INTO `styles` VALUES (NULL, 'APA', 'true', 'styles/cite_APA.php', '7', 1),
+
+
+UPDATE `styles` SET `order_by` = '8' WHERE `style_name` = 'Text Citation';
 
 # --------------------------------------------------------
 
