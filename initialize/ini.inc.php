@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./initialize/ini.inc.php
 	// Created:    12-Jan-03, 17:58
-	// Modified:   22-Oct-06, 01:54
+	// Modified:   07-Nov-06, 14:30
 
 	// This is the customization include file.
 	// It contains variables that are common to all scripts and whose values can/should be customized.
@@ -149,7 +149,8 @@
 
 	// When adding a new user, the following citation styles will be made available to the new user by default:
 	// The specified citation styles must have matching entries within the 'styles' MySQL table.
-	$defaultUserStyles = array("Polar Biol",
+	$defaultUserStyles = array("APA",
+								"Polar Biol",
 								"Deep Sea Res",
 								"J Glaciol",
 								"Text Citation");
@@ -219,7 +220,7 @@
 	// The name of the default citation style:
 	// This name must correspond to an entry within the 'styles' MySQL table.
 	// It will be used for citation output within 'show.php' and the 'generateRSS()' function.
-	$defaultCiteStyle = "Polar Biol";
+	$defaultCiteStyle = "APA";
 
 
 	// The default text citation format:

@@ -4,7 +4,7 @@
 #             Please see the GNU General Public License for more details.
 # File:       ./update.sql
 # Created:    01-Mar-05, 16:54
-# Modified:   21-Oct-06, 22:18
+# Modified:   07-Nov-06, 14:15
 
 # This MySQL database structure file will update any refbase v0.8.0 database to v0.9.0
 
@@ -25,7 +25,7 @@ CREATE TABLE `formats` (
   `depends_id` mediumint(8) unsigned NOT NULL default '0',
   PRIMARY KEY  (`format_id`),
   KEY `format_name` (`format_name`)
-) TYPE=MyISAM AUTO_INCREMENT=25 ;
+) TYPE=MyISAM;
 
 #
 # data for table `formats`
@@ -74,13 +74,15 @@ UPDATE `languages` SET `language_enabled` = 'true' WHERE `language_name` = 'de';
 
 UPDATE `styles` SET `style_spec` = REPLACE(`style_spec`,"cite_","styles/cite_") WHERE `style_spec` RLIKE "^cite_";
 
-INSERT INTO `styles` VALUES (NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '5', 1),
-(NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '6', 1);
+INSERT INTO `styles` VALUES (NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B050', 1),
+(NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B060', 1),
+(NULL, 'APA', 'true', 'styles/cite_APA.php', 'A010', 1);
 
-(INSERT INTO `styles` VALUES (NULL, 'APA', 'true', 'styles/cite_APA.php', '7', 1),
-
-
-UPDATE `styles` SET `order_by` = '8' WHERE `style_name` = 'Text Citation';
+UPDATE `styles` SET `order_by` = 'C010' WHERE `style_name` = 'Text Citation';
+UPDATE `styles` SET `order_by` = 'B010' WHERE `style_name` = 'Polar Biol';
+UPDATE `styles` SET `order_by` = 'B020' WHERE `style_name` = 'Mar Biol';
+UPDATE `styles` SET `order_by` = 'B030' WHERE `style_name` = 'MEPS';
+UPDATE `styles` SET `order_by` = 'B040' WHERE `style_name` = 'Deep Sea Res';
 
 # --------------------------------------------------------
 
@@ -103,7 +105,7 @@ CREATE TABLE `user_options` (
   `text_citation_format` varchar(255) default NULL,
   PRIMARY KEY  (`option_id`),
   KEY `user_id` (`user_id`)
-) TYPE=MyISAM AUTO_INCREMENT=3 ;
+) TYPE=MyISAM;
 
 #
 # data for table `user_options`

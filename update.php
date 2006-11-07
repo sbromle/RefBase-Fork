@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./update.php
 	// Created:    01-Mar-05, 20:47
-	// Modified:   22-Oct-06, 01:38
+	// Modified:   07-Nov-06, 14:30
 
 	// This file will update any refbase MySQL database installation from v0.8.0 (and, to a certain extent, intermediate cvs versions) to v0.9.0.
 	// (Note that this script currently doesn't offer any conversion from 'latin1' to 'utf8')
@@ -286,18 +286,34 @@
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'styles': updated 'style_spec' field. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		$values = "(NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '5', '1')";
+		$values = "(NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B050', '1')";
 		$resultArray["Table 'styles': inserted style 'Ann Glaciol'"] = insertIfNotExists("style_name", "Ann Glaciol", $tableStyles, $values);
 
-		$values = "(NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '6', '1')";
+		$values = "(NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B060', '1')";
 		$resultArray["Table 'styles': inserted style 'J Glaciol'"] = insertIfNotExists("style_name", "J Glaciol", $tableStyles, $values);
 
-		$values = "(NULL, 'APA', 'true', 'styles/cite_APA.php', '7', '1')";
+		$values = "(NULL, 'APA', 'true', 'styles/cite_APA.php', 'A010', '1')";
 		$resultArray["Table 'styles': inserted style 'APA'"] = insertIfNotExists("style_name", "APA", $tableStyles, $values);
 
-		$query = "UPDATE " . $tableStyles . " SET order_by = '8' WHERE style_name = 'Text Citation'";
+		$query = "UPDATE " . $tableStyles . " SET order_by = 'C010' WHERE style_name = 'Text Citation'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'styles': updated 'Text Citation' style. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableStyles . " SET order_by = 'B010' WHERE style_name = 'Polar Biol'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'styles': updated 'Polar Biol' style. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableStyles . " SET order_by = 'B020' WHERE style_name = 'Mar Biol'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'styles': updated 'Mar Biol' style. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableStyles . " SET order_by = 'B030' WHERE style_name = 'MEPS'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'styles': updated 'MEPS' style. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableStyles . " SET order_by = 'B040' WHERE style_name = 'Deep Sea Res'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'styles': updated 'Deep Sea Res' style. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
 		// (2.7) Add the french language option to table 'languages'
 		$values = "(NULL, 'fr', 'true', '3')";
