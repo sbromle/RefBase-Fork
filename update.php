@@ -292,7 +292,7 @@
 		$values = "(NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', '6', '1')";
 		$resultArray["Table 'styles': inserted style 'J Glaciol'"] = insertIfNotExists("style_name", "J Glaciol", $tableStyles, $values);
 
-		$values = "(NULL, 'APA', 'true', 'styles/APA.php', '7', '1')";
+		$values = "(NULL, 'APA', 'true', 'styles/cite_APA.php', '7', '1')";
 		$resultArray["Table 'styles': inserted style 'APA'"] = insertIfNotExists("style_name", "APA", $tableStyles, $values);
 
 		$query = "UPDATE " . $tableStyles . " SET order_by = '8' WHERE style_name = 'Text Citation'";
@@ -402,7 +402,7 @@
 
 		// Fetch IDs for all styles that shall be enabled:
 		$styleIDArray = array(); // with just one citation style to enable, this code block is currently overkill, but future needs may be different
-		$query = "SELECT style_id, style_name FROM " . $tableStyles . " WHERE style_name RLIKE '^(J Glaciol)$'";
+		$query = "SELECT style_id, style_name FROM " . $tableStyles . " WHERE style_name RLIKE '^(J Glaciol|APA)$'";
 		$result = queryMySQLDatabase($query, "");
 		$rowsFound = @ mysql_num_rows($result);
 		if ($rowsFound > 0)
