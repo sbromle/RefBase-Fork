@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./includes/include.inc.php
 	// Created:    16-Apr-02, 10:54
-	// Modified:   07-Oct-06, 21:10
+	// Modified:   20-Nov-06, 20:15
 
 	// This file contains important
 	// functions that are shared
@@ -1761,6 +1761,8 @@ EOF;
 		$authorCount = count($authorsArray); // check how many authors we have to deal with
 		$newAuthorContents = ""; // this variable will hold the final author string
 		$includeStringAfterFirstAuthor = false;
+		if (empty($includeNumberOfAuthors))
+			$includeNumberOfAuthors = $authorCount;
 
 		for ($i=0; $i < $authorCount; $i++)
 		{
@@ -1805,7 +1807,7 @@ EOF;
 				$newAuthorContents .= $singleAuthorString;
 
 				// we'll append the string in '$customStringAfterFirstAuthor' to the first author if number of authors is greater than the number given in '$includeNumberOfAuthors':
-				if (!empty($includeNumberOfAuthors) AND ($authorCount > $includeNumberOfAuthors))
+				if (($includeNumberOfAuthors>0) AND ($authorCount > $includeNumberOfAuthors))
 				{
 					if (ereg("__NUMBER_OF_AUTHORS__", $customStringAfterFirstAuthor))
 						$customStringAfterFirstAuthor = preg_replace("/__NUMBER_OF_AUTHORS__/", ($authorCount -1), $customStringAfterFirstAuthor); // resolve placeholder
@@ -1813,6 +1815,13 @@ EOF;
 					$includeStringAfterFirstAuthor = true;
 					break;
 				}
+			}
+			elseif (($includeNumberOfAuthors<0) AND ($i == -$includeNumberOfAuthors)) { // -> last author
+				if (ereg("__NUMBER_OF_AUTHORS__", $customStringAfterFirstAuthor))
+					$customStringAfterFirstAuthor = preg_replace("/__NUMBER_OF_AUTHORS__/", ($authorCount + $includeNumberOfAuthors), $customStringAfterFirstAuthor); // resolve placeholder
+
+				$includeStringAfterFirstAuthor = true;
+				break;
 			}
 			elseif (($authorCount > 1) AND (($i + 1) == $authorCount)) // -> last author
 				$newAuthorContents .= $newBetweenAuthorsDelimLastAuthor . $singleAuthorString;

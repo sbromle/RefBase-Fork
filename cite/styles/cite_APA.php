@@ -5,14 +5,13 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/styles/cite_APA.php
 	// Created:    06-Nov-06, 13:00
+	// Modified:   11-Nov-06, 20:00
 
 	// This is a citation style file (which must reside within the 'cite/styles/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecord()' function that outputs a reference list from selected records according to the citation style used by
 	// the APA
 
 	// based on cite_AnnGlaciol_JGlaciol.php
-
-	// TODO: et al should follow ALL SIX authors (not just the first) and should not have an "&"
 
 	/*
 	Code adopted from example code by Hugh E. Williams and David Lane, authors of the book
@@ -67,7 +66,7 @@
 															false, // 10.
 															false, // 11.
 															true, // 12.
-															"6", // 13.
+															"-6", // 13.
 															", et al.", // 14.
 															$encodeHTML); // 15.
 
@@ -205,7 +204,7 @@
 															false, // 10.
 															false, // 11.
 															true, // 12.
-															"6", // 13.
+															"-6", // 13.
 															", et al.", // 14.
 															$encodeHTML); // 15.
 
@@ -271,7 +270,7 @@
 															true, // 10.
 															true, // 11.
 															true, // 12.
-															"6", // 13.
+															"-6", // 13.
 															", et al.", // 14.
 															$encodeHTML); // 15.
 
@@ -380,7 +379,7 @@
 															false, // 10.
 															false, // 11.
 															true, // 12.
-															"6", // 13.
+															"-6", // 13.
 															", et al.", // 14.
 															$encodeHTML); // 15.
 
