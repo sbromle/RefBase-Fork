@@ -4,7 +4,7 @@
 #             Please see the GNU General Public License for more details.
 # File:       ./install_utf8.sql
 # Created:    02-Oct-04, 20:11
-# Modified:   07-Nov-06, 14:00
+# Modified:   13-Nov-06, 15:30
 
 # MySQL database structure & initial data (for use with 'utf8' character set)
 
@@ -348,13 +348,14 @@ CREATE TABLE `styles` (
 
 INSERT INTO `styles` VALUES
 (1, 'APA', 'true', 'styles/cite_APA.php', 'A010', 1),
-(2, 'Polar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B010', 1),
-(3, 'Mar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B020', 1),
-(4, 'MEPS', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B030', 1),
-(5, 'Deep Sea Res', 'true', 'styles/cite_DeepSeaRes.php', 'B040', 1),
-(6, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B050', 1),
-(7, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B060', 1),
-(8, 'Text Citation', 'true', 'styles/cite_TextCitation.php', 'C010', 1);
+(2, 'MLA', 'true', 'styles/cite_MLA.php', 'A030', 1),
+(3, 'Polar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B010', 1),
+(4, 'Mar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B020', 1),
+(5, 'MEPS', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B030', 1),
+(6, 'Deep Sea Res', 'true', 'styles/cite_DeepSeaRes.php', 'B040', 1),
+(7, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B050', 1),
+(8, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B060', 1),
+(9, 'Text Citation', 'true', 'styles/cite_TextCitation.php', 'C010', 1);
 
 # --------------------------------------------------------
 
@@ -578,14 +579,16 @@ CREATE TABLE `user_styles` (
 
 INSERT INTO `user_styles` VALUES (1, 1, 0, 'true'),
 (2, 2, 0, 'true'),
-(3, 5, 0, 'true'),
-(4, 7, 0, 'true'),
+(3, 3, 0, 'true'),
+(4, 6, 0, 'true'),
 (5, 8, 0, 'true'),
-(6, 1, 1, 'true'),
-(7, 2, 1, 'true'),
-(8, 5, 1, 'true'),
-(9, 7, 1, 'true'),
-(10, 8, 1, 'true');
+(6, 9, 0, 'true'),
+(7, 1, 1, 'true'),
+(8, 2, 1, 'true'),
+(9, 3, 1, 'true'),
+(10, 6, 1, 'true'),
+(11, 8, 1, 'true'),
+(12, 9, 1, 'true');
 
 # --------------------------------------------------------
 

@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./initialize/ini.inc.php
 	// Created:    12-Jan-03, 17:58
-	// Modified:   07-Nov-06, 14:30
+	// Modified:   13-Nov-06, 15:30
 
 	// This is the customization include file.
 	// It contains variables that are common to all scripts and whose values can/should be customized.
@@ -150,6 +150,7 @@
 	// When adding a new user, the following citation styles will be made available to the new user by default:
 	// The specified citation styles must have matching entries within the 'styles' MySQL table.
 	$defaultUserStyles = array("APA",
+								"MLA",
 								"Polar Biol",
 								"Deep Sea Res",
 								"J Glaciol",

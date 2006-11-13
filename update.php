@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./update.php
 	// Created:    01-Mar-05, 20:47
-	// Modified:   07-Nov-06, 14:30
+	// Modified:   13-Nov-06, 15:40
 
 	// This file will update any refbase MySQL database installation from v0.8.0 (and, to a certain extent, intermediate cvs versions) to v0.9.0.
 	// (Note that this script currently doesn't offer any conversion from 'latin1' to 'utf8')
@@ -294,6 +294,9 @@
 
 		$values = "(NULL, 'APA', 'true', 'styles/cite_APA.php', 'A010', '1')";
 		$resultArray["Table 'styles': inserted style 'APA'"] = insertIfNotExists("style_name", "APA", $tableStyles, $values);
+		
+		$values = "(NULL, 'MLA', 'true', 'styles/cite_MLA.php', 'A010', '1')";
+		$resultArray["Table 'styles': inserted style 'MLA'"] = insertIfNotExists("style_name", "MLA", $tableStyles, $values);
 
 		$query = "UPDATE " . $tableStyles . " SET order_by = 'C010' WHERE style_name = 'Text Citation'";
 		$result = queryMySQLDatabase($query, "");
@@ -418,7 +421,7 @@
 
 		// Fetch IDs for all styles that shall be enabled:
 		$styleIDArray = array(); // with just one citation style to enable, this code block is currently overkill, but future needs may be different
-		$query = "SELECT style_id, style_name FROM " . $tableStyles . " WHERE style_name RLIKE '^(J Glaciol|APA)$'";
+		$query = "SELECT style_id, style_name FROM " . $tableStyles . " WHERE style_name RLIKE '^(J Glaciol|APA|MLA)$'";
 		$result = queryMySQLDatabase($query, "");
 		$rowsFound = @ mysql_num_rows($result);
 		if ($rowsFound > 0)
