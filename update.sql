@@ -4,7 +4,7 @@
 #             Please see the GNU General Public License for more details.
 # File:       ./update.sql
 # Created:    01-Mar-05, 16:54
-# Modified:   13-Nov-06, 15:30
+# Modified:   13-Nov-06, 17:30
 
 # This MySQL database structure file will update any refbase v0.8.0 database to v0.9.0
 
@@ -76,7 +76,7 @@ UPDATE `styles` SET `style_spec` = REPLACE(`style_spec`,"cite_","styles/cite_") 
 
 INSERT INTO `styles` VALUES (NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B050', 1),
 (NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B060', 1),
-(NULL, 'APA', 'true', 'styles/cite_APA.php', 'A010', 1);
+(NULL, 'APA', 'true', 'styles/cite_APA.php', 'A010', 1),
 (NULL, 'MLA', 'true', 'styles/cite_MLA.php', 'A030', 1);
 
 UPDATE `styles` SET `order_by` = 'C010' WHERE `style_name` = 'Text Citation';
