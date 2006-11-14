@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./includes/include.inc.php
 	// Created:    16-Apr-02, 10:54
-	// Modified:   20-Nov-06, 20:15
+	// Modified:   13-Nov-06, 18:20
 
 	// This file contains important
 	// functions that are shared
@@ -1884,7 +1884,10 @@ EOF;
 		$authorPosition = ($authorPosition-1); // php array elements start with "0", so we decrease the authors position by 1
 		$singleAuthor = $authorsArray[$authorPosition]; // for the author in question, extract the full author name (last name & initials)
 		$singleAuthorArray = split($oldAuthorsInitialsDelim, $singleAuthor); // then, extract author name & initials to separate list items
-		$singleAuthorsGivenName = $singleAuthorArray[1]; // extract this author's last name into a new variable
+		if (!empty($singleAuthorArray[1]))
+			$singleAuthorsGivenName = $singleAuthorArray[1]; // extract this author's last name into a new variable
+		else
+			$singleAuthorsGivenName='';
 
 		return $singleAuthorsGivenName;
 	}
