@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/styles/cite_MLA.php
 	// Created:    13-Nov-06, 15:00
-	// Modified:   13-Nov-06, 18:45
+	// Modified:   13-Nov-06, 19:15
 
 	// This is a citation style file (which must reside within the 'cite/styles/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecord()' function that outputs a reference list from selected records according to the citation style used by
@@ -13,7 +13,7 @@
 
 	// based on cite_APA.php
 
-	// TODO: Fix weird non-replacement of <,>
+	// TODO: 
 	//       Add support for series/volumes 
 	//       Citation of theses?
 	//       ", and" vs "and"?
@@ -140,7 +140,10 @@
 						if (!empty($row['online_citation']) OR (empty($row['online_citation']) AND (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))))		// only add "." if online_citation isn't empty, or else if either volume, issue, abbrev_journal or publication isn't empty
 							$record .= ".";
 
-						$record .= " " . $today . " <http://dx.doi.org/" . $row['doi'] . ">";
+						if ($encodeHTML)
+							$record .= " " . $today . encodeHTML(" <http://dx.doi.org/" . $row['doi'] . ">");
+						else
+							$record .= " " . $today . " <http://dx.doi.org/" . $row['doi'] . ">";
 					}
 					elseif (!empty($row['url']))			// doi
 					{
@@ -148,6 +151,10 @@
 							$record .= ".";
 
 						$record .= " " . $today . " <" . $row['url'] . ">";
+						if ($encodeHTML)
+							$record .= " " . $today . encodeHTML(" <" . $row['url'] . ">");
+						else
+							$record .= " " . $today . " <" . $row['url'] . ">";
 					}
 
 				}
