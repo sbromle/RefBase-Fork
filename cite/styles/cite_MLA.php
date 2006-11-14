@@ -5,6 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/styles/cite_MLA.php
 	// Created:    13-Nov-06, 15:00
+	// Modified:   13-Nov-06, 18:45
 
 	// This is a citation style file (which must reside within the 'cite/styles/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecord()' function that outputs a reference list from selected records according to the citation style used by
@@ -12,8 +13,10 @@
 
 	// based on cite_APA.php
 
-	// TODO: Fix weird non-replacement of <,> on windows
-	// Fix all non-article types
+	// TODO: Fix weird non-replacement of <,>
+	//       Add support for series/volumes 
+	//       Citation of theses?
+	//       ", and" vs "and"?
 
 	/*
 	Code adopted from example code by Hugh E. Williams and David Lane, authors of the book
@@ -215,23 +218,21 @@
 							$record .= $author;
 					}
 
-				if (!empty($row['year']))				// year
+				if (!empty($row['title']))			// title
 					{
 						if (!empty($row['author']))
 							$record .= " ";
 
-						$record .= "(".$row['year'] . ").";
-					}
-
-				if (!empty($row['title']))			// title
-					{
-						if (!empty($row['author']) || !empty($row['year']))
-							$record .= " ";
-
-						$record .= $row['title'];
+						$record .= '"' . $row['title'];
 						if (!ereg("[?!.]$", $row['title']))
 							$record .= ".";
+						$record .= '"';
 					}
+
+				$publication = ereg_replace("[ \r\n]*\(Eds?:[^\)\r\n]*\)", "", $row['publication']);
+				if (!empty($publication))			// publication
+					$record .= " " . $markupPatternsArray["italic-prefix"] . $publication . $markupPatternsArray["italic-suffix"] . ".";
+
 
 				// From here on we'll assume that at least one of the fields 'author', 'year' or 'title' did contain some contents
 				// if this is not the case, the output string will begin with a space. However, any preceding/trailing whitespace will be removed at the cleanup stage (see below)
@@ -271,38 +272,14 @@
 															true, // 10.
 															true, // 11.
 															false, // 12.
-															"3", // 13.
+															"1", // 13. TODO: Is this correct for MLA?
 															" et al.", // 14.
 															$encodeHTML); // 15.
-
-						$record .= " " . "In " . $editor . " (";
-						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
-							$record .= "Eds";
-						else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
-							$record .= "Ed.";
-						$record .= "),";
-					}
-
-				$publication = ereg_replace("[ \r\n]*\(Eds?:[^\)\r\n]*\)", "", $row['publication']);
-				if (!empty($publication))			// publication
-					$record .= " " . $markupPatternsArray["italic-prefix"] . $publication . $markupPatternsArray["italic-suffix"] . ".";
-
-				if (!empty($row['pages']))			// pages
-					{
-						if (!empty($publication))
-							$record .= ",";
-
-						$record .= " (";
-
-						if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-							$record .= "pp. " . (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // replace hyphen with em dash
-						else
-							$record .= " " . $row['pages'];
-						$record .= ").";
+						$record .= " Ed. " . $editor;
 					}
 
 				if (!empty($row['place']))			// place
-					$record .= " " . $row['place'];
+					$record .= ". " . $row['place'];
 
 				if (!empty($row['publisher']))		// publisher
 					{
@@ -312,31 +289,25 @@
 						$record .= " " . $row['publisher'];
 					}
 
+
+
+				if (!empty($row['year']))				// year
+					{
+						$record .= ", " . $row['year'];
+					}
+
+				if (!empty($row['pages']))			// pages
+					{
+						$record .= ". ";
+
+						if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
+							$record .= (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // replace hyphen with em dash
+						else
+							$record .= $row['pages'];
+					}
+
 				if (!ereg("\. *$", $record))
 					$record .= ".";
-
-				if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
-					{
-						$record .= " (";
-
-						if (!empty($row['abbrev_series_title']))
-							$record .= $row['abbrev_series_title'];	// abbreviated series title
-
-						// if there's no abbreviated series title, we'll use the full series title instead:
-						elseif (!empty($row['series_title']))
-							$record .= $row['series_title'];	// full series title
-
-						if (!empty($row['series_volume'])||!empty($row['series_issue']))
-							$record .= " ";
-
-						if (!empty($row['series_volume']))	// series volume
-							$record .= $row['series_volume'];
-
-						if (!empty($row['series_issue']))	// series issue (I'm not really sure if -- for this cite style -- the series issue should be rather omitted here)
-							$record .= "(" . $row['series_issue'] . ")";
-
-						$record .= ".)";
-					}
 			}
 
 		// --- BEGIN TYPE = BOOK WHOLE / MAP / MANUSCRIPT / JOURNAL ----------------------------------------------------------------------------
@@ -398,17 +369,9 @@
 							$record .= $author;
 					}
 
-				if (!empty($row['year']))				// year
-					{
-						if (!empty($row['author']))
-							$record .= " ";
-
-						$record .= "(".$row['year'] . ").";
-					}
-
 				if (!empty($row['title']))			// title
 					{
-						if (!empty($row['author']) || !empty($row['year']))
+						if (!empty($row['author']))
 							$record .= " ";
 
 						$record .= $markupPatternsArray["italic-prefix"] . $row['title'] . $markupPatternsArray["italic-suffix"];
@@ -434,6 +397,11 @@
 								$record .= " " . $row['publisher'];
 							}
 
+				if (!empty($row['year']))				// year
+					{
+						$record .= ", ".$row['year'];
+					}
+
 //						if (!empty($row['pages']))			// pages
 //							{
 //								if (!empty($row['place']) || !empty($row['publisher']))
@@ -449,28 +417,6 @@
 							$record .= ".";
 					}
 
-				if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
-					{
-						$record .= " (";
-
-						if (!empty($row['abbrev_series_title']))
-							$record .= $row['abbrev_series_title'];	// abbreviated series title
-
-						// if there's no abbreviated series title, we'll use the full series title instead:
-						elseif (!empty($row['series_title']))
-							$record .= $row['series_title'];	// full series title
-
-						if (!empty($row['series_volume'])||!empty($row['series_issue']))
-							$record .= " ";
-
-						if (!empty($row['series_volume']))	// series volume
-							$record .= $row['series_volume'];
-
-						if (!empty($row['series_issue']))	// series issue (I'm not really sure if -- for this cite style -- the series issue should be rather omitted here)
-							$record .= "(" . $row['series_issue'] . ")";
-
-						$record .= ".)";
-					}
 			}
 
 		// --- BEGIN POST-PROCESSING -----------------------------------------------------------------------------------------------------------
