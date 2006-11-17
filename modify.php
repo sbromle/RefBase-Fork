@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./modify.php
 	// Created:    18-Dec-02, 23:08
-	// Modified:   29-Sep-06, 23:46
+	// Modified:   17-Nov-06, 13:25
 
 	// This php script will perform adding, editing & deleting of records.
 	// It then calls 'receipt.php' which displays links to the modified/added record
@@ -1097,9 +1097,9 @@
 		if ($moveFilesIntoSubDirectories != "never")
 		{
 			// remove any slashes (i.e., directory delimiter(s)) from the beginning or end of '$dirNamingScheme':
-			$dirNamingScheme = trimTextPattern($dirNamingScheme, "[/\\]+", true, true); // function 'trimTextPattern()' is defined in 'include.inc.php'
+			$dirNamingScheme = trimTextPattern($dirNamingScheme, "[\/\\\]+", true, true); // function 'trimTextPattern()' is defined in 'include.inc.php'
 
-			$dirNamingSchemePartsArray = split("[/\\]+", $dirNamingScheme); // split on slashes to separate between multiple sub-directories
+			$dirNamingSchemePartsArray = split("[\/\\\]+", $dirNamingScheme); // split on slashes to separate between multiple sub-directories
 
 			$subDirNamesArray = array(); // initialize array variable which will hold the generated sub-directory names
 

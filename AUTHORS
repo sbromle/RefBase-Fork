@@ -27,6 +27,9 @@ Thanks to:
 - Joachim Almergren <jlacan@users.sourceforge.net>:
   Various patches
 
+- Oleksandr Moskalenko <oleksa@users.sourceforge.net>
+  Troubleshooting and patch for directory renaming
+
 - Chris Putnam <cdputnam@scripps.edu>:
   Developer of Bibutils, a set of command line programs that interconvert
   between various bibliography formats using a common XML intermediate.
