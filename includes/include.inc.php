@@ -377,18 +377,18 @@
 		$recordSerialsString = "&marked[]=" . $recordSerialsString; // prefix also the very first record serial with "&marked[]="
 
 		// based on the refering script we adjust the parameters that get included in the link:
-		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|extract|users|user_details|user_receipt)\.php", $_SERVER["SCRIPT_NAME"]))
-			$referer = $_SERVER["SCRIPT_NAME"]; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
+		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|extract|users|user_details|user_receipt)\.php", $_SERVER["PHP_SELF"]))
+			$referer = $_SERVER["PHP_SELF"]; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
 												// to re-locate back to these pages after successful login/logout). Logout on 'install.php', 'users.php', 'user_details.php' or 'user_receipt.php' will redirect to 'index.php'.
 
-		elseif (ereg(".*(record|receipt)\.php", $_SERVER["SCRIPT_NAME"]))
-			$referer = $_SERVER["SCRIPT_NAME"] . "?" . "recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
+		elseif (ereg(".*(record|receipt)\.php", $_SERVER["PHP_SELF"]))
+			$referer = $_SERVER["PHP_SELF"] . "?" . "recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
 
-		elseif (ereg(".*error\.php", $_SERVER["SCRIPT_NAME"]))
-			$referer = $_SERVER["SCRIPT_NAME"] . "?" . "errorNo=" . $errorNo . "&errorMsg=" . rawurlencode($errorMsg) . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
+		elseif (ereg(".*error\.php", $_SERVER["PHP_SELF"]))
+			$referer = $_SERVER["PHP_SELF"] . "?" . "errorNo=" . $errorNo . "&errorMsg=" . rawurlencode($errorMsg) . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
 
 		else
-			$referer = $_SERVER["SCRIPT_NAME"] . "?" . "formType=" . "sqlSearch" . "&submit=" . $displayType . "&headerMsg=" . rawurlencode($headerMsg) . "&sqlQuery=" . $queryURL . "&showQuery=" . $showQuery . "&showLinks=" . $showLinks . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . $recordSerialsString . "&citeStyleSelector=" . rawurlencode($citeStyle) . "&citeOrder=" . $citeOrder . "&orderBy=" . rawurlencode($orderBy) . "&oldQuery=" . rawurlencode($oldQuery);
+			$referer = $_SERVER["PHP_SELF"] . "?" . "formType=" . "sqlSearch" . "&submit=" . $displayType . "&headerMsg=" . rawurlencode($headerMsg) . "&sqlQuery=" . $queryURL . "&showQuery=" . $showQuery . "&showLinks=" . $showLinks . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . $recordSerialsString . "&citeStyleSelector=" . rawurlencode($citeStyle) . "&citeOrder=" . $citeOrder . "&orderBy=" . rawurlencode($orderBy) . "&oldQuery=" . rawurlencode($oldQuery);
 		// --- END WORKAROUND -----
 
 		// Is the user logged in?
@@ -421,7 +421,7 @@
 			{
 				$loginWelcomeMsg = "";
 
-				if (ereg(".*(record|import[^.]*)\.php", $_SERVER["SCRIPT_NAME"]))
+				if (ereg(".*(record|import[^.]*)\.php", $_SERVER["PHP_SELF"]))
 					$loginStatus = "<span class=\"warning\">You must be logged in<br>to submit this form!</span>";
 				else
 					$loginStatus = "";
