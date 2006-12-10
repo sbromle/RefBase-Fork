@@ -20,7 +20,7 @@
 	// The base url for this literature database (i.e., the URL to the root directory):
 	// It will be used within RSS feeds and when sending notification emails to database users.
 	// (IMPORTANT: the base url MUST end with a slash!)
-$databaseBaseURL = "http://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']; // e.g. "http://polaris.ipoe.uni-kiel.de/refs/"
+$databaseBaseURL = preg_replace('#/[^/]*$#','/','http://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'],1); // e.g. "http://polaris.ipoe.uni-kiel.de/refs/"
 
 
 	// Specify who'll be allowed to add a new user to the users table:
