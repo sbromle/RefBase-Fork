@@ -1,7 +1,5 @@
 Suggestions for improving refbase:
 
-- Sanitize PHP_SELF input and/or replace it with something more compatible ('SCRIPT_NAME' doesn't work in cgi)
-
 - Increase number of supported resource types and allow users to add their own
   types. A hierarchical system with basic fallback types would be desirable.
 

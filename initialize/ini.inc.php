@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./initialize/ini.inc.php
 	// Created:    12-Jan-03, 17:58
-	// Modified:   13-Nov-06, 15:30
+	// Modified:   10-Dec-06, 19:00
 
 	// This is the customization include file.
 	// It contains variables that are common to all scripts and whose values can/should be customized.
@@ -20,7 +20,7 @@
 	// The base url for this literature database (i.e., the URL to the root directory):
 	// It will be used within RSS feeds and when sending notification emails to database users.
 	// (IMPORTANT: the base url MUST end with a slash!)
-$databaseBaseURL = preg_replace('#/[^/]*$#','/','http://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'],1); // e.g. "http://polaris.ipoe.uni-kiel.de/refs/"
+$databaseBaseURL = preg_replace('#[^/]*$#e','','http://'.$_SERVER['HTTP_HOST'].scriptURL(),1); // e.g. "http://polaris.ipoe.uni-kiel.de/refs/"
 
 
 	// Specify who'll be allowed to add a new user to the users table:

@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./includes/include.inc.php
 	// Created:    16-Apr-02, 10:54
-	// Modified:   13-Nov-06, 18:20
+	// Modified:   10-Dec-06, 18:55
 
 	// This file contains important
 	// functions that are shared
@@ -364,6 +364,9 @@
 
 		global $errorNo;
 		global $errorMsg;
+		// Get the path to the currently executing script,
+		// relative to the document root:
+		$scriptURL = scriptURL();
 
 		// Extract checkbox variable values from the request:
 		if (isset($_REQUEST['marked']))
@@ -377,18 +380,18 @@
 		$recordSerialsString = "&marked[]=" . $recordSerialsString; // prefix also the very first record serial with "&marked[]="
 
 		// based on the refering script we adjust the parameters that get included in the link:
-		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|extract|users|user_details|user_receipt)\.php", $_SERVER["PHP_SELF"]))
-			$referer = $_SERVER["PHP_SELF"]; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
+		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|extract|users|user_details|user_receipt)\.php", $scriptURL))
+			$referer = $scriptURL; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
 												// to re-locate back to these pages after successful login/logout). Logout on 'install.php', 'users.php', 'user_details.php' or 'user_receipt.php' will redirect to 'index.php'.
 
-		elseif (ereg(".*(record|receipt)\.php", $_SERVER["PHP_SELF"]))
-			$referer = $_SERVER["PHP_SELF"] . "?" . "recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
+		elseif (ereg(".*(record|receipt)\.php", $scriptURL))
+			$referer = $scriptURL . "?" . "recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
 
-		elseif (ereg(".*error\.php", $_SERVER["PHP_SELF"]))
-			$referer = $_SERVER["PHP_SELF"] . "?" . "errorNo=" . $errorNo . "&errorMsg=" . rawurlencode($errorMsg) . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
+		elseif (ereg(".*error\.php", $scriptURL))
+			$referer = $scriptURL . "?" . "errorNo=" . $errorNo . "&errorMsg=" . rawurlencode($errorMsg) . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
 
 		else
-			$referer = $_SERVER["PHP_SELF"] . "?" . "formType=" . "sqlSearch" . "&submit=" . $displayType . "&headerMsg=" . rawurlencode($headerMsg) . "&sqlQuery=" . $queryURL . "&showQuery=" . $showQuery . "&showLinks=" . $showLinks . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . $recordSerialsString . "&citeStyleSelector=" . rawurlencode($citeStyle) . "&citeOrder=" . $citeOrder . "&orderBy=" . rawurlencode($orderBy) . "&oldQuery=" . rawurlencode($oldQuery);
+			$referer = $scriptURL . "?" . "formType=" . "sqlSearch" . "&submit=" . $displayType . "&headerMsg=" . rawurlencode($headerMsg) . "&sqlQuery=" . $queryURL . "&showQuery=" . $showQuery . "&showLinks=" . $showLinks . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . $recordSerialsString . "&citeStyleSelector=" . rawurlencode($citeStyle) . "&citeOrder=" . $citeOrder . "&orderBy=" . rawurlencode($orderBy) . "&oldQuery=" . rawurlencode($oldQuery);
 		// --- END WORKAROUND -----
 
 		// Is the user logged in?
@@ -421,7 +424,7 @@
 			{
 				$loginWelcomeMsg = "";
 
-				if (ereg(".*(record|import[^.]*)\.php", $_SERVER["PHP_SELF"]))
+				if (ereg(".*(record|import[^.]*)\.php", $scriptURL))
 					$loginStatus = "<span class=\"warning\">You must be logged in<br>to submit this form!</span>";
 				else
 					$loginStatus = "";
@@ -3668,6 +3671,26 @@ EOF;
 	 	}
 
 		return $value;
+	}
+
+	// --------------------------------------------------------------------
+
+	// Get the path to the currently executing script, relative to the document
+	// root:
+	function scriptURL()
+	{
+		if (isset($_SERVER['SCRIPT_NAME']))
+			$pathToScript = $_SERVER['SCRIPT_NAME'];
+		else
+		{
+			$pathToScript = $_SERVER['PHP_SELF'];
+
+			//Sanitize PHP_SELF:
+			if (preg_match('#\.php.+#', $pathToScript))
+				// Remove anything after the PHP file extension:
+				$pathToScript = preg_replace('#(?<=\.php).+#', '', $pathToScript);
+		}
+		return $pathToScript;
 	}
 
 	// --------------------------------------------------------------------
