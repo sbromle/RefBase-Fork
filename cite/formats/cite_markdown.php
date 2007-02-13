@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/formats/cite_markdown.php
 	// Created:    10-Jun-06, 02:58
-	// Modified:   09-Sep-06, 16:43
+	// Modified:   12-Feb-07, 22:00
 
 	// This is a citation format file (which must reside within the 'cite/formats/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecords()' function that outputs a reference list from selected records in Markdown format. Markdown is a plain text
@@ -26,6 +26,10 @@
 		global $transtab_refbase_markdown; // defined in 'transtab_refbase_markdown.inc.php'
 
 		$markdownData = ""; // make sure that our buffer variable is empty
+
+		// Header
+		if (!empty($headerMsg))
+				$markdownData .= "# $headerMsg #\n";
 
 		// Initialize array variables:
 		$yearsArray = array();
@@ -95,4 +99,4 @@
 	}
 
 	// --- END CITATION FORMAT ---
-
+?>

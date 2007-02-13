@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/formats/cite_html.php
 	// Created:    10-Jun-06, 02:30
-	// Modified:   31-Aug-06, 14:18
+	// Modified:   12-Feb-07, 22:00
 
 	// This is a citation format file (which must reside within the 'cite/formats/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecords()' function that outputs a reference list from selected records in HTML format.
@@ -135,4 +135,4 @@
 	}
 
 	// --- END CITATION FORMAT ---
-
+?>

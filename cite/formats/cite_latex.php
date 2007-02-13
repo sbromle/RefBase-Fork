@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/formats/cite_latex.php
 	// Created:    10-Jun-06, 02:32
-	// Modified:   09-Sep-06, 16:43
+	// Modified:   12-Feb-07, 22:00
 
 	// This is a citation format file (which must reside within the 'cite/formats/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecords()' function that outputs a reference list from selected records in LaTeX format.
@@ -76,6 +76,10 @@
 					. "\\usepackage{textcomp}\n\n";
 
 		$latexData .= "\begin{document}\n\n";
+
+		// Header
+		if (!empty($headerMsg))
+				$latexData .= "\\title{$headerMsg}\n\n";
 
 		if (!eregi("type|year", $citeOrder))
 			$latexData .= "\begin{thebibliography}{" . $showMaxRows . "}\n\n";
@@ -150,4 +154,4 @@
 	}
 
 	// --- END CITATION FORMAT ---
-
+?>

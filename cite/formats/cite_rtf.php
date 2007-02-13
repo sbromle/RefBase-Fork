@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/formats/cite_rtf.php
 	// Created:    10-Jun-06, 02:04
-	// Modified:   09-Sep-06, 16:45
+	// Modified:   12-Feb-07, 22:00
 
 	// This is a citation format file (which must reside within the 'cite/formats/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecords()' function that outputs a reference list from selected records in RTF format.
@@ -71,6 +71,10 @@
 		$rtf->createFontBlock(1, "Times New Roman");
 		$rtfData .= $rtf->setFontBlock();
 
+		// Header
+		if (!empty($headerMsg))
+				$rtfData .= "{\header\pard\qc $headerMsg\par}\n";
+
 		$rtfData .= $rtf->justify("full", 0.5, 0, -0.5); // by default, we'll justify text and set a hanging indent (left indent: 0.5, right indent: 0, first-line indent: -0.5)
 
 
@@ -131,4 +135,4 @@
 	}
 
 	// --- END CITATION FORMAT ---
-
+?>

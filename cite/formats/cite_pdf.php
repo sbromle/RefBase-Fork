@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/formats/cite_pdf.php
 	// Created:    10-Jun-06, 02:04
-	// Modified:   09-Sep-06, 16:44
+	// Modified:   12-Feb-07, 22:00
 
 	// This is a citation format file (which must reside within the 'cite/formats/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecords()' function that outputs a reference list from selected records in PDF format.
@@ -37,6 +37,8 @@
 
 		// The array '$transtab_refbase_pdf' contains search & replace patterns for conversion from refbase markup to PDf markup & entities
 		global $transtab_refbase_pdf; // defined in 'transtab_refbase_pdf.inc.php'
+
+		$pageSize = "a4"; // (you may want to use 'letter' instead of 'a4')
 
 		// Initialize array variables:
 		$yearsArray = array();
@@ -70,8 +72,7 @@
 
 
 		// Setup the basic PDF document structure (PDF functions defined in 'class.ezpdf.php'):
-		$pdf = new Cezpdf('a4', 'portrait'); // initialize PDF object (you may want to use 'letter' instead of 'a4')
-		$pdf -> ezSetMargins(50, 70, 50, 50);
+		$pdf = new Cezpdf($pageSize, 'portrait'); // initialize PDF object		$pdf -> ezSetMargins(50, 70, 50, 50);
 
 		// Set fonts:
 		$headingFont = 'includes/classes/org/pdf-php/fonts/Helvetica.afm';
@@ -113,8 +114,18 @@
 		$pdf->setStrokeColor(0, 0, 0, 1); // set line color
 		$pdf->setLineStyle(0.5); // set line width
 		$pdf->line(20, 40, 575, 40); // print footer line
-//		$pdf->line(20, 822, 575, 822); // print header line (at this x/y position, it'll only get printed using 'a4' paper size)
 		$pdf->addText(50, 28, 10, $officialDatabaseName . ' – ' . $databaseBaseURL); // print footer text
+
+		// Header
+		if (!empty($headerMsg))
+		{
+				if ($pageSize=='a4')  //TODO: Add 'letter'
+				{
+						$pdf->line(20, 822, 575, 822); // print header line (at this x/y position, it'll only get printed using 'a4' paper size)
+            $pdf->addText(50, 830, 10, $headerMsg); // This might be "cramped"
+				}
+		}
+
 		$pdf->restoreState();
 		$pdf->closeObject(); // close the currently open object; further writes will now go to the current page
 		$pdf->addObject($all, 'all'); // note that object can be told to appear on just odd or even pages by changing 'all' to 'odd' or 'even'
@@ -194,4 +205,4 @@
 	}
 
 	// --- END CITATION FORMAT ---
-
+?>
