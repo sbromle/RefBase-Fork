@@ -27,7 +27,7 @@ Thanks to:
 - Joachim Almergren <jlacan@users.sourceforge.net>:
   Various patches
 
-- Oleksandr Moskalenko <oleksa@users.sourceforge.net>
+- Oleksandr Moskalenko <oleksa@users.sourceforge.net>:
   Troubleshooting and patch for directory renaming
 
 - Chris Putnam <cdputnam@scripps.edu>:
@@ -46,6 +46,10 @@ Thanks to:
 - nijel and garvinhicking of the phpMyAdmin project:
   Developers of zip.inc.php, which is used to zip OpenDocument files.
   <http://www.phpmyadmin.net>
+
+- Hugh E. Williams and David Lane, authors of the book "Web Database Applications
+  with PHP and MySQL", published by O'Reilly & Associates, whose example code
+  helped getting started. <http://www.oreilly.com/catalog/webdbapps2/>
 
 Many other people have contributed to this project with feature requests, bug
 reports, testing, and helpful suggestions.
