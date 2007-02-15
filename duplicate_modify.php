@@ -12,7 +12,7 @@
 	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    27-Jan-07, 23:22
-	// Modified:   $Date 28-Jan-07, 01:21 $ by $Author$ ($Revision$)
+	// Modified:   $Date$ by $Author$ in $Revision$
 
 	// This php script will flag records as original and duplicate records.
 	// It then displays the affected records using 'search.php' so that the user

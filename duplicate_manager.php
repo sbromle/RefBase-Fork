@@ -12,7 +12,7 @@
 	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    27-Jan-07, 21:18
-	// Modified:   $Date 28-Jan-07, 10:07 $ by $Author$ ($Revision$)
+	// Modified:   $Date$ by $Author$ in $Revision$
 
 	// This script enables you to manually manage duplicate records by entering their database serial numbers
 	// into the provided form. The form lets you flag (i.e. identify) an "original" record and its related

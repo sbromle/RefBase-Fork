@@ -12,7 +12,7 @@
 	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    28-Jan-07, 09:17
-	// Modified:   $Date 29-Jan-07, 00:20 $ by $Author$ ($Revision$)
+	// Modified:   $Date$ by $Author$ in $Revision$
 
 	// This script provides a form that lets you search for duplicate records.
 	// 
