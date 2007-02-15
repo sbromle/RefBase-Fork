@@ -4,7 +4,7 @@
 #             Please see the GNU General Public License for more details.
 # File:       ./update.sql
 # Created:    01-Mar-05, 16:54
-# Modified:   13-Nov-06, 17:30
+# Modified:   13-Feb-07, 18:27
 
 # This MySQL database structure file will update any refbase v0.8.0 database to v0.9.0
 
@@ -84,6 +84,19 @@ UPDATE `styles` SET `order_by` = 'B010' WHERE `style_name` = 'Polar Biol';
 UPDATE `styles` SET `order_by` = 'B020' WHERE `style_name` = 'Mar Biol';
 UPDATE `styles` SET `order_by` = 'B030' WHERE `style_name` = 'MEPS';
 UPDATE `styles` SET `order_by` = 'B040' WHERE `style_name` = 'Deep Sea Res';
+
+# --------------------------------------------------------
+
+#
+# update table `types`
+#
+
+INSERT INTO `types` VALUES (NULL, 'Conference Article', 'true', 2, '4'),
+(NULL, 'Conference Volume', 'true', 3, '5');
+
+UPDATE `types` SET `order_by` = '6' WHERE `type_name` = 'Journal';
+UPDATE `types` SET `order_by` = '7' WHERE `type_name` = 'Manuscript';
+UPDATE `types` SET `order_by` = '8' WHERE `type_name` = 'Map';
 
 # --------------------------------------------------------
 

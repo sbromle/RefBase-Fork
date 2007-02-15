@@ -4,7 +4,7 @@
 #             Please see the GNU General Public License for more details.
 # File:       ./install_utf8.sql
 # Created:    02-Oct-04, 20:11
-# Modified:   13-Nov-06, 15:30
+# Modified:   13-Feb-07, 18:01
 
 # MySQL database structure & initial data (for use with 'utf8' character set)
 
@@ -381,9 +381,11 @@ CREATE TABLE `types` (
 INSERT INTO `types` VALUES (1, 'Journal Article', 'true', 1, '1'),
 (2, 'Book Chapter', 'true', 2, '2'),
 (3, 'Book Whole', 'true', 3, '3'),
-(4, 'Journal', 'true', 3, '4'),
-(5, 'Manuscript', 'true', 3, '5'),
-(6, 'Map', 'true', 3, '6');
+(4, 'Conference Article', 'true', 2, '4'),
+(5, 'Conference Volume', 'true', 3, '5'),
+(6, 'Journal', 'true', 3, '6'),
+(7, 'Manuscript', 'true', 3, '7'),
+(8, 'Map', 'true', 3, '8');
 
 # --------------------------------------------------------
 
@@ -616,12 +618,16 @@ INSERT INTO `user_types` VALUES (1, 1, 1, 'true'),
 (4, 4, 1, 'true'),
 (5, 5, 1, 'true'),
 (6, 6, 1, 'true'),
-(7, 1, 0, 'true'),
-(8, 2, 0, 'true'),
-(9, 3, 0, 'true'),
-(10, 4, 0, 'true'),
-(11, 5, 0, 'true'),
-(12, 6, 0, 'true');
+(7, 7, 1, 'true'),
+(8, 8, 1, 'true'),
+(9, 1, 0, 'true'),
+(10, 2, 0, 'true'),
+(11, 3, 0, 'true'),
+(12, 4, 0, 'true'),
+(13, 5, 0, 'true'),
+(14, 6, 0, 'true'),
+(15, 7, 0, 'true'),
+(16, 8, 0, 'true');
 
 # --------------------------------------------------------
 

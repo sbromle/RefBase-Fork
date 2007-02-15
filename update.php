@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./update.php
 	// Created:    01-Mar-05, 20:47
-	// Modified:   13-Nov-06, 17:30
+	// Modified:   13-Feb-07, 23:46
 
 	// This file will update any refbase MySQL database installation from v0.8.0 (and, to a certain extent, intermediate cvs versions) to v0.9.0.
 	// (Note that this script currently doesn't offer any conversion from 'latin1' to 'utf8')
@@ -318,21 +318,40 @@
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'styles': updated 'Deep Sea Res' style. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.7) Add the french language option to table 'languages'
+		// (2.7) Update table 'types'
+		$values = "(NULL, 'Conference Article', 'true', 2, '4')";
+		$resultArray["Table 'types': inserted type 'Conference Article'"] = insertIfNotExists("type_name", "Conference Article", $tableTypes, $values);
+
+		$values = "(NULL, 'Conference Volume', 'true', 3, '5')";
+		$resultArray["Table 'types': inserted type 'Conference Volume'"] = insertIfNotExists("type_name", "Conference Volume", $tableTypes, $values);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '6' WHERE type_name = 'Journal'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Journal' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '7' WHERE type_name = 'Manuscript'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Manuscript' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '8' WHERE type_name = 'Map'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Map' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		// (2.8) Add the french language option to table 'languages'
 		$values = "(NULL, 'fr', 'true', '3')";
 		$resultArray["Table 'languages': inserted french language option"] = insertIfNotExists("language_name", "fr", $tableLanguages, $values);
 
-		// (2.7b) Enable german localization
+		// (2.9) Enable german localization
 		$query = "UPDATE " . $tableLanguages . " SET language_enabled = 'true' WHERE language_name = 'de'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'languages': enabled german language option. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.8) Alter table specification for table 'formats'
+		// (2.10) Alter table specification for table 'formats'
 		$query = "ALTER table " . $tableFormats . " MODIFY format_type enum('export','import','cite') NOT NULL default 'export'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'formats': altered table specification. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.9) Update existing formats in table 'formats'
+		// (2.11) Update existing formats in table 'formats'
 		$query = "UPDATE " . $tableFormats . " SET format_name = 'BibTeX' WHERE format_name = 'Bibtex'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'formats': renamed format name 'Bibtex' to 'BibTeX'. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
@@ -341,7 +360,7 @@
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'formats': reformatted numbers in 'order_by' field as two-digit numbers. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.10) Replace existing import formats with updated/new ones in table 'formats'
+		// (2.12) Replace existing import formats with updated/new ones in table 'formats'
 		// NOTE: Simple, brain-dead test of UPDATEing (we should probably have a SQL function and/or make this an array and process that)
 		$query = "UPDATE " . $tableFormats . " SET format_spec = 'bibutils/import_modsxml2refbase.php', depends_id = 2 WHERE format_name = 'MODS XML' AND format_type = 'import'";
 		$result = queryMySQLDatabase($query, "");
@@ -379,7 +398,7 @@
 		$values = "(NULL, 'RefWorks', 'import', 'true', 'import_refworks2refbase.php', '20', 1)";
 		$resultArray["Table 'formats': inserted 'RefWorks' import format"] = insertIfNotExists("format_name", "RefWorks", $tableFormats, $values);
 
-		// (2.11) Add new export & citation formats in table 'formats'
+		// (2.13) Add new export & citation formats in table 'formats'
 		$values = "(NULL, 'SRW XML', 'export', 'true', 'export_srwxml.php', '11', 1)";
 		$resultArray["Table 'formats': inserted 'SRW XML' export format"] = insertIfNotExists("format_name", "SRW XML", $tableFormats, $values);
 
@@ -407,7 +426,7 @@
 		$values = "(NULL, 'ASCII', 'cite', 'true', 'formats/cite_ascii.php', '19', 1)";
 		$resultArray["Table 'formats': inserted 'ASCII' citation format"] = insertIfNotExists("format_name", "ASCII", $tableFormats, $values);
 
-		// (2.12) Enable some of the newly created export/citation formats & citation styles for all users:
+		// (2.14) Enable some of the newly created export/citation formats, citation styles & resource types for all users:
 		// Fetch IDs for all formats that shall be enabled:
 		$formatIDArray = array();
 		$query = "SELECT format_id, format_name FROM " . $tableFormats . " WHERE format_name RLIKE '^(ODF XML|html|RTF|PDF|LaTeX)$'";
@@ -420,7 +439,7 @@
 		}
 
 		// Fetch IDs for all styles that shall be enabled:
-		$styleIDArray = array(); // with just one citation style to enable, this code block is currently overkill, but future needs may be different
+		$styleIDArray = array();
 		$query = "SELECT style_id, style_name FROM " . $tableStyles . " WHERE style_name RLIKE '^(J Glaciol|APA|MLA)$'";
 		$result = queryMySQLDatabase($query, "");
 		$rowsFound = @ mysql_num_rows($result);
@@ -430,7 +449,18 @@
 				$styleIDArray[$row['style_id']] = $row['style_name'];
 		}
 
-		// Enable formats & styles for anyone who's not logged in ('$userID = 0'):
+		// Fetch IDs for all types that shall be enabled:
+		$typeIDArray = array();
+		$query = "SELECT type_id, type_name FROM " . $tableTypes . " WHERE type_name RLIKE '^(Conference Article|Conference Volume)$'";
+		$result = queryMySQLDatabase($query, "");
+		$rowsFound = @ mysql_num_rows($result);
+		if ($rowsFound > 0)
+		{
+			while ($row = @ mysql_fetch_array($result))
+				$typeIDArray[$row['type_id']] = $row['type_name'];
+		}
+
+		// Enable formats, styles & types for anyone who's not logged in ('$userID = 0'):
 		foreach ($formatIDArray as $formatID => $formatName)
 		{
 			$values = "(NULL, " . $formatID . ", 0, 'true')";
@@ -443,7 +473,13 @@
 			$resultArray["Table 'user_styles': enabled style '" . $styleName . "' for anyone who's not logged in"] = insertIfNotExists("style_id", $styleID, $tableUserStyles, $values, 0);
 		}
 
-		// Enable formats & styles for all users:
+		foreach ($typeIDArray as $typeID => $typeName)
+		{
+			$values = "(NULL, " . $typeID . ", 0, 'true')";
+			$resultArray["Table 'user_types': enabled type '" . $typeName . "' for anyone who's not logged in"] = insertIfNotExists("type_id", $typeID, $tableUserTypes, $values, 0);
+		}
+
+		// Enable formats, styles & types for all users:
 		// First, check how many users are contained in table 'users':
 		$query = "SELECT user_id, first_name, last_name FROM " . $tableUsers;
 		$result = queryMySQLDatabase($query, "");
@@ -462,6 +498,12 @@
 				{
 					$values = "(NULL, " . $styleID . ", " . $row['user_id'] . ", 'true')";
 					$resultArray["Table 'user_styles': enabled style '" . $styleName . "' for user " . $row['user_id'] . " (" . $row['first_name'] . " " . $row['last_name'] . ")"] = insertIfNotExists("style_id", $styleID, $tableUserStyles, $values, $row['user_id']);
+				}
+
+				foreach ($typeIDArray as $typeID => $typeName)
+				{
+					$values = "(NULL, " . $typeID . ", " . $row['user_id'] . ", 'true')";
+					$resultArray["Table 'user_types': enabled type '" . $typeName . "' for user " . $row['user_id'] . " (" . $row['first_name'] . " " . $row['last_name'] . ")"] = insertIfNotExists("type_id", $typeID, $tableUserTypes, $values, $row['user_id']);
 				}
 			}
 		}
