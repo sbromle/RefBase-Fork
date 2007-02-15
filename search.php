@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./search.php
 	// Created:    30-Jul-02, 17:40
-	// Modified:   24-Oct-06, 01:11
+	// Modified:   29-Jan-07, 10:53
 
 	// This is the main script that handles the search query and displays the query results.
 	// Supports three different output styles: 1) List view, with fully configurable columns -> displayColumns() function
@@ -339,20 +339,31 @@
 
 	// VERIFY SQL QUERY:
 
+	$notPermitted = false;
+
+	// Prevent cross-site scripting (XSS) attacks:
+	if (preg_match("/(<|&lt;|&#60;|&#x3C;)\/?script.*?(>|&gt;|&#62;|&#x3E;)/", $sqlQuery)) // if the SQL query contains any '<script>' or '</script>' tags
+	{
+		$sqlQuery = preg_replace("/(<|&lt;|&#60;|&#x3C;)\/?script.*?(>|&gt;|&#62;|&#x3E;)/", "", $sqlQuery);
+
+		$notPermitted = true;
+		// save an appropriate error message:
+		$HeaderString = "<b><span class=\"warning\">You have no permission to perform this query!</span></b>";
+	}
+
 	// For a normal user we only allow the use of SELECT queries (the admin is allowed to do everything that is allowed by his GRANT privileges):
 	// NOTE: This does only provide for minimal security!
 	//		 To avoid further security risks you should grant the MySQL user (who's specified in 'db.inc.php') only those
 	//		 permissions that are required to access the literature database. This can be done by use of a GRANT statement:
 	//		 GRANT SELECT,INSERT,UPDATE,DELETE ON MYSQL_DATABASE_NAME_GOES_HERE.* TO MYSQL_USER_NAME_GOES_HERE@localhost IDENTIFIED BY 'MYSQL_PASSWORD_GOES_HERE';
 
-	// if the SQL query isn't build from scratch but is accepted from user input (which is the case for the forms 'sqlSearch' and 'refineSearch'):
-	if (eregi("(sql|refine)Search", $formType)) // the user used 'sql_search.php' -OR- the "Search within Results" form above the query results list (that was produced by 'search.php')
+	// if the SQL query isn't build from scratch but is accepted from user input (which is the case for the forms 'sqlSearch', 'duplicateSearch' and 'refineSearch'):
+	if (eregi("(sql|duplicate|refine)Search", $formType)) // the user used 'sql_search.php', 'duplicate_search.php' -OR- the "Search within Results" form above the query results list (that was produced by 'search.php')
 	{
 		if ((!isset($loginEmail)) OR ((isset($loginEmail)) AND ($loginEmail != $adminLoginEmail))) // if the user isn't logged in -OR- any normal user is logged in...
 		{
 			$tablesArray = array($tableAuth, $tableDeleted, $tableDepends, $tableFormats, $tableLanguages, $tableQueries, $tableRefs, $tableStyles, $tableTypes, $tableUserData, $tableUserFormats, $tableUserOptions, $tableUserPermissions, $tableUserStyles, $tableUserTypes, $tableUsers);
 			$forbiddenSQLCommandsArray = array("DROP DATABASE", "DROP TABLE"); // the refbase MySQL user shouldn't have permissions for these commands anyhow, but by listing & checking for them here, we can return a more appropriate error message
-			$notPermitted = false;
 
 			// ...and the user did use anything other than a SELECT query:
 			if (!eregi("^SELECT", $sqlQuery) OR eregi(join("|", $forbiddenSQLCommandsArray), $sqlQuery))
@@ -368,19 +379,20 @@
 				// save an appropriate error message:
 				$HeaderString = "<b><span class=\"warning\">You have no permission to perform this query!</span></b>";
 			}
-
-			if ($notPermitted)
-			{
-				// Write back session variable:
-				saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-
-				if (eregi(".+sql_search.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php'
-					header("Location: $referer"); // relocate back to the calling page
-				else // if the user didn't come from 'sql_search.php' (e.g., if he attempted to hack parameters of a GET query directly)
-					header("Location: index.php"); // relocate back to the main page
-				exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-			}
 		}
+		// note that besides the above validation, in case of 'duplicate_search.php' the SQL query will be further restricted so that generally only SELECT queries can be executed (this is handled by function 'findDuplicates()')
+	}
+
+	if ($notPermitted)
+	{
+		// Write back session variable:
+		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+
+		if (eregi(".+(sql|duplicate)_search.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php' or 'duplicate_search.php'
+			header("Location: $referer"); // relocate back to the calling page
+		else // if the user didn't come from 'sql_search.php' or 'duplicate_search.php' (e.g., if he attempted to hack parameters of a GET query directly)
+			header("Location: index.php"); // relocate back to the main page
+		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
 
 	// --------------------------------------------------------------------
@@ -406,6 +418,18 @@
 	if ($formType == "sqlSearch") // the user either used the 'sql_search.php' form for searching -OR- used scripts like 'show.php' or 'rss.php' (which also use 'formType=sqlSearch')...
 		{
 			// verify the SQL query specified by the user and modify it if security concerns are encountered:
+			// (this function does add/remove user-specific query code as required and will fix problems with escape sequences within the SQL query)
+			$query = verifySQLQuery($sqlQuery, $referer, $displayType, $showLinks); // function 'verifySQLQuery()' is defined in 'include.inc.php' (since it's also used by 'rss.php')
+		}
+
+	// --- Form 'duplicate_search.php': ---------------
+	elseif ($formType == "duplicateSearch") // the user used the 'duplicate_search.php' form for searching...
+		{
+			// find duplicate records within results of the given SQL query (using settings extracted from the 'duplicateSearch' form
+			// in 'duplicate_search.php') and return a modified database query that only matches these duplicate entries:
+			$sqlQuery = findDuplicates($sqlQuery, $oldQuery);
+
+			// by passing the generated SQL query thru the 'verifySQLQuery()' function we ensure that necessary fields are added as needed:
 			// (this function does add/remove user-specific query code as required and will fix problems with escape sequences within the SQL query)
 			$query = verifySQLQuery($sqlQuery, $referer, $displayType, $showLinks); // function 'verifySQLQuery()' is defined in 'include.inc.php' (since it's also used by 'rss.php')
 		}
@@ -617,8 +641,17 @@
 				}
 
 				if (isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
+				{
 					// ...we'll display a link that will generate a dynamic RSS feed for the current query:
 					$HeaderString .= "<a href=\"" . $rssURL . "\" title=\"track newly added records matching your current query by subscribing to this RSS feed\">RSS</a>";
+
+					if (isset($_SESSION['loginEmail'])) // if a user is logged in, we'll insert a pipe between the 'RSS' and 'dups' links...
+						$HeaderString .= " | ";
+				}
+
+				if (isset($_SESSION['loginEmail'])) // if a user is logged in...
+					// ...we'll show a link to find any duplicates within the current query results:
+					$HeaderString .= "<a href=\"duplicate_search.php?customQuery=1&amp;sqlQuery=$queryURL&amp;showLinks=$showLinks&amp;showRows=$showRows\" title=\"find duplicates that match your current query\">dups</a>";
 
 				if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_user_queries|allow_rss_feeds)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable contains 'allow_rss_feeds' -OR- if logged in, aditionally: 'allow_user_queries':
 					$HeaderString .= ")";
@@ -788,7 +821,7 @@
 
 
 				// 4) Start a FORM
-				echo "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
+				echo "\n<form action=\"search.php\" method=\"POST\" name=\"queryResults\">"
 						. "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
 						. "\n<input type=\"hidden\" name=\"submit\" value=\"Display\">" // provide a default value for the 'submit' form tag (then, hitting <enter> within the 'ShowRows' text entry field will act as if the user clicked the 'Display' button)
 						. "\n<input type=\"hidden\" name=\"orderBy\" value=\"" . rawurlencode($orderBy) . "\">" // embed the current ORDER BY parameter so that it can be re-applied when displaying details
@@ -1064,7 +1097,7 @@
 
 
 				// 4) Start a FORM
-				echo "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
+				echo "\n<form action=\"search.php\" method=\"POST\" name=\"queryResults\">"
 						. "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
 						. "\n<input type=\"hidden\" name=\"submit\" value=\"Display\">" // provide a default value for the 'submit' form tag (then, hitting <enter> within the 'ShowRows' text entry field will act as if the user clicked the 'Display' button)
 						. "\n<input type=\"hidden\" name=\"originalDisplayType\" value=\"$displayType\">" // embed the original value of the '$displayType' variable
@@ -1852,8 +1885,219 @@
 
 	// --------------------------------------------------------------------
 
-	// EXTRACT FORM VARIABLES SENT THROUGH POST
+	// EXTRACT FORM VARIABLES SENT THROUGH GET OR POST
 	// (!! NOTE !!: for details see <http://www.php.net/release_4_2_1.php> & <http://www.php.net/manual/en/language.variables.predefined.php>)
+
+	// Find duplicate records within results of the given SQL query (using settings extracted from the 'duplicateSearch' form
+	// in 'duplicate_search.php') and return a modified database query that only matches these duplicate entries:
+	function findDuplicates($sqlQuery, $oldQuery)
+	{
+		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
+
+		// Extract form variables provided by the 'duplicateSearch' form in 'duplicate_search.php':
+		if (isset($_REQUEST['matchFieldsSelector']))
+		{
+			if (is_string($_REQUEST['matchFieldsSelector'])) // we accept a string containing a (e.g. comma delimited) list of field names
+				$selectedFieldsArray = preg_split("/[^a-z_]+/", $_REQUEST['matchFieldsSelector'], -1, PREG_SPLIT_NO_EMPTY); // (the 'PREG_SPLIT_NO_EMPTY' flag causes only non-empty pieces to be returned)
+			else // the field list is already provided as array:
+				$selectedFieldsArray = $_REQUEST['matchFieldsSelector'];
+		}
+		else
+			$selectedFieldsArray = array();
+
+		if (isset($_REQUEST['ignoreWhitespace']) AND ($_REQUEST['ignoreWhitespace'] == "1"))
+			$ignoreWhitespace = "1";
+		else
+			$ignoreWhitespace = "0";
+
+		if (isset($_REQUEST['ignorePunctuation']) AND ($_REQUEST['ignorePunctuation'] == "1"))
+			$ignorePunctuation = "1";
+		else
+			$ignorePunctuation = "0";
+
+		if (isset($_REQUEST['ignoreCharacterCase']) AND ($_REQUEST['ignoreCharacterCase'] == "1"))
+			$ignoreCharacterCase = "1";
+		else
+			$ignoreCharacterCase = "0";
+
+		if (isset($_REQUEST['ignoreAuthorInitials']) AND ($_REQUEST['ignoreAuthorInitials'] == "1"))
+			$ignoreAuthorInitials = "1";
+		else
+			$ignoreAuthorInitials = "0";
+
+		if (isset($_REQUEST['nonASCIIChars']))
+			$nonASCIIChars = $_REQUEST['nonASCIIChars'];
+		else
+			$nonASCIIChars = "keep";
+
+
+		// VALIDATE FORM DATA:
+		$errors = array();
+
+		// Validate the field selector:
+		if (empty($selectedFieldsArray))
+			$errors["matchFieldsSelector"] = "You must select at least one field:";
+
+		// Validate the 'SQL Query' field:
+		if (empty($sqlQuery))
+			$errors["sqlQuery"] = "You must specify a query string:"; // 'sqlQuery' must not be empty
+
+		elseif (!eregi("^SELECT", $sqlQuery))
+			$errors["sqlQuery"] = "You can only execute SELECT queries:";
+	
+		// Check if there were any errors:
+		if (count($errors) > 0)
+		{
+			// In case of an error, we write all form variables back to the '$formVars' array
+			// (which 'duplicate_search.php' requires to reload form values):
+			foreach($_REQUEST as $varname => $value)
+				$formVars[$varname] = $value;
+
+			// Since checkbox form fields do only get included in the '$_REQUEST' array if they were marked,
+			// we have to add appropriate array elements for all checkboxes that weren't set:
+			if (!isset($formVars["ignoreWhitespace"]))
+				$formVars["ignoreWhitespace"] = "0";
+
+			if (!isset($formVars["ignorePunctuation"]))
+				$formVars["ignorePunctuation"] = "0";
+
+			if (!isset($formVars["ignoreCharacterCase"]))
+				$formVars["ignoreCharacterCase"] = "0";
+
+			if (!isset($formVars["ignoreAuthorInitials"]))
+				$formVars["ignoreAuthorInitials"] = "0";
+
+			if (!isset($formVars["showLinks"]))
+				$formVars["showLinks"] = "0";
+
+			// Write back session variables:
+			saveSessionVariable("errors", $errors); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+			saveSessionVariable("formVars", $formVars);
+
+			// There are errors. Relocate back to 'duplicate_search.php':
+			header("Location: duplicate_search.php");
+
+			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		}
+
+
+		// CONSTRUCT SQL QUERY (1. DUPLICATE SEARCH):
+		// To identify any duplicates within the results of the original query, we build a new query based on the original SQL query:
+		$query = $sqlQuery;
+
+		// Replace SELECT list of columns with those from '$selectedFieldsArray' (plus the 'serial' column):
+		// TODO: maybe make this into a generic function?
+		$selectedFieldsString = implode(", ", $selectedFieldsArray);
+		$query = preg_replace("/(?<=SELECT ).+?(?= FROM)/i", $selectedFieldsString . ", serial", $query);
+
+		// Replace any existing ORDER BY clause with the list of columns given in '$selectedFieldsArray':
+		// (TODO: we should better use function 'newORDERclause()' from 'include.inc.php' here, but this would require that rawurlencoding is made optional in that function)
+		$query = preg_replace("/(?<=ORDER BY ).+?(?=LIMIT.*|GROUP BY.*|HAVING.*|PROCEDURE.*|FOR UPDATE.*|LOCK IN.*|$)/i", $selectedFieldsString, $query);
+
+		// Fix escape sequences within the SQL query:
+		$query = stripSlashesIfMagicQuotes($query);
+
+		// RUN the query on the database through the connection:
+		$result = queryMySQLDatabase($query, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+
+
+		// PROCESS RESULTS:
+		$recordSerialsArray = array();
+		$duplicateRecordSerialsArray = array();
+
+		$rowsFound = @ mysql_num_rows($result);
+
+		// Identify any records with matching field data:
+		if ($rowsFound > 0) // if there were rows found ...
+		{
+			// Count the number of fields:
+			$fieldsFound = mysql_num_fields($result);
+
+			// Loop over each row in the result set:
+			for ($rowCounter=0; $row = @ mysql_fetch_array($result); $rowCounter++)
+			{
+				$recordIdentifier = ""; // make sure our buffer variable is empty
+
+				// For each row, loop over each field (except for the last one which is the 'serial' field):
+				for ($i=0; $i < ($fieldsFound - 1); $i++)
+				{
+					// the following two lines will fetch the current field name:
+					$info = mysql_fetch_field ($result, $i); // get the meta-data for the field
+					$fieldName = $info->name; // get the field name
+
+					// normalize author names:
+					if (($fieldName == "author") AND ($ignoreAuthorInitials == "1"))
+					{
+						// this is a stupid hack that maps the names of the '$row' array keys to those used
+						// by the '$formVars' array (which is required by function 'parsePlaceholderString()')
+						// (eventually, the '$formVars' array should use the MySQL field names as names for its array keys)
+						$formVars = buildFormVarsArray($row); // function 'buildFormVarsArray()' is defined in 'include.inc.php'
+
+						// ignore initials in author names:
+						$row[$i] = parsePlaceholderString($formVars, "<:authors[0||]:>", ""); // function 'parsePlaceholderString()' is defined in 'include.inc.php'
+					}
+
+					$recordIdentifier .= $row[$i]; // merge all field values to form a unique record identifier string
+				}
+
+				// Normalize record identifier string:
+				if ($ignoreWhitespace == "1") // ignore whitespace
+					$recordIdentifier = preg_replace("/\s+/", "", $recordIdentifier);
+
+				if ($ignorePunctuation == "1") // ignore punctuation
+					$recordIdentifier = preg_replace("/[[:punct:]]+/", "", $recordIdentifier);
+
+				if ($ignoreCharacterCase == "1") // ignore character case
+					$recordIdentifier = strtolower($recordIdentifier);
+
+				if ($nonASCIIChars == "strip") // strip non-ASCII characters
+					$recordIdentifier = handleNonASCIIAndUnwantedCharacters($recordIdentifier, "\S\s", "strip"); // function 'parsePlaceholderString()' is defined in 'include.inc.php'
+
+				elseif ($nonASCIIChars == "transliterate") // transliterate non-ASCII characters
+					$recordIdentifier = handleNonASCIIAndUnwantedCharacters($recordIdentifier, "\S\s", "transliterate");
+
+				// Check whether the record identifier string has occurred already:
+				if (isset($recordSerialsArray[$recordIdentifier])) // this record identifier string has already been seen
+					$recordSerialsArray[$recordIdentifier][] = $row["serial"]; // add this record's serial number to the array of record serials which share the same record identifier string
+				else // new record identifier string
+					$recordSerialsArray[$recordIdentifier] = array($row["serial"]); // add a new array element for this record's identifier string (and store its serial number as value within a sub-array)
+			}
+
+			// Collect all array elements from '$recordSerialsArray' where their sub-array contains more than one serial number:
+			foreach($recordSerialsArray as $recordSerials)
+			{
+				if (count($recordSerials) > 1)
+					foreach($recordSerials as $recordSerial)
+						$duplicateRecordSerialsArray[] = $recordSerial; // add this record's serial number to the array of duplicate record serials
+			}
+		}
+		else // nothing found!
+		{
+			// TODO!
+		}
+
+		if (empty($duplicateRecordSerialsArray))
+			$duplicateRecordSerialsArray[] = "0"; // if no duplicate records were found, the non-existing serial number '0' will result in a "nothing found" feedback
+
+
+		// CONSTRUCT SQL QUERY (2. DUPLICATES DISPLAY):
+		// To display any duplicates that were found within the results of the original query, we build again a new query based on the original SQL query:
+		$query = $sqlQuery;
+
+		// Replace WHERE clause:
+		// TODO: maybe make this into a generic function? (compare with function 'extractWhereClause()' in 'include.inc.php')
+		$duplicateRecordSerialsString = implode("|", $duplicateRecordSerialsArray);
+		$query = preg_replace("/(?<=WHERE )(.+?)(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|[ ;]SELECT|[ ;]INSERT|[ ;]UPDATE|[ ;]DELETE|$)/i", "serial RLIKE \"^(" . $duplicateRecordSerialsString . ")$\"", $query);
+
+		// Replace any existing ORDER BY clause with the list of columns given in '$selectedFieldsArray':
+		// (TODO: we should better use function 'newORDERclause()' from 'include.inc.php' here, but this would require that rawurlencoding is made optional in that function)
+		$query = preg_replace("/(?<=ORDER BY ).+?(?=LIMIT.*|GROUP BY.*|HAVING.*|PROCEDURE.*|FOR UPDATE.*|LOCK IN.*|$)/i", $selectedFieldsString, $query);
+
+
+		return $query;
+	}
+
+	// --------------------------------------------------------------------
 
 	// Build the database query from user input provided by the 'simple_search.php' form:
 	function extractFormElementsSimple($showLinks)
