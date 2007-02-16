@@ -486,7 +486,7 @@
 
 	$importedRecordsArray = array();
 
-	if ((count($importRecordNumbersRecognizedFormatArray) == 1) AND !eregi("^cli", $client)) // if this is the only record we'll need to import -AND- if the import didn't originate from a refbase command line client:
+	if ((count($importRecordNumbersRecognizedFormatArray) == 1) AND !eregi("^(cli|be)", $client)) // if this is the only record we'll need to import -AND- if the import didn't originate from a refbase command line client:
 	{
 		foreach ($importDataArray['records'][0] as $fieldParameterKey => $fieldParameterValue)
 			$importDataArray['records'][0][$fieldParameterKey] = $fieldParameterKey . "=" . rawurlencode($fieldParameterValue); // copy parameter name and equals sign in front of parameter value
