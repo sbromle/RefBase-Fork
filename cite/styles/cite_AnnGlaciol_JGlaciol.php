@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/styles/cite_AnnGlaciol_JGlaciol.php
 	// Created:    07-Sep-05, 14:53
-	// Modified:   31-Aug-06, 14:19
+	// Modified:   16-Feb-07, 01:03
 
 	// This is a citation style file (which must reside within the 'cite/styles/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecord()' function that outputs a reference list from selected records according to the citation style used by
@@ -117,7 +117,6 @@
 				{
 					// instead of any pages info (which normally doesn't exist for online publications) we append
 					// an optional string (given in 'online_citation') plus the DOI:
-					// (NOTE: I'm not really sure how to format an online publication for this cite style)
 
 					if (!empty($row['online_citation']))			// online_citation
 					{
@@ -130,9 +129,9 @@
 					if (!empty($row['doi']))			// doi
 					{
 						if (!empty($row['online_citation']) OR (empty($row['online_citation']) AND (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))))		// only add "," if online_citation isn't empty, or else if either volume, issue, abbrev_journal or publication isn't empty
-							$record .= ",";
+							$record .= ".";
 
-						$record .= " doi:" . $row['doi'];
+						$record .= " (" . $row['doi'] . ".)";
 					}
 				}
 				else // $row['online_publication'] == "no" -> this record refers to a printed article, so we append any pages info instead:
@@ -149,13 +148,13 @@
 						}
 				}
 
-				if (!ereg("\. *$", $record))
+				if (!ereg("\.\)? *$", $record))
 					$record .= ".";
 			}
 
-		// --- BEGIN TYPE = BOOK CHAPTER -------------------------------------------------------------------------------------------------------
+		// --- BEGIN TYPE = BOOK CHAPTER / CONFERENCE ARTICLE ----------------------------------------------------------------------------------
 
-		elseif ($row['type'] == "Book Chapter")
+		elseif (ereg("Book Chapter|Conference Article", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -322,9 +321,9 @@
 					}
 			}
 
-		// --- BEGIN TYPE = BOOK WHOLE / MAP / MANUSCRIPT / JOURNAL ----------------------------------------------------------------------------
+		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / MAP / MANUSCRIPT / JOURNAL --------------------------------------------------------
 
-		elseif (ereg("Book Whole|Map|Manuscript|Journal", $row['type']))
+		elseif (ereg("Book Whole|Conference Volume|Map|Manuscript|Journal", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -466,4 +465,4 @@
 	}
 
 	// --- END CITATION STYLE ---
-
+?>
