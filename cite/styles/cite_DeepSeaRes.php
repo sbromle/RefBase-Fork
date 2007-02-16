@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/styles/cite_DeepSeaRes.php
 	// Created:    28-Sep-04, 23:36
-	// Modified:   11-Jun-06, 17:08
+	// Modified:   16-Feb-07, 01:03
 
 	// This is a citation style file (which must reside within the 'cite/styles/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecord()' function that outputs a reference list from selected records according to the citation style used by
@@ -130,9 +130,9 @@
 					$record .= ".";
 			}
 
-		// --- BEGIN TYPE = BOOK CHAPTER -------------------------------------------------------------------------------------------------------
+		// --- BEGIN TYPE = BOOK CHAPTER / CONFERENCE ARTICLE ----------------------------------------------------------------------------------
 
-		elseif ($row['type'] == "Book Chapter")
+		elseif (ereg("Book Chapter|Conference Article", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -297,9 +297,9 @@
 					$record .= ".";
 			}
 
-		// --- BEGIN TYPE = BOOK WHOLE / MAP / MANUSCRIPT / JOURNAL ----------------------------------------------------------------------------
+		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / MAP / MANUSCRIPT / JOURNAL --------------------------------------------------------
 
-		elseif (ereg("Book Whole|Map|Manuscript|Journal", $row['type']))
+		elseif (ereg("Book Whole|Conference Volume|Map|Manuscript|Journal", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -427,4 +427,4 @@
 	}
 
 	// --- END CITATION STYLE ---
-
+?>

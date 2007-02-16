@@ -176,9 +176,9 @@
 					$record .= ".";
 			}
 
-		// --- BEGIN TYPE = BOOK CHAPTER -------------------------------------------------------------------------------------------------------
+		// --- BEGIN TYPE = BOOK CHAPTER / CONFERENCE ARTICLE ----------------------------------------------------------------------------------
 
-		elseif ($row['type'] == "Book Chapter")
+		elseif (ereg("Book Chapter|Conference Article", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -317,9 +317,9 @@
 					$record .= ".";
 			}
 
-		// --- BEGIN TYPE = BOOK WHOLE / MAP / MANUSCRIPT / JOURNAL ----------------------------------------------------------------------------
+		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / MAP / MANUSCRIPT / JOURNAL --------------------------------------------------------
 
-		elseif (ereg("Book Whole|Map|Manuscript|Journal", $row['type']))
+		elseif (ereg("Book Whole|Conference Volume|Map|Manuscript|Journal", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -436,4 +436,4 @@
 	}
 
 	// --- END CITATION STYLE ---
-
+?>
