@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./cite/styles/cite_TextCitation.php
 	// Created:    28-Sep-04, 23:46
-	// Modified:   11-Jun-06, 17:08
+	// Modified:   16-Feb-07, 01:03
 
 	// This is a citation style file (which must reside within the 'cite/styles/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecord()' function that outputs a reference list from selected records according to the citation style defined
@@ -63,4 +63,4 @@
 	}
 
 	// --- END CITATION STYLE ---
-
+?>
