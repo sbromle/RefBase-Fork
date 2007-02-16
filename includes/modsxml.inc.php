@@ -11,7 +11,7 @@
   // Author:     Richard Karnesky <mailto:karnesky@gmail.com>
   //
   // Created:    02-Oct-04, 12:00
-	// Modified:   09-Sep-06, 16:49
+  // Modified:   13-Feb-07, 16:49
 
   // This include file contains functions that'll export records to MODS XML.
   // Requires ActiveLink PHP XML Package, which is available under the GPL from:
@@ -42,7 +42,6 @@
   //     - address (?name->affiliation?)
   //     - medium  (?typeOfResource?)
   //   - Don't know how refbase users use these
-  //     - corporate_author (could be either an affiliation or a separate name)
   //     - area (could be either topic or geographic, so we do nothing)
   //     - expedition
   //   - Can't find a place in MODS XML
@@ -99,6 +98,8 @@
 
     return $series;
   }
+
+  // --------------------------------------------------------------------
 
   // Separates people's names and then those names into their functional parts:
   //   {{Family1,{Given1-1,Given1-2}},{Family2,{Given2}}})
@@ -203,6 +204,7 @@
                             // export user-specific data
 
     // --- BEGIN TYPE * ---
+    //   |
     //   | These apply to everything
 
     // this is a stupid hack that maps the names of the '$row' array keys to those used
@@ -285,13 +287,6 @@
         $record->addXMLBranch($singleName);
       }
     }
-    //   conference
-    if (!empty($row['conference'])) { 
-      $nameBranch = new XMLBranch("name");
-      $nameBranch->setTagAttribute("type", "conference");
-      $nameBranch->setTagContent($row['conference']);
-      $record->addXMLBranch($nameBranch);
-    }
 
     // originInfo
     if ((!empty($row['year'])) || (!empty($row['publisher'])) ||
@@ -303,7 +298,7 @@
         $origin->setTagContent($row['year'], "originInfo/dateIssued");
 
       // Book Chapters and Journal Articles only have a dateIssued
-      // (editions, places, and publisers are associated with the host)
+      // (editions, places, and publishers are associated with the host)
       if (!ereg("Book Chapter|Journal Article", $row['type'])) {
         // publisher
         if (!empty($row['publisher']))
@@ -478,13 +473,15 @@
 
     // --- END TYPE * ---
 
+    // -----------------------------------------
 
-    // --- BEGIN TYPE != BOOK CHAPTER || JOURNAL ARTICLE ---
-    //   | BOOK WHOLE, JOURNAL, MANUSCRIPT, and MAP have some info as a branch
-    //   | off the root, where as BOOK CHAPTER and JOURNAL ARTICLE place it in
-    //   | the relatedItem branch.
+    // --- BEGIN TYPE != BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE ---
+    //   |
+    //   | BOOK WHOLE, CONFERENCE VOLUME, JOURNAL, MANUSCRIPT, and MAP have some info
+    //   | as a branch off the root, where as BOOK CHAPTER, JOURNAL ARTICLE and
+    //   | CONFERENCE ARTICLE place it in the relatedItem branch.
 
-    if (!ereg("Book Chapter|Journal Article", $row['type'])) {
+    if (!ereg("Book Chapter|Journal Article|Conference Article", $row['type'])) {
       // name
       //   editor
       if (!empty($row['editor'])) {
@@ -501,6 +498,26 @@
             $record->addXMLBranch($singleName);
         }
       }
+      //   corporate
+      //   (we treat a 'corporate_author' similar to how bibutils converts the BibTeX
+      //   'organization' field to MODS XML, i.e., we add a separate name element with
+      //    a 'type="corporate"' attribute and an 'author' role)
+      if (!empty($row['corporate_author'])) { 
+        $nameBranch = new XMLBranch("name");
+        $nameBranch->setTagAttribute("type", "corporate");
+        $nameBranch->setTagContent($row['corporate_author'], "name/namePart");
+        $nameBranch->setTagContent("author", "name/role/roleTerm");
+        $nameBranch->setTagAttribute("authority", "marcrelator", "name/role/roleTerm");
+        $nameBranch->setTagAttribute("type", "text", "name/role/roleTerm");
+        $record->addXMLBranch($nameBranch);
+      }
+      //   conference
+      if (!empty($row['conference'])) { 
+        $nameBranch = new XMLBranch("name");
+        $nameBranch->setTagAttribute("type", "conference");
+        $nameBranch->setTagContent($row['conference'], "name/namePart");
+        $record->addXMLBranch($nameBranch);
+      }
 
       // genre
       //   type
@@ -508,6 +525,11 @@
       //            [1]<http://www.loc.gov/marc/sourcecode/genre/genrelist.html>
       $genremarc = new XMLBranch("genre");
       $genre = new XMLBranch("genre");
+      //      NOTE: According to the MARC "Source Codes for Genre"[1]
+      //            the MARC authority should be 'marcgt', not 'marc'.
+      //            While Zotero expects 'marcgt', bibutils uses (expects?) 'marc', so we
+      //            should adopt 'marcgt' as authority attribute when bibutils recognizes it.
+      //            [1]<http://www.loc.gov/marc/sourcecode/genre/genresource.html>
       $genremarc->setTagAttribute("authority", "marc");
 
       if (empty($row['thesis'])) { // theses will get their own genre (see below)
@@ -515,6 +537,9 @@
           $record->setTagContent("monographic",
                                  "mods/originInfo/issuance");
           $genremarc->setTagContent("book");
+        }
+        else if ($row['type'] == "Conference Volume") {
+          $genremarc->setTagContent("conference publication");
         }
         else if ($row['type'] == "Journal") {
           $genremarc->setTagContent("periodical");
@@ -543,6 +568,7 @@
         $thesis = new XMLBranch("genre");
 
         $thesismarc->setTagContent("theses");
+        // NOTE: we should use 'authority="marcgt"' (see note above)
         $thesismarc->setTagAttribute("authority", "marc");
 
         $thesis->setTagContent($row['thesis']);
@@ -607,15 +633,17 @@
       }
     }
 
-    // --- END TYPE != BOOK CHAPTER || JOURNAL ARTICLE ---
+    // --- END TYPE != BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE ---
 
+    // -----------------------------------------
 
-    // --- BEGIN TYPE == BOOK CHAPTER || JOURNAL ARTICLE ---
+    // --- BEGIN TYPE == BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE ---
+    //   |
     //   | NOTE: These are currently the only types that have publication,
     //   |       abbrev_journal, volume, and issue added.
-    //   | A lot of info goes into the relatedItem branch
+    //   | A lot of info goes into the relatedItem branch.
 
-    else { //if (ereg("Book Chapter|Journal Article", $row['type']))
+    else { // if (ereg("Book Chapter|Journal Article|Conference Article", $row['type']))
       // relatedItem
       $related = new XMLBranch("relatedItem");
       $related->setTagAttribute("type", "host");
@@ -625,7 +653,7 @@
         $related->setTagContent($row['publication'],
                                 "relatedItem/titleInfo/title");
 
-      // title (Abbreviated Journa)
+      // title (Abbreviated Journal)
       if (!empty($row['abbrev_journal'])) {
         $titleabbrev = NEW XMLBranch("titleInfo");
         $titleabbrev->setTagAttribute("type", "abbreviated");
@@ -643,6 +671,27 @@
                                    "personal", "editor");
         foreach ($nameArray as $singleName)
           $related->addXMLBranch($singleName);
+      }
+      //   corporate
+      //   NOTE: a copy of the code for 'corporate_author' above.
+      //         Needs to be a separate function later.
+      if (!empty($row['corporate_author'])) { 
+        $nameBranch = new XMLBranch("name");
+        $nameBranch->setTagAttribute("type", "corporate");
+        $nameBranch->setTagContent($row['corporate_author'], "name/namePart");
+        $nameBranch->setTagContent("author", "name/role/roleTerm");
+        $nameBranch->setTagAttribute("authority", "marcrelator", "name/role/roleTerm");
+        $nameBranch->setTagAttribute("type", "text", "name/role/roleTerm");
+        $related->addXMLBranch($nameBranch);
+      }
+      //   conference
+      //   NOTE: a copy of the code for 'conference' above.
+      //         Needs to be a separate function later.
+      if (!empty($row['conference'])) { 
+        $nameBranch = new XMLBranch("name");
+        $nameBranch->setTagAttribute("type", "conference");
+        $nameBranch->setTagContent($row['conference'], "name/namePart");
+        $related->addXMLBranch($nameBranch);
       }
 
       // originInfo
@@ -674,6 +723,7 @@
           $genre = new XMLBranch("genre");
 
           $genremarc->setTagContent("periodical");
+          // NOTE: we should use 'authority="marcgt"' (see note above)
           $genremarc->setTagAttribute("authority", "marc");
 
           $genre->setTagContent("academic journal");
@@ -681,10 +731,16 @@
           $related->addXMLBranch($genremarc);
           $related->addXMLBranch($genre);
         }
-        else { //if ($row['type'] == "Book Chapter")
+        else if ($row['type'] == "Conference Article") {
+          $related->setTagContent("conference publication", "relatedItem/genre");
+          // NOTE: we should use 'authority="marcgt"' (see note above)
+          $related->setTagAttribute("authority", "marc", "relatedItem/genre");
+        }
+        else { // if ($row['type'] == "Book Chapter")
           $related->setTagContent("monographic",
                                   "relatedItem/originInfo/issuance");
           $related->setTagContent("book", "relatedItem/genre");
+          // NOTE: we should use 'authority="marcgt"' (see note above)
           $related->setTagAttribute("authority", "marc", "relatedItem/genre");
         }
       }
@@ -694,6 +750,7 @@
         $thesis = new XMLBranch("genre");
 
         $thesismarc->setTagContent("theses");
+        // NOTE: we should use 'authority="marcgt"' (see note above)
         $thesismarc->setTagAttribute("authority", "marc");
 
         $thesis->setTagContent($row['thesis']);
@@ -775,7 +832,7 @@
       $record->addXMLBranch($related);
     }
 
-    // --- END TYPE == BOOK CHAPTER || JOURNAL ARTICLE ---
+    // --- END TYPE == BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE ---
 
 
     return $record;
