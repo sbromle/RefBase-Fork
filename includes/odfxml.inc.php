@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./includes/odfxml.inc.php
 	// Created:    01-Jun-06, 12:49
-	// Modified:   06-Sep-06, 14:00
+	// Modified:   13-Feb-07, 16:18
 
 	// This include file contains functions that'll export records to ODF XML
 	// in spreadsheet format ('.ods').
@@ -462,33 +462,35 @@
 		// '#fallback#' in comments indicates a type mapping that is not a perfect match but as close as currently possible)
 		// 											"refbase type" => "ODF type" // display name of ODF reference type (comment)
 		$referenceTypesToRefbaseTypesArray = array(
-		//											"Journal Article"  =>  "0", // Article (#fallback#; correct?)
-													"Book Whole"       =>  "1", // Book
-		//											"Book Whole"       =>  "2", // Brochures (#fallback#)
-		//											"Book Whole"       =>  "3", // Conference proceeding (correct? conference?)
-		//											"Book Chapter"     =>  "4", // Book excerpt (#fallback#)
-													"Book Chapter"     =>  "5", // Book excerpt with title
-		//											"Book Chapter"     =>  "6", // Conference proceeding (#fallback#; correct? inproceedings?)
-													"Journal Article"  =>  "7", // Journal (AFAIK, 'Journal' means a journal article and not a whole journal)
-		//											"Book Whole"       =>  "8", // Tech. Documentation (#fallback#)
-		//											"Book Whole"       =>  "9", // Thesis (#fallback#; function 'parseRecord()' will set the ODF type to 'Thesis' if the refbase 'thesis' field isn't empty)
-		//											"Book Whole"       => "10", // Miscellaneous (#fallback#)
-		//											"Book Whole"       => "11", // Dissertation (#fallback#; function 'parseRecord()' will set the ODF type to 'Dissertation' if the refbase 'thesis' field contains either 'Ph.D. thesis' or 'Doctoral thesis'))
-		//											"Book Whole"       => "12", // Conference proceeding (#fallback#; correct? proceedings?)
-		//											"Book Whole"       => "13", // Research report (#fallback#)
-													"Manuscript"       => "14", // Unpublished (#fallback#)
-		//											""                 => "15", // e-mail (unsupported)
-		//											""                 => "16", // WWW document (unsupported)
-		//											""                 => "17", // User-defined1 (unsupported)
-		//											""                 => "18", // User-defined2 (unsupported)
-		//											""                 => "19", // User-defined3 (unsupported)
-													"Journal"          => "20", // User-defined4 (a whole journal)
-													"Map"              => "21"  // User-defined5
+		//											"Journal Article"    =>  "0", // Article (#fallback#; correct?)
+													"Book Whole"         =>  "1", // Book
+		//											"Book Whole"         =>  "2", // Brochures (#fallback#)
+		//											"Book Whole"         =>  "3", // Conference proceeding (correct? conference?)
+		//											"Book Chapter"       =>  "4", // Book excerpt (#fallback#)
+													"Book Chapter"       =>  "5", // Book excerpt with title
+													"Conference Article" =>  "6", // Conference proceeding (correct? inproceedings?)
+													"Journal Article"    =>  "7", // Journal (AFAIK, 'Journal' means a journal article and not a whole journal)
+		//											"Book Whole"         =>  "8", // Tech. Documentation (#fallback#)
+		//											"Book Whole"         =>  "9", // Thesis (#fallback#; function 'parseRecord()' will set the ODF type to 'Thesis' if the refbase 'thesis' field isn't empty)
+		//											"Book Whole"         => "10", // Miscellaneous (#fallback#)
+		//											"Book Whole"         => "11", // Dissertation (#fallback#; function 'parseRecord()' will set the ODF type to 'Dissertation' if the refbase 'thesis' field contains either 'Ph.D. thesis' or 'Doctoral thesis'))
+													"Conference Volume"  => "12", // Conference proceeding (correct? proceedings?)
+		//											"Book Whole"         => "13", // Research report (#fallback#)
+													"Manuscript"         => "14", // Unpublished (#fallback#)
+		//											""                   => "15", // e-mail (unsupported)
+		//											""                   => "16", // WWW document (unsupported)
+		//											""                   => "17", // User-defined1 (unsupported)
+		//											""                   => "18", // User-defined2 (unsupported)
+		//											""                   => "19", // User-defined3 (unsupported)
+													"Journal"            => "20", // User-defined4 (a whole journal)
+													"Map"                => "21"  // User-defined5
 												);
 
 
 		return array($universalSearchReplaceActionsArray, $fieldSpecificSearchReplaceActionsArray, $odfIndexesToRefbaseFieldsArray, $referenceTypesToRefbaseTypesArray);
 	}
+
+	// --------------------------------------------------------------------
 
 	function zipODF($content) {
 		$zipfile = new zipfile();  

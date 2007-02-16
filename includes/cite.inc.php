@@ -5,7 +5,7 @@
 	//             Please see the GNU General Public License for more details.
 	// File:       ./includes/cite.inc.php
 	// Created:    25-May-06, 15:19
-	// Modified:   11-Aug-06, 17:11
+	// Modified:   13-Feb-07, 14:28
 
 	// This file contains functions
 	// that are used when outputting
@@ -90,12 +90,14 @@
 			if (!isset($availableTypeTitlesArray))
 				// Map record types with items of the global localization array ('$loc'):
 				$availableTypeTitlesArray = array(
-													"Journal Article" => "JournalArticles",
-													"Book Chapter"    => "BookContributions",
-													"Book Whole"      => "Monographs",
-													"Journal"         => "Journals",
-													"Manuscript"      => "Manuscripts",
-													"Map"             => "Maps"
+													"Journal Article"    => "JournalArticles",
+													"Book Chapter"       => "BookContributions",
+													"Book Whole"         => "Monographs",
+													"Conference Article" => "ConferenceArticles",
+													"Conference Volume"  => "ConferenceVolumes",
+													"Journal"            => "Journals",
+													"Manuscript"         => "Manuscripts",
+													"Map"                => "Maps"
 												);
 
 			if (isset($recordType, $availableTypeTitlesArray))

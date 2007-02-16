@@ -47,6 +47,8 @@
 "caused an error"=>"caused an error",
 "CiteKey"=>"Cite Key",
 "Conference"=>"Conference",
+"ConferenceArticles"=>"Conference Proceedings",
+"ConferenceVolumes"=>"Conference Proceedings",
 "contains"=>"contains",
 "contains not"=>"does not contain",
 "copy"=>"copy",
