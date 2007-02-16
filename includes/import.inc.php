@@ -9,7 +9,7 @@
 	//
 	// File:       ./includes/import.inc.php
 	// Created:    13-Jan-06, 21:00
-	// Modified:   03-Oct-06, 21:12
+	// Modified:   13-Feb-07, 14:56
 
 	// This file contains functions
 	// that are used when importing
@@ -100,16 +100,16 @@
 				$pages = array();
 
 				if (preg_match("/^BP [^ \r\n]+/m", $isiRecordsArray[$i]))
-					$pages[] = preg_replace("/.*[\r\n]BP (\d+).*/s", "\\1", $isiRecordsArray[$i]);
+					$pages[] = preg_replace("/.*[\r\n]BP ([^\r\n]+).*/s", "\\1", $isiRecordsArray[$i]);
 
 				if (preg_match("/^EP [^ \r\n]+/m", $isiRecordsArray[$i]))
-					$pages[] = preg_replace("/.*[\r\n]EP (\d+).*/s", "\\1", $isiRecordsArray[$i]);
+					$pages[] = preg_replace("/.*[\r\n]EP ([^\r\n]+).*/s", "\\1", $isiRecordsArray[$i]);
 
 				if (!empty($pages))
 					$pageRange = implode("-", $pages);
 				// if no start or end page is given, we'll try the ISI "PG" field that indicates the total number of pages:
 				elseif (preg_match("/^PG [^ \r\n]+/m", $isiRecordsArray[$i]))
-					$pageRange = preg_replace("/.*[\r\n]PG (\d+).*/s", "\\1 pp", $isiRecordsArray[$i]);
+					$pageRange = preg_replace("/.*[\r\n]PG ([^\r\n]+).*/s", "\\1 pp", $isiRecordsArray[$i]);
 				else
 					$pageRange = "";
 
@@ -309,11 +309,11 @@
 
 											"AU"  =>  "author", // Author Primary
 											"A1"  =>  "author", // Author Primary
-											"A2"  =>  "editor", // Author Secondary
+											"A2"  =>  "editor", // Author Secondary (see note for 'corporate_author' below)
 											"ED"  =>  "editor", // Author Secondary
 											"A3"  =>  "series_editor", // Author Series
 											"AD"  =>  "address", // Address
-		//									""    =>  "corporate_author",
+		//									""    =>  "corporate_author", // note that bibutils uses the RIS 'A2' tag to indicate corporate authors ('<name type="corporate">'), e.g., when importing contents of the BibTeX 'organization' field
 
 											"TI"  =>  "title", // Title Primary
 											"T1"  =>  "title", // Title Primary
@@ -337,6 +337,7 @@
 											"IS"  =>  "issue", // Issue
 											"SP"  =>  "startPage", // Start page number (contents of the special fields 'startPage' and 'endPage' will be merged into a range and copied to the refbase 'pages' field)
 											"EP"  =>  "endPage", // Ending page number
+											"LP"  =>  "endPage", // Ending page number ('LP' is actually not part of the RIS specification but gets used in the wild such as in RIS exports of the American Physical Society, <http://aps.org/>)
 
 		//									""    =>  "series_volume", // (for 'series_volume' and 'series_issue', some magic will be applied within the 'parseRecords()' function)
 		//									""    =>  "series_issue",
@@ -417,7 +418,7 @@
 													"CASE"  =>  "Unsupported: Case", // Case
 													"CHAP"  =>  "Book Chapter", // Book chapter
 													"COMP"  =>  "Unsupported: Computer Program", // Computer program
-													"CONF"  =>  "Unsupported: Conference Proceeding", // Conference proceeding
+													"CONF"  =>  "Conference Article", // Conference proceeding
 													"CTLG"  =>  "Book Whole", // Catalog (#fallback#)
 													"DATA"  =>  "Unsupported: Data File", // Data file
 													"ELEC"  =>  "Unsupported: Electronic Citation", // Electronic Citation
@@ -993,7 +994,7 @@
 													"Book, Whole"                          =>  "Book Whole", // Book, Whole
 													"Case\/Court Decisions"                =>  "Unsupported: Case/Court Decisions", // Case/Court Decisions
 													"Computer Program"                     =>  "Unsupported: Computer Program", // Computer Program
-													"Conference Proceeding"                =>  "Unsupported: Conference Proceeding", // Conference Proceeding
+													"Conference Proceeding"                =>  "Conference Article", // Conference Proceeding
 													"Dissertation(\/Thesis)?"              =>  "Thesis", // Dissertation/Thesis (function 'parseRecords()' will set the special type 'Thesis' back to 'Book Whole' and adopt the refbase 'thesis' field)
 													"Dissertation(\/Thesis)?, Unpublished" =>  "Thesis", // Dissertation/Thesis, Unpublished (#fallback#) (function 'parseRecords()' will set the special type 'Thesis' back to 'Book Whole' and adopt the refbase 'thesis' field)
 													"Generic"                              =>  "Book Whole", // Generic (#fallback#)
