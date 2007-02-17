@@ -1,20 +1,25 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/include.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    16-Apr-02, 10:54
-	// Modified:   10-Dec-06, 18:55
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This file contains important
 	// functions that are shared
 	// between all scripts.
 
-	/*
-	Code adopted from example code by Hugh E. Williams and David Lane, authors of the book
-	"Web Database Application with PHP and MySQL", published by O'Reilly & Associates.
-	*/
 
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password
@@ -364,8 +369,8 @@
 
 		global $errorNo;
 		global $errorMsg;
-		// Get the path to the currently executing script,
-		// relative to the document root:
+
+		// Get the path to the currently executing script, relative to the document root:
 		$scriptURL = scriptURL();
 
 		// Extract checkbox variable values from the request:
@@ -380,9 +385,9 @@
 		$recordSerialsString = "&marked[]=" . $recordSerialsString; // prefix also the very first record serial with "&marked[]="
 
 		// based on the refering script we adjust the parameters that get included in the link:
-		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|extract|users|user_details|user_receipt)\.php", $scriptURL))
+		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_search|extract|users|user_details|user_receipt)\.php", $scriptURL))
 			$referer = $scriptURL; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
-												// to re-locate back to these pages after successful login/logout). Logout on 'install.php', 'users.php', 'user_details.php' or 'user_receipt.php' will redirect to 'index.php'.
+									// to re-locate back to these pages after successful login/logout). Logout on 'install.php', 'users.php', 'user_details.php' or 'user_receipt.php' will redirect to 'index.php'.
 
 		elseif (ereg(".*(record|receipt)\.php", $scriptURL))
 			$referer = $scriptURL . "?" . "recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery);
@@ -3675,21 +3680,25 @@ EOF;
 
 	// --------------------------------------------------------------------
 
-	// Get the path to the currently executing script, relative to the document
-	// root:
+	// Get the path to the currently executing script, relative to the document root:
 	function scriptURL()
 	{
 		if (isset($_SERVER['SCRIPT_NAME']))
+		{
 			$pathToScript = $_SERVER['SCRIPT_NAME'];
+		}
 		else
 		{
 			$pathToScript = $_SERVER['PHP_SELF'];
 
-			//Sanitize PHP_SELF:
+			// Sanitize PHP_SELF:
 			if (preg_match('#\.php.+#', $pathToScript))
+			{
 				// Remove anything after the PHP file extension:
 				$pathToScript = preg_replace('#(?<=\.php).+#', '', $pathToScript);
+			}
 		}
+
 		return $pathToScript;
 	}
 
