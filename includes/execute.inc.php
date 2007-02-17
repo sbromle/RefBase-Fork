@@ -1,18 +1,21 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
 	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-	//             original author.
+	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
-	//             but WITHOUT ANY WARRANTY.  Please see the GNU General Public
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
 	//             License for more details.
 	//
 	// File:       ./includes/execute.inc.php
-	// Author:     Richard Karnesky <mailto:karnesky@gmail.com> and
+	// Repository: $HeadURL$
+	// Author(s):  Richard Karnesky <mailto:karnesky@gmail.com> and
 	//             Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    16-Dec-05, 18:00
-	// Modified:   16-Aug-06, 18:18
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This file contains functions that deal with execution of shell commands and provides
 	// fixes for 'exec()' on certain win32 systems (based on rivera at spamjoy dot unr dot edu's

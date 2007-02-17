@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/webservice.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    04-Feb-06, 22:02
-	// Modified:   26-Sep-06, 16:00
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This include file contains functions that are used in conjunction with the refbase webservices.
 	// Requires ActiveLink PHP XML Package, which is available under the GPL from:

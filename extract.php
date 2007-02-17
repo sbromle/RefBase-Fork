@@ -1,21 +1,26 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./extract.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    29-Jul-02, 16:39
-	// Modified:   22-Jun-06, 01:52
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Search form that offers to extract
 	// literature cited within a text and build
 	// an appropriate reference list from that.
 
-	/*
-	Code adopted from example code by Hugh E. Williams and David Lane, authors of the book
-	"Web Database Application with PHP and MySQL", published by O'Reilly & Associates.
-	*/
-	
+
 	// Incorporate some include files:
 	include 'includes/header.inc.php'; // include header
 	include 'includes/footer.inc.php'; // include footer

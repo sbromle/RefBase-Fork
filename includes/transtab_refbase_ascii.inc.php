@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/transtab_refbase_ascii.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    28-May-06, 18:24
-	// Modified:   06-Jun-06, 17:01
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Search & replace patterns for conversion from refbase markup to plain text. Removes refbase fontshape markup (italic, bold)
 	// as well as markup for super- and subscript or greek letters from the text. Adopt to your needs if necessary.

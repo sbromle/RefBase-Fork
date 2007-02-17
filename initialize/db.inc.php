@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author.
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./initialize/db.inc.php
+	// Repository: $HeadURL$
+	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    15-Oct-02, 19:11
-	// Modified:   29-Oct-05, 16:56
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This file holds crucial
 	// database access information.

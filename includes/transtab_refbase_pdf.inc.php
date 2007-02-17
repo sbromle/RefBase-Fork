@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/transtab_refbase_pdf.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    11-Jun-06, 01:13
-	// Modified:   11-Jun-06, 15:29
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Search & replace patterns for conversion from refbase markup to PDF markup & entities. Note that there's currently no conversion of emdashes
 	// or markup for greek letters and super-/subscript (since I don't know how to print chars by code number or how to print Unicode chars directly).

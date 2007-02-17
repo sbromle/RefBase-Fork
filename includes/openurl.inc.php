@@ -1,17 +1,20 @@
 <?php
   // Project:    Web Reference Database (refbase) <http://www.refbase.net>
   // Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-  //             original author.
+  //             original author(s).
   //
   //             This code is distributed in the hope that it will be useful,
-  //             but WITHOUT ANY WARRANTY.  Please see the GNU General Public
+  //             but WITHOUT ANY WARRANTY. Please see the GNU General Public
   //             License for more details.
   //
   // File:       ./includes/openurl.inc.php
-  // Author:     Richard Karnesky <mailto:karnesky@gmail.com>
+  // Repository: $HeadURL$
+  // Author(s):  Richard Karnesky <mailto:karnesky@gmail.com>
   //
   // Created:    06-Sep-06, 16:30
-  // Modified:   10-Oct-06, 14:45
+  // Modified:   $Date$
+  //             $Author$
+  //             $Revision$
 
   // This include file contains functions that generate OpenURL and COinS data.
   // More info about the OpenURL standard (including pointers to further documentation) is available
@@ -19,6 +22,7 @@
 
   // TODO: Multiple aus have the same array key, so we apped a number that is later stripped
   //       Cleanup if possible
+
 
   // Include refbase markup -> plain text search & replace patterns
   include 'includes/transtab_refbase_ascii.inc.php';

@@ -1,7 +1,7 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
 	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-	//             original author.
+	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
 	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
@@ -9,14 +9,17 @@
 	//
 	// File:       ./duplicate_modify.php
 	// Repository: $HeadURL$
-	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    27-Jan-07, 23:22
-	// Modified:   $Date$ by $Author$ in $Revision$
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This php script will flag records as original and duplicate records.
 	// It then displays the affected records using 'search.php' so that the user
 	// can verify the changes.
+
 
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password

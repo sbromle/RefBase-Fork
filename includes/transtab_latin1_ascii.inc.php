@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/transtab_latin1_ascii.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    24-Aug-05, 20:11
-	// Modified:   25-Aug-05, 17:06
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This is a transliteration table for a best-effort conversion from ISO-8859-1 to ASCII. It contains a list of substitution strings for 'ISO-8859-1 West European' characters,
 	// comparable to the fallback notations that people use commonly in email and on typewriters to represent unavailable characters. Adopted from 'transtab' by Markus Kuhn

@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/transtab_latin1_bibtex.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    13-Aug-06, 13:30
-	// Modified:   13-Aug-06, 16:43
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This is a translation table for conversion from ISO-8859-1 to LaTeX/BibTeX entities. It contains a list of substitution strings for 'ISO-8859-1 West European' characters,
 	// which can be used with the 'T1' font encoding. Uses commands from the 'textcomp' package.

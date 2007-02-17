@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author.
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./initialize/ini.inc.php
+	// Repository: $HeadURL$
+	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    12-Jan-03, 17:58
-	// Modified:   13-Feb-07, 15:02
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This is the customization include file.
 	// It contains variables that are common to all scripts and whose values can/should be customized.

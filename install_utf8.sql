@@ -1,10 +1,19 @@
 # Project:    Web Reference Database (refbase) <http://www.refbase.net>
-# Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-#             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-#             Please see the GNU General Public License for more details.
+# Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+#             original author(s).
+#
+#             This code is distributed in the hope that it will be useful,
+#             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+#             License for more details.
+#
 # File:       ./install_utf8.sql
+# Repository: $HeadURL$
+# Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+#
 # Created:    02-Oct-04, 20:11
-# Modified:   13-Feb-07, 18:01
+# Modified:   $Date$
+#             $Author$
+#             $Revision$
 
 # MySQL database structure & initial data (for use with 'utf8' character set)
 

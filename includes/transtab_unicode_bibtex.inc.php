@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/transtab_unicode_bibtex.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    28-May-06, 12:39
-	// Modified:   13-Aug-06, 13:55
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This is a translation table for best-effort conversion from Unicode to LaTeX/BibTeX entities. It contains a comprehensive list of substitution strings for Unicode characters,
 	// which can be used with the 'T1' font encoding. Uses commands from the 'textcomp' package. Characters that can't be matched are converted to ASCII equivalents.

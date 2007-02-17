@@ -1,7 +1,7 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
 	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-	//             original author.
+	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
 	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
@@ -9,14 +9,17 @@
 	//
 	// File:       ./duplicate_search.php
 	// Repository: $HeadURL$
-	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    28-Jan-07, 09:17
-	// Modified:   $Date$ by $Author$ in $Revision$
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This script provides a form that lets you search for duplicate records.
 	// 
 	// 
+
 
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password

@@ -1,21 +1,26 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./import_csa.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    21-Nov-03, 22:05
-	// Modified:   31-Aug-06, 14:20
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Import form that offers to import records from the "Cambridge Scientific Abstracts" (CSA)
 	// Internet Database Service (<http://www.csa1.co.uk/csa/index.html>). This import form requires
 	// the "full record" format offered by the CSA Internet Database Service.
 
-	/*
-	Code adopted from example code by Hugh E. Williams and David Lane, authors of the book
-	"Web Database Application with PHP and MySQL", published by O'Reilly & Associates.
-	*/
-	
+
 	// Incorporate some include files:
 	include 'includes/header.inc.php'; // include header
 	include 'includes/footer.inc.php'; // include footer

@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/transtab_refbase_markdown.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    28-May-06, 18:24
-	// Modified:   06-Jun-06, 16:35
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Search & replace patterns for conversion from refbase markup to "Markdown" markup & entities. Markdown is a plain text formatting syntax
 	// as well as a software tool that converts the plain text formatting back to HTML; see <http://daringfireball.net/projects/markdown/> for more info.

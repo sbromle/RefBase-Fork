@@ -1,18 +1,21 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
 	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-	//             original author.
+	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
-	//             but WITHOUT ANY WARRANTY.  Please see the GNU General Public
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
 	//             License for more details.
 	//
 	// File:       ./includes/srwxml.inc.php
-	// Author:     Matthias Steffens <mailto:refbase@extracts.de> and
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de> and
 	//             Richard Karnesky <mailto:karnesky@gmail.com>
 	//
 	// Created:    17-May-05, 16:38
-	// Modified:   31-Aug-06, 14:26
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This include file contains functions that'll export records to SRW XML.
 	// Requires ActiveLink PHP XML Package, which is available under the GPL from:

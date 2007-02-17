@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/transtab_refbase_rtf.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    28-May-06, 18:21
-	// Modified:   12-Jun-06, 01:29
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Search & replace patterns for conversion from refbase markup to RTF markup & entities. Converts refbase fontshape markup (italic, bold) and
 	// super- and subscript into RTF commands, greek letters get converted into the respective Unicode character codes.

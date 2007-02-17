@@ -1,11 +1,20 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./includes/transtab_bibtex_refbase.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    10-Aug-06, 21:00
-	// Modified:   13-Aug-06, 16:40
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Search & replace patterns for conversion from LaTeX/BibTeX markup & entities to refbase markup. Converts LaTeX fontshape markup (italic, bold) into
 	// appropriate refbase commands, super- and subscript as well as greek letters in math mode get converted into the respective refbase commands.

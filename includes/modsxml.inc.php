@@ -1,17 +1,20 @@
 <?php
   // Project:    Web Reference Database (refbase) <http://www.refbase.net>
   // Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-  //             original author.
+  //             original author(s).
   //
   //             This code is distributed in the hope that it will be useful,
-  //             but WITHOUT ANY WARRANTY.  Please see the GNU General Public
+  //             but WITHOUT ANY WARRANTY. Please see the GNU General Public
   //             License for more details.
   //
   // File:       ./includes/modsxml.inc.php
-  // Author:     Richard Karnesky <mailto:karnesky@gmail.com>
+  // Repository: $HeadURL$
+  // Author(s):  Richard Karnesky <mailto:karnesky@gmail.com>
   //
   // Created:    02-Oct-04, 12:00
-  // Modified:   13-Feb-07, 16:49
+  // Modified:   $Date$
+  //             $Author$
+  //             $Revision$
 
   // This include file contains functions that'll export records to MODS XML.
   // Requires ActiveLink PHP XML Package, which is available under the GPL from:

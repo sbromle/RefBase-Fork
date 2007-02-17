@@ -1,17 +1,21 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
 	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-	//             original author.
+	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
-	//             but WITHOUT ANY WARRANTY.  Please see the GNU General Public
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
 	//             License for more details.
 	//
 	// File:       ./locales/core.php
-	// Author:     Jochen Wendebaum <mailto:wendebaum@users.sourceforge.net>
+	// Repository: $HeadURL$
+	// Author(s):  Jochen Wendebaum <mailto:wendebaum@users.sourceforge.net>
 	//
 	// Created:    01-Oct-04, 12:00
-	// Modified:   22-Jun-06, 02:56
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
+
 
 	// Get filename:
 	if ($contentTypeCharset == "UTF-8") // variable '$contentTypeCharset' is defined in 'ini.inc.php'

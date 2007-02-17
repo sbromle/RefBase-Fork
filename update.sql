@@ -1,10 +1,19 @@
 # Project:    Web Reference Database (refbase) <http://www.refbase.net>
-# Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-#             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-#             Please see the GNU General Public License for more details.
+# Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+#             original author(s).
+#
+#             This code is distributed in the hope that it will be useful,
+#             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+#             License for more details.
+#
 # File:       ./update.sql
+# Repository: $HeadURL$
+# Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+#
 # Created:    01-Mar-05, 16:54
-# Modified:   13-Feb-07, 18:27
+# Modified:   $Date$
+#             $Author$
+#             $Revision$
 
 # This MySQL database structure file will update any refbase v0.8.0 database to v0.9.0
 

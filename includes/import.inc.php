@@ -1,19 +1,25 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the function's
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
 	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
-	//             but WITHOUT ANY WARRANTY.  Please see the GNU General Public
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
 	//             License for more details.
 	//
 	// File:       ./includes/import.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    13-Jan-06, 21:00
-	// Modified:   13-Feb-07, 14:56
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This file contains functions
 	// that are used when importing
 	// records into the database.
+
 
 	include 'includes/transtab_bibtex_refbase.inc.php'; // include BibTeX markup -> refbase search & replace patterns
 

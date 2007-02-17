@@ -1,15 +1,21 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the function's
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
 	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
-	//             but WITHOUT ANY WARRANTY.  Please see the GNU General Public
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
 	//             License for more details.
 	//
 	// File:       ./includes/install.inc.php
+	// Repository: $HeadURL$
+	// Author(s):  Richard Karnesky <mailto:karnesky@gmail.com> and
+	//             Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    16-Aug-06, 18:00
-	// Modified:   22-Oct-06, 01:03
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This file contains functions
 	// that are used when installing

@@ -1,7 +1,7 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
 	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-	//             original author.
+	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
 	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
@@ -9,14 +9,17 @@
 	//
 	// File:       ./duplicate_manager.php
 	// Repository: $HeadURL$
-	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    27-Jan-07, 21:18
-	// Modified:   $Date$ by $Author$ in $Revision$
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This script enables you to manually manage duplicate records by entering their database serial numbers
 	// into the provided form. The form lets you flag (i.e. identify) an "original" record and its related
 	// duplicate entries. The script will then update the 'orig_record' field in table 'refs' accordingly.
+
 
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password
