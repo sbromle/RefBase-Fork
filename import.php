@@ -1,21 +1,26 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./import.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    17-Feb-06, 20:57
-	// Modified:   08-Oct-06, 16:25
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Import form that offers to import records from Reference Manager (RIS), Cambridge Scientific Abstracts (CSA),
 	// RefWorks Tagged Format, ISI Web of Science, PubMed MEDLINE, PubMed XML, MODS XML, Endnote Tagged Text, BibTeX or COPAC.
 	// Import of the latter five formats is provided via use of bibutils.
 
-	/*
-	Code adopted from example code by Hugh E. Williams and David Lane, authors of the book
-	"Web Database Application with PHP and MySQL", published by O'Reilly & Associates.
-	*/
-	
+
 	// Incorporate some include files:
 	include 'includes/header.inc.php'; // include header
 	include 'includes/footer.inc.php'; // include footer
@@ -315,7 +320,7 @@
 			. "<a href=\"http://www.refworks.com/\" target=\"top\">RefWorks</a>, "
 			. "<a href=\"http://en.wikipedia.org/wiki/Bibtex\" target=\"top\">BibTeX</a>, "
 			. "<a href=\"http://www.loc.gov/standards/mods/\" target=\"top\">MODS XML</a>, "
-			. "<a href=\"http://scientific.thomson.com/products/wos/\" target=\"top\">ISI Web of Science</a>, "
+			. "<a href=\"http://isiknowledge.com/wos/\" target=\"top\">ISI Web of Science</a>, "
 			. "<a href=\"http://www.pubmed.gov/\" target=\"top\">PubMed</a> (MEDLINE or XML), "
 			. "<a href=\"" . $importCSArecordsURL . "\" target=\"top\">Cambridge Scientific Abstracts</a> (CSA) " // '$importCSArecordsURL' is defined in 'ini.inc.php'
 			. "and <a href=\"http://www.copac.ac.uk/\" target=\"top\">COPAC</a>."
