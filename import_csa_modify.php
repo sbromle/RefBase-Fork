@@ -1,20 +1,25 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
-	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-	//             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-	//             Please see the GNU General Public License for more details.
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
 	// File:       ./import_csa_modify.php
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
 	// Created:    21-Nov-03, 22:46
-	// Modified:   23-Jan-06, 21:50
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This php script accepts input from 'import_csa.php' and will process any CSA full record data. In case of a single
 	// record, the script will call 'record.php' with all provided fields pre-filled. The user can then verify the data,
 	// add or modify any details as necessary and add the record to the database. Multiple records will be imported directly.
 
-	/*
-	Code adopted from example code by Hugh E. Williams and David Lane, authors of the book
-	"Web Database Application with PHP and MySQL", published by O'Reilly & Associates.
-	*/
 
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password
@@ -79,6 +84,8 @@
 	// Check if source text originated from a PubMed import form (instead of 'import_csa.php')
 	if ($formType == "importPUBMED")
 	{
+		$sourceText = trim($sourceText); // trim whitespace from poorly copied id's
+
 		// Fetch PubMed XML data (by PubMed ID given in '$sourceText') and convert to CSA format:
 		// (this allows for import of PubMed records via the import form provided by 'import_pubmed.php')
 		$sourceText = PubmedToCsa($sourceText); // function 'PubmedToCsa()' is defined in 'import.inc.php'
@@ -676,14 +683,14 @@
 		$importDataArray['author'] = "Matthias Steffens"; // author/contact name of the person who's responsible for this script/importer
 		$importDataArray['contact'] = "refbase@extracts.de"; // author's email/contact address
 		$importDataArray['options'] = array('prefix_call_number' => "true"); // if "true", any 'call_number' string will be prefixed with the correct call number prefix of the currently logged-in user (e.g. 'IPÖ @ msteffens @ ')
-		$importDataArray['records'] = $parsedRecordsArray; // this array will hold the record(s) (with each record being a sub-array of fields) -> but in this case, we'll import one record at a time
+		$importDataArray['records'] = $parsedRecordsArray; // this array will hold the record(s) (with each record being a sub-array of fields)
 
 		// NOTES: - due to the nature of the CSA format, this importer doesn't provide input for the following fields:
 		//          'place', 'series_editor', 'edition', 'medium', 'area', 'expedition', 'call_number', 'approved', 'file', 'thesis', 'url', 'contribution_id', 'online_publication', 'online_citation', 'orig_record'
 		//        - the 'addRecords()' function will take care of the calculation fields ('first_author', 'author_count', 'first_page', 'volume_numeric' and 'series_volume_numeric')
 		//        - similarly, the *date/*time/*by fields ('created_date', 'created_time', 'created_by', 'modified_date', 'modified_time', 'modified_by') will be filled automatically
 		//          if no custom values (in correct date ['YYYY-MM-DD'] and time ['HH:MM:SS'] format) are given in the '$importDataArray'
-		//        - we could pass any custom info for the 'location' field with the '$importDataArray', ommitting it here
+		//        - we could pass any custom info for the 'location' field with the '$importDataArray', omitting it here
 		//          causes the 'addRecords()' function to insert name & email address of the currently logged-in user (e.g. 'Matthias Steffens (refbase@extracts.de)')
 		//        - the serial number(s) will be assigned automatically (and returned by the 'addRecords()' function in form of an array)
 		//        - we don't add anything to the 'user_data' table since the import data don't contain any user-specific data
