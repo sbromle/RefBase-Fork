@@ -17,8 +17,8 @@
 	//             $Revision$
 
 	// Import form that offers to import records from Reference Manager (RIS), Cambridge Scientific Abstracts (CSA),
-	// RefWorks Tagged Format, ISI Web of Science, PubMed MEDLINE, PubMed XML, MODS XML, Endnote Tagged Text, BibTeX or COPAC.
-	// Import of the latter five formats is provided via use of bibutils.
+	// RefWorks Tagged Format, SciFinder Tagged Format, ISI Web of Science, PubMed MEDLINE, PubMed XML, MODS XML,
+	// Endnote Tagged Text, BibTeX or COPAC. Import of the latter five formats is provided via use of bibutils.
 
 
 	// Incorporate some include files:
@@ -322,7 +322,8 @@
 			. "<a href=\"http://www.loc.gov/standards/mods/\" target=\"top\">MODS XML</a>, "
 			. "<a href=\"http://isiknowledge.com/wos/\" target=\"top\">ISI Web of Science</a>, "
 			. "<a href=\"http://www.pubmed.gov/\" target=\"top\">PubMed</a> (MEDLINE or XML), "
-			. "<a href=\"" . $importCSArecordsURL . "\" target=\"top\">Cambridge Scientific Abstracts</a> (CSA) " // '$importCSArecordsURL' is defined in 'ini.inc.php'
+			. "<a href=\"" . $importCSArecordsURL . "\" target=\"top\">Cambridge Scientific Abstracts</a> (CSA), " // '$importCSArecordsURL' is defined in 'ini.inc.php'
+			. "<a href=\"http://www.cas.org/SCIFINDER/\" target=\"top\">SciFinder</a> "
 			. "and <a href=\"http://www.copac.ac.uk/\" target=\"top\">COPAC</a>."
 			. " Please see the <a href=\"http://import.refbase.net/\" target=\"top\">refbase online documentation</a> for more information about the supported formats and any requirements in format structure.</td>"
 			. "\n</tr>"
