@@ -63,7 +63,8 @@ INSERT INTO `formats` VALUES (1, 'MODS XML', 'import', 'true', 'bibutils/import_
 (21, 'LaTeX', 'cite', 'true', 'formats/cite_latex.php', '17', 1),
 (22, 'Markdown', 'cite', 'true', 'formats/cite_markdown.php', '18', 1),
 (23, 'ASCII', 'cite', 'true', 'formats/cite_ascii.php', '19', 1),
-(24, 'RefWorks', 'import', 'true', 'import_refworks2refbase.php', '20', 1);
+(24, 'RefWorks', 'import', 'true', 'import_refworks2refbase.php', '20', 1),
+(25, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', '21', 1);
 
 # --------------------------------------------------------
 

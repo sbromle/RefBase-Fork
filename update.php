@@ -403,6 +403,9 @@
 		$values = "(NULL, 'RefWorks', 'import', 'true', 'import_refworks2refbase.php', '20', 1)";
 		$resultArray["Table 'formats': inserted 'RefWorks' import format"] = insertIfNotExists("format_name", "RefWorks", $tableFormats, $values);
 
+		$values = "(NULL, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', '21', 1)";
+		$resultArray["Table 'formats': inserted 'SciFinder' import format"] = insertIfNotExists("format_name", "SciFinder", $tableFormats, $values);
+
 		// (2.13) Add new export & citation formats in table 'formats'
 		$values = "(NULL, 'SRW XML', 'export', 'true', 'export_srwxml.php', '11', 1)";
 		$resultArray["Table 'formats': inserted 'SRW XML' export format"] = insertIfNotExists("format_name", "SRW XML", $tableFormats, $values);
