@@ -777,7 +777,7 @@
 			if ($thesis == "yes")
 				$query .= " thesis RLIKE \".+\"";				
 			elseif ($thesis == "no")
-				$query .= " thesis IS NULL";
+				$query .= " (thesis IS NULL OR thesis = \"\")";
 			else
 				$query .= " thesis RLIKE " . quote_smart($thesis);
 		}
