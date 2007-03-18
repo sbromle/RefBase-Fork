@@ -1,7 +1,7 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
 	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-	//             original author.
+	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
 	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
@@ -9,7 +9,7 @@
 	//
 	// File:       ./initialize/db.inc.php
 	// Repository: $HeadURL$
-	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    15-Oct-02, 19:11
 	// Modified:   $Date$
@@ -20,10 +20,6 @@
 	// database access information.
 	// Please read the notes below!
 
-	/*
-	Code adopted from example code by Hugh E. Williams and David Lane, authors of the book
-	"Web Database Application with PHP and MySQL", published by O'Reilly & Associates.
-	*/
 	
 	// NOTE: Edit the variables '$databaseName', '$username' and '$password' to suit your setup!
 	//       (Although you'll be able to use the refbase package without modifying these variables,
@@ -63,7 +59,8 @@
 	// The names of the MySQL database tables used by refbase:
 	// If you need to put the refbase tables into an existing MySQL database, you may want to
 	// rename the refbase tables to avoid any name conflicts. If you do so, you need to adopt
-	// the table names here accordingly.
+	// the table names here accordingly. Note that you must then also change the table names
+	// in files 'install.sql' and 'update.sql'.
 	//                      ->  in code comments referred to as table:
 	$tableAuth = "auth"; // ->  'auth'
 	$tableDeleted = "deleted"; // -> 'deleted'
