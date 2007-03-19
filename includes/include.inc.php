@@ -3007,11 +3007,21 @@ EOF;
 	// and (optionally) save all allowed user actions as semicolon-delimited string to the session variable 'user_permissions':
 	function getPermissions($user_OR_groupID, $permissionType, $savePermissionsToSessionVariable) // '$permissionType' must be either 'user' or 'group'; '$savePermissionsToSessionVariable' must be either 'true' or 'false'
 	{
+		global $tableUserPermissions; // defined in 'db.inc.php'
+
+		// NOTE: the group permissions feature (table 'group_permissions') has not been implemented yet, i.e., currently, only '$permissionType=user' is recognized!
+//		global $tableGroupPermissions;
+
+//		if ($permissionType == "group")
+//			$tablePermissions = $tableGroupPermissions;
+//		else
+			$tablePermissions = $tableUserPermissions;
+
 		connectToMySQLDatabase("");
 
 		// CONSTRUCT SQL QUERY:
 		// Fetch all permission settings from the 'user_permissions' (or 'group_permissions') table for the current user:
-		$query = "SELECT allow_add, allow_edit, allow_delete, allow_download, allow_upload, allow_details_view, allow_print_view, allow_browse_view, allow_sql_search, allow_user_groups, allow_user_queries, allow_rss_feeds, allow_import, allow_export, allow_cite, allow_batch_import, allow_batch_export, allow_modify_options FROM " . $permissionType . "_permissions WHERE " . $permissionType . "_id = " . quote_smart($user_OR_groupID);
+		$query = "SELECT allow_add, allow_edit, allow_delete, allow_download, allow_upload, allow_details_view, allow_print_view, allow_browse_view, allow_sql_search, allow_user_groups, allow_user_queries, allow_rss_feeds, allow_import, allow_export, allow_cite, allow_batch_import, allow_batch_export, allow_modify_options FROM " . $tablePermissions . " WHERE " . $permissionType . "_id = " . quote_smart($user_OR_groupID);
 
 		$result = queryMySQLDatabase($query, ""); // RUN the query on the database through the connection
 
@@ -3196,6 +3206,8 @@ EOF;
 	// Update the specified user permissions for the selected user(s):
 	function updateUserPermissions($recordSerialsString, $userPermissionsArray) // '$userPermissionsArray' must contain one or more key/value elements of the form array('allow_add' => 'yes', 'allow_delete' => 'no') where key is a particular 'allow_*' field name from table 'user_permissions' and value is either 'yes' or 'no'
 	{
+		global $tableUserPermissions; // defined in 'db.inc.php'
+
 		connectToMySQLDatabase("");
 
 		$permissionQueryArray = array();
@@ -3210,7 +3222,7 @@ EOF;
 			$permissionQueryString = implode(", ", $permissionQueryArray);
 
 			// Update all specified permission settings in the 'user_permissions' table for the selected user(s):
-			$query = "UPDATE user_permissions SET " . $permissionQueryString . " WHERE user_id RLIKE " . quote_smart("^(" . $recordSerialsString . ")$");
+			$query = "UPDATE $tableUserPermissions SET " . $permissionQueryString . " WHERE user_id RLIKE " . quote_smart("^(" . $recordSerialsString . ")$");
 
 			$result = queryMySQLDatabase($query, ""); // RUN the query on the database through the connection
 
@@ -4177,7 +4189,7 @@ EOF;
 	// to the RFC-2822 specifications (<http://www.faqs.org/rfcs/rfc2822.html>):
 	function generateRFC2822EmailAddress($createdBy)
 	{
-		// Note that the following patterns don't attempt to do fancy parsing of email addresses but simply assumes the string format
+		// Note that the following patterns don't attempt to do fancy parsing of email addresses but simply assume the string format
 		// of the 'created_by' field (table 'refs'). If you change the string format, you must modify these patterns as well!
 		$authorName = preg_replace("/(.+?)\([^)]+\)/", "\\1", $createdBy);
 		$authorEmail = preg_replace("/.+?\(([^)]+)\)/", "\\1", $createdBy);
@@ -4315,6 +4327,13 @@ EOF;
 			// Generate a proper citation for this record, ordering attributes according to the chosen output style & record type:
 			$record = citeRecord($row, $defaultCiteStyle, "", $markupPatternsArray, true); // function 'citeRecord()' is defined in the citation style file given in '$citeStyleFile' (which, in turn, must reside in the 'styles' directory of the refbase root directory)
 
+			// To avoid advertising email adresses in public RSS output, we remove the email address from contents of the 'modified_by' field which
+			// get displayed in item descriptions. However, note that email adresses are NOT stripped from contents of the 'created_by' field
+			// since a valid RSS feed must include an email address in the '<author>' element.
+			// The following pattern does not attempt to do fancy parsing of email addresses but simply assumes the string format
+			// of the 'modified_by' field (table 'refs'). If you change the string format, you must modify this pattern as well!
+			$editorName = preg_replace("/(.+?) \([^)]+\)/", "\\1", $row['modified_by']);
+
 			// append a RSS item for the current record:
 			$rssData .= "\n\n\t\t<item>"
 
@@ -4324,7 +4343,7 @@ EOF;
 
 						. "\n\t\t\t<description><![CDATA[" . $record
 
-						. "\n\t\t\t<br><br>Edited by " . encodeHTMLspecialchars($row['modified_by']) . " on " . generateUNIXTimeStamp($row['modified_date'], $row['modified_time']) . ".]]></description>"
+						. "\n\t\t\t<br><br>Edited by " . encodeHTMLspecialchars($editorName) . " on " . generateUNIXTimeStamp($row['modified_date'], $row['modified_time']) . ".]]></description>"
 
 						. "\n\t\t\t<guid isPermaLink=\"true\">" . $databaseBaseURL . "show.php?record=" . $row['serial'] . "</guid>"
 
