@@ -422,9 +422,9 @@
 		}
 
 		if (!empty($pathToBibutils)) // we'll only update the bibutils path if '$pathToBibutils' isn't empty (installation of bibutils is optional)
-			$queryUpdateDependsTable = "UPDATE " . $databaseName . ".depends SET depends_path = " . quote_smart($pathToBibutils) . " WHERE depends_external = \"bibutils\""; // update the bibutils path spec
+			$queryUpdateDependsTable = "UPDATE " . $databaseName . "." . $tableDepends . " SET depends_path = " . quote_smart($pathToBibutils) . " WHERE depends_external = \"bibutils\""; // update the bibutils path spec
 		else // we set the 'depends_enabled' field in table 'depends' to 'false' to indicate that bibutils isn't installed
-			$queryUpdateDependsTable = "UPDATE " . $databaseName . ".depends SET depends_enabled = \"false\" WHERE depends_external = \"bibutils\""; // disable bibutils functionality
+			$queryUpdateDependsTable = "UPDATE " . $databaseName . "." . $tableDepends . " SET depends_enabled = \"false\" WHERE depends_external = \"bibutils\""; // disable bibutils functionality
 
 		// (2) Run the INSTALL queries on the mysql database through the connection:
 		if (!($result = @ mysql_query ($queryGrantStatement, $connection)))
