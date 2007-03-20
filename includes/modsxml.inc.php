@@ -445,13 +445,6 @@
     }
 
     // identifier
-    //   doi
-    if (!empty($row['doi'])) {
-      $identifier = new XMLBranch("identifier");
-      $identifier->setTagContent($row['doi']);
-      $identifier->setTagAttribute("type", "doi");
-      $record->addXMLBranch($identifier);
-    }
     //   cite_key
     if (!empty($citeKey)) {
       $identifier = new XMLBranch("identifier");
@@ -585,7 +578,7 @@
       if (!empty($row['pages'])) {
         $description = new XMLBranch("physicalDescription");
         $pages = new XMLBranch("extent");
-        $pages->setTagAttribute("unit", "page");
+        $pages->setTagAttribute("unit", "pages");
         if (ereg("[0-9] *- *[0-9]", $row['pages'])) { // if a page range
           // split the page range into start and end pages
           list($pagestart, $pageend) = preg_split('/\s*[-]\s*/', $row['pages']);
@@ -763,8 +756,18 @@
       }
 
       if ((!empty($row['year'])) || (!empty($row['volume'])) ||
-          (!empty($row['issue'])) || (!empty($row['pages']))) {
+          (!empty($row['issue'])) || (!empty($row['pages'])) ||
+          (!empty($row['doi']))) {
         $part = new XMLBranch("part");
+        // identifier
+        //   doi
+        if (!empty($row['doi'])) {
+          $identifier = new XMLBranch("identifier");
+          $identifier->setTagContent($row['doi']);
+          $identifier->setTagAttribute("type", "doi");
+          $record->addXMLBranch($identifier);
+        }
+
         if (!empty($row['year']))
           $part->setTagContent($row['year'], "date");
         if (!empty($row['volume'])) {
