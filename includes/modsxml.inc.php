@@ -644,6 +644,15 @@
       $related = new XMLBranch("relatedItem");
       $related->setTagAttribute("type", "host");
 
+      // identifier
+      //   doi
+      if (!empty($row['doi'])) {
+        $identifier = new XMLBranch("identifier");
+        $identifier->setTagContent($row['doi']);
+        $identifier->setTagAttribute("type", "doi");
+        $related->addXMLBranch($identifier);
+      }
+
       // title (Publication)
       if (!empty($row['publication']))
         $related->setTagContent($row['publication'],
@@ -756,17 +765,8 @@
       }
 
       if ((!empty($row['year'])) || (!empty($row['volume'])) ||
-          (!empty($row['issue'])) || (!empty($row['pages'])) ||
-          (!empty($row['doi']))) {
+        (!empty($row['issue'])) || (!empty($row['pages']))) {
         $part = new XMLBranch("part");
-        // identifier
-        //   doi
-        if (!empty($row['doi'])) {
-          $identifier = new XMLBranch("identifier");
-          $identifier->setTagContent($row['doi']);
-          $identifier->setTagAttribute("type", "doi");
-          $record->addXMLBranch($identifier);
-        }
 
         if (!empty($row['year']))
           $part->setTagContent($row['year'], "date");
