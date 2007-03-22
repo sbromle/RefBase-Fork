@@ -406,12 +406,21 @@
 		$values = "(NULL, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', '21', 1)";
 		$resultArray["Table 'formats': inserted 'SciFinder' import format"] = insertIfNotExists("format_name", "SciFinder", $tableFormats, $values);
 
+		$values = "(NULL, 'Endnote XML', 'import', 'true', 'bibutils/import_endx2refbase.php', '02', 2)";
+		$resultArray["Table 'formats': inserted 'Endnote XML' import format"] = insertIfNotExists("format_name", "Endnote XML", $tableFormats, $values);
+
 		// (2.13) Add new export & citation formats in table 'formats'
+		$values = "(NULL, 'ISI', 'export', 'true', 'bibutils/export_xml2isi.php', '04', 2)"; // NOTE: This won't work yet, since function 'insertIfNotExists()' can only check for *one* condition (but 'format_name=ISI' already exists as *import* format name!)
+		$resultArray["Table 'formats': inserted 'ISI' export format"] = insertIfNotExists("format_name", "ISI", $tableFormats, $values);
+
 		$values = "(NULL, 'SRW XML', 'export', 'true', 'export_srwxml.php', '11', 1)";
 		$resultArray["Table 'formats': inserted 'SRW XML' export format"] = insertIfNotExists("format_name", "SRW XML", $tableFormats, $values);
 
 		$values = "(NULL, 'ODF XML', 'export', 'true', 'export_odfxml.php', '12', 1)";
 		$resultArray["Table 'formats': inserted 'ODF XML' export format"] = insertIfNotExists("format_name", "ODF XML", $tableFormats, $values);
+
+		$values = "(NULL, 'Word XML', 'export', 'true', 'bibutils/export_xml2word.php', '22', 2)";
+		$resultArray["Table 'formats': inserted 'Word XML' export format"] = insertIfNotExists("format_name", "Word XML", $tableFormats, $values);
 
 		$values = "(NULL, 'OpenSearch RSS', 'export', 'false', 'export_osrss.php', '13', 1)";
 		$resultArray["Table 'formats': inserted 'OpenSearch RSS' export format"] = insertIfNotExists("format_name", "OpenSearch RSS", $tableFormats, $values);
