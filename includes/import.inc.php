@@ -32,7 +32,7 @@
 
 	// ISI TO CSA
 	// This function converts records from "ISI Web of Science" format to "CSA" format
-	// in order to enable import of ISI WoS records via the import form provided by 'import_csa.php'.
+	// in order to enable import of ISI WoS records via the 'csaToRefbase()' function.
 	// ISI WoS records must contain at least the tags "PT" and "SO" and end with "\nER\n".
 	// 
 	// Authors: this function was originally written by Joachim Almergren <joachim.almergren@umb.no>
@@ -46,7 +46,7 @@
 		$extractEmail = true; // if set to 'true', the first email address will be extracted from the ISI "EM" field and appended to the first address in "AF: Affiliation";
 							 // set to 'false' if you don't want to extract the email address
 
-		// Generate an array which lists all the CSA tags that are recognized by 'import_csa.php'
+		// Generate an array which lists all the CSA tags that are recognized by the 'csaToRefbase()' function
 		// and match them with their corresponding ISI tags ("CSA tag" => "ISI tag"):
 		$isiToCsaTagsArray = array(
 									"PT: Publication Type"     => "PT",
@@ -54,7 +54,7 @@
 									"TI: Title"                => "TI",
 									"SO: Source"               => "SO",
 									"PY: Publication Year"     => "PY",
-		//							"JN: Journal Name"         => "", // the 'import_csa.php' script will generate the full journal name from "SO: Source"
+		//							"JN: Journal Name"         => "", // the 'csaToRefbase()' function will generate the full journal name from "SO: Source"
 									"JA: Abbrev Journal Name"  => "JI",
 		//							"MT: Monograph Title"      => "", // the ISI WoS database does only contain journal article (AFAIK)
 									"JV: Journal Volume"       => "VL",
@@ -75,7 +75,7 @@
 		//							"ER: Environmental Regime" => "",
 		//							"CF: Conference"           => "",
 									"NT: Notes"                => "UT" // we'll import the ISI record ID to the notes field
-		//							"DO: DOI"                  => ""
+		//							"DO: DOI"                  => "DI" // Bibutils apparently recognizes "DI" to extract the DOI from ISI records, however, my tests returned only ISI records where the "DI" field contained some other identifier ?:-/
 								);
 
 		// ----------------------------------------------------------------
@@ -186,7 +186,7 @@
 									// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
 									// (note that this case transformation won't do the right thing for author initials and abbreviations,
 									//  but the result is better than the whole string being upper case, IMHO)
-									$recordFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $recordFieldData); // the 'e' modifier allows to execute perl code within the replacement pattern
+									$recordFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $recordFieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
 								// merge again field tag and data:
 								$recordField = $recordFieldTag . "\n    " . $recordFieldData;
@@ -354,7 +354,7 @@
 
 		//									""    =>  "edition",
 		//									""    =>  "medium",
-											"SN"  =>  array("BOOK" => "isbn", "CHAP" => "isbn", "Other" => "issn"), // Book Whole & Book Chapter: ISBN; Other reference types: ISSN
+											"SN"  =>  array("BOOK" => "isbn", "CHAP" => "isbn", "STD" => "isbn", "Other" => "issn"), // Book Whole & Book Chapter: ISBN; Other reference types: ISSN
 
 		//									""    =>  "language",
 		//									""    =>  "summary_language",
@@ -535,6 +535,12 @@
 													'fields'  => array("title", "orig_title", "publication", "address"),
 													'actions' => array(
 																		"/[,.;:!] *$/"  =>  "" // remove any punctuation (except for question marks) from end of field contents
+																	)
+												),
+											array(
+													'fields'  => array("publication", "abbrev_journal"), // NOTE: this replacement action will probably be only beneficial for records of type "Journal Article" (we'd need to add a *pre*-processor feature to distinguish articles from books or other resource types)
+													'actions' => array(
+																		"/\b([[:lower:]])([[:alpha:]]{3,})/e"  =>  "strtoupper('\\1').'\\2'" // make sure that all journal title words (with >3 characters) start with an upper case letter (the 'e' modifier allows to execute PHP code within the replacement pattern)
 																	)
 												),
 											array(
@@ -761,12 +767,20 @@
 		// (MEDLINE types that are currently not supported in refbase will be taken as is but will get
 		//  prefixed with an "Unsupported: " label; '#fallback#' in comments indicates a type mapping that
 		//  is not a perfect match but as close as currently possible)
-		// 												"MEDLINE type" =>  "refbase type" // name of MEDLINE reference type (comment)
+		// 												                                              "MEDLINE type" =>  "refbase type"
 		$referenceTypesToRefbaseTypesArray = array(
-		//											"Journal Article"  =>  "Journal Article", // NOTE: PubMed has *many* more types which should be dealt with (see e.g. <http://www.nlm.nih.gov/mesh/pubtypes2006.html> and <http://www.nlm.nih.gov/mesh/pubtypesg2003.html>) 
-													"JOURNAL ARTICLE"  =>  "Journal Article",
-													"REVIEW"           =>  "Journal Article", // in some records, "PT" may occur multiple times (e.g. as in "PT  - Journal Article\nPT  - Review")
-													"Review"           =>  "Journal Article"
+		//											"Journal Article"                                                =>  "Journal Article", // NOTE: PubMed has *many* more types which should be dealt with (see e.g. <http://www.nlm.nih.gov/mesh/pubtypes2006.html> and <http://www.nlm.nih.gov/mesh/pubtypesg2003.html>) 
+													"JOURNAL ARTICLE"                                                =>  "Journal Article",
+													"REVIEW|Review"                                                  =>  "Journal Article", // in some records, "PT" may occur multiple times (e.g. as in "PT  - Journal Article\nPT  - Review"), and refbase currently uses the contents of the last "PT" as type
+													"Monograph|Account Books|Guidebooks|Handbooks|Textbooks"         =>  "Book Whole",
+													"Congresses|Meeting Abstracts"                                   =>  "Conference Article",
+													"Consensus Development Conference(, NIH)?"                       =>  "Conference Article",
+													"Manuscripts|Unpublished Works"                                  =>  "Manuscript",
+													"Maps"                                                           =>  "Map",
+													"Letter"                                                         =>  "Journal Article", // #fallback#
+													"Validation Studies"                                             =>  "Journal Article",
+													"Research Support, N\.I\.H\., (Ex|In)tramural *"                 =>  "Journal Article",
+													"Research Support, (Non-)?U\.S\. Gov\'t(, (Non-)?P\.H\.S\.)? *"  =>  "Journal Article"
 												);
 
 		// -----------------------------------------
@@ -1514,7 +1528,7 @@
 								// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
 								// (note that this case transformation won't do the right thing for author initials and abbreviations,
 								//  but the result is better than the whole string being upper case, IMHO)
-								$fieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $fieldData); // the 'e' modifier allows to execute perl code within the replacement pattern
+								$fieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $fieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
 						// extract individual items of tags that can occur multiple times:
 						foreach ($tagsMultipleArray as $tagMultiple)
@@ -1901,7 +1915,7 @@
 
 					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the monograph title are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "BIOLOGY AND ECOLOGY OF GLACIAL RELICT CRUSTACEA" into "Biology And Ecology Of Glacial Relict Crustacea")
-						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute perl code within the replacement pattern
+						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
 					$fieldArray[] = "MT: Monograph Title\r\n    " . $extractedSourceFieldData; // add field "MT: Monograph Title" to the array of fields
 				}
@@ -1915,7 +1929,7 @@
 
 					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the journal name are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "POLAR BIOLOGY" into "Polar Biology")
-						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute perl code within the replacement pattern
+						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
 					$fieldArray[] = "JN: Journal Name\r\n    " . $extractedSourceFieldData; // add field "JN: Journal Name" to the array of fields
 				}
@@ -1958,7 +1972,7 @@
 
 					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the abbreviated journal name are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "BALT SEA ENVIRON PROC" into "Balt Sea Environ Proc")
-						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute perl code within the replacement pattern
+						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
 					$fieldArray[] = "JA: Abbrev Journal Name\r\n    " . $extractedSourceFieldData; // add field "JA: Abbrev Journal Name" to the array of fields (note that this field normally does NOT occur within the CSA full record format!)
 				}
@@ -2123,7 +2137,7 @@
 					{
 						if (preg_match("/^[[:upper:]\W\d]+$/", $fieldData)) // if all of the words within the publisher name are uppercase, we attempt to convert the string to something more readable:
 							// perform case transformation (e.g. convert "ELSEVIER SCIENCE B.V." into "Elsevier Science B.V.")
-							$fieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $fieldData); // the 'e' modifier allows to execute perl code within the replacement pattern
+							$fieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $fieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
 						$fieldParametersArray['publisher'] = $fieldData;
 					}
