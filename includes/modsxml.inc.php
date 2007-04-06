@@ -445,6 +445,13 @@
     }
 
     // identifier
+    //   doi
+    if (!empty($row['doi'])) {
+      $identifier = new XMLBranch("identifier");
+      $identifier->setTagContent($row['doi']);
+      $identifier->setTagAttribute("type", "doi");
+      $record->addXMLBranch($identifier);
+    }
     //   cite_key
     if (!empty($citeKey)) {
       $identifier = new XMLBranch("identifier");
@@ -643,15 +650,6 @@
       // relatedItem
       $related = new XMLBranch("relatedItem");
       $related->setTagAttribute("type", "host");
-
-      // identifier
-      //   doi
-      if (!empty($row['doi'])) {
-        $identifier = new XMLBranch("identifier");
-        $identifier->setTagContent($row['doi']);
-        $identifier->setTagAttribute("type", "doi");
-        $related->addXMLBranch($identifier);
-      }
 
       // title (Publication)
       if (!empty($row['publication']))
