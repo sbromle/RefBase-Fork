@@ -288,21 +288,19 @@
 
 				$publication = ereg_replace("[ \r\n]*\(Eds?:[^\)\r\n]*\)", "", $row['publication']);
 				if (!empty($publication))			// publication
-					$record .= " " . $markupPatternsArray["italic-prefix"] . $publication . $markupPatternsArray["italic-suffix"] . ".";
+					$record .= " " . $markupPatternsArray["italic-prefix"] . $publication . $markupPatternsArray["italic-suffix"];
 
 				if (!empty($row['pages']))			// pages
 					{
-						if (!empty($publication))
-							$record .= ",";
-
 						$record .= " (";
 
 						if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
 							$record .= "pp. " . (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // replace hyphen with em dash
 						else
 							$record .= " " . $row['pages'];
-						$record .= ").";
-					}
+						$record .= ")";
+          }
+        $record .= ",";
 
 				if (!empty($row['place']))			// place
 					$record .= " " . $row['place'];
