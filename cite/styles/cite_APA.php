@@ -280,7 +280,7 @@
 
 						$record .= " " . "In " . $editor . " (";
 						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
-							$record .= "Eds";
+							$record .= "Eds.";
 						else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
 							$record .= "Ed.";
 						$record .= "),";
