@@ -40,6 +40,14 @@
 
 	// --------------------------------------------------------------------
 
+	// Extract the ID of the client from which the query originated:
+	// this identifier is used to identify queries that originated from the refbase command line clients ("cli-refbase-1.1", "cli-refbase_import-1.0") or from a bookmarklet (e.g., "jsb-refbase-1.0")
+	// (note that 'client' parameter has to be extracted *before* the call to the 'start_session()' function, since it's value is required by this function)
+	if (isset($_REQUEST['client']))
+		$client = $_REQUEST['client'];
+	else
+		$client = "";
+
 	// START A SESSION:
 	// call the 'start_session()' function (from 'include.inc.php') which will also read out available session variables:
 	start_session(true);
@@ -56,13 +64,6 @@
 
 	// [ Extract form variables sent through POST/GET by use of the '$_REQUEST' variable ]
 	// [ !! NOTE !!: for details see <http://www.php.net/release_4_2_1.php> & <http://www.php.net/manual/en/language.variables.predefined.php> ]
-
-	// Extract the ID of the client from which the query originated:
-	// this identifier is used to identify queries that originated from the refbase command line clients ("cli-refbase-1.1", "cli-refbase_import-1.0") or from a bookmarklet (e.g., "jsb-refbase-1.0")
-	if (isset($_REQUEST['client']))
-		$client = $_REQUEST['client'];
-	else
-		$client = "";
 
 	// Extract the form used for searching:
 	$formType = $_REQUEST['formType'];

@@ -30,6 +30,14 @@
 
 	// --------------------------------------------------------------------
 
+	// Extract the ID of the client from which the query originated:
+	// this identifier is used to identify queries that originated from the refbase command line clients ("cli-refbase-1.1", "cli-refbase_import-1.0") or from a bookmarklet (e.g., "jsb-refbase-1.0")
+	// (note that 'client' parameter has to be extracted *before* the call to the 'start_session()' function, since it's value is required by this function)
+	if (isset($_REQUEST['client']))
+		$client = $_REQUEST['client'];
+	else
+		$client = "";
+
 	// START A SESSION:
 	// call the 'start_session()' function (from 'include.inc.php') which will also read out available session variables:
 	start_session(true);
@@ -44,13 +52,6 @@
 
 	// Extract any generic parameters passed to the script:
 	// (they control how found records are presented on screen)
-
-	// Extract the ID of the client from which the query originated:
-	// this identifier is used to identify queries that originated from the refbase command line clients ("cli-refbase-1.1", "cli-refbase_import-1.0") or from a bookmarklet (e.g., "jsb-refbase-1.0")
-	if (isset($_REQUEST['client']))
-		$client = $_REQUEST['client'];
-	else
-		$client = "";
 
 	// Extract the type of display requested by the user. Normally, this will be one of the following:
 	//  - '' => if the 'submit' parameter is empty, this will produce the default columnar output style ('displayColumns()' function)
