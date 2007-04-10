@@ -1781,22 +1781,25 @@ EOF;
 
 			if ($shortenGivenNames) // if we're supposed to abbreviate given names
 			{
-				// within initials, reduce all full first names (-> defined by a starting uppercase character, followed by one ore more lowercase characters)
-				// to initials, i.e., only retain their first character
-				$singleAuthorArray[1] = preg_replace("/([[:upper:]деаюбцгихйкяжьсртуэзышмлноф])[[:lower:]ДЕАЮБЦГИХЙКЯЖЬСРТУЭЗЫШМЛНОФЪъ]+/", "\\1", $singleAuthorArray[1]);
+				if (isset($singleAuthorArray[1]))
+				{
+					// within initials, reduce all full first names (-> defined by a starting uppercase character, followed by one ore more lowercase characters)
+					// to initials, i.e., only retain their first character
+					$singleAuthorArray[1] = preg_replace("/([[:upper:]деаюбцгихйкяжьсртуэзышмлноф])[[:lower:]ДЕАЮБЦГИХЙКЯЖЬСРТУЭЗЫШМЛНОФЪъ]+/", "\\1", $singleAuthorArray[1]);
 
-				// within initials, remove any dots:
-				$singleAuthorArray[1] = preg_replace("/([[:upper:]деаюбцгихйкяжьсртуэзышмлноф])\.+/", "\\1", $singleAuthorArray[1]);
+					// within initials, remove any dots:
+					$singleAuthorArray[1] = preg_replace("/([[:upper:]деаюбцгихйкяжьсртуэзышмлноф])\.+/", "\\1", $singleAuthorArray[1]);
 
-				// within initials, remove any spaces *between* initials:
-				$singleAuthorArray[1] = preg_replace("/(?<=[-[:upper:]деаюбцгихйкяжьсртуэзышмлноф]) +(?=[-[:upper:]деаюбцгихйкяжьсртуэзышмлноф])/", "", $singleAuthorArray[1]);
+					// within initials, remove any spaces *between* initials:
+					$singleAuthorArray[1] = preg_replace("/(?<=[-[:upper:]деаюбцгихйкяжьсртуэзышмлноф]) +(?=[-[:upper:]деаюбцгихйкяжьсртуэзышмлноф])/", "", $singleAuthorArray[1]);
 
-				// within initials, add a space after a hyphen, but only if ...
-				if (ereg(" $", $betweenInitialsDelim)) // ... the delimiter that separates initials ends with a space
-					$singleAuthorArray[1] = preg_replace("/-(?=[[:upper:]деаюбцгихйкяжьсртуэзышмлноф])/", "- ", $singleAuthorArray[1]);
+					// within initials, add a space after a hyphen, but only if ...
+					if (ereg(" $", $betweenInitialsDelim)) // ... the delimiter that separates initials ends with a space
+						$singleAuthorArray[1] = preg_replace("/-(?=[[:upper:]деаюбцгихйкяжьсртуэзышмлноф])/", "- ", $singleAuthorArray[1]);
 
-				// then, separate initials with the specified delimiter:
-				$singleAuthorArray[1] = preg_replace("/([[:upper:]деаюбцгихйкяжьсртуэзышмлноф])/", "\\1$betweenInitialsDelim", $singleAuthorArray[1]);
+					// then, separate initials with the specified delimiter:
+					$singleAuthorArray[1] = preg_replace("/([[:upper:]деаюбцгихйкяжьсртуэзышмлноф])/", "\\1$betweenInitialsDelim", $singleAuthorArray[1]);
+				}
 			}
 
 
@@ -1838,14 +1841,14 @@ EOF;
 		}
 
 		// do some final clean up:
-		$newAuthorContents = preg_replace("/  +/", " ", $newAuthorContents); // remove double spaces (which occur e.g., when both, $betweenInitialsDelim & $newAuthorsInitialsDelim..., end with a space)
-		$newAuthorContents = preg_replace("/ +([,.;:?!])/", "\\1", $newAuthorContents); // remove spaces before [,.;:?!]
-
 		if ($encodeHTML)
 			$newAuthorContents = encodeHTML($newAuthorContents); // HTML encode higher ASCII characters within the newly arranged author contents
 
 		if ($includeStringAfterFirstAuthor)
 			$newAuthorContents .= $customStringAfterFirstAuthor; // the custom string won't get HTML encoded so that it's possible to include HTML tags (such as '<i>') within the string
+
+		$newAuthorContents = preg_replace("/  +/", " ", $newAuthorContents); // remove double spaces (which occur e.g., when both, $betweenInitialsDelim & $newAuthorsInitialsDelim..., end with a space)
+		$newAuthorContents = preg_replace("/ +([,.;:?!])/", "\\1", $newAuthorContents); // remove spaces before [,.;:?!]
 
 		return $newAuthorContents;
 	}
