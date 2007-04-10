@@ -1281,7 +1281,7 @@
 														else
 															$prefix = "";
 
-														if (ereg("^(https?|ftp)://", $row["file"])) // if the 'file' field contains a full URL (starting with "http://", "https://" or "ftp://")
+														if (ereg("^(https?|ftp|file)://", $row["file"])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
 															$URLprefix = ""; // we don't alter the URL given in the 'file' field
 														else // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
 															$URLprefix = $filesBaseURL; // use the base URL of the standard files directory as prefix ('$filesBaseURL' is defined in 'ini.inc.php')
@@ -5138,7 +5138,7 @@
 		if ($displayType == "Cite")
 			{
 				// for the selected records, select all fields that are visible in Citation view:
-				$query = "SELECT type, author, year, title, publication, abbrev_journal, volume, issue, pages, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, language, author_count, online_publication, online_citation, doi";
+				$query = "SELECT type, author, year, title, publication, abbrev_journal, volume, issue, pages, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, edition, language, author_count, online_publication, online_citation, doi";
 
 				if (isset($_SESSION['loginEmail'])) // if a user is logged in...
 					$query .= ", cite_key"; // add user-specific fields which are required in Citation view
@@ -5262,7 +5262,7 @@
 
 		// Construct the SQL query:
 		// for the selected records, select all fields that are visible in Citation view:
-		$query = "SELECT type, author, year, title, publication, abbrev_journal, volume, issue, pages, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, language, author_count, online_publication, online_citation, doi";
+		$query = "SELECT type, author, year, title, publication, abbrev_journal, volume, issue, pages, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, edition, language, author_count, online_publication, online_citation, doi";
 
 		if (isset($_SESSION['loginEmail'])) // if a user is logged in...
 			$query .= ", cite_key"; // add user-specific fields which are required in Citation view
@@ -5735,7 +5735,7 @@
 		{
 			if (!empty($row["file"]))// if the 'file' field is NOT empty
 			{
-				if (ereg("^(https?|ftp)://", $row["file"])) // if the 'file' field contains a full URL (starting with "http://", "https://" or "ftp://")
+				if (ereg("^(https?|ftp|file)://", $row["file"])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
 					$URLprefix = ""; // we don't alter the URL given in the 'file' field
 				else // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
 					$URLprefix = $filesBaseURL; // use the base URL of the standard files directory as prefix ('$filesBaseURL' is defined in 'ini.inc.php')
