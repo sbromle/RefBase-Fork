@@ -66,7 +66,7 @@
 															" *, *", // 6.
 															", ", // 7.
 															", ", // 8.
-															".", // 9.
+															". ", // 9.
 															false, // 10.
 															false, // 11.
 															true, // 12.
@@ -117,13 +117,12 @@
 					}
 
 				if (!empty($row['issue']))			// issue
-					$record .=  $markupPatternsArray["italic-prefix"] . "(" . $row['issue'] . ")" . $markupPatternsArray["italic-suffix"];
+					$record .= "(" . $row['issue'] . ")";
 
 				if ($row['online_publication'] == "yes") // this record refers to an online article
 				{
 					// instead of any pages info (which normally doesn't exist for online publications) we append
-					// an optional string (given in 'online_citation') plus the DOI:
-					// (NOTE: I'm not really sure how to format an online publication for this cite style)
+					// an optional string (given in 'online_citation') plus the current date and the DOI (or URL):
 
 					$today = date("F j, Y");
 
@@ -140,14 +139,14 @@
 						if (!empty($row['online_citation']) OR (empty($row['online_citation']) AND (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))))		// only add "." if online_citation isn't empty, or else if either volume, issue, abbrev_journal or publication isn't empty
 							$record .= ".";
 
-						$record .= " Retrieved " . $today . ", from: http://dx.doi.org/" . $row['doi'];
+						$record .= " Retrieved " . $today . ", from http://dx.doi.org/" . $row['doi'];
 					}
-					elseif (!empty($row['url']))			// doi
+					elseif (!empty($row['url']))			// url
 					{
 						if (!empty($row['online_citation']) OR (empty($row['online_citation']) AND (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))))		// only add "." if online_citation isn't empty, or else if either volume, issue, abbrev_journal or publication isn't empty
 							$record .= ".";
 
-						$record .= " Retrieved " . $today . ", from: " . $row['url'];
+						$record .= " Retrieved " . $today . ", from " . $row['url'];
 					}
 
 				}
@@ -165,7 +164,7 @@
 						}
 				}
 
-				if (!ereg("\. *$", $record))
+				if (!ereg("\. *$", $record) && !($row['online_publication'] == "yes" && (!empty($row['doi']) || !empty($row['url'])))) // if the string doesn't end with a period or a DOI/URL
 					$record .= ".";
 			}
 
@@ -204,7 +203,7 @@
 															" *, *", // 6.
 															", ", // 7.
 															", ", // 8.
-															".", // 9.
+															". ", // 9.
 															false, // 10.
 															false, // 11.
 															true, // 12.
@@ -270,7 +269,7 @@
 															" *, *", // 6.
 															" ", // 7.
 															" ", // 8.
-															".", // 9.
+															". ", // 9.
 															true, // 10.
 															true, // 11.
 															true, // 12.
@@ -299,8 +298,9 @@
 						else
 							$record .= " " . $row['pages'];
 						$record .= ")";
-          }
-        $record .= ",";
+					}
+
+				$record .= ".";
 
 				if (!empty($row['place']))			// place
 					$record .= " " . $row['place'];
@@ -377,7 +377,7 @@
 															" *, *", // 6.
 															", ", // 7.
 															", ", // 8.
-															".", // 9.
+															". ", // 9.
 															false, // 10.
 															false, // 11.
 															true, // 12.
@@ -389,9 +389,9 @@
 						// [to distinguish editors from authors in the 'author' field, the 'modify.php' script does append ', ed' (or ', eds') if appropriate,
 						//  so we're just checking for these identifier strings here. Alternatively, we could check whether the editor field matches the author field]
 						if (ereg("[ \r\n]*\(ed\)", $row['author'])) // single editor
-							$author = $author . ", " . $markupPatternsArray["italic-prefix"] . "ed" . $markupPatternsArray["italic-suffix"];
+							$author = $author . " (Ed.).";
 						elseif (ereg("[ \r\n]*\(eds\)", $row['author'])) // multiple editors
-							$author = $author . ", " . $markupPatternsArray["italic-prefix"] . "eds" . $markupPatternsArray["italic-suffix"];
+							$author = $author . " (Eds.).";
 
 						if (!ereg("\. *$", $author))
 							$record .= $author . ".";
@@ -413,16 +413,33 @@
 							$record .= " ";
 
 						$record .= $markupPatternsArray["italic-prefix"] . $row['title'] . $markupPatternsArray["italic-suffix"];
-						if (!ereg("[?!.]$", $row['title']))
-							$record .= ".";
 					}
+
+				if (!empty($row['edition']) && $row['edition'] != "1")			// edition
+					{
+						if (!empty($row['author']) || !empty($row['year']) || !empty($row['title']))
+							$record .= " ";
+
+						if ($row['edition'] == "2")
+							$editionSuffix = "nd";
+						elseif ($row['edition'] == "3")
+							$editionSuffix = "rd";
+						else
+							$editionSuffix = "th";
+
+						$record .= "(" . $row['edition'] . $editionSuffix . " ed.)";
+					}
+
+				if ((!empty($row['title']) && !ereg("[?!.]$", $row['title'])) || !empty($row['edition']))
+					$record .= ".";
 
 				if (!empty($row['thesis']))			// thesis
 					{
-						$record .= " (" . $row['thesis'];
-						$record .= ", " . $row['publisher'] . ".)";
+						$record .= " " . $row['thesis'];
+						$record .= ", " . $row['publisher'];
+						$record .= ", " . $row['place'];
 					}
-				else  // not a thesis
+				else // not a thesis
 					{
 						if (!empty($row['place']))			// place
 							$record .= " " . $row['place'];
@@ -432,7 +449,10 @@
 								if (!empty($row['place']))
 									$record .= ":";
 
-								$record .= " " . $row['publisher'];
+								if ($row['author'] == $row['publisher']) // in APA style, the string "Author" is used instead of the publisher's name when the author and publisher are identical
+									$record .= " Author";
+								else
+									$record .= " " . $row['publisher'];
 							}
 
 //						if (!empty($row['pages']))			// pages
@@ -445,10 +465,10 @@
 //								else
 //									$record .= " " . $row['pages'];
 //							}
-
-						if (!ereg("\. *$", $record))
-							$record .= ".";
 					}
+
+				if (!ereg("\. *$", $record))
+					$record .= ".";
 
 				if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
 					{
