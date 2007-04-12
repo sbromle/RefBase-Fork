@@ -37,9 +37,9 @@
 
 		$plainTextData = ""; // make sure that our buffer variable is empty
 
-		// Header
+		// Header:
 		if (!empty($headerMsg))
-				$plainTextData .= "$headerMsg\n\n";
+			$plainTextData .= "$headerMsg\n\n"; // prefix any passed header message
 
 		// Initialize array variables:
 		$yearsArray = array();
@@ -94,7 +94,7 @@
 				// Print any section heading(s):
 				if (eregi("year|type", $citeOrder))
 				{
-					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, "", "", "", "\n\n", "", "\n\n");
+					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, "", "", "", "\n\n", "", "\n\n"); // function 'generateSectionHeading()' is defined in 'cite.inc.php'
 
 					$plainTextData .= $sectionHeading;
 				}
@@ -124,11 +124,8 @@
 			}
 		}
 
-		if (eregi("^cli", $client)) // when outputting results to a command line client, we'll prefix any header message and append some info about the number of rows displayed/found, the database name/URL and optionally display the SQL query
+		if (eregi("^cli", $client)) // when outputting results to a command line client, we'll append some info about the number of rows displayed/found, the database name/URL and optionally display the SQL query
 		{
-			if (!empty($headerMsg))
-				$plainTextData = $headerMsg . "\n\n" . $plainTextData; // prefix any passed header message
-
 			// Calculate the maximum result number on each page:
 			if (($rowOffset + $showRows) < $rowsFound)
 				$showMaxRow = ($rowOffset + $showRows); // maximum result number on each page
