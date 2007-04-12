@@ -40,13 +40,12 @@
 		global $officialDatabaseName; // these variables are defined in 'ini.inc.php'
 		global $databaseBaseURL;
 		global $contentTypeCharset;
+		global $pdfPageSize;
 
 		global $client;
 
 		// The array '$transtab_refbase_pdf' contains search & replace patterns for conversion from refbase markup to PDf markup & entities
 		global $transtab_refbase_pdf; // defined in 'transtab_refbase_pdf.inc.php'
-
-		$pageSize = "a4"; // (you may want to use 'letter' instead of 'a4')
 
 		// Initialize array variables:
 		$yearsArray = array();
@@ -80,7 +79,14 @@
 
 
 		// Setup the basic PDF document structure (PDF functions defined in 'class.ezpdf.php'):
-		$pdf = new Cezpdf($pageSize, 'portrait'); // initialize PDF object		$pdf -> ezSetMargins(50, 70, 50, 50);
+		$pdf = new Cezpdf($pdfPageSize, 'portrait'); // initialize PDF object
+
+		if (!empty($headerMsg)) // adjust upper page margin if a custom header message was given
+			$pageMarginTop = "70";
+		else
+			$pageMarginTop = "50";			
+
+		$pdf -> ezSetMargins($pageMarginTop, 70, 50, 50); // set document margins (top, bottom, left, right)
 
 		// Set fonts:
 		$headingFont = 'includes/classes/org/pdf-php/fonts/Helvetica.afm';
@@ -116,29 +122,53 @@
 
 		$pdf->openHere('Fit');
 
-		// Put a line on all the pages:
+		// Put a footer (and optionally a header) on all the pages:
 		$all = $pdf->openObject(); // start an independent object; all further writes to a page will actually go into this object, until a 'closeObject()' call is made
 		$pdf->saveState();
+
 		$pdf->setStrokeColor(0, 0, 0, 1); // set line color
 		$pdf->setLineStyle(0.5); // set line width
-		$pdf->line(20, 40, 575, 40); // print footer line
-		$pdf->addText(50, 28, 10, $officialDatabaseName . ' – ' . $databaseBaseURL); // print footer text
 
-		// Header
-		if (!empty($headerMsg))
+		// - print header line and header message at the specified x/y position:
+		if (!empty($headerMsg)) // if a custom header message was given
 		{
-				if ($pageSize=='a4')  //TODO: Add 'letter'
-				{
-						$pdf->line(20, 822, 575, 822); // print header line (at this x/y position, it'll only get printed using 'a4' paper size)
-            $pdf->addText(50, 830, 10, $headerMsg); // This might be "cramped"
-				}
+			if ($pdfPageSize == 'a4') // page dimensions 'a4': 595.28 x 841.89 pt.
+			{
+				$pdf->line(20, 800, 575, 800);
+				$pdf->addText(50, 805, 10, $headerMsg);
+			}
+			elseif ($pdfPageSize == 'letter') // page dimensions 'letter': 612 x 792 pt.
+			{
+				$pdf->line(20, 750, 592, 750);
+				$pdf->addText(50, 755, 10, $headerMsg);
+			}
+		}
+
+		// - print footer line and footer text at the specified x/y position:
+		if ($pdfPageSize == 'a4')
+		{
+			$pdf->line(20, 40, 575, 40);
+			$pdf->addText(50, 28, 10, $officialDatabaseName . ' – ' . $databaseBaseURL);
+		}
+		elseif ($pdfPageSize == 'letter')
+		{
+			$pdf->line(20, 40, 592, 40);
+			$pdf->addText(50, 28, 10, $officialDatabaseName . ' – ' . $databaseBaseURL);
 		}
 
 		$pdf->restoreState();
 		$pdf->closeObject(); // close the currently open object; further writes will now go to the current page
 		$pdf->addObject($all, 'all'); // note that object can be told to appear on just odd or even pages by changing 'all' to 'odd' or 'even'
 
-		$pdf->ezStartPageNumbers(550, 28, 10, '', '', 1); // start printing page numbers
+		// Start printing page numbers:
+		if ($pdfPageSize == 'a4')
+		{
+			$pdf->ezStartPageNumbers(550, 28, 10, '', '', 1);
+		}
+		elseif ($pdfPageSize == 'letter')
+		{
+			$pdf->ezStartPageNumbers(567, 28, 10, '', '', 1);
+		}
 
 
 		// LOOP OVER EACH RECORD:
@@ -173,7 +203,7 @@
 					if ($citeOrder == "type-year")
 						$sectionMarkupSuffix .= "\n";
 
-					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, $headingPrefix, $headingSuffix, $sectionMarkupPrefix, $sectionMarkupSuffix, $subSectionMarkupPrefix, $subSectionMarkupSuffix);
+					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, $headingPrefix, $headingSuffix, $sectionMarkupPrefix, $sectionMarkupSuffix, $subSectionMarkupPrefix, $subSectionMarkupSuffix); // function 'generateSectionHeading()' is defined in 'cite.inc.php'
 
 					if (!empty($sectionHeading))
 					{
