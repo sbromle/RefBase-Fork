@@ -51,8 +51,8 @@
 									"italic-suffix"    => "}",
 		//							"underline-prefix" => "\\ul{", // the '\ul' command requires '\usepackage{soul}'
 		//							"underline-suffix" => "}",
-									"endash"           => "--", // or use '\\textendash{\\1}'
-									"emdash"           => "---"); // or use '\\textemdash{\\1}'
+									"endash"           => "--", // or use '{\\textendash}'
+									"emdash"           => "---"); // or use '{\\textemdash}'
 
 		// Defines search & replace 'actions' that will be applied upon LaTeX output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:
@@ -83,14 +83,15 @@
 		$latexData .= "\\usepackage[T1]{fontenc}\n"
 					. "\\usepackage{textcomp}\n\n";
 
-		$latexData .= "\begin{document}\n\n";
+		$latexData .= "\\begin{document}\n\n";
 
-		// Header
+		// Header:
 		if (!empty($headerMsg))
-				$latexData .= "\\title{$headerMsg}\n\n";
+			$latexData .= "\\title{" . $headerMsg . "}\n\n"
+						. "\\maketitle\n\n";
 
 		if (!eregi("type|year", $citeOrder))
-			$latexData .= "\begin{thebibliography}{" . $showMaxRows . "}\n\n";
+			$latexData .= "\\begin{thebibliography}{" . $showMaxRows . "}\n\n";
 
 
 		// LOOP OVER EACH RECORD:
@@ -115,7 +116,7 @@
 				// Print any section heading(s):
 				if (eregi("year|type", $citeOrder))
 				{
-					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, "", "", "\\section*{", "}\n\n", "\\subsection*{", "}\n\n");
+					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, "", "", "\\section*{", "}\n\n", "\\subsection*{", "}\n\n"); // function 'generateSectionHeading()' is defined in 'cite.inc.php'
 
 					$latexData .= $sectionHeading;
 				}
@@ -154,9 +155,9 @@
 		}
 
 		if (!eregi("type|year", $citeOrder))
-			$latexData .= "\end{thebibliography}\n\n";
+			$latexData .= "\\end{thebibliography}\n\n";
 
-		$latexData .= "\end{document}\n\n";
+		$latexData .= "\\end{document}\n\n";
 
 		return $latexData;
 	}
