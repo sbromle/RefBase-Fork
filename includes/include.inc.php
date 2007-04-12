@@ -1848,7 +1848,7 @@ EOF;
 			$newAuthorContents .= $customStringAfterFirstAuthor; // the custom string won't get HTML encoded so that it's possible to include HTML tags (such as '<i>') within the string
 
 		$newAuthorContents = preg_replace("/  +/", " ", $newAuthorContents); // remove double spaces (which occur e.g., when both, $betweenInitialsDelim & $newAuthorsInitialsDelim..., end with a space)
-		$newAuthorContents = preg_replace("/ +([,.;:?!])/", "\\1", $newAuthorContents); // remove spaces before [,.;:?!]
+		$newAuthorContents = preg_replace("/ +([,.;:?!()]|$)/", "\\1", $newAuthorContents); // remove excess spaces before [,.;:?!()] and from the end of the author string
 
 		return $newAuthorContents;
 	}
