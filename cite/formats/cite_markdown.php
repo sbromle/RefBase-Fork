@@ -35,9 +35,9 @@
 
 		$markdownData = ""; // make sure that our buffer variable is empty
 
-		// Header
+		// Header:
 		if (!empty($headerMsg))
-				$markdownData .= "# $headerMsg #\n";
+			$markdownData .= "# $headerMsg #\n\n";
 
 		// Initialize array variables:
 		$yearsArray = array();
@@ -92,7 +92,25 @@
 				// Print any section heading(s):
 				if (eregi("year|type", $citeOrder))
 				{
-					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, "", "", "# ", " #\n\n", "## ", " ##\n\n");
+					$headingPrefix = "";
+					$headingSuffix = "";
+
+					if (!empty($headerMsg)) // if there's a custom header message available, we decrease the heading level of sections & subsections by one (since the header message has level 1)
+					{
+						$sectionMarkupPrefix = "## ";
+						$sectionMarkupSuffix = " ##\n\n";
+						$subSectionMarkupPrefix = "### ";
+						$subSectionMarkupSuffix = " ###\n\n";
+					}
+					else // no custom header message given
+					{
+						$sectionMarkupPrefix = "# ";
+						$sectionMarkupSuffix = " #\n\n";
+						$subSectionMarkupPrefix = "## ";
+						$subSectionMarkupSuffix = " ##\n\n";
+					}
+
+					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, $headingPrefix, $headingSuffix, $sectionMarkupPrefix, $sectionMarkupSuffix, $subSectionMarkupPrefix, $subSectionMarkupSuffix); // function 'generateSectionHeading()' is defined in 'cite.inc.php'
 
 					$markdownData .= $sectionHeading;
 				}
