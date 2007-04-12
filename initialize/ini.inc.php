@@ -1,7 +1,7 @@
 <?php
 	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
 	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
-	//             original author.
+	//             original author(s).
 	//
 	//             This code is distributed in the hope that it will be useful,
 	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
@@ -9,7 +9,7 @@
 	//
 	// File:       ./initialize/ini.inc.php
 	// Repository: $HeadURL$
-	// Author:     Matthias Steffens <mailto:refbase@extracts.de>
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
 	//
 	// Created:    12-Jan-03, 17:58
 	// Modified:   $Date$
@@ -174,8 +174,14 @@
 								"Conference Article",
 								"Conference Volume",
 								"Journal",
+								"Manual",
 								"Manuscript",
-								"Map");
+								"Map",
+								"Miscellaneous",
+								"Newspaper Article",
+								"Patent",
+								"Report",
+								"Software");
 
 
 	// Defines the default user options when adding new users:
@@ -233,6 +239,10 @@
 	// This name must correspond to an entry within the 'styles' MySQL table.
 	// It will be used for citation output within 'show.php' and the 'generateRSS()' function.
 	$defaultCiteStyle = "APA";
+
+
+	// The size of the PDF page (used when outputting citations as PDF):
+	$pdfPageSize = "a4"; // possible values: "a4", "letter"
 
 
 	// The default text citation format:
