@@ -106,8 +106,14 @@
 													"Conference Article" => "ConferenceArticles",
 													"Conference Volume"  => "ConferenceVolumes",
 													"Journal"            => "Journals",
+													"Manual"             => "Manuals",
 													"Manuscript"         => "Manuscripts",
-													"Map"                => "Maps"
+													"Map"                => "Maps",
+													"Miscellaneous"      => "Miscellaneous",
+													"Newspaper Article"  => "NewspaperArticles",
+													"Patent"             => "Patents",
+													"Report"             => "Reports",
+													"Software"           => "Software"
 												);
 
 			if (isset($recordType, $availableTypeTitlesArray))
