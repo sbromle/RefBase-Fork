@@ -151,7 +151,7 @@
   // --------------------------------------------------------------------
 
   function modsCollection($result) {
- 
+
     global $contentTypeCharset; // these variables are defined in 'ini.inc.php'
     global $convertExportDataToUTF8;
 
@@ -393,7 +393,7 @@
         $record->addXMLBranch($subjectBranch);
       }
     }
- 
+
     // notes
     if (!empty($row['notes']))
       $record->setTagContent($row['notes'], "mods/note");
@@ -402,10 +402,14 @@
       $record->setTagContent($row['user_notes'], "mods/note");
 
     // typeOfResource
-    // maps are 'cartographic' and everything else is 'text'
+    // maps are 'cartographic', software is 'software, multimedia',
+    // and everything else is 'text'
     $type = new XMLBranch("typeOfResource");
     if ($row['type'] == "Map") {
       $type->setTagContent("cartographic");
+    }
+    else if ($row['type'] == "Software") {
+      $type->setTagContent("software, multimedia");
     }
     else {
       $type->setTagContent("text");
@@ -478,13 +482,13 @@
 
     // -----------------------------------------
 
-    // --- BEGIN TYPE != BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE ---
+    // --- BEGIN TYPE != BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE || NEWSPAPER ARTICLE ---
     //   |
-    //   | BOOK WHOLE, CONFERENCE VOLUME, JOURNAL, MANUSCRIPT, and MAP have some info
-    //   | as a branch off the root, where as BOOK CHAPTER, JOURNAL ARTICLE and
-    //   | CONFERENCE ARTICLE place it in the relatedItem branch.
+    //   | BOOK WHOLE, CONFERENCE VOLUME, JOURNAL, MANUAL, MANUSCRIPT, MAP, MISCELLANEOUS, PATENT,
+    //   | REPORT, and SOFTWARE have some info as a branch off the root, where as BOOK CHAPTER,
+    //   | JOURNAL ARTICLE, CONFERENCE ARTICLE and NEWSPAPER ARTICLE place it in the relatedItem branch.
 
-    if (!ereg("Book Chapter|Journal Article|Conference Article", $row['type'])) {
+    if (!ereg("Book Chapter|Journal Article|Conference Article|Newspaper Article", $row['type'])) {
       // name
       //   editor
       if (!empty($row['editor'])) {
@@ -530,10 +534,8 @@
       $genre = new XMLBranch("genre");
       //      NOTE: According to the MARC "Source Codes for Genre"[1]
       //            the MARC authority should be 'marcgt', not 'marc'.
-      //            While Zotero expects 'marcgt', bibutils uses (expects?) 'marc', so we
-      //            should adopt 'marcgt' as authority attribute when bibutils recognizes it.
       //            [1]<http://www.loc.gov/marc/sourcecode/genre/genresource.html>
-      $genremarc->setTagAttribute("authority", "marc");
+      $genremarc->setTagAttribute("authority", "marcgt");
 
       if (empty($row['thesis'])) { // theses will get their own genre (see below)
         if ($row['type'] == "Book Whole") {
@@ -548,12 +550,30 @@
           $genremarc->setTagContent("periodical");
           $genre->setTagContent("academic journal");
         }
+        else if ($row['type'] == "Manual") { // should we set '<issuance>monographic' here (and for the ones below)?
+          $genremarc->setTagContent("instruction");
+          $genre->setTagContent("manual");
+        }
         else if ($row['type'] == "Manuscript") {
           $genremarc->setTagContent("loose-leaf");
           $genre->setTagContent("manuscript");
         }
         else if ($row['type'] == "Map") {
           $genremarc->setTagContent("map");
+        }
+        else if ($row['type'] == "Miscellaneous") {
+          $genre->setTagContent("miscellaneous");
+        }
+        else if ($row['type'] == "Patent") {
+          $genremarc->setTagContent("patent");
+        }
+        else if ($row['type'] == "Report") {
+          $genremarc->setTagContent("technical report");
+          $genre->setTagContent("report");
+        }
+        else if ($row['type'] == "Software") {
+//        $genremarc->setTagContent("programmed text"); // would this be correct?
+          $genre->setTagContent("software");
         }
         else if (!empty($row['type'])) { // catch-all: don't use a MARC genre
           $genre->setTagContent($row['type']);
@@ -571,8 +591,7 @@
         $thesis = new XMLBranch("genre");
 
         $thesismarc->setTagContent("theses");
-        // NOTE: we should use 'authority="marcgt"' (see note above)
-        $thesismarc->setTagAttribute("authority", "marc");
+        $thesismarc->setTagAttribute("authority", "marcgt");
 
         $thesis->setTagContent($row['thesis']);
 
@@ -636,17 +655,17 @@
       }
     }
 
-    // --- END TYPE != BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE ---
+    // --- END TYPE != BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE || NEWSPAPER ARTICLE ---
 
     // -----------------------------------------
 
-    // --- BEGIN TYPE == BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE ---
+    // --- BEGIN TYPE == BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE || NEWSPAPER ARTICLE ---
     //   |
     //   | NOTE: These are currently the only types that have publication,
     //   |       abbrev_journal, volume, and issue added.
     //   | A lot of info goes into the relatedItem branch.
 
-    else { // if (ereg("Book Chapter|Journal Article|Conference Article", $row['type']))
+    else { // if (ereg("Book Chapter|Journal Article|Conference Article|Newspaper Article", $row['type']))
       // relatedItem
       $related = new XMLBranch("relatedItem");
       $related->setTagAttribute("type", "host");
@@ -726,8 +745,7 @@
           $genre = new XMLBranch("genre");
 
           $genremarc->setTagContent("periodical");
-          // NOTE: we should use 'authority="marcgt"' (see note above)
-          $genremarc->setTagAttribute("authority", "marc");
+          $genremarc->setTagAttribute("authority", "marcgt");
 
           $genre->setTagContent("academic journal");
 
@@ -736,15 +754,19 @@
         }
         else if ($row['type'] == "Conference Article") {
           $related->setTagContent("conference publication", "relatedItem/genre");
-          // NOTE: we should use 'authority="marcgt"' (see note above)
-          $related->setTagAttribute("authority", "marc", "relatedItem/genre");
+          $related->setTagAttribute("authority", "marcgt", "relatedItem/genre");
+        }
+        else if ($row['type'] == "Newspaper Article") {
+          $related->setTagContent("continuing",
+                                  "relatedItem/originInfo/issuance");
+          $related->setTagContent("newspaper", "relatedItem/genre");
+          $related->setTagAttribute("authority", "marcgt", "relatedItem/genre");
         }
         else { // if ($row['type'] == "Book Chapter")
           $related->setTagContent("monographic",
                                   "relatedItem/originInfo/issuance");
           $related->setTagContent("book", "relatedItem/genre");
-          // NOTE: we should use 'authority="marcgt"' (see note above)
-          $related->setTagAttribute("authority", "marc", "relatedItem/genre");
+          $related->setTagAttribute("authority", "marcgt", "relatedItem/genre");
         }
       }
       //   thesis
@@ -753,8 +775,7 @@
         $thesis = new XMLBranch("genre");
 
         $thesismarc->setTagContent("theses");
-        // NOTE: we should use 'authority="marcgt"' (see note above)
-        $thesismarc->setTagAttribute("authority", "marc");
+        $thesismarc->setTagAttribute("authority", "marcgt");
 
         $thesis->setTagContent($row['thesis']);
 
@@ -836,7 +857,7 @@
       $record->addXMLBranch($related);
     }
 
-    // --- END TYPE == BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE ---
+    // --- END TYPE == BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE || NEWSPAPER ARTICLE ---
 
 
     return $record;
