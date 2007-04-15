@@ -141,11 +141,13 @@
 
 	// When adding a new user, the following export formats will be made available to the new user by default:
 	// The specified format names must have matching entries within the 'formats' MySQL table.
-	$defaultUserExportFormats = array("Endnote",
+	$defaultUserExportFormats = array("BibTeX",
+										"Endnote",
 										"RIS",
-										"BibTeX",
+										"ISI",
 										"MODS XML",
-										"ODF XML");
+										"ODF XML",
+										"Word XML");
 
 
 	// When adding a new user, the following citation formats will be made available to the new user by default:
