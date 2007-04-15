@@ -120,9 +120,9 @@
 			$mysqlNames = array("mysql", "mysql.exe");
 			$formVars["pathToMYSQL"] = locateFile($mysqlLocations, $mysqlNames, false); // function 'locateFile()' is defined in 'install.inc.php'
 
-			// Try to find the 'bibutils' programs:
+			// Try to find the Bibutils programs:
 			$bibutilsLocations = array_unique(array_merge($pathItems, array("/usr/bin", "/usr/local/bin", ".", "./refbase", "./bibutils")));
-			// We'll only check for one program to save time (and because, we currently don't allow the script to have a subset of the functionality provided by bibutils)
+			// We'll only check for one program to save time (and because, we currently don't allow the script to have a subset of the functionality provided by Bibutils)
 			$bibutilsNames = array("xml2bib", "xml2bib.exe");
 			$formVars["pathToBibutils"] = locateFile($bibutilsLocations, $bibutilsNames, true);
 
@@ -184,13 +184,13 @@
 		<td colspan="3"><h3>refbase Installation</h3></td>
 	</tr>
 	<tr>
-		<td width="190" valign="top"><b>Important Note:</b></td>
+		<td width="190" valign="top"><b>Important note:</b></td>
 		<td valign="top" colspan="2">
 			Before executing this script, it is highly recommended to <span class="warning">open the include file <em>initialize/db.inc.php</em></span> in a text editor and edit the values of the variables <em>$databaseName</em>, <em>$username</em> and <em>$password</em> to suit your setup! Then, proceed with this form:
 		</td>
 	</tr>
 	<tr>
-		<td valign="top"><b>MySQL Admin User:</b></td>
+		<td valign="top"><b>MySQL admin user:</b></td>
 		<td valign="top"><?php echo fieldError("adminUserName", $errors); ?>
 
 			<input type="text" name="adminUserName" value="<?php echo $formVars["adminUserName"]; ?>" size="30">
@@ -198,7 +198,7 @@
 		<td valign="top">Give the name of an administrative user that has full access to the MySQL admin database. Often, this is the <em>root</em> user.</td>
 	</tr>
 	<tr>
-		<td valign="top"><b>MySQL Admin Password:</b></td>
+		<td valign="top"><b>MySQL admin password:</b></td>
 		<td valign="top"><?php
 	// the form won't remember the password, so we'll ask the user to re-type it...
 	if (!empty($errors) AND !isset($errors["adminPassword"])) // ...if there were some validation errors but not with the password field
@@ -228,12 +228,12 @@
 		<td valign="top">Enter the full path to the SQL dump file containing the database structure &amp; data. Keep the default value, if you're installing refbase for the first time.</td>
 	</tr>
 	<tr>
-		<td valign="top"><b>Path to the bibutils directory [optional]:</b></td>
+		<td valign="top"><b>Path to the Bibutils directory [optional]:</b></td>
 		<td valign="top"><?php echo fieldError("pathToBibutils", $errors); ?>
 
 			<input type="text" name="pathToBibutils" value="<?php echo $formVars["pathToBibutils"]; ?>" size="30">
 		</td>
-		<td valign="top"><a href="http://www.scripps.edu/~cdputnam/software/bibutils/bibutils.html" target="top" title="bibutils home page"><em>bibutils</em></a> provides additional import and export funtionality to refbase. It is optional, but highly recommended. The install script attempts to locate <em>bibutils</em> for you. If you can't access <em>bibutils</em> from your path, please fill this value in manually (and, if you think other people might have <em>bibutils</em> installed to the same path, <a href="http://support.refbase.net/" target="top" title="refbase forums &amp; mailinglists">report</a> it to the refbase developers). The path must end with a slash!</td>
+		<td valign="top"><a href="http://bibutils.refbase.net/" target="top" title="more info about the refbase integration with Bibutils"><em>Bibutils</em></a> provides additional import and export funtionality to refbase (e.g. support for Endnote &amp; BibTeX). It is optional, but highly recommended. The install script attempts to locate <em>Bibutils</em> for you. If you can't access <em>Bibutils</em> from your path, please fill this value in manually (and, if you think other people might have <em>Bibutils</em> installed to the same path, <a href="http://support.refbase.net/" target="top" title="refbase forums &amp; mailinglists">report</a> it to the refbase developers). The path must end with a slash!</td>
 	</tr>
 	<tr>
 		<td valign="top"><b>Default character set:</b></td>
@@ -340,7 +340,7 @@
 
 
 		// Validate the 'pathToBibutils' field:
-		if (!empty($formVars["pathToBibutils"])) // we'll only validate the 'pathToBibutils' field if it isn't empty (installation of bibutils is optional)
+		if (!empty($formVars["pathToBibutils"])) // we'll only validate the 'pathToBibutils' field if it isn't empty (installation of Bibutils is optional)
 		{
 			if (ereg("[;|]", $formVars["pathToBibutils"]))
 				// For security reasons, the 'pathToBibutils' field cannot contain the characters ';' or '|' (which would tie multiple shell commands together)
@@ -352,7 +352,7 @@
 	
 			elseif (!is_dir($formVars["pathToBibutils"]))
 				// Check if the specified path resolves to a directory (and not a file)
-				$errors["pathToBibutils"] = "You must specify a directory! Please give the path to the directory containing the bibutils utilities:";
+				$errors["pathToBibutils"] = "You must specify a directory! Please give the path to the directory containing the Bibutils utilities:";
 		}
 
 
@@ -421,10 +421,10 @@
 					$databaseStructureFile = "./install_utf8.sql";
 		}
 
-		if (!empty($pathToBibutils)) // we'll only update the bibutils path if '$pathToBibutils' isn't empty (installation of bibutils is optional)
-			$queryUpdateDependsTable = "UPDATE " . $databaseName . "." . $tableDepends . " SET depends_path = " . quote_smart($pathToBibutils) . " WHERE depends_external = \"bibutils\""; // update the bibutils path spec
-		else // we set the 'depends_enabled' field in table 'depends' to 'false' to indicate that bibutils isn't installed
-			$queryUpdateDependsTable = "UPDATE " . $databaseName . "." . $tableDepends . " SET depends_enabled = \"false\" WHERE depends_external = \"bibutils\""; // disable bibutils functionality
+		if (!empty($pathToBibutils)) // we'll only update the Bibutils path if '$pathToBibutils' isn't empty (installation of Bibutils is optional)
+			$queryUpdateDependsTable = "UPDATE " . $databaseName . "." . $tableDepends . " SET depends_path = " . quote_smart($pathToBibutils) . " WHERE depends_external = \"bibutils\""; // update the Bibutils path spec
+		else // we set the 'depends_enabled' field in table 'depends' to 'false' to indicate that Bibutils isn't installed
+			$queryUpdateDependsTable = "UPDATE " . $databaseName . "." . $tableDepends . " SET depends_enabled = \"false\" WHERE depends_external = \"bibutils\""; // disable Bibutils functionality
 
 		// (2) Run the INSTALL queries on the mysql database through the connection:
 		if (!($result = @ mysql_query ($queryGrantStatement, $connection)))
