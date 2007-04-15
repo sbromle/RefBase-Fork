@@ -79,14 +79,26 @@
 	// Check for the presence of a value in a table,
 	// and if it doesn't exist, add the given row to that same table:
 	// 
-	// Author: Richard Karnesky <mailto:karnesky@gmail.com>
-	function insertIfNotExists($keyColumn, $keyValue, $table, $values, $userID = "")
+	// Authors: Richard Karnesky <mailto:karnesky@gmail.com> and
+	//          Matthias Steffens <mailto:refbase@extracts.de>
+	function insertIfNotExists($keysArray, $table, $values, $userID = "")
 	{
 		global $connection;
 
-		$query = "SELECT " . $keyColumn . " FROM " . $table . " WHERE " . $keyColumn . " = " . quote_smart($keyValue);
+		$selectClauseArray = array();
+		$whereClauseArray = array();
 
-		if (!empty($userID))
+		foreach ($keysArray as $keyColumn => $keyValue)
+		{
+			$selectClauseArray[] = $keyColumn;
+			$whereClauseArray[] = $keyColumn . " = " . quote_smart($keyValue);
+		}
+
+		$query = "SELECT " . implode(", ", $selectClauseArray)
+				. " FROM " . $table
+				. " WHERE " . implode(" AND ", $whereClauseArray);
+
+		if ($userID != "") // note that 'if (!empty($userID))' doesn't work here since '$userID = 0' would incorrectly be treated as 'empty'
 			$query .= " AND user_id = " . $userID;
 
 		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
