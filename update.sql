@@ -15,7 +15,13 @@
 #             $Author$
 #             $Revision$
 
-# This MySQL database structure file will update any refbase v0.8.0 database to v0.9.0
+# This MySQL database structure file will update any refbase v0.8.0 database to v0.9.1
+
+# IMPORTANT: - If possible, use 'update.php' instead of this file to update an
+#              existing refbase installation (v0.8.0 or above), please see the
+#              'UPDATE' file for further information.
+#            - Do NOT use this file in an attempt to update refbase v0.9.0 to v0.9.1,
+#              please use 'update.php' instead.
 
 # --------------------------------------------------------
 
@@ -104,12 +110,21 @@ UPDATE `styles` SET `order_by` = 'B040' WHERE `style_name` = 'Deep Sea Res';
 # update table `types`
 #
 
-INSERT INTO `types` VALUES (NULL, 'Conference Article', 'true', 2, '4'),
-(NULL, 'Conference Volume', 'true', 3, '5');
+INSERT INTO `types` VALUES (NULL, 'Conference Article', 'true', 2, '04'),
+(NULL, 'Conference Volume', 'true', 3, '05'),
+(NULL, 'Manual', 'true', 3, '07'),
+(NULL, 'Miscellaneous', 'true', 3, '10'),
+(NULL, 'Newspaper Article', 'true', 1, '11'),
+(NULL, 'Patent', 'true', 3, '12'),
+(NULL, 'Report', 'true', 3, '13'),
+(NULL, 'Software', 'true', 3, '14');
 
-UPDATE `types` SET `order_by` = '6' WHERE `type_name` = 'Journal';
-UPDATE `types` SET `order_by` = '7' WHERE `type_name` = 'Manuscript';
-UPDATE `types` SET `order_by` = '8' WHERE `type_name` = 'Map';
+UPDATE `types` SET `order_by` = '01' WHERE `type_name` = 'Journal Article';
+UPDATE `types` SET `order_by` = '02' WHERE `type_name` = 'Book Chapter';
+UPDATE `types` SET `order_by` = '03' WHERE `type_name` = 'Book Whole';
+UPDATE `types` SET `order_by` = '06' WHERE `type_name` = 'Journal';
+UPDATE `types` SET `order_by` = '08' WHERE `type_name` = 'Manuscript';
+UPDATE `types` SET `order_by` = '09' WHERE `type_name` = 'Map';
 
 # --------------------------------------------------------
 
