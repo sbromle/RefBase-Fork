@@ -1487,11 +1487,15 @@
 					else {
 						$exportFileName = "content.xml";
 					}
+
+				elseif (eregi("Word", $exportFormat)) // if the export format name contains 'Word'
+					$exportFileName = "msword_export.xml";
+
 				else
 					$exportFileName = "export.xml";
 			}
 
-			elseif (eregi("Endnote|RIS|BibTeX", $exportFormat)) // if the export format name contains either 'Endnote', 'BibTeX' or 'RIS'
+			elseif (eregi("Endnote|BibTeX|RIS|ISI", $exportFormat)) // if the export format name contains either 'Endnote', 'BibTeX', 'RIS' or 'ISI'
 			{
 				if (eregi("Endnote", $exportFormat))
 					$exportFileName = "endnote_export.enw";
@@ -1502,7 +1506,10 @@
 				elseif (eregi("RIS", $exportFormat))
 					$exportFileName = "ris_export.ris";
 
+				elseif (eregi("ISI", $exportFormat))
+					$exportFileName = "isi_export.txt";
 			}
+
 			else
 				$exportFileName = "exported_records.txt"; // set the default download file name
 		}
@@ -1563,7 +1570,7 @@
 			// This is a dirty hack to zip and return an ODF file.
 			// It may be desired to retun other non-textual formats in the future & to return these as attachments by email in the future.
 			// If this becomes needed, we should refactor the output.
-			$zipfile = zipODF($exportText);
+			$zipfile = zipODF($exportText); // function 'zipODF()' is defined in 'odfxml.inc.php'
 			echo $zipfile -> file();   
 		}
 		else {
