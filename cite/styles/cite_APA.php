@@ -31,9 +31,9 @@
 	{
 		$record = ""; // make sure that our buffer variable is empty
 
-		// --- BEGIN TYPE = JOURNAL ARTICLE ----------------------------------------------------------------------------------------------------
+		// --- BEGIN TYPE = JOURNAL ARTICLE / NEWSPAPER ARTICLE ---------------------------------------------------------------------------------
 
-		if ($row['type'] == "Journal Article")
+		if (ereg("Journal Article|Newspaper Article", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -168,7 +168,7 @@
 					$record .= ".";
 			}
 
-		// --- BEGIN TYPE = BOOK CHAPTER / CONFERENCE ARTICLE ----------------------------------------------------------------------------------
+		// --- BEGIN TYPE = BOOK CHAPTER / CONFERENCE ARTICLE -----------------------------------------------------------------------------------
 
 		elseif (ereg("Book Chapter|Conference Article", $row['type']))
 			{
@@ -340,9 +340,10 @@
 					}
 			}
 
-		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / MAP / MANUSCRIPT / JOURNAL --------------------------------------------------------
+		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / JOURNAL / MANUAL / MANUSCRIPT / MAP / MISCELLANEOUS / PATENT / REPORT / SOFTWARE ---
 
-		elseif (ereg("Book Whole|Conference Volume|Map|Manuscript|Journal", $row['type']))
+		else // if (ereg("Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software", $row['type']))
+			// note that this also serves as a fallback: unrecognized resource types will be formatted similar to whole books
 			{
 				if (!empty($row['author']))			// author
 					{
