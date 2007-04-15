@@ -426,7 +426,7 @@
 
 
 		// Map ODF indexes to refbase field names:
-		// Notes: - the special array key "Other" serves as a default for all refbase types that were NOT specifyied explicitly
+		// Notes: - the special array key "Other" serves as a default for all refbase types that were NOT specified explicitly
 		//        - the special array key "Any" serves as a default for all refbase types
 		//        - instead of specifying a string with a single refbase field name, you can also give a sub-array of multiple refbase field names
 		//          where the first non-empty field will be taken as ODF field value
@@ -479,18 +479,18 @@
 													"Book Chapter"       =>  "5", // Book excerpt with title
 													"Conference Article" =>  "6", // Conference proceeding (correct? inproceedings?)
 													"Journal Article"    =>  "7", // Journal (AFAIK, 'Journal' means a journal article and not a whole journal)
-		//											"Book Whole"         =>  "8", // Tech. Documentation (#fallback#)
+													"Manual"             =>  "8", // Tech. Documentation (#fallback#)
 		//											"Book Whole"         =>  "9", // Thesis (#fallback#; function 'parseRecord()' will set the ODF type to 'Thesis' if the refbase 'thesis' field isn't empty)
-		//											"Book Whole"         => "10", // Miscellaneous (#fallback#)
+													"Miscellaneous"      => "10", // Miscellaneous
 		//											"Book Whole"         => "11", // Dissertation (#fallback#; function 'parseRecord()' will set the ODF type to 'Dissertation' if the refbase 'thesis' field contains either 'Ph.D. thesis' or 'Doctoral thesis'))
 													"Conference Volume"  => "12", // Conference proceeding (correct? proceedings?)
-		//											"Book Whole"         => "13", // Research report (#fallback#)
+													"Report"             => "13", // Research report (#fallback#)
 													"Manuscript"         => "14", // Unpublished (#fallback#)
-		//											""                   => "15", // e-mail (unsupported)
-		//											""                   => "16", // WWW document (unsupported)
-		//											""                   => "17", // User-defined1 (unsupported)
-		//											""                   => "18", // User-defined2 (unsupported)
-		//											""                   => "19", // User-defined3 (unsupported)
+		//											""                   => "15", // e-mail (currently not supported by refbase)
+		//											""                   => "16", // WWW document (currently not supported by refbase)
+													"Newspaper Article"  => "17", // User-defined1
+													"Patent"             => "18", // User-defined2
+													"Software"           => "19", // User-defined3
 													"Journal"            => "20", // User-defined4 (a whole journal)
 													"Map"                => "21"  // User-defined5
 												);
@@ -501,14 +501,18 @@
 
 	// --------------------------------------------------------------------
 
+	// Encloses the ODF XML document given in '$content' with a minimal ODF file & directory
+	// structure, and zips the generated directory of XML files as an ODF spreadsheet (ODS file)
+	// 
+	// Author: Richard Karnesky <mailto:karnesky@gmail.com>
 	function zipODF($content) {
-		$zipfile = new zipfile();  
-		//$zipfile -> add_dir("META-INF/"); 
-		$zipfile -> addFile($content, "content.xml");
+		$zipfile = new zipfile();
+		//$zipfile -> add_dir("META-INF/");
+		$zipfile -> addFile($content, "content.xml"); // function 'addFile()' is defined in 'zip.inc.php'
 		$zipfile -> addFile("", "styles.xml");
 		$zipfile -> addFile("application/vnd.oasis.opendocument.spreadsheet","mimetype");
 		$zipfile -> addFile("<?xml version=\"1.0\" encoding=\"UTF-8\"?><office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.0\"><office:meta><meta:generator>refbase</meta:generator></office:meta></office:document-meta>","meta.xml");
-		$zipfile -> addFile("<?xml version=\"1.0\" encoding=\"UTF-8\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"><manifest:file-entry manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\" manifest:full-path=\"/\"/><manifest:file-entry manifest:media-type=\"text/xml\" manifest:full-path=\"content.xml\"/><manifest:file-entry manifest:media-type=\"text/xml\" manifest:full-path=\"styles.xml\"/><manifest:file-entry manifest:media-type=\"text/xml\" manifest:full-path=\"meta.xml\"/></manifest:manifest>","META-INF/manifest.xml");	
+		$zipfile -> addFile("<?xml version=\"1.0\" encoding=\"UTF-8\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"><manifest:file-entry manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\" manifest:full-path=\"/\"/><manifest:file-entry manifest:media-type=\"text/xml\" manifest:full-path=\"content.xml\"/><manifest:file-entry manifest:media-type=\"text/xml\" manifest:full-path=\"styles.xml\"/><manifest:file-entry manifest:media-type=\"text/xml\" manifest:full-path=\"meta.xml\"/></manifest:manifest>","META-INF/manifest.xml");
 		return $zipfile;
 	}
 
