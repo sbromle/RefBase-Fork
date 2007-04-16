@@ -80,13 +80,30 @@
 							$record .= $author;
 					}
 
-				if (!empty($row['year']))				// year
-					{
-						if (!empty($row['author']))
-							$record .= " ";
+				if (!empty($row['year']) || !empty($row['volume']) || !empty($row['issue']))
+				{
+					if (!empty($row['author']))
+						$record .= " ";
 
-						$record .= "(".$row['year'] . ").";
+					$record .= "(";
+
+					if (!empty($row['year']))				// year
+						$record .= $row['year'];
+
+					if ($row['type'] == "Newspaper Article") // for newspaper articles, volume (=month) and issue (=day) information is printed after the year
+					{
+						if (!empty($row['year']))
+							$record .= ",";
+
+						if (!empty($row['volume']))			// volume (=month)
+							$record .= " " . $row['volume'];
+
+						if (!empty($row['issue']))			// issue (=day)
+							$record .= " " . $row['issue'];
 					}
+
+					$record .= ").";
+				}
 
 				if (!empty($row['title']))			// title
 					{
@@ -108,16 +125,17 @@
 				elseif (!empty($row['publication']))	// publication (= journal) name
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $row['publication'] . $markupPatternsArray["italic-suffix"];
 
-				if (!empty($row['volume']))			// volume
-					{
-						if (!empty($row['abbrev_journal']) || !empty($row['publication']))
-							$record .= ",";
+				if ($row['type'] == "Journal Article") // for journal articles, volume and issue information is printed after the publication name
+				{
+					if (!empty($row['abbrev_journal']) || !empty($row['publication']))
+						$record .= ", ";
 
-						$record .= " " . $markupPatternsArray["italic-prefix"] . $row['volume'] . $markupPatternsArray["italic-suffix"];
-					}
+					if (!empty($row['volume']))			// volume
+						$record .= $markupPatternsArray["italic-prefix"] . $row['volume'] . $markupPatternsArray["italic-suffix"];
 
-				if (!empty($row['issue']))			// issue
-					$record .= "(" . $row['issue'] . ")";
+					if (!empty($row['issue']))			// issue
+						$record .= "(" . $row['issue'] . ")";
+				}
 
 				if ($row['online_publication'] == "yes") // this record refers to an online article
 				{
@@ -148,20 +166,33 @@
 
 						$record .= " Retrieved " . $today . ", from " . $row['url'];
 					}
-
 				}
 				else // $row['online_publication'] == "no" -> this record refers to a printed article, so we append any pages info instead:
 				{
 					if (!empty($row['pages']))			// pages
-						{
-							if (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))		// only add "," if either volume, issue, abbrev_journal or publication isn't empty
-								$record .= ",";
+					{
+						if (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))		// only add ", " if either volume, issue, abbrev_journal or publication isn't empty
+							$record .= ", ";
 
-							if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-								$record .= " " . (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages']));
-							else
-								$record .= " " . $row['pages'];
+						$pagePrefix = "";
+
+						if ($row['type'] == "Newspaper Article") // for newspaper articles, we prefix page numbers with "p." or "pp."
+						{
+							if (preg_match("/([0-9]+) *[-–] *\\1/", $row['pages'])) // if the 'pages' field contains a page range with identical start & end numbers (like: "127-127") -> single-page item
+								$pagePrefix = "p. ";
+							elseif (ereg("[0-9]+ *[-–] *[0-9]*", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132", or "127-" if only start page given) -> multi-page item
+								$pagePrefix = "pp. ";
 						}
+
+						if (preg_match("/([0-9]+) *[-–] *\\1/", $row['pages'])) // single-page item
+							$record .= (ereg_replace("([0-9]+) *[-–] *[0-9]+", $pagePrefix . "\\1", $row['pages'])); // reformat as "XX" (or "p. XX" in case of newspaper articles)
+
+						elseif (ereg("[0-9]+ *[-–] *[0-9]*", $row['pages'])) // multi-page item
+							$record .= (ereg_replace("([0-9]+) *[-–] *([0-9]*)", $pagePrefix . "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // reformat as "XX-XX" (or "pp. XX" in case of newspaper articles)
+
+						else
+							$record .= $row['pages']; // page info is ambiguous, so we don't mess with it
+					}
 				}
 
 				if (!ereg("\. *$", $record) && !($row['online_publication'] == "yes" && (!empty($row['doi']) || !empty($row['url'])))) // if the string doesn't end with a period or a DOI/URL
@@ -222,7 +253,7 @@
 						if (!empty($row['author']))
 							$record .= " ";
 
-						$record .= "(".$row['year'] . ").";
+						$record .= "(" . $row['year'] . ").";
 					}
 
 				if (!empty($row['title']))			// title
@@ -289,16 +320,52 @@
 				if (!empty($publication))			// publication
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $publication . $markupPatternsArray["italic-suffix"];
 
-				if (!empty($row['pages']))			// pages
-					{
-						$record .= " (";
+				if (!empty($row['edition']) && $row['edition'] != "1" || !empty($row['volume']) || !empty($row['pages']))
+				{
+					$record .= " (";
 
-						if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-							$record .= "pp. " . (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // replace hyphen with em dash
+					if (!empty($row['edition']) && $row['edition'] != "1")			// edition
+					{
+						if ($row['edition'] == "2")
+							$editionSuffix = "nd";
+						elseif ($row['edition'] == "3")
+							$editionSuffix = "rd";
 						else
-							$record .= " " . $row['pages'];
-						$record .= ")";
+							$editionSuffix = "th";
+
+						$record .= $row['edition'] . $editionSuffix . " ed.";
 					}
+
+					if (!empty($row['volume']))			// volume
+					{
+						if (!empty($row['edition']) && $row['edition'] != "1")
+							$record .= ", ";
+
+						$record .= "Vol. " . $row['volume'];
+					}
+
+					if (!empty($row['pages']))			// pages
+					{
+						if (!empty($row['edition']) && $row['edition'] != "1" || !empty($row['volume']))
+							$record .= ", ";
+
+						if (preg_match("/([0-9]+) *[-–] *\\1/", $row['pages'])) // if the 'pages' field contains a page range with identical start & end numbers (like: "127-127") -> single-page item
+							$record .= (ereg_replace("([0-9]+) *[-–] *[0-9]+", "p. \\1", $row['pages'])); // reformat as "p. XX"
+
+						elseif (ereg("[0-9]+ *[-–] *[0-9]*", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132", or "127-" if only start page given) -> multi-page item
+						{
+							if (ereg("[0-9]+ *[-–] *[0-9]* +[^ ]+", $row['pages'])) // if the 'pages' field contains some trailing text that's separated from the page range by a space
+								$record .= (ereg_replace("([0-9]+) *[-–] *([0-9]*) +([^ ]+)", "pp. \\1" . $markupPatternsArray["endash"] . "\\2 \\3", $row['pages'])); // prefix page range with "pp.", replace hyphen with em dash, and keep trailing text separated by a space
+							else
+								$record .= (ereg_replace("([0-9]+) *[-–] *([0-9]*)", "pp. \\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // prefix page range with "pp." and replace hyphen with em dash
+						}
+
+						else
+							$record .= $row['pages']; // page info is ambiguous, so we don't mess with it
+					}
+
+					$record .= ")";
+				}
 
 				$record .= ".";
 
@@ -405,7 +472,7 @@
 						if (!empty($row['author']))
 							$record .= " ";
 
-						$record .= "(".$row['year'] . ").";
+						$record .= "(" . $row['year'] . ").";
 					}
 
 				if (!empty($row['title']))			// title
@@ -413,14 +480,25 @@
 						if (!empty($row['author']) || !empty($row['year']))
 							$record .= " ";
 
-						$record .= $markupPatternsArray["italic-prefix"] . $row['title'] . $markupPatternsArray["italic-suffix"];
+						if ($row['type'] == "Software") // except for software, the title is printed in italics
+							$record .= $row['title'];
+						else
+							$record .= $markupPatternsArray["italic-prefix"] . $row['title'] . $markupPatternsArray["italic-suffix"];
 					}
 
-				if (!empty($row['edition']) && $row['edition'] != "1")			// edition
-					{
-						if (!empty($row['author']) || !empty($row['year']) || !empty($row['title']))
-							$record .= " ";
+				if (!empty($row['edition']))			// edition
+				{
+					if (!empty($row['author']) || !empty($row['year']) || !empty($row['title']))
+						$record .= " ";
 
+					$record .= "(";
+
+					if ($row['type'] == "Software")			// software edition (=version)
+					{
+						$record .= "Version " . $row['edition']; // NOTE: this will only work correctly if the field type of the 'edition' field gets changed to 'VARCHAR'
+					}
+					elseif ($row['edition'] != "1")			// regular edition (other than the first)
+					{
 						if ($row['edition'] == "2")
 							$editionSuffix = "nd";
 						elseif ($row['edition'] == "3")
@@ -428,19 +506,31 @@
 						else
 							$editionSuffix = "th";
 
-						$record .= "(" . $row['edition'] . $editionSuffix . " ed.)";
+						$record .= $row['edition'] . $editionSuffix . " ed.";
 					}
 
-				if ((!empty($row['title']) && !ereg("[?!.]$", $row['title'])) || !empty($row['edition']))
-					$record .= ".";
+					$record .= ")";
+				}
 
-				if (!empty($row['thesis']))			// thesis
+				if ($row['type'] == "Software") // for software, add software label and URL (if available)
+				{
+					$record .= " [Computer software]";
+
+					if (!empty($row['url']))			// url
+						$record .= ". Available from " . $row['url'];
+				}
+				else // add thesis info, publisher & place
+				{
+					if ((!empty($row['title']) && !ereg("[?!.]$", $row['title'])) || !empty($row['edition']))
+						$record .= ".";
+	
+					if (!empty($row['thesis']))			// thesis
 					{
 						$record .= " " . $row['thesis'];
 						$record .= ", " . $row['publisher'];
 						$record .= ", " . $row['place'];
 					}
-				else // not a thesis
+					else // not a thesis
 					{
 						if (!empty($row['place']))			// place
 							$record .= " " . $row['place'];
@@ -455,20 +545,10 @@
 								else
 									$record .= " " . $row['publisher'];
 							}
-
-//						if (!empty($row['pages']))			// pages
-//							{
-//								if (!empty($row['place']) || !empty($row['publisher']))
-//									$record .= ",";
-//		
-//								if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-//									$record .= " " . (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // replace hyphen with em dash
-//								else
-//									$record .= " " . $row['pages'];
-//							}
 					}
+				}
 
-				if (!ereg("\. *$", $record))
+				if (!ereg("\. *$", $record) && !($row['type'] == "Software" && !empty($row['url']))) // if the string doesn't end with a period or no software URL was given
 					$record .= ".";
 
 				if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
