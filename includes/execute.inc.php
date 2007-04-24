@@ -117,8 +117,8 @@
 	function convertBibutils($bibutilsPath, $tempDirPath, $tempFile, $program, $inputEncodingArg, $outputEncodingArg)
 	{
 		$outputFile = tempnam($tempDirPath, "refbase-");
-		$cmd = $bibutilsPath . $program . $inputEncodingArg . $outputEncodingArg . " " . $tempFile . " > " . $outputFile;
-		execute($cmd);
+    $cmd = $bibutilsPath . $program . $inputEncodingArg . $outputEncodingArg . " " . $tempFile;
+		execute($cmd, $outputFile);
 
 		return $outputFile;
 	}
@@ -126,12 +126,14 @@
 	// --------------------------------------------------------------------
 
 	// Execute shell command
-	function execute($cmd)
+	function execute($cmd, $outputFile)
 	{
 		if (getenv("OS") == "Windows_NT")
-			executeWin32($cmd);
-		else
-			exec($cmd);
+			executeWin32($cmd . " > " . $outputFile);
+		else {
+      exec($cmd, $output);
+      array2file($output, $outputFile);
+    }
 	}
 
 	// --------------------------------------------------------------------
@@ -183,4 +185,33 @@
 	}
 
 	// --------------------------------------------------------------------
+
+  // Write an array (as from $return argument in exec) to a file
+
+  function string2File($string, $outputFile) {
+    $rc = false;
+    do {
+      if (!($f = fopen($outputFile, "wa+"))){
+        $rc = 1;
+        break;
+      }
+      if (!fwrite($f, $string)) {
+        $rc = 2;
+        break;
+      }
+      $rc = true;
+    } while (0);
+    if ($f) {
+      fclose($f);
+    }
+    return ($rc);
+  }
+
+  function array2File($array, $outputFile)
+  {
+    return (string2File(implode("\n", $array), $outputFile));
+  }
+
+	// --------------------------------------------------------------------
+
 ?>
