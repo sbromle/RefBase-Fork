@@ -92,7 +92,7 @@
 				// NOTE: converting the MODS object into a string to perform search & replace actions
 				//       may be very clumsy but I don't know any better... ?:-/
 				$modsString = $mods->getXMLString();
-				$modsString = preg_replace('/<mods/i','<mods xmlns="http://www.loc.gov/mods/v3" version="3.0"',$modsString);
+				$modsString = preg_replace('/<mods/i','<mods xmlns="http://www.loc.gov/mods/v3"',$modsString);
 				// alternatively to the above line we could add a 'mods:' identifier to all MODS XML tags:
 //				$modsString = preg_replace("#<(/)?#","<\\1mods:",$modsString);
 				$mods->removeAllBranches();
@@ -232,7 +232,7 @@
 		$srwDatabaseInfoBranch->setTagContent(encodeHTMLspecialchars($hostInstitutionName) . " (" . $feedbackEmail . ")", "databaseInfo/contact");
 
 		$srwDatabaseImplementationBranch = new XMLBranch("implementation");
-//		$srwDatabaseImplementationBranch->setTagAttribute("version", "0.8.0");
+//		$srwDatabaseImplementationBranch->setTagAttribute("version", "0.9.1");
 		$srwDatabaseImplementationBranch->setTagAttribute("identifier", "refbase");
 		$srwDatabaseImplementationBranch->setTagContent("Web Reference Database (http://refbase.sourceforge.net)", "implementation/title");
 		$srwDatabaseInfoBranch->addXMLBranch($srwDatabaseImplementationBranch);
