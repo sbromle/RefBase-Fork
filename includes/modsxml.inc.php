@@ -198,6 +198,7 @@
     global $contentTypeCharset;
     global $fileVisibility;
     global $fileVisibilityException;
+    global $filesBaseURL
     global $convertExportDataToUTF8;
 
     // The array '$transtab_refbase_unicode' contains search & replace patterns for conversion from refbase markup to Unicode entities.
@@ -475,7 +476,13 @@
       //   Endnote or RIS, the URL to the PDF is only included if no regular URL is available.
       if (!empty($row['file'])) {
         $location = new XMLBranch("location");
-        $location->setTagContent($databaseBaseURL . $row['file'], "location/url");
+
+        if (ereg('^(https?|ftp|file)://', $row['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
+          $URLprefix = ""; // we don't alter the URL given in the 'file' field
+        else // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
+          $URLprefix = $databaseBaseURL . $filesBaseURL; // use the base URL of the standard files directory as prefix ('$databaseBaseURL' and '$filesBaseURL' are defined in 'ini.inc.php')
+
+        $location->setTagContent($URLprefix . $row['file'], "location/url");
         $location->setTagAttribute("displayLabel", "Electronic full text", "location/url");
         // the 'access' attribute requires MODS v3.2 or greater:
         $location->setTagAttribute("access", "raw object", "location/url");
