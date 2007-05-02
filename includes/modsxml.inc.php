@@ -32,7 +32,7 @@
 
   // For more on MODS, see:
   //   <http://www.loc.gov/standards/mods/>
-  //   <http://www.scripps.edu/~cdputnam/software/bibutils/bibutils.html>
+  //   <http://www.scripps.edu/~cdputnam/software/bibutils/>
 
   // TODO:
   //   Stuff in '// NOTE' comments
@@ -47,8 +47,6 @@
   //   - Don't know how refbase users use these
   //     - area (could be either topic or geographic, so we do nothing)
   //     - expedition
-  //   - Can't find a place in MODS XML
-  //     - file
 
 
   // --------------------------------------------------------------------
@@ -182,7 +180,7 @@
 
     $modsCollection = new XML("modsCollection");
     $modsCollection->setTagAttribute("xmlns", "http://www.loc.gov/mods/v3");
-    foreach ($exportArray as $mods) 
+    foreach ($exportArray as $mods)
       $modsCollection->addXMLasBranch($mods);
 
     $modsCollectionDoc->setXML($modsCollection);
@@ -196,7 +194,10 @@
   // Returns an XML object (mods) of a single record
   function modsRecord($row) {
 
-    global $contentTypeCharset; // these variables are defined in 'ini.inc.php'
+    global $databaseBaseURL; // these variables are defined in 'ini.inc.php'
+    global $contentTypeCharset;
+    global $fileVisibility;
+    global $fileVisibilityException;
     global $convertExportDataToUTF8;
 
     // The array '$transtab_refbase_unicode' contains search & replace patterns for conversion from refbase markup to Unicode entities.
@@ -205,6 +206,17 @@
     $exportPrivate = True;  // This will be a global variable or will be used
                             // when modsRow is called and will determine if we
                             // export user-specific data
+
+    $exportRecordURL = True;  // Specifies whether an attribution string containing
+                              // the URL to the refbase database record (and the last
+                              // modification date) shall be written to the notes branch.
+                              // Note that this string is required by the "-A|--append"
+                              // feature of the 'refbase' command line client
+
+    // convert this record's modified date/time info to UNIX time stamp format:
+    // => "date('D, j M Y H:i:s O')", e.g. "Sat, 15 Jul 2006 22:24:16 +0200"
+    // function 'generateUNIXTimeStamp()' is defined in 'include.inc.php'
+    $currentDateTimeStamp = generateUNIXTimeStamp($row['modified_date'], $row['modified_time']);
 
     // --- BEGIN TYPE * ---
     //   |
@@ -253,6 +265,7 @@
 
     // Create an XML object for a single record.
     $record = new XML("mods");
+    $record->setTagAttribute("version", "3.2");
     if (!empty($citeKey))
       $record->setTagAttribute("ID", $citeKey);
 
@@ -398,8 +411,16 @@
     if (!empty($row['notes']))
       $record->setTagContent($row['notes'], "mods/note");
     // user_notes
-    if ((!empty($row['user_notes'])) && $exportPrivate)
+    if ((!empty($row['user_notes'])) && $exportPrivate) // replaces any generic notes
       $record->setTagContent($row['user_notes'], "mods/note");
+    // refbase attribution string
+    if ($exportRecordURL) {
+        $attributionBranch = new XMLBranch("note");
+        $attributionBranch->setTagContent("exported from refbase ("
+          . $databaseBaseURL . "show.php?record=" . $row['serial']
+          . "), last updated on " . $currentDateTimeStamp);
+        $record->addXMLBranch($attributionBranch);
+    }
 
     // typeOfResource
     // maps are 'cartographic', software is 'software, multimedia',
@@ -434,21 +455,42 @@
       }
       $record->addXMLBranch($location);
     }
-    //   URL (also an identifier)
+    //   URL (also an identifier, see below)
     //   NOTE: This field is excluded by the default cite SELECT method
     if (!empty($row['url'])) {
       $location = new XMLBranch("location");
       $location->setTagContent($row['url'], "location/url");
-
-      $identifier = new XMLBranch("identifier");
-      $identifier->setTagContent($row['url']);
-      $identifier->setTagAttribute("type", "uri");
-
       $record->addXMLBranch($location);
-      $record->addXMLBranch($identifier);
+    }
+    // Include a link to any corresponding FILE if one of the following conditions is met:
+    // - the variable '$fileVisibility' (defined in 'ini.inc.php') is set to 'everyone'
+    // - the variable '$fileVisibility' is set to 'login' AND the user is logged in
+    // - the variable '$fileVisibility' is set to 'user-specific' AND the 'user_permissions' session variable contains 'allow_download'
+    // - the array variable '$fileVisibilityException' (defined in 'ini.inc.php') contains a pattern (in array element 1) that matches the contents of the field given (in array element 0)
+    if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
+    {
+      //   file
+      //   Note that when converting MODS to Endnote or RIS, Bibutils will include the above
+      //   URL (if given), otherwise it'll take the URL from the 'file' field. I.e. for
+      //   Endnote or RIS, the URL to the PDF is only included if no regular URL is available.
+      if (!empty($row['file'])) {
+        $location = new XMLBranch("location");
+        $location->setTagContent($databaseBaseURL . $row['file'], "location/url");
+        $location->setTagAttribute("displayLabel", "Electronic full text", "location/url");
+        // the 'access' attribute requires MODS v3.2 or greater:
+        $location->setTagAttribute("access", "raw object", "location/url");
+        $record->addXMLBranch($location);
+      }
     }
 
     // identifier
+    //   url
+    if (!empty($row['url'])) {
+      $identifier = new XMLBranch("identifier");
+      $identifier->setTagContent($row['url']);
+      $identifier->setTagAttribute("type", "uri");
+      $record->addXMLBranch($identifier);
+    }
     //   doi
     if (!empty($row['doi'])) {
       $identifier = new XMLBranch("identifier");
@@ -506,10 +548,10 @@
         }
       }
       //   corporate
-      //   (we treat a 'corporate_author' similar to how bibutils converts the BibTeX
+      //   (we treat a 'corporate_author' similar to how Bibutils converts the BibTeX
       //   'organization' field to MODS XML, i.e., we add a separate name element with
       //    a 'type="corporate"' attribute and an 'author' role)
-      if (!empty($row['corporate_author'])) { 
+      if (!empty($row['corporate_author'])) {
         $nameBranch = new XMLBranch("name");
         $nameBranch->setTagAttribute("type", "corporate");
         $nameBranch->setTagContent($row['corporate_author'], "name/namePart");
@@ -519,7 +561,7 @@
         $record->addXMLBranch($nameBranch);
       }
       //   conference
-      if (!empty($row['conference'])) { 
+      if (!empty($row['conference'])) {
         $nameBranch = new XMLBranch("name");
         $nameBranch->setTagAttribute("type", "conference");
         $nameBranch->setTagContent($row['conference'], "name/namePart");
@@ -619,7 +661,7 @@
         else if (preg_match("/^\d\d*\s*pp?.?$/", $row['pages'])) {
           list($pagetotal) = preg_split('/\s*pp?/', $row['pages']);
           $pages->setTagContent($pagetotal, "extent/total");
-        }          
+        }
         else {
           $pages->setTagContent($row['pages']);
         }
@@ -697,7 +739,7 @@
       //   corporate
       //   NOTE: a copy of the code for 'corporate_author' above.
       //         Needs to be a separate function later.
-      if (!empty($row['corporate_author'])) { 
+      if (!empty($row['corporate_author'])) {
         $nameBranch = new XMLBranch("name");
         $nameBranch->setTagAttribute("type", "corporate");
         $nameBranch->setTagContent($row['corporate_author'], "name/namePart");
@@ -709,7 +751,7 @@
       //   conference
       //   NOTE: a copy of the code for 'conference' above.
       //         Needs to be a separate function later.
-      if (!empty($row['conference'])) { 
+      if (!empty($row['conference'])) {
         $nameBranch = new XMLBranch("name");
         $nameBranch->setTagAttribute("type", "conference");
         $nameBranch->setTagContent($row['conference'], "name/namePart");
