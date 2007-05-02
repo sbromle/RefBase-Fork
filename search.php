@@ -5183,7 +5183,7 @@
 				$query .= ", call_number, serial";
 
 				if ($displayType == "Export") // for export, we add some additional fields:
-					$query .= ", online_publication, online_citation";
+					$query .= ", online_publication, online_citation, modified_date, modified_time";
 
 				if (isset($_SESSION['loginEmail'])) // if a user is logged in...
 					$query .= ", marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related"; // add user-specific fields

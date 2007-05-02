@@ -279,7 +279,7 @@
 
 		// Build SELECT clause:
 		// select all fields required to export a record as SRW XML:
-		$query = "SELECT author, title, type, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved, location, online_publication, online_citation, call_number, serial";
+		$query = "SELECT author, title, type, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved, location, online_publication, online_citation, modified_date, modified_time, call_number, serial";
 		//           (the above string MUST end with ", call_number, serial" in order to have the described query completion feature work correctly!
 
 		// if a user-specific index was queried together with an authentication token that could be resolved to a user ID

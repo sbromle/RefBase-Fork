@@ -490,7 +490,7 @@
 		//           (the above string MUST end with ", call_number, serial" in order to have the described query completion feature work correctly!
 
 			if ($displayType == "Export") // for export, we inject some additional fields into the SELECT clause (again, we must add these additional fields *before* ", call_number, serial" in order to have the described query completion feature work correctly!)
-				$query = eregi_replace(', call_number, serial', ', online_publication, online_citation, call_number, serial', $query);
+				$query = eregi_replace(', call_number, serial', ', online_publication, online_citation, modified_date, modified_time, call_number, serial', $query);
 	
 		}
 
