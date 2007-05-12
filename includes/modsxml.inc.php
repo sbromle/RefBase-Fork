@@ -198,7 +198,7 @@
     global $contentTypeCharset;
     global $fileVisibility;
     global $fileVisibilityException;
-    global $filesBaseURL
+    global $filesBaseURL;
     global $convertExportDataToUTF8;
 
     // The array '$transtab_refbase_unicode' contains search & replace patterns for conversion from refbase markup to Unicode entities.
