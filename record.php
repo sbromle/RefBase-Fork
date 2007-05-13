@@ -107,8 +107,8 @@
 			else // *add* record will be the default action if no parameter is given
 			{
 				$HeaderString = $loc["AddRecordHeaderText"];
-				if (isset($_REQUEST['source'])) // when importing data, we display the original source data if the 'source' parameters is present:
-					$HeaderString .= ". Original source data:\n<br>\n<br>\n<code>" . $_REQUEST['source'] . "</code>"; // the 'source' parameter gets passed by 'import_csa.php'
+				if (isset($_REQUEST['source'])) // when importing data, we display the original source data if the 'source' parameter is present:
+					$HeaderString .= ". Original source data:\n<br>\n<br>\n<code>" . encodeHTML($_REQUEST['source']) . "</code>"; // the 'source' parameter gets passed by 'import.php' or 'import_csa.php'
 				else
 					$HeaderString .= ":";
 			}
@@ -352,7 +352,7 @@
 				$origRecord = $row['orig_record'];
 			}
 			else
-				showErrorMsg($loc["The Query"].":\n<br>\n<br>\n<code>$query</code>\n<br>\n<br>\n ". $loc["caused an error"].":", "");
+				showErrorMsg($loc["The Query"].":\n<br>\n<br>\n<code>" . encodeHTML($query) . "</code>\n<br>\n<br>\n ". $loc["caused an error"].":", "");
 
 		}
 	else // if ($recordAction == "add") -OR- ($recordAction == "edit" but there were some errors on submit)
