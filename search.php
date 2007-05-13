@@ -308,7 +308,7 @@
 		$orderBy = "author, year DESC, publication"; // ...use the default ORDER BY clause
 
 	if (isset($_REQUEST['headerMsg']))
-		$headerMsg = $_REQUEST['headerMsg']; // get any custom header message
+		$headerMsg = stripTags($_REQUEST['headerMsg']); // get any custom header message but strip HTML tags from the custom header message to prevent cross-site scripting (XSS) attacks (function 'stripTags()' is defined in 'include.inc.php')
 						// Note: this feature is provided in 'search.php' so that it's possible to include an information string within a link. This info string could
 						//       e.g. describe who's publications are being displayed (e.g.: "Publications of Matthias Steffens:"). I.e., a link pointing to a persons own
 						//       publications can include the appropriate owner information (it will show up as header message)
@@ -344,13 +344,17 @@
 	// --------------------------------------------------------------------
 
 	// VERIFY SQL QUERY:
+	// Note that for user-generated SQL queries, further verification is done in function 'verifySQLQuery()'
 
 	$notPermitted = false;
 
 	// Prevent cross-site scripting (XSS) attacks:
-	if (preg_match("/(<|&lt;|&#60;|&#x3C;)\/?script.*?(>|&gt;|&#62;|&#x3E;)/", $sqlQuery)) // if the SQL query contains any '<script>' or '</script>' tags
+	// Note that this is just a rough measure, everything that slips thru will get HTML encoded before output
+	$htmlTagsArray = array("a", "applet", "base", "basefont", "bgsound", "blink", "body", "br", "div", "embed", "head", "html", "frame", "frameset", "ilayer", "iframe", "img", "input", "layer", "ilayer", "link", "meta", "script", "span", "style", "object", "table", "title", "xml");
+
+	if (preg_match("/(<|&lt;?|&#0*60;?|&#x0*3C;?|%3C|\\\\x3c|\\\\u003c)\/*(" . join("|", $htmlTagsArray) . ")/i", $sqlQuery)) // if the SQL query contains any unwanted HTML tags
 	{
-		$sqlQuery = preg_replace("/(<|&lt;|&#60;|&#x3C;)\/?script.*?(>|&gt;|&#62;|&#x3E;)/", "", $sqlQuery);
+		$sqlQuery = preg_replace("/(<|&lt;?|&#0*60;?|&#x0*3C;?|%3C|\\\\x3c|\\\\u003c)\/*(" . join("|", $htmlTagsArray) . ").*?(>|&gt;?|&#0*62;?|&#x0*3E;?|%3E|\\\\x3e|\\\\u003e)*/i", "", $sqlQuery);
 
 		$notPermitted = true;
 		// save an appropriate error message:
@@ -594,7 +598,7 @@
 
 		// build a title string that matches the current query:
 		// (alternatively we could always use: "records matching current query")
-		$rssTitle = "records where " . explainSQLQuery($queryWhereClause); // function 'explainSQLQuery()' is defined in 'include.inc.php'
+		$rssTitle = "records where " . encodeHTML(explainSQLQuery($queryWhereClause)); // functions 'encodeHTML()' and 'explainSQLQuery()' are defined in 'include.inc.php'
 
 		$rssURLArray[] = array("href" => $rssURL,
 								"title" => $rssTitle);
@@ -605,7 +609,11 @@
 	{
 		if (!empty($headerMsg)) // if there's a custom header message available, e.g. one that describes who's literature is being displayed...
 		{
-			$HeaderString = $headerMsg; // ...we use that string as header message ('$headerMsg' could contain something like: "Literature of Matthias Steffens:")
+			// ...we use that string as header message ('$headerMsg' could contain something like: "Literature of **Matthias Steffens**:"):
+
+			// Perform search & replace actions on the provided header message (which will e.g. convert '**...**' to '<b>...</b>' etc):
+			// (the array '$transtab_refbase_html' in 'transtab_refbase_html.inc.php' defines which search & replace actions will be employed)
+			$HeaderString = searchReplaceText($transtab_refbase_html, encodeHTML($headerMsg), true); // functions 'searchReplaceText()' and 'encodeHTML()' are defined in 'include.inc.php'
 		}
 		else // provide the default message:
 		{
@@ -663,7 +671,7 @@
 					$HeaderString .= ")";
 
 				if ($showQuery == "1")
-					$HeaderString .= ":\n<br>\n<br>\n<code>$query</code>";
+					$HeaderString .= ":\n<br>\n<br>\n<code>" . encodeHTML($query) . "</code>"; // function 'encodeHTML()' is defined in 'include.inc.php'
 				else // $showQuery == "0" or wasn't specified
 					$HeaderString .= ":";
 
@@ -682,7 +690,7 @@
 					$HeaderStringPart = " records were ";
 
 				if ($showQuery == "1")
-					$HeaderString = $affectedRows . $HeaderStringPart . "affected by <a href=\"sql_search.php?customQuery=1&amp;sqlQuery=$queryURL&amp;showQuery=$showQuery&amp;showLinks=$showLinks&amp;showRows=$showRows&amp;submit=$displayType&amp;citeStyleSelector=" . rawurlencode($citeStyle) . "&amp;citeOrder=$citeOrder&amp;oldQuery=" . rawurlencode($oldQuery) . "\">your query</a>:\n<br>\n<br>\n<code>$query</code>";
+					$HeaderString = $affectedRows . $HeaderStringPart . "affected by <a href=\"sql_search.php?customQuery=1&amp;sqlQuery=$queryURL&amp;showQuery=$showQuery&amp;showLinks=$showLinks&amp;showRows=$showRows&amp;submit=$displayType&amp;citeStyleSelector=" . rawurlencode($citeStyle) . "&amp;citeOrder=$citeOrder&amp;oldQuery=" . rawurlencode($oldQuery) . "\">your query</a>:\n<br>\n<br>\n<code>" . encodeHTML($query) . "</code>";
 				else // $showQuery == "0" or wasn't specified
 					$HeaderString = $affectedRows . $HeaderStringPart . "affected by <a href=\"sql_search.php?customQuery=1&amp;sqlQuery=$queryURL&amp;showQuery=$showQuery&amp;showLinks=$showLinks&amp;showRows=$showRows&amp;submit=$displayType&amp;citeStyleSelector=" . rawurlencode($citeStyle) . "&amp;citeOrder=$citeOrder&amp;oldQuery=" . rawurlencode($oldQuery) . "\">your query</a>:";
 			}
