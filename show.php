@@ -135,7 +135,7 @@
 		$exportType = "html";
 
 	if (isset($_REQUEST['headerMsg']))
-		$headerMsg = $_REQUEST['headerMsg']; // we'll accept custom header messages as well
+		$headerMsg = stripTags($_REQUEST['headerMsg']); // we'll accept custom header messages but strip HTML tags from the custom header message to prevent cross-site scripting (XSS) attacks (function 'stripTags()' is defined in 'include.inc.php')
 						// Note: custom header messages are provided so that it's possible to include an information string within a link. This info string could
 						//       e.g. describe who's publications are being displayed (e.g.: "Publications of Matthias Steffens:"). I.e., a link pointing to a
 						//       persons own publications can include the appropriate owner information (it will show up as header message)
