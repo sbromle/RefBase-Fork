@@ -259,11 +259,19 @@
 		// Specifies whether fields whose contents are entirely in upper case shall be transformed to title case ('true') or not ('false'):
 		$transformCase = true;
 
-		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
-		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$searchReplaceActionsArray = array();'.
+		// Preprocessor actions:
+		// Defines search & replace 'actions' that will be applied to each record's raw source data if the pattern in the corresponding 'match' element is matched:
+		// (If you don't want to perform any preprocessor actions, specify an empty array, like: '$preprocessorActionsArray = array();'.
 		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
 		// 								  "/Search Pattern/"  =>  "Replace Pattern"
-		$searchReplaceActionsArray = array(
+		$preprocessorActionsArray = array();
+
+		// Postprocessor actions:
+		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
+		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$postprocessorActionsArray = array();'.
+		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
+		// 								  "/Search Pattern/"  =>  "Replace Pattern"
+		$postprocessorActionsArray = array(
 											array(
 													'fields'  => array("year"),
 													'actions' => array(
@@ -463,7 +471,7 @@
 		list($errors, $importRecordNumbersRecognizedFormatArray, $importRecordNumbersNotRecognizedFormatArray) = validateRecords($recordArray, $requiredTagsArray, $importRecordsRadio, $importRecordNumbersArray, $errors);
 
 		// Parse all records that shall be imported:
-		list($parsedRecordsArray, $recordsCount) = parseRecords($recordArray, "RIS", $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $searchReplaceActionsArray);
+		list($parsedRecordsArray, $recordsCount) = parseRecords($recordArray, "RIS", $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray, $preprocessorActionsArray);
 
 		// Build refbase import array:
 		$importDataArray = buildImportArray("refbase", // 'type' - the array format of the 'records' element
@@ -520,11 +528,32 @@
 		// Specifies whether fields whose contents are entirely in upper case shall be transformed to title case ('true') or not ('false'):
 		$transformCase = true;
 
-		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
-		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$searchReplaceActionsArray = array();'.
+		// Preprocessor actions:
+		// Defines search & replace 'actions' that will be applied to each record's raw source data if the pattern in the corresponding 'match' element is matched:
+		// (If you don't want to perform any preprocessor actions, specify an empty array, like: '$preprocessorActionsArray = array();'.
 		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
 		// 								  "/Search Pattern/"  =>  "Replace Pattern"
-		$searchReplaceActionsArray = array(
+		$preprocessorActionsArray = array(
+											array(
+													'match'   => "/^FAU - .+?[\r\n]AU  - /m", // if author info is available via both 'FAU' *AND* 'AU' field(s)
+													'actions' => array(
+																		"/^AU  - .+?[\r\n]+/m"  =>  "" // discard any 'AU' field(s) (which otherwise would confuse the 'parseRecords()' function)
+																	)
+												),
+											array(
+													'match'   => "/^AU  - /m",
+													'actions' => array(
+																		"/(?<=^AU  - )([[:alpha:] -]+) +([[:upper:]]+)/m"  =>  "\\1, \\2" // change the string formatting in 'AU' field(s) to the one used by refbase (i.e. insert a comma between family name & initials)
+																	)
+												)
+										);
+
+		// Postprocessor actions:
+		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
+		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$postprocessorActionsArray = array();'.
+		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
+		// 								  "/Search Pattern/"  =>  "Replace Pattern"
+		$postprocessorActionsArray = array(
 											array(
 													'fields'  => array("year"),
 													'actions' => array(
@@ -538,7 +567,7 @@
 																	)
 												),
 											array(
-													'fields'  => array("publication", "abbrev_journal"), // NOTE: this replacement action will probably be only beneficial for records of type "Journal Article" (we'd need to add a *pre*-processor feature to distinguish articles from books or other resource types)
+													'fields'  => array("publication", "abbrev_journal"), // NOTE: this replacement action will probably be only beneficial for records of type "Journal Article" (if possible, this should rather be a preprocessor action to distinguish articles from books or other resource types)
 													'actions' => array(
 																		"/\b([[:lower:]])([[:alpha:]]{3,})/e"  =>  "strtoupper('\\1').'\\2'" // make sure that all journal title words (with >3 characters) start with an upper case letter (the 'e' modifier allows to execute PHP code within the replacement pattern)
 																	)
@@ -647,8 +676,8 @@
 		$tagsToRefbaseFieldsArray = array(
 											"PT"    =>  "type", // Publication Type [The type of material the article represents] (IMPORTANT: the array element that maps to 'type' must be listed as the first element!)
 
-											"FAU"   =>  "author", // Full Author Name [Full Author Names] (we use this author format since family name and initials are uniquely separated by a comma)
-		//									"AU"    =>  "author", // Author [Authors]
+											"AU"    =>  "author", // Author [Authors] (the contents of the 'AU' field will be used if the 'FAU' field is not available; note that for records that contain both 'AU' *AND* 'FAU' fields, this only works if a suitable preprocessor action is defined, see above)
+											"FAU"   =>  "author", // Full Author Name [Full Author Names] (by default, we use this author format since family name and initials are uniquely separated by a comma)
 		//									""      =>  "editor",
 		//									""      =>  "series_editor",
 											"AD"    =>  "address", // Affiliation [Institutional affiliation and address of the first author]
@@ -753,8 +782,8 @@
 
 		// This array lists all MEDLINE tags that may occur multiple times:
 		$tagsMultipleArray = array(
+									"AU", // see above note for 'AU' at '$tagsToRefbaseFieldsArray'
 									"FAU",
-		//							"AU",
 									"MH",
 									"OT",
 									"AID",
@@ -795,7 +824,7 @@
 		list($errors, $importRecordNumbersRecognizedFormatArray, $importRecordNumbersNotRecognizedFormatArray) = validateRecords($recordArray, $requiredTagsArray, $importRecordsRadio, $importRecordNumbersArray, $errors);
 
 		// Parse all records that shall be imported:
-		list($parsedRecordsArray, $recordsCount) = parseRecords($recordArray, "MEDLINE", $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $searchReplaceActionsArray);
+		list($parsedRecordsArray, $recordsCount) = parseRecords($recordArray, "MEDLINE", $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray, $preprocessorActionsArray);
 
 		// Build refbase import array:
 		$importDataArray = buildImportArray("refbase", // 'type' - the array format of the 'records' element
@@ -853,11 +882,19 @@
 		// Specifies whether fields whose contents are entirely in upper case shall be transformed to title case ('true') or not ('false'):
 		$transformCase = true;
 
-		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
-		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$searchReplaceActionsArray = array();'.
+		// Preprocessor actions:
+		// Defines search & replace 'actions' that will be applied to each record's raw source data if the pattern in the corresponding 'match' element is matched:
+		// (If you don't want to perform any preprocessor actions, specify an empty array, like: '$preprocessorActionsArray = array();'.
 		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
 		// 								  "/Search Pattern/"  =>  "Replace Pattern"
-		$searchReplaceActionsArray = array(
+		$preprocessorActionsArray = array();
+
+		// Postprocessor actions:
+		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
+		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$postprocessorActionsArray = array();'.
+		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
+		// 								  "/Search Pattern/"  =>  "Replace Pattern"
+		$postprocessorActionsArray = array(
 											array(
 													'fields'  => array("year"),
 													'actions' => array(
@@ -1052,7 +1089,7 @@
 		list($errors, $importRecordNumbersRecognizedFormatArray, $importRecordNumbersNotRecognizedFormatArray) = validateRecords($recordArray, $requiredTagsArray, $importRecordsRadio, $importRecordNumbersArray, $errors);
 
 		// Parse all records that shall be imported:
-		list($parsedRecordsArray, $recordsCount) = parseRecords($recordArray, "RefWorks", $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $searchReplaceActionsArray);
+		list($parsedRecordsArray, $recordsCount) = parseRecords($recordArray, "RefWorks", $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray, $preprocessorActionsArray);
 
 		// Build refbase import array:
 		$importDataArray = buildImportArray("refbase", // 'type' - the array format of the 'records' element
@@ -1118,11 +1155,19 @@
 		// Specifies whether fields whose contents are entirely in upper case shall be transformed to title case ('true') or not ('false'):
 		$transformCase = true;
 
-		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
-		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$searchReplaceActionsArray = array();'.
+		// Preprocessor actions:
+		// Defines search & replace 'actions' that will be applied to each record's raw source data if the pattern in the corresponding 'match' element is matched:
+		// (If you don't want to perform any preprocessor actions, specify an empty array, like: '$preprocessorActionsArray = array();'.
 		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
 		// 								  "/Search Pattern/"  =>  "Replace Pattern"
-		$searchReplaceActionsArray = array(
+		$preprocessorActionsArray = array();
+
+		// Postprocessor actions:
+		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
+		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$postprocessorActionsArray = array();'.
+		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
+		// 								  "/Search Pattern/"  =>  "Replace Pattern"
+		$postprocessorActionsArray = array(
 											array(
 													'fields'  => array("year"),
 													'actions' => array(
@@ -1338,7 +1383,7 @@
 		list($errors, $importRecordNumbersRecognizedFormatArray, $importRecordNumbersNotRecognizedFormatArray) = validateRecords($recordArray, $requiredTagsArray, $importRecordsRadio, $importRecordNumbersArray, $errors);
 
 		// Parse all records that shall be imported:
-		list($parsedRecordsArray, $recordsCount) = parseRecords($recordArray, "SciFinder", $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $searchReplaceActionsArray);
+		list($parsedRecordsArray, $recordsCount) = parseRecords($recordArray, "SciFinder", $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray, $preprocessorActionsArray);
 
 		// Build refbase import array:
 		$importDataArray = buildImportArray("refbase", // 'type' - the array format of the 'records' element
@@ -1488,7 +1533,7 @@
 	// PARSE RECORDS
 	// This function processes an array of records containing the source data (as tagged text) and
 	// returns an array of records where each record contains an array of extracted field data:
-	function parseRecords($recordArray, $recordFormat, $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $searchReplaceActionsArray)
+	function parseRecords($recordArray, $recordFormat, $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray, $preprocessorActionsArray)
 	{
 		global $showSource;
 
@@ -1506,6 +1551,12 @@
 			}
 			else // ...import the current record:
 			{
+				// PRE-PROCESS FIELD DATA:
+				// apply search & replace 'actions' to each record's raw source data:
+				foreach ($preprocessorActionsArray as $thisMatchActionsArray)
+					if (preg_match($thisMatchActionsArray['match'], $recordArray[$i]))
+						$recordArray[$i] = searchReplaceText($thisMatchActionsArray['actions'], $recordArray[$i], true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+
 				// split each record into its fields:
 				$fieldArray = preg_split("/" . $fieldDelimiter . "/", $recordArray[$i]);
 
@@ -1536,7 +1587,7 @@
 						// extract individual items of tags that can occur multiple times:
 						foreach ($tagsMultipleArray as $tagMultiple)
 						{
-							if (ereg($tagMultiple, $fieldLabel))
+							if (eregi("^" . $tagMultiple . "$", $fieldLabel))
 								$tagContentsMultipleArray[$tagsToRefbaseFieldsArray[$fieldLabel]][] = $fieldData;
 						}
 
@@ -1678,8 +1729,8 @@
 					}
 				}
 
-				// apply search & replace 'actions' to all fields that are listed in the 'fields' element of the arrays contained in '$searchReplaceActionsArray':
-				foreach ($searchReplaceActionsArray as $fieldActionsArray)
+				// apply search & replace 'actions' to all fields that are listed in the 'fields' element of the arrays contained in '$postprocessorActionsArray':
+				foreach ($postprocessorActionsArray as $fieldActionsArray)
 					foreach ($fieldParametersArray as $fieldName => $fieldValue)
 						if (in_array($fieldName, $fieldActionsArray['fields']))
 							$fieldParametersArray[$fieldName] = searchReplaceText($fieldActionsArray['actions'], $fieldValue, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
