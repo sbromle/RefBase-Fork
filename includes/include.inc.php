@@ -69,6 +69,9 @@
 				saveSessionVariable("sessionID", $sessionID);
 		}
 
+		// Set the system's locale information:
+		setSystemLocale();
+
 		// Get the MySQL version and save it to a session variable:
 		// Note: we only check for the MySQL version if a connection has been established already. Otherwise, a non-existing MySQL user
 		//       (or incorrect MySQL pwd) would prevent 'install.php' or 'error.php' from loading correctly when setting up a new refbase database.
@@ -1757,12 +1760,11 @@ EOF;
 	//			- within one author object, there's only *one* delimiter separating author name & initials!
 	function reArrangeAuthorContents($authorContents, $familyNameFirst, $oldBetweenAuthorsDelim, $newBetweenAuthorsDelimStandard, $newBetweenAuthorsDelimLastAuthor, $oldAuthorsInitialsDelim, $newAuthorsInitialsDelimFirstAuthor, $newAuthorsInitialsDelimStandard, $betweenInitialsDelim, $initialsBeforeAuthorFirstAuthor, $initialsBeforeAuthorStandard, $shortenGivenNames, $includeNumberOfAuthors, $customStringAfterFirstAuthor, $encodeHTML)
 	{
-		// Note: I haven't figured out how to *successfully* enable locale support, so that e.g. '[[:upper:]]' would also match 'Ø' etc.
-		//       Therefore, as a workaround, high ascii chars are specified literally below
+		// Note: The 'start_session()' function should establish an appropriate locale via function 'setSystemLocale()' so that e.g. '[[:upper:]]' would also match 'Ø' etc.
+		//       However, since locale support depends on the individual server & system, we keep the workaround which literally specifies higher ASCII chars of the latin1 character set below.
 		//       (in order to have this work, the character encoding of 'search.php' must be set to 'Western (Iso Latin 1)' aka 'ISO-8859-1'!)
-		//       high ascii chars upper case = "ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ"
-		//       high ascii chars lower case = "äåáàâãçéèêëñöøóòôõüúùûíìîïæÿß"
-		// setlocale(LC_COLLATE, 'la_LN.ISO-8859-1'); // use the ISO 8859-1 Latin-1 character set for pattern matching
+		//       higher ASCII chars upper case = "ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ"
+		//       higher ASCII chars lower case = "äåáàâãçéèêëñöøóòôõüúùûíìîïæÿß"
 
 		$authorsArray = split($oldBetweenAuthorsDelim, $authorContents); // get a list of all authors for this record
 
@@ -3273,7 +3275,7 @@ EOF;
 				}
 			}
 			else
-				$citeKey = ""; // by omitting a cite key bibutils will take care of generation of cite keys for its export formats (BibTeX, Endnote, RIS)
+				$citeKey = ""; // by omitting a cite key Bibutils will take care of generation of cite keys for its export formats (BibTeX, Endnote, RIS)
 		}
 
 
@@ -3804,6 +3806,28 @@ EOF;
 			$sourceString = strtoupper($sourceString);
 
 		return $sourceString;
+	}
+
+	// --------------------------------------------------------------------
+
+	// Sets the system's locale information:
+	// On *NIX systems, use "locale -a" on the command line to display all locales
+	// supported on your system. See <http://www.php.net/setlocale> for more information.
+	function setSystemLocale($systemLocales = "NONE")
+	{
+		global $contentTypeCharset; // defined in 'ini.inc.php'
+
+		if ($systemLocales == "NONE") {
+			if ($contentTypeCharset == "UTF-8")
+				$systemLocales = array('en_US.UTF-8', 'en_GB.UTF-8', 'en_CA.UTF-8', 'en_AU.UTF-8', 'en_NZ.UTF-8', 'de_DE.UTF-8', 'fr_FR.UTF-8', 'es_ES.UTF-8');
+			else // we assume "ISO-8859-1" by default
+				$systemLocales = array('en_US.ISO8859-1', 'en_GB.ISO8859-1', 'en_CA.ISO8859-1', 'en_AU.ISO8859-1', 'en_NZ.ISO8859-1', 'de_DE.ISO8859-1', 'fr_FR.ISO8859-1', 'es_ES.ISO8859-1');
+		}
+
+		$systemLocale = setlocale(LC_COLLATE, $systemLocales); // set locale for string comparison (including pattern matching)
+		$systemLocale = setlocale(LC_CTYPE, $systemLocales); // set locale for character classification and conversion, for example 'strtoupper()'
+
+		return $systemLocale;
 	}
 
 	// --------------------------------------------------------------------
