@@ -196,9 +196,10 @@
 			if (mysql_errno() != 0) // this works around a stupid(?) behaviour of the Roxen webserver that returns 'errno: 0' on success! ?:-(
 			{
 				if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
-					showErrorMsg("Your query:\n\n" . $query . "\n\ncaused the following error:", $oldQuery);
+					// note that we also HTML encode the query for CLI clients since a malicious user could use the client parameter to perform a cross-site scripting (XSS) attack
+					showErrorMsg("Your query:\n\n" . encodeHTML($query) . "\n\ncaused the following error:", $oldQuery);
 				else
-					showErrorMsg("Your query:\n<br>\n<br>\n<code>" . $query . "</code>\n<br>\n<br>\n caused the following error:", $oldQuery);
+					showErrorMsg("Your query:\n<br>\n<br>\n<code>" . encodeHTML($query) . "</code>\n<br>\n<br>\n caused the following error:", $oldQuery);
 			}
 
 		return $result;
@@ -321,8 +322,10 @@
 		$errorMsg = mysql_error();
 
 		if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
-			echo $headerMsg . "\n\nError " . $errorNo . ": " . $errorMsg . "\n\n";
+			// note that we also HTML encode the '$errorMsg' for CLI clients since a malicious user could use the client parameter to perform a cross-site scripting (XSS) attack
+			echo $headerMsg . "\n\nError " . $errorNo . ": " . encodeHTML($errorMsg) . "\n\n";
 		else
+			// in case of regular HTML output, '$errorMsg' gets HTML encoded in 'error.php'
 			header("Location: error.php?errorNo=" . $errorNo . "&errorMsg=" . rawurlencode($errorMsg) . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery));
 
 		exit;
@@ -3998,6 +4001,17 @@ EOF;
 		//       was added in PHP 4.1.0. Presently, the ISO-8859-1 character set is used as the default.
 
 		return $encodedString;
+	}
+
+	// --------------------------------------------------------------------
+
+	// Strip HTML and PHP tags from input string:
+	// See <http://www.php.net/strip_tags>
+	function stripTags($sourceString, $allowedTags = "")
+	{
+		$cleanedString = strip_tags($sourceString, $allowedTags);
+
+		return $cleanedString;
 	}
 
 	// --------------------------------------------------------------------
