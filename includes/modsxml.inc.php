@@ -477,10 +477,16 @@
       if (!empty($row['file'])) {
         $location = new XMLBranch("location");
 
-        if (ereg('^(https?|ftp|file)://', $row['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
+        if (ereg('^(https?|ftp|file)://', $row['file'])) { // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
           $URLprefix = ""; // we don't alter the URL given in the 'file' field
-        else // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
-          $URLprefix = $databaseBaseURL . $filesBaseURL; // use the base URL of the standard files directory as prefix ('$databaseBaseURL' and '$filesBaseURL' are defined in 'ini.inc.php')
+        }
+        else { // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
+          // use the base URL of the standard files directory as prefix:
+          if (ereg('^/', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
+            $URLprefix = 'http://' . $_SERVER['HTTP_HOST'] . $filesBaseURL;
+          else // relative path -> file dir is located within refbase root dir
+            $URLprefix = $databaseBaseURL . $filesBaseURL;
+        }
 
         $location->setTagContent($URLprefix . $row['file'], "location/url");
         $location->setTagAttribute("displayLabel", "Electronic full text", "location/url");
