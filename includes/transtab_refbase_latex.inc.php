@@ -78,6 +78,7 @@
 		"/\\[Chi\\]/"          =>  '$X$',
 		"/\\[Psi\\]/"          =>  '$\\Psi$',
 		"/\\[Omega\\]/"        =>  '$\\Omega$',
+		"/([{}])/"             =>  '\\\\\\1', // escaping of curly brackets has to be done here (and not in 'transtab_*' files) so that conversion is only applied to field contents and doesn't mess with the generated LaTeX code
 		"/\"(.+?)\"/"          =>  '{\\textquotedblleft}\\1{\\textquotedblright}',
 		"/ +- +/"              =>  " -- ",
 		"/–/"                  =>  '--'
