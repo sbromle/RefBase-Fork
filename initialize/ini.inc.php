@@ -297,6 +297,13 @@
 	$librarySearchPattern = array("location", "library"); // e.g. 'array("location", "IPÖ Library")'
 
 
+	// Define the directory path that's used to save session data and to write any temporary files.
+	// Usually, you can leave this variable as is. However, if you're on a hosted service, your
+	// Internet Service Provider may have given you a specific session/temp DIR path which you may need
+	// to specify here.
+	$sessionTempDir = session_save_path(); // e.g. session_save_path(), or "/var/www/web12345/phptmp"
+
+
 	// The base DIR path to your default file directory:
 	// I.e., the local path to the root directory where any PDF files etc. are stored. This must be a
 	// valid path specification to a local directory that's accessible (read+write) by the server. As an
