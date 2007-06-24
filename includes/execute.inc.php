@@ -37,11 +37,8 @@
 		// (function 'getExternalUtilityPath()' is defined in 'include.inc.php')
 		$bibutilsPath = getExternalUtilityPath("bibutils");
 
-		// Get the path to the system's temporary directory:
-		$tempDirPath = getTempDirPath();
-
 		// Write the source data to a temporary file:
-		$tempFile = writeToTempFile($tempDirPath, $sourceText);
+		$tempFile = writeToTempFile($sourceText);
 
 		// Set input and output encoding:
 		if ($contentTypeCharset != "UTF-8")
@@ -56,7 +53,7 @@
 		}
 
 		// Pass this temp file to the bibutils utility for conversion:
-		$outputFile = convertBibutils($bibutilsPath, $tempDirPath, $tempFile, $program, $inputEncodingArg, $outputEncodingArg);
+		$outputFile = convertBibutils($bibutilsPath, $tempFile, $program, $inputEncodingArg, $outputEncodingArg);
 		unlink($tempFile);
 
 		// Read the resulting output file and return the converted data:
@@ -82,11 +79,8 @@
 		// (function 'modsCollection()' is defined in 'modsxml.inc.php')
 		$recordCollection = modsCollection($result);
 
-		// Get the path to the system's temporary directory:
-		$tempDirPath = getTempDirPath();
-
 		// Write the MODS XML data to a temporary file:
-		$tempFile = writeToTempFile($tempDirPath, $recordCollection);
+		$tempFile = writeToTempFile($recordCollection);
 
 		// Set input and output encoding:
 		if (($convertExportDataToUTF8 == "no") AND ($contentTypeCharset != "UTF-8"))
@@ -101,7 +95,7 @@
 		}
 
 		// Pass this temp file to the bibutils utility for conversion:
-		$outputFile = convertBibutils($bibutilsPath, $tempDirPath, $tempFile, $program, $inputEncodingArg, $outputEncodingArg);
+		$outputFile = convertBibutils($bibutilsPath, $tempFile, $program, $inputEncodingArg, $outputEncodingArg);
 		unlink($tempFile);
 
 		// Read the resulting output file and return the converted data:
@@ -114,10 +108,12 @@
 	// --------------------------------------------------------------------
 
 	// Convert file contents using the bibutils program given in '$program'
-	function convertBibutils($bibutilsPath, $tempDirPath, $tempFile, $program, $inputEncodingArg, $outputEncodingArg)
+	function convertBibutils($bibutilsPath, $tempFile, $program, $inputEncodingArg, $outputEncodingArg)
 	{
-		$outputFile = tempnam($tempDirPath, "refbase-");
-    $cmd = $bibutilsPath . $program . $inputEncodingArg . $outputEncodingArg . " " . $tempFile;
+		global $sessionTempDir; // defined in 'ini.inc.php'
+
+		$outputFile = tempnam($sessionTempDir, "refbase-");
+		$cmd = $bibutilsPath . $program . $inputEncodingArg . $outputEncodingArg . " " . $tempFile;
 		execute($cmd, $outputFile);
 
 		return $outputFile;
@@ -130,10 +126,11 @@
 	{
 		if (getenv("OS") == "Windows_NT")
 			executeWin32($cmd . " > " . $outputFile);
-		else {
-      exec($cmd, $output);
-      array2file($output, $outputFile);
-    }
+		else
+		{
+			exec($cmd, $output);
+			arrayToFile($output, $outputFile);
+		}
 	}
 
 	// --------------------------------------------------------------------
@@ -152,21 +149,12 @@
 
 	// --------------------------------------------------------------------
 
-	// Get the path to the system's temporary directory
-	function getTempDirPath()
-	{
-		// Get the path of the current directory that's used to save session data
-		$tempDirPath = session_save_path();
-
-		return $tempDirPath;
-	}
-
-	// --------------------------------------------------------------------
-
 	// Write data to a temporary file
-	function writeToTempFile($tempDirPath, $sourceText)
+	function writeToTempFile($sourceText)
 	{
-		$tempFile = tempnam($tempDirPath, "refbase-");
+		global $sessionTempDir; // defined in 'ini.inc.php'
+
+		$tempFile = tempnam($sessionTempDir, "refbase-");
 		$tempFileHandle = fopen($tempFile, "w"); // open temp file with write permission
 		fwrite($tempFileHandle, $sourceText); // save data to temp file
 		fclose($tempFileHandle); // close temp file
@@ -186,31 +174,36 @@
 
 	// --------------------------------------------------------------------
 
-  // Write an array (as from $return argument in exec) to a file
+	// Write an array (as from $return argument in exec) to a file
+	function arrayToFile($array, $outputFile)
+	{
+		return (stringToFile(implode("\n", $array), $outputFile));
+	}
 
-  function string2File($string, $outputFile) {
-    $rc = false;
-    do {
-      if (!($f = fopen($outputFile, "wa+"))){
-        $rc = 1;
-        break;
-      }
-      if (!fwrite($f, $string)) {
-        $rc = 2;
-        break;
-      }
-      $rc = true;
-    } while (0);
-    if ($f) {
-      fclose($f);
-    }
-    return ($rc);
-  }
+	function stringToFile($string, $outputFile)
+	{
+		$rc = false;
+		do
+		{
+			if (!($f = fopen($outputFile, "wa+")))
+			{
+				$rc = 1;
+				break;
+			}
+			if (!fwrite($f, $string))
+			{
+				$rc = 2;
+				break;
+			}
+			$rc = true;
+		}
+		while (0);
 
-  function array2File($array, $outputFile)
-  {
-    return (string2File(implode("\n", $array), $outputFile));
-  }
+		if ($f)
+			fclose($f);
+
+		return ($rc);
+	}
 
 	// --------------------------------------------------------------------
 
