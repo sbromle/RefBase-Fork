@@ -1446,6 +1446,10 @@
 		elseif (preg_match("/<mods[^<>\r\n]*>/i", $sourceText) AND preg_match("/<\/mods>/", $sourceText)) // MODS XML records must at least contain the "<mods>...</mods>" root element
 			$sourceFormat = "MODS XML";
 
+		// Endnote XML format:
+		elseif (preg_match("/<xml>[^<>]*?<records>[^<>]*?<record>/mi", $sourceText)) // Endnote XML records must at least contain the elements "<xml>...<records>...<record>"
+			$sourceFormat = "Endnote XML";
+
 		// BibTeX format:
 		elseif (preg_match("/^@\w+\{[^ ,\r\n]* *, *[\r\n]/m", $sourceText)) // BibTeX records must start with the "@" sign, followed by a type specifier and an optional cite key (such as in '@article{steffens1988,')
 			$sourceFormat = "BibTeX";
@@ -1727,6 +1731,13 @@
 						$fieldParametersArray['series_issue'] = $fieldParametersArray['issue'];
 						unset($fieldParametersArray['issue']);
 					}
+				}
+
+				// if the 'url' field actually contains a DOI prefixed with "http://dx.doi.org/" (AND the 'doi' field is empty), we'll extract the DOI and move it to the 'doi' field:
+				if (!empty($fieldParametersArray['url']) AND empty($fieldParametersArray['doi']) AND preg_match("#^http://dx\.doi\.org/10\.\d{4}/[^ ]+#", $fieldParametersArray['url']))
+				{
+					$fieldParametersArray['doi'] = preg_replace("#^http://dx\.doi\.org/(10\.\d{4}/[^ ]+)#", "\\1", $fieldParametersArray['url']);
+					unset($fieldParametersArray['url']);
 				}
 
 				// apply search & replace 'actions' to all fields that are listed in the 'fields' element of the arrays contained in '$postprocessorActionsArray':
