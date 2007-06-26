@@ -24,7 +24,7 @@
 
 	// --- BEGIN CITATION FORMAT ---
 
-	function citeRecords($result, $rowsFound, $query, $oldQuery, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
+	function citeRecords($result, $rowsFound, $query, $oldQuery, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
 	{
 		global $searchReplaceActionsArray; // defined in 'ini.inc.php'
 		global $showLinkTypesInCitationView;
@@ -107,7 +107,7 @@
 					// for Citation view, we'll use the '$showLinkTypesInCitationView' array that's defined in 'ini.inc.php'
 					// to specify which links shall be displayed (if available and if 'showLinks == 1')
 					// (for links of type DOI/URL/ISBN/XREF, only one link will be printed; order of preference: DOI, URL, ISBN, XREF)
-					$recordTableData .= printLinks($showLinkTypesInCitationView, $row, $showQuery, $showLinks, $userID, $viewType, $orderBy); // function 'printLinks()' is defined in 'search.php'
+					$recordTableData .= printLinks($showLinkTypesInCitationView, $row, $showQuery, $showLinks, $wrapResults, $userID, $viewType, $orderBy); // function 'printLinks()' is defined in 'search.php'
 
 					$recordTableData .= "\n\t</td>";
 				}
@@ -120,10 +120,13 @@
 		// OUTPUT RESULTS:
 		// Note: currently, we omit the 'Search Within Results' form in citation layout! (compare with 'displayColumns()' function in 'search.php')
 
-		// Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
-		// call the 'buildBrowseLinks()' function (defined in 'include.inc.php'):
-		$BrowseLinks = buildBrowseLinks("search.php", $query, $oldQuery, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, "25", "sqlSearch", "Cite", $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType);
-		$htmlData .= $BrowseLinks;
+		if ($wrapResults != "0")
+		{
+			// Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
+			// call the 'buildBrowseLinks()' function (defined in 'include.inc.php'):
+			$BrowseLinks = buildBrowseLinks("search.php", $query, $oldQuery, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, "25", "sqlSearch", "Cite", $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType);
+			$htmlData .= $BrowseLinks;
+		}
 
 		// Output query results as TABLE:
 		$htmlData .= "\n<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\" summary=\"This table holds the database results for your query\">"
@@ -131,8 +134,8 @@
 					. "\n</table>";
 
 		// Append the footer:
-		// Note: we omit the results footer in print view! ('viewType=Print')
-		if ($viewType != "Print")
+		// Note: we omit the results footer in print view ('viewType=Print') and for include mechanisms!
+		if (($viewType != "Print") AND (!eregi("^inc", $client)) AND ($wrapResults != "0"))
 		{
 			// Again, insert the (already constructed) BROWSE LINKS
 			// (i.e., a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages)
