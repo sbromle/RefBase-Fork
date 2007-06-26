@@ -19,6 +19,7 @@
 	// This script takes a user query name (which was passed to the script by use of the 'Recall My Query' form on the main page 'index.php')
 	// and extracts all saved settings for this particular query from the 'queries' MySQL table. It will then build an appropriate query URL
 	// and pass that to 'search.php' which will finally display all matching records in list view.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -46,18 +47,15 @@
 	else
 		$querySearchSelector = "";
 
-	// Determine the button that was hit by the user (either 'Go' or 'Edit'):
+	// Determine the button that was hit by the user (in English localization, either 'Go' or 'Edit'):
 	$submitAction = $_REQUEST['submit'];
 
 
 	// Check the correct parameters have been passed:
 	if (empty($querySearchSelector)) // if 'queries.php' was called without any valid parameters:
 	{
-		// save an error message:
-		$HeaderString = "<b><span class=\"warning\">Incorrect or missing parameters to script 'queries.php'!</span></b>";
-
-		// Write back session variable:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["Warning_IncorrectOrMissingParams"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 
 		// Redirect the browser back to the main page:
 		header("Location: index.php"); // Note: if 'header("Location: " . $_SERVER['HTTP_REFERER'])' is used, the error message won't get displayed! ?:-/
@@ -80,7 +78,8 @@
 		{
 			$row = mysql_fetch_array($result);
 
-			if ($submitAction == $loc["ButtonTitle_Edit"]) // redirect the browser to 'query_manager.php':
+			// redirect the browser to 'query_manager.php':
+			if (encodeHTML($submitAction) == $loc["ButtonTitle_Edit"]) // note that we need to HTML encode '$submitAction' for comparison with the HTML encoded locales (function 'encodeHTML()' is defined in 'include.inc.php')
 			{
 				header("Location: query_manager.php?queryAction=edit&queryID=" . $row['query_id']);
 				exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
