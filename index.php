@@ -111,7 +111,7 @@
 
 <table align="center" border="0" cellpadding="2" cellspacing="5" width="90%" summary="This table explains features, goals and usage of the <?php echo encodeHTML($officialDatabaseName); ?>">
 	<tr>
-		<td colspan="2"><h3><?php echo $loc["Goals"]; ?> &amp; <?php echo $loc["Features"]; ?></h3></td>
+		<td colspan="2"><h3><?php echo $loc["GoalsAndFeatures"]; ?></h3></td>
 		<td width="182" valign="bottom"><?php
 if (!isset($_SESSION['loginEmail']))
 	{
@@ -129,7 +129,7 @@ else
 
 			<br>
 			<br>
-			<?php echo $loc["ThisDatabase"] . " " . $loc["provides"] . ":"; ?>
+			<?php echo $loc["ThisDatabaseProvides"] . ":"; ?>
 
 			<ul type="circle">
 				<li><?php echo $loc["Features_ComprehensiveDataset"]; 
@@ -188,13 +188,13 @@ else
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findMarked" value="1">
 				<select name="markedSelector">
 					<option value="marked"><?php echo $loc["marked"]; ?></option>
-					<option value="not marked"><?php echo $loc["not"]." ". $loc["marked"]; ?></option>
+					<option value="not marked"><?php echo $loc["notMarked"]; ?></option>
 				</select>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findSelected" value="1">
 				<select name="selectedSelector">
 					<option value="selected"><?php echo $loc["selected"]; ?></option>
-					<option value="not selected"><?php echo $loc["not"]." ". $loc["selected"]; ?></option>
+					<option value="not selected"><?php echo $loc["notSelected"]; ?></option>
 				</select>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findCopy" value="1">&nbsp;<?php echo $loc["copy"]; ?>:
@@ -229,8 +229,8 @@ else
 		<td width="15">&nbsp;</td>
 		<td><?php echo $loc["SearchDB"]; ?>:
 			<ul type="circle">
-				<li><a href="simple_search.php"><?php echo $loc["Simple"]; ?> <?php echo $loc["Search"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["search"]." ".$loc["SearchMain"]; ?></li>
-				<li><a href="advanced_search.php"><?php echo $loc["Advanced"]; ?> <?php echo $loc["Search"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["search"]." ".$loc["SearchAll"]; ?></li><?php
+				<li><a href="simple_search.php"><?php echo $loc["SimpleSearch"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["SearchMain"]; ?></li>
+				<li><a href="advanced_search.php"><?php echo $loc["AdvancedSearch"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["SearchAll"]; ?></li><?php
 
 		// -------------------------------------------------------
 		if (isset($_SESSION['user_permissions']) AND ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
@@ -238,13 +238,13 @@ else
 		// ... include a link to 'sql_search.php':
 ?>
 
-				<li><a href="sql_search.php">SQL <?php echo $loc["Search"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["search"]." ".$loc["SearchSQL"]; ?></li><?php
+				<li><a href="sql_search.php"><?php echo $loc["SQLSearch"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["SearchSQL"]; ?></li><?php
 		}
 
 		// -------------------------------------------------------
 ?>
 
-				<li><a href="library_search.php"><?php echo $loc["Library"]; ?> <?php echo $loc["Search"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["search"]." ".$loc["SearchExt"]; ?> <?php echo encodeHTML($hostInstitutionName); ?></li>
+				<li><a href="library_search.php"><?php echo $loc["LibrarySearch"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["SearchExt"]; ?> <?php echo encodeHTML($hostInstitutionName); ?></li>
 			</ul>
 		</td>
 		<td width="182" valign="top">
