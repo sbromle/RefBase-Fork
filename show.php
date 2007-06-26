@@ -19,6 +19,7 @@
 	// This script serves as a routing page which takes e.g. any record serial number, date, year, author, contribution ID or thesis that was passed
 	// as parameter to the script, builds an appropriate SQL query and passes that to 'search.php' which will then display the corresponding
 	// record(s). This allows to provide short URLs (like: '.../show.php?record=12345') for email announcements or to generate publication lists.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -94,6 +95,11 @@
 		$rowOffset = ($_REQUEST['startRecord']) - 1; // first row number in a MySQL result set is 0 (not 1)
 	else
 		$rowOffset = ""; // if no value to the 'startRecord' parameter is given, we'll output records starting with the first record in the result set
+
+	if (isset($_REQUEST['wrapResults']) AND ($_REQUEST['wrapResults'] == "0"))
+		$wrapResults = $_REQUEST['wrapResults']; // for citation output, 'wrapResults=0' causes refbase to output only a partial document structure containing solely the search results (e.g. for HTML, everything is omitted except for the <table> block containing the search results)
+	else
+		$wrapResults = "1"; // we'll output a full document (HTML, RTF, LaTeX, etc) structure unless the 'wrapResults' parameter is set explicitly to "0"
 
 	if (isset($_REQUEST['citeStyle']) AND !empty($_REQUEST['citeStyle'])) // NOTE: while this parameter is normally called 'citeStyleSelector' (e.g. in 'search.php') we call it just 'citeStyle' here in an attempt to ease legibility of 'show.php' URLs
 		$citeStyle = $_REQUEST['citeStyle']; // get cite style
@@ -226,7 +232,7 @@
 	else
 		$author = "";
 
-	if (isset($_REQUEST['without'])) // if given only 'dups' is recognized as value
+	if (isset($_REQUEST['without']) AND eregi("^dups$", $_REQUEST['without'])) // if given only 'dups' is currently recognized as value
 		$without = $_REQUEST['without']; // check whether duplicate records should be excluded ("without=dups" -> exclude duplicate records)
 	else
 		$without = "";
@@ -388,7 +394,7 @@
 
 		// DISPLAY header:
 		// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
-		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["Show"] . " " . $loc["Record"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
+		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["ShowRecord"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
 		showPageHeader($HeaderString, "");
 
 		// Define variables holding drop-down elements, i.e. build properly formatted <option> tag elements:
@@ -424,7 +430,7 @@
 <input type="hidden" name="userID" value="<?php echo $loginUserID; // '$loginUserID' is made available globally by the 'start_session()' function ?>">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds a form that offers to show a record by its serial number, call number or cite key">
 <tr>
-	<td width="58" valign="top"><b><?php echo $loc["Show"] . " " . $loc["Record"]; ?>:</b></td>
+	<td width="58" valign="top"><b><?php echo $loc["ShowRecord"]; ?>:</b></td>
 	<td width="10">&nbsp;</td>
 	<td width="<?php echo $recordIDCellWidth; ?>">
 		<select name="recordIDSelector"><?php echo $dropDownItems2; ?>
@@ -544,20 +550,11 @@
 			// first, check if the user is allowed to display any record details:
 			if ($displayType == "Display" AND isset($_SESSION['user_permissions']) AND !ereg("allow_details_view", $_SESSION['user_permissions'])) // no, the 'user_permissions' session variable does NOT contain 'allow_details_view'...
 			{
-				if (eregi("^cli", $client)) 
-				{
-					echo $loc["NoPermission"] . $loc["NoPermission_ForDisplayDetails"]."!\n\n";
-				}
-				else
-				{
-					// save an appropriate error message:
-					$HeaderString = "<b><span class=\"warning\">". $loc["NoPermission"] . $loc["NoPermission_ForDisplayDetails"]."!</span></b>";
+				// return an appropriate error message:
+				$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForDisplayDetails"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-					// Write back session variables:
-					saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-
+				if (!eregi("^cli", $client))
 					header("Location: show.php"); // redirect back to 'show.php'
-				}
 
 				exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 			}
@@ -697,7 +694,7 @@
 		{
 			$query .= connectConditionals();
 
-			if ($without == "dups")
+			if (eregi("^dups$", $without))
 				$query .= " (orig_record IS NULL OR orig_record < 0)";
 		}
 
@@ -899,7 +896,7 @@
 
 		// Build the correct query URL:
 		// (we skip unnecessary parameters here since 'search.php' will use it's default values for them)
-		$queryURL = "sqlQuery=" . rawurlencode($query) . "&client=" . $client ."&formType=sqlSearch&submit=" . $displayType . "&viewType=" . $viewType . "&showQuery=" . $showQuery . "&showLinks=" . $showLinks . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . "&citeOrder=" . $citeOrder . "&citeStyleSelector=" . rawurlencode($citeStyle) . "&exportFormatSelector=" . rawurlencode($exportFormat) . "&exportType=" . $exportType . "&citeType=" . $citeType . "&headerMsg=" . rawurlencode($headerMsg);
+		$queryURL = "sqlQuery=" . rawurlencode($query) . "&client=" . $client ."&formType=sqlSearch&submit=" . $displayType . "&viewType=" . $viewType . "&showQuery=" . $showQuery . "&showLinks=" . $showLinks . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . "&wrapResults=" . $wrapResults . "&citeOrder=" . $citeOrder . "&citeStyleSelector=" . rawurlencode($citeStyle) . "&exportFormatSelector=" . rawurlencode($exportFormat) . "&exportType=" . $exportType . "&citeType=" . $citeType . "&headerMsg=" . rawurlencode($headerMsg);
 
 		// call 'search.php' with the correct query URL in order to display record details:
 		header("Location: search.php?$queryURL");
