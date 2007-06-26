@@ -34,6 +34,12 @@
 
 	// --------------------------------------------------------------------
 
+	// Initialize preferred display language:
+	// (note that 'locales.inc.php' has to be included *after* the call to the 'start_session()' function)
+	include 'includes/locales.inc.php'; // include the locales
+
+	// --------------------------------------------------------------------
+
 	// Get the referring page (or set a default one if no referrer is available):
 	if (!empty($_SERVER['HTTP_REFERER'])) // if the referrer variable isn't empty
 		$referer = $_SERVER['HTTP_REFERER']; // on error, redirect to calling page
@@ -51,11 +57,8 @@
 	// now, check if the (logged in) user is allowed to import any record into the database:
 	if (isset($_SESSION['user_permissions']) AND !ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_import' or 'allow_batch_import'...
 	{
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">You have no permission to import any records!</span></b>";
-
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForImport"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 		header("Location: index.php"); // redirect back to main page ('index.php')
 
@@ -148,12 +151,9 @@
 	// check if the current user has batch import permission:
 	if (($recordsCount > 1) AND isset($_SESSION['user_permissions']) AND !ereg("allow_batch_import", $_SESSION['user_permissions'])) // if we're supposed to import several records BUT the 'user_permissions' session variable does NOT contain 'allow_batch_import'...
 	{
-		// save an appropriate error message:
+		// return an appropriate error message:
 		// (note that this error message will overwrite any '$headerMessage' that gets specified below)
-		$HeaderString = "<b><span class=\"warning\">You have no permission to import many records at once!</span></b> Only the first record was imported:";
-
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForBatchImport"] . "!", "warning", "strong", "HeaderString", "", " " . $loc["Warning_OnlyFirstRecordImported"]) . ":"; // function 'returnMsg()' is defined in 'include.inc.php'
 
 		array_splice($parsedRecordsArray, 1); // remove all but the first record from the array of records that shall be imported
 	}
@@ -187,20 +187,17 @@
 		$importedRecordsCount = count($importedRecordsArray);
 
 		if ($importedRecordsCount == 1)
-			$headerMessage = $importedRecordsCount . " record has been successfully imported:";
+			$headerMessage = $importedRecordsCount . " " . $loc["RecordSuccessfullyImported"] . ":";
 		else // $importedRecordsCount > 1
-			$headerMessage = $importedRecordsCount . " records have been successfully imported:";
+			$headerMessage = $importedRecordsCount . " " . $loc["RecordsSuccessfullyImported"] . ":";
 
 		// display all newly added records:
 		header("Location: show.php?serial=" . rawurlencode($recordSerialsQueryString) . "&headerMsg=" . rawurlencode($headerMessage));
 	}
 	else // nothing imported
 	{
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">No records imported!</span></b>";
-
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["NoRecordsImported"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 		
 		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
 			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
