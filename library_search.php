@@ -19,6 +19,7 @@
 	// Search form providing the main fields.
 	// Searches will be restricted to records belonging
 	// to the IPOE <http://www.uni-kiel.de/ipoe/> library.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
