@@ -380,14 +380,20 @@
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'types': updated 'Map' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.8) Add the french language option to table 'languages'
+		// (2.8) Add new language options to table 'languages'
 		$values = "(NULL, 'fr', 'true', '3')";
-		$resultArray["Table 'languages': inserted french language option"] = insertIfNotExists(array("language_name" => "fr"), $tableLanguages, $values);
+		$resultArray["Table 'languages': inserted French language option"] = insertIfNotExists(array("language_name" => "fr"), $tableLanguages, $values);
 
-		// (2.9) Enable german localization
+		$values = "(NULL, 'es', 'false', '4')";
+		$resultArray["Table 'languages': inserted Spanish language option"] = insertIfNotExists(array("language_name" => "es"), $tableLanguages, $values);
+
+		$values = "(NULL, 'cn', 'true', '5')";
+		$resultArray["Table 'languages': inserted Chinese language option"] = insertIfNotExists(array("language_name" => "cn"), $tableLanguages, $values);
+
+		// (2.9) Enable disabled localizations
 		$query = "UPDATE " . $tableLanguages . " SET language_enabled = 'true' WHERE language_name = 'de'";
 		$result = queryMySQLDatabase($query, "");
-		$resultArray["Table 'languages': enabled german language option. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+		$resultArray["Table 'languages': enabled German language option. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
 		// (2.10) Alter table specification for table 'formats'
 		$query = "ALTER table " . $tableFormats . " MODIFY format_type enum('export','import','cite') NOT NULL default 'export'";

@@ -208,7 +208,9 @@ CREATE TABLE `languages` (
 
 INSERT INTO `languages` VALUES (1, 'en', 'true', '1'), 
 (2, 'de', 'true', '2'), 
-(3, 'fr', 'true', '3');
+(3, 'fr', 'true', '3'),
+(4, 'es', 'false', '4'),
+(5, 'cn', 'true', '5');
 
 # --------------------------------------------------------
 
