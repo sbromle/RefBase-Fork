@@ -21,7 +21,7 @@
 				<style type="text/css">TD {vertical-align:top}</style>
 			</head>
 			<body>
-				<p><h2>Found records: <xsl:value-of select="srw:numberOfRecords"/></h2></p>
+				<h2>Found records: <xsl:value-of select="srw:numberOfRecords"/></h2>
 				<xsl:apply-templates select="srw:records"/>
 			</body>
 		</html>
@@ -35,7 +35,7 @@
 
 	<xsl:template match="srw:record">
 		<hr/>
-		<p><h3>Record number: <xsl:value-of select="srw:recordPosition"/></h3></p>
+		<h3>Record number: <xsl:value-of select="srw:recordPosition"/></h3>
 		<table>
 			<xsl:apply-templates select="srw:recordData/mods:mods"/>
 		</table>
