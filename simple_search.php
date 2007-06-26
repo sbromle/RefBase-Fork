@@ -47,7 +47,7 @@
 
 	// If there's no stored message available:
 	if (!isset($_SESSION['HeaderString']))
-		$HeaderString = $loc["Search"]." ".$loc["SearchMain"].":"; // Provide the default message
+		$HeaderString = $loc["SearchMain"].":"; // Provide the default message
 	else
 	{
 		$HeaderString = $_SESSION['HeaderString']; // extract 'HeaderString' session variable (only necessary if register globals is OFF!)
@@ -68,7 +68,7 @@
 
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
-	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["Simple"] . " " . $loc["Search"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
+	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["SimpleSearch"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
 	showPageHeader($HeaderString, "");
 
 	// Define variables holding common drop-down elements, i.e. build properly formatted <option> tag elements:
@@ -242,7 +242,7 @@
 	<td valign="top"><b><?php echo $loc["DisplayOptions"]; ?>:</b></td>
 	<td>&nbsp;</td>
 	<td valign="middle"><input type="checkbox" name="showLinks" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowLinks"]; ?></td>
-	<td valign="middle"><?php echo $loc["Show"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $defaultNumberOfRecords; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["records"]." ".$loc["per page"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
+	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $defaultNumberOfRecords; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>

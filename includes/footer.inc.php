@@ -57,9 +57,9 @@
 	<td class="small" align="center">
 		<a href="show.php?records=all" title="<?php echo $loc["LinkTitle_ShowAll"]; ?>"><?php echo $loc["ShowAll"]; ?></a>
 		&nbsp;|&nbsp;
-		<a href="simple_search.php" title="<?php echo $loc["LinkTitle_SimpleSearch"]; ?>"><?php echo $loc["Simple"]; ?> <?php echo $loc["Search"]; ?></a>
+		<a href="simple_search.php" title="<?php echo $loc["LinkTitle_SimpleSearch"]; ?>"><?php echo $loc["SimpleSearch"]; ?></a>
 		&nbsp;|&nbsp;
-		<a href="advanced_search.php" title="<?php echo $loc["LinkTitle_AdvancedSearch"]; ?>"><?php echo $loc["Advanced"]; ?> <?php echo $loc["Search"]; ?></a>
+		<a href="advanced_search.php" title="<?php echo $loc["LinkTitle_AdvancedSearch"]; ?>"><?php echo $loc["AdvancedSearch"]; ?></a>
 		&nbsp;|&nbsp;<?php
 
 		// -------------------------------------------------------
@@ -68,14 +68,14 @@
 		// ... include a link to 'sql_search.php':
 ?>
 
-		<a href="sql_search.php" title="<?php echo $loc["LinkTitle_SQLSearch"]; ?>">SQL <?php echo $loc["Search"]; ?></a>
+		<a href="sql_search.php" title="<?php echo $loc["LinkTitle_SQLSearch"]; ?>"><?php echo $loc["SQLSearch"]; ?></a>
 		&nbsp;|&nbsp;<?php
 		}
 
 		// -------------------------------------------------------
 ?>
 
-		<a href="library_search.php" title="<?php echo $loc["LinkTitle_LibrarySearch"]; ?> <?php echo encodeHTML($hostInstitutionName); ?>"><?php echo $loc["Library"]; ?> <?php echo $loc["Search"]; ?></a>
+		<a href="library_search.php" title="<?php echo $loc["LinkTitle_LibrarySearch_Prefix"] . encodeHTML($hostInstitutionName) . $loc["LinkTitle_LibrarySearch_Suffix"]; ?>"><?php echo $loc["LibrarySearch"]; ?></a>
 	</td>
 	<td class="small" align="right" width="105"><?php echo date('D, j M Y'); ?></td>
 </tr>
@@ -115,7 +115,7 @@
 		// ... include a link to 'show.php':
 ?>
 
-		<a href="show.php" title="<?php echo $loc["LinkTitle_ShowRecord"]; ?>"><?php echo $loc["Show"]; ?> <?php echo $loc["Record"]; ?></a>
+		<a href="show.php" title="<?php echo $loc["LinkTitle_ShowRecord"]; ?>"><?php echo $loc["ShowRecord"]; ?></a>
 		&nbsp;|&nbsp;<?php
 		}
 

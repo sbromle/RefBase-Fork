@@ -44,7 +44,7 @@
 
 	// If there's no stored message available:
 	if (!isset($_SESSION['HeaderString']))
-		$HeaderString = $loc["Search"]." ".$loc["SearchSQL"].":"; // Provide the default message
+		$HeaderString = $loc["SearchSQL"].":"; // Provide the default message
 	else
 	{
 		$HeaderString = $_SESSION['HeaderString']; // extract 'HeaderString' session variable (only necessary if register globals is OFF!)
@@ -121,7 +121,7 @@
 
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
-	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- SQL ".$loc["Search"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
+	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["SQLSearch"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
 	showPageHeader($HeaderString, $oldQuery);
 
 	// (2b) Start <form> and <table> holding the form elements:
@@ -149,7 +149,7 @@
 
 	</td>
 	<td valign="top">
-		<?php echo $loc["Show"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["records"]." ".$loc["per page"]; ?>
+		<?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>
 
 	</td>
 </tr>
@@ -157,7 +157,7 @@
 	<td>&nbsp;</td>
 	<td>&nbsp;</td>
 	<td valign="top">
-		<input type="checkbox" name="showQuery" value="1"<?php echo $checkQuery; ?>>&nbsp;&nbsp;&nbsp;<?php echo $loc["Display"]." ".$loc["SQLquery"]; ?>
+		<input type="checkbox" name="showQuery" value="1"<?php echo $checkQuery; ?>>&nbsp;&nbsp;&nbsp;<?php echo $loc["DisplaySQLquery"]; ?>
 
 	</td>
 	<td valign="top">
