@@ -19,6 +19,7 @@
 	// This php script will perform adding, editing & deleting of records.
 	// It then calls 'receipt.php' which displays links to the modified/added record
 	// as well as to the previous search results page (if any).
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -52,11 +53,9 @@
 	if (isset($_GET['proc']) AND empty($_POST))
 	{
 		$maxPostDataSize = ini_get("post_max_size");
-		$HeaderString = "<b><span class=\"warning\">Post data size must not be greater than " . $maxPostDataSize . "!</span></b>"; // inform the user that the maximum post data size was exceeded
+		// inform the user that the maximum post data size was exceeded:
+		$HeaderString = returnMsg($loc["Warning_PostDataSizeMustNotExceed"] . " " . $maxPostDataSize . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-		
 		header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to 'record.php'
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -80,12 +79,9 @@
 	// First of all, check if this script was called by something else than 'record.php':
 	if (!ereg(".+/record.php\?.+", $_SERVER['HTTP_REFERER']))
 	{
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">Invalid call to script 'modify.php'!</span></b>";
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-		
 		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
 			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
 		else
@@ -99,11 +95,8 @@
 		// the user is logged in BUT the page's login status still does NOT state "logged in" (since the page wasn't reloaded after the user logged IN elsewhere):
 		if ((isset($_SESSION['loginEmail'])) AND ($pageLoginStatus != "logged in"))
 		{
-			// save an appropriate error message:
-			$HeaderString = "<b><span class=\"warning\">You did login elsewhere leaving this page in an out-dated state!</span></b><br>Record data had to be reloaded omitting your changes. Please re-edit this record:";
-
-			// Write back session variables:
-			saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+			// return an appropriate error message:
+			$HeaderString = returnMsg($loc["Warning_PageStatusOutDated"] . "!", "warning", "strong", "HeaderString", "", "<br>" . $loc["Warning_RecordDataReloaded"] . ":"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to 'record.php'
 
@@ -113,11 +106,8 @@
 		// the user is NOT logged in BUT the page's login status still states that he's "logged in" (since the page wasn't reloaded after the user logged OUT elsewhere):
 		if ((!isset($_SESSION['loginEmail'])) AND ($pageLoginStatus == "logged in"))
 		{
-			// save an appropriate error message:
-			$HeaderString = "<b><span class=\"warning\">You're not logged in anymore!</span></b><br>This may be due to a time out, or, because you did logout elsewhere. Please login again:";
-
-			// Write back session variables:
-			saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+			// return an appropriate error message:
+			$HeaderString = returnMsg($loc["Warning_NotLoggedInAnymore"] . "!", "warning", "strong", "HeaderString", "", "<br>" . $loc["Warning_TimeOutPleaseLoginAgain"] . ":"); // function 'returnMsg()' is defined in 'include.inc.php'
 		}
 
 		// else if the user isn't logged in yet: ((!isset($_SESSION['loginEmail'])) AND ($pageLoginStatus != "logged in"))
@@ -156,8 +146,7 @@
 		if (isset($_SESSION['user_permissions']) AND !ereg("allow_edit", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_edit'...
 		{
 			$notPermitted = true;
-			// save an appropriate error message:
-			$HeaderString = "<b><span class=\"warning\">You have no permission to edit this record!</span></b>";
+			$HeaderString = $loc["NoPermission"] . $loc["NoPermission_ForEditRecord"] . "!";
 		}
 	}
 	elseif ($recordAction == "delet") // ...wants to delete the current record...
@@ -165,8 +154,7 @@
 		if (isset($_SESSION['user_permissions']) AND !ereg("allow_delete", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_delete'...
 		{
 			$notPermitted = true;
-			// save an appropriate error message:
-			$HeaderString = "<b><span class=\"warning\">You have no permission to delete this record!</span></b>";
+			$HeaderString = $loc["NoPermission"] . $loc["NoPermission_ForDeleteRecord"] . "!";
 		}
 	}
 	else // if ($recordAction == "add" OR $recordAction == "") // ...wants to add the current record...
@@ -174,15 +162,14 @@
 		if (isset($_SESSION['user_permissions']) AND !ereg("allow_add", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_add'...
 		{
 			$notPermitted = true;
-			// save an appropriate error message:
-			$HeaderString = "<b><span class=\"warning\">You have no permission to add any new records to the database!</span></b>";
+			$HeaderString = $loc["NoPermission"] . $loc["NoPermission_ForAddRecords"] . "!";
 		}
 	}
 
 	if ($notPermitted)
 	{
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		// return an appropriate error message:
+		$HeaderString = returnMsg($HeaderString, "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 		header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to 'record.php'
 

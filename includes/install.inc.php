@@ -55,6 +55,7 @@
 	// --------------------------------------------------------------------
 
 	// Connect to the MySQL database with admin permissions:
+	// TODO: I18n
 	function connectToMySQLDatabaseAsAdmin($adminUserName, $adminPassword)
 	{
 		global $hostName; // these variables are specified in 'db.inc.php'
@@ -187,7 +188,7 @@
 	function fieldError($fieldName, $errors)
 	{
 		if (isset($errors[$fieldName]))
-			echo "\n\t\t\t<b><span class=\"warning\">" . $errors[$fieldName] . "</span></b>\n\t\t\t<br>";
+			echo returnMsg($errors[$fieldName], "warning", "strong", "", "\n\t\t\t", "\n\t\t\t<br>"); // function 'returnMsg()' is defined in 'include.inc.php'
 	}
 
 	// --------------------------------------------------------------------

@@ -19,6 +19,7 @@
 	// This script validates user data entered into the form that is provided by 'user_details.php'.
 	// If validation succeeds, it INSERTs or UPDATEs a user and redirects to a receipt page;
 	// if it fails, it creates error messages and these are later displayed by 'user_details.php'.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -31,6 +32,14 @@
 	// START A SESSION:
 	// call the 'start_session()' function (from 'include.inc.php') which will also read out available session variables:
 	start_session(true);
+
+	// --------------------------------------------------------------------
+
+	// Initialize preferred display language:
+	// (note that 'locales.inc.php' has to be included *after* the call to the 'start_session()' function)
+	include 'includes/locales.inc.php'; // include the locales
+
+	// --------------------------------------------------------------------
 
 	// Clear any errors that might have been found previously:
 	$errors = array();
@@ -45,12 +54,9 @@
 	// First of all, check if this script was called by something else than 'user_details.php':
 	if (!ereg(".+/user_details.php", $_SERVER['HTTP_REFERER']))
 	{
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">Invalid call to script 'user_validation.php'!</span></b>";
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-		
 		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
 			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
 		else

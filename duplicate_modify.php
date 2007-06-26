@@ -19,6 +19,7 @@
 	// This php script will flag records as original and duplicate records.
 	// It then displays the affected records using 'search.php' so that the user
 	// can verify the changes.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -31,6 +32,14 @@
 	// START A SESSION:
 	// call the 'start_session()' function (from 'include.inc.php') which will also read out available session variables:
 	start_session(true);
+
+	// --------------------------------------------------------------------
+
+	// Initialize preferred display language:
+	// (note that 'locales.inc.php' has to be included *after* the call to the 'start_session()' function)
+	include 'includes/locales.inc.php'; // include the locales
+
+	// --------------------------------------------------------------------
 
 	// Clear any errors that might have been found previously:
 	$errors = array();
@@ -50,11 +59,8 @@
 	// First of all, check if this script was called by something else than 'duplicate_manager.php':
 	if (!ereg(".+/duplicate_manager.php", $_SERVER['HTTP_REFERER']))
 	{
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">Invalid call to script 'duplicate_modify.php'!</span></b>";
-
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 		
 		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
 			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
@@ -162,12 +168,11 @@
 		// we'll file this additional error element here so that the 'errors' session variable isn't empty causing 'duplicate_manager.php' to re-load the form data that were submitted by the user
 		$errors["ignoredRecords"] = "all";
 
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">Nothing was changed by your query!</span></b>";
+		// return an appropriate error message:
+		$HeaderString = returnMsg("Nothing was changed by your query!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-		saveSessionVariable("errors", $errors);
+		saveSessionVariable("errors", $errors); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 		saveSessionVariable("formVars", $formVars);
 		
 		// Relocate back to the 'Flag Duplicates' form (script 'duplicate_manager.php'):
@@ -177,10 +182,7 @@
 	}
 
 	// Build correct header message:
-	$HeaderString = "The records below have been successfully flagged as original/duplicate records:";
-
-	// Write back session variables:
-	saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+	$HeaderString = returnMsg("The records below have been successfully flagged as original/duplicate records:", "", "", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 
 	// Merge all given record serial numbers:

@@ -34,6 +34,12 @@
 
 	// --------------------------------------------------------------------
 
+	// Initialize preferred display language:
+	// (note that 'locales.inc.php' has to be included *after* the call to the 'start_session()' function)
+	include 'includes/locales.inc.php'; // include the locales
+
+	// --------------------------------------------------------------------
+
 	// Extract any parameters passed to the script:
 	if (isset($_REQUEST['where']))
 		$queryWhereClause = $_REQUEST['where']; // get the WHERE clause that was passed within the link
@@ -64,11 +70,8 @@
 
 	if (empty($queryWhereClause)) // if 'rss.php' was called without the 'where' parameter:
 	{
-		// save an error message:
-		$HeaderString = "<b><span class=\"warning\">Incorrect or missing parameters to script 'rss.php'!</span></b>";
-
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["Warning_IncorrectOrMissingParams"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 
 		// Redirect the browser back to the main page:
 		header("Location: index.php"); // Note: if 'header("Location: " . $_SERVER['HTTP_REFERER'])' is used, the error message won't get displayed! ?:-/

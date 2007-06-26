@@ -19,6 +19,7 @@
 	// This php script will display a feedback page after any action of
 	// adding/editing/deleting a record. It will display links to the
 	// modified/added record as well as to the previous search results page (if any)
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -47,11 +48,8 @@
 	//        - if a user clicks on Login/Logout while viewing a 'receipt.php' page she should get directed back to this receipt page (which is why 'receipt.php' must be also among the recognized referrers)
 	if (!preg_match("/.*(record|receipt)\.php.*/", $_SERVER['HTTP_REFERER']))
 	{
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">Invalid call to script 'receipt.php'!</span></b>";
-
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 		
 		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
 			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page

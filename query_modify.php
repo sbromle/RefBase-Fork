@@ -19,6 +19,7 @@
 	// This php script will perform adding, editing & deleting of user queries.
 	// It then relocates back to the main page ('index.php') so that the user
 	// can verify the changes.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -31,6 +32,14 @@
 	// START A SESSION:
 	// call the 'start_session()' function (from 'include.inc.php') which will also read out available session variables:
 	start_session(true);
+
+	// --------------------------------------------------------------------
+
+	// Initialize preferred display language:
+	// (note that 'locales.inc.php' has to be included *after* the call to the 'start_session()' function)
+	include 'includes/locales.inc.php'; // include the locales
+
+	// --------------------------------------------------------------------
 
 	// Clear any errors that might have been found previously:
 	$errors = array();
@@ -50,11 +59,8 @@
 	// First of all, check if this script was called by something else than 'query_manager.php':
 	if (!ereg(".+/query_manager.php", $_SERVER['HTTP_REFERER']))
 	{
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">Invalid call to script 'query_modify.php'!</span></b>";
-
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 		
 		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
 			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
@@ -273,12 +279,12 @@
 
 		if ($affectedRows == 0) // no rows were affected by the update, i.e., the query must have been deleted in the meantime!
 		{
-			// save an appropriate error message:
-			$HeaderString = "<b><span class=\"warning\">The specified query does not exist anymore!</span></b>";
-	
-			// Write back session variables:
-			saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-			
+			// return an appropriate error message:
+			$HeaderString = returnMsg($loc["Warning_SavedQueryDoesNotExistAnymore"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
+
+			// update the 'userQueries' session variable:
+			getUserQueries($loginUserID); // function 'getUserQueries()' is defined in 'include.inc.php'
+
 			header("Location: index.php"); // redirect to main page ('index.php')
 	
 			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -293,10 +299,14 @@
 	getUserQueries($loginUserID); // function 'getUserQueries()' is defined in 'include.inc.php'
 
 	// Build correct header message:
-	$HeaderString = "The query no. " . $queryID . " has been successfully " . $queryAction . "ed.";
+	if ($queryAction == "add")
+		$HeaderString = $loc["SavedQueryAdded"]; // before I18n, we did use: "The query no. " . $queryID . " has been successfully " . $queryAction . "ed."
+	elseif ($queryAction == "edit")
+		$HeaderString = $loc["SavedQueryEdited"];
+	elseif ($queryAction == "delet")
+		$HeaderString = $loc["SavedQueryDeleted"];
 
-	// Write back session variables:
-	saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+	$HeaderString = returnMsg($HeaderString, "", "", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 
 	// (4) Call 'index.php' which will display the header message

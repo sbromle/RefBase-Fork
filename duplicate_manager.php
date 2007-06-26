@@ -19,6 +19,7 @@
 	// This script enables you to manually manage duplicate records by entering their database serial numbers
 	// into the provided form. The form lets you flag (i.e. identify) an "original" record and its related
 	// duplicate entries. The script will then update the 'orig_record' field in table 'refs' accordingly.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -69,15 +70,14 @@
 	// In order to flag any records as duplicates, a user must be logged in AND must be allowed to flag duplicates in the database:
 //	if (!(isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_flag_duplicates", $_SESSION['user_permissions'])))) // if a user isn't logged in OR if the 'user_permissions' session variable does NOT contain 'allow_flag_duplicates'...
 	{
-		// save an error message:
-		$HeaderString = "<b><span class=\"warning\">You have no permission to flag any records as duplicates!</span></b>";
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForFlagDups"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 		// save the URL of the currently displayed page:
 		$referer = $_SERVER['HTTP_REFERER'];
 
 		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-		saveSessionVariable("referer", $referer);
+		saveSessionVariable("referer", $referer); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 
 		header("Location: index.php");
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
