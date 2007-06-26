@@ -19,6 +19,7 @@
 	// This php script accepts input from 'import.php' and will process records exported from Endnote, Reference Manager (RIS), BibTeX, ISI Web of Science,
 	// Pubmed, CSA or Copac. In case of a single record, the script will call 'record.php' with all provided fields pre-filled. The user can then verify
 	// the data, add or modify any details as necessary and add the record to the database. Multiple records will be imported directly.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -33,6 +34,14 @@
 	// START A SESSION:
 	// call the 'start_session()' function (from 'include.inc.php') which will also read out available session variables:
 	start_session(true);
+
+	// --------------------------------------------------------------------
+
+	// Initialize preferred display language:
+	// (note that 'locales.inc.php' has to be included *after* the call to the 'start_session()' function)
+	include 'includes/locales.inc.php'; // include the locales
+
+	// --------------------------------------------------------------------
 
 	// Clear any errors that might have been found previously:
 	$errors = array();
@@ -78,13 +87,11 @@
 	// now, check if the (logged in) user is allowed to import any record into the database:
 	if (isset($_SESSION['user_permissions']) AND !ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_import' or 'allow_batch_import'...
 	{
-		// save an appropriate error message:
-		$HeaderString = "<b><span class=\"warning\">You have no permission to import any records!</span></b>";
+		// return an appropriate error message:
+		$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForImport"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-
-		header("Location: index.php"); // redirect back to main page ('index.php')
+		if (!eregi("^cli", $client))
+			header("Location: index.php"); // redirect back to main page ('index.php')
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
@@ -447,7 +454,16 @@
 		{
 			// ...otherwise we'll present the error message(s):
 
-			if (eregi("^cli", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
+			if (eregi("^be", $client)) // if the query originated from a Bookends upload request ("be-bookends_import-1.0")
+			{
+				// Include errors in redirection request:
+				$redirectURL = $referer . "?";
+				foreach ($errors as $varname => $value)
+					$redirectURL .= "&" . $varname . "=" . rawurlencode($value);
+
+				header("Location: " . $redirectURL);
+			}
+			elseif (eregi("^cli", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
 			{
 				echo "There were validation errors regarding the data you submitted:\n\n";
 
@@ -551,9 +567,9 @@
 		}
 
 		if ($importedRecordsCount == 1)
-			$headerMessage = $importedRecordsCount . " record has been successfully imported:";
+			$headerMessage = $importedRecordsCount . " " . $loc["RecordSuccessfullyImported"] . ":";
 		else // $importedRecordsCount > 1
-			$headerMessage = $importedRecordsCount . " records have been successfully imported:";
+			$headerMessage = $importedRecordsCount . " " . $loc["RecordsSuccessfullyImported"] . ":";
 
 		// DISPLAY all newly added records:
 		header("Location: show.php?records=" . $recordSerialsQueryString . "&headerMsg=" . rawurlencode($headerMessage) . "&client=" . $client);
@@ -569,12 +585,11 @@
 			// we'll file again this additional error element here so that the 'errors' session variable isn't empty causing 'import.php' to re-load the form data that were submitted by the user
 			$errors["badRecords"] = "all";
 
-			// save an appropriate error message:
-			$HeaderString = "<b><span class=\"warning\">No records imported!</span></b>";
+			// return an appropriate error message:
+			$HeaderString = returnMsg($loc["NoRecordsImported"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 			// Write back session variables:
-			saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-			saveSessionVariable("errors", $errors);
+			saveSessionVariable("errors", $errors); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 			saveSessionVariable("formVars", $formVars);
 
 			header("Location: " . $referer); // redirect to the calling page (normally, 'import.php')
