@@ -145,6 +145,7 @@
 	// --------------------------------------------------------------------
 
 	// Connect to the MySQL database:
+	// TODO: I18n
 	function connectToMySQLDatabase($oldQuery)
 	{
 		global $hostName; // these variables are specified in 'db.inc.php'
@@ -186,6 +187,7 @@
 	// --------------------------------------------------------------------
 
 	// Query the MySQL database:
+	// TODO: I18n
 	function queryMySQLDatabase($query, $oldQuery)
 	{
 		global $connection;
@@ -208,6 +210,7 @@
 	// --------------------------------------------------------------------
 
 	// Disconnect from the MySQL database:
+	// TODO: I18n
 	function disconnectFromMySQLDatabase($oldQuery)
 	{
 		global $connection;
@@ -314,6 +317,7 @@
 	// --------------------------------------------------------------------
 
 	// Show error (prepares error output and redirects it to 'error.php' which displays the error message):
+	// TODO: I18n
 	function showErrorMsg($headerMsg, $oldQuery)
 	{
 		global $client;
@@ -333,7 +337,50 @@
 
 	// --------------------------------------------------------------------
 
+	// Generate and return a message, and optionally save the message to a session variable:
+	// Following optional variables can be passed with the '$message' and will be used for non-CLI clients:
+	// - '$class' defines the name of the CSS class of the span element that encloses the message
+	// - '$flavour' is the (valid!) name of an HTML phrase element (such as "strong" or "em") that's wrapped around the message
+	// - '$sessionVariable' is the name of the session variable (such as "HeaderString") to which the message shall be saved
+	// - '$prefix' is a string that's added at the beginning of the generated message string
+	// - '$suffix' is a string that's appended at the end of the generated message string
+	function returnMsg($message, $class = "", $flavour = "", $sessionVariable = "", $prefix = "", $suffix = "")
+	{
+		global $client;
+
+		if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
+		{
+			$fullMsg = $message . "\n\n"; // for CLI clients, we just echo the message text
+			echo $fullMsg;
+		}
+		else // return an HTML-formatted message:
+		{
+			$fullMsg = $prefix;
+
+			if (!empty($flavour))
+				$fullMsg .= '<' . $flavour . '>';
+
+			if (!empty($class))
+				$fullMsg .= '<span class="' . $class . '">' . $message . '</span>';
+			else
+				$fullMsg .= $message;
+
+			if (!empty($flavour))
+				$fullMsg .= '</' . $flavour . '>';
+
+			$fullMsg .= $suffix;
+
+			if (!empty($sessionVariable))
+				saveSessionVariable($sessionVariable, $fullMsg); // write message to session variable
+		}
+
+		return $fullMsg;
+	}
+
+	// --------------------------------------------------------------------
+
 	// Show whether the user is logged in or not:
+	// TODO: I18n
 	function showLogin()
 	{
 		global $loginEmail;
@@ -426,7 +473,7 @@
 					$loginLinks .= "<a href=\"search.php?formType=myRefsSearch&amp;showQuery=0&amp;showLinks=1&amp;myRefsRadio=1\" title=\"display all of your records\">My Refs</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
 
 					if (isset($_SESSION['user_permissions']) AND ereg("allow_modify_options", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_modify_options'...
-					// ... include a link to 'user_receipt.php':
+						// ... include a link to 'user_receipt.php':
 						$loginLinks .= "<a href=\"user_receipt.php?userID=" . $loginUserID . "\" title=\"view and modify your account details and options\">Options</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
 				}
 				$loginLinks .= "<a href=\"user_logout.php?referer=" . rawurlencode($referer) . "\" title=\"logout from the database\">Logout</a>";
@@ -916,6 +963,7 @@
 
 	// BUILD FIELD NAME LINKS
 	// (i.e., build clickable column headers for each available column)
+	// TODO: I18n
 	function buildFieldNameLinks($href, $query, $oldQuery, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, $formType, $submitType, $linkName, $orig_fieldname, $viewType)
 	{
 		global $loc; // '$loc' is made globally available in 'core.php'
@@ -1101,9 +1149,12 @@
 
 	//	BUILD BROWSE LINKS
 	// (i.e., build a TABLE row with links for "previous" & "next" browsing, as well as links to intermediate pages)
+	// TODO: I18n
 	function buildBrowseLinks($href, $query, $oldQuery, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $maxPageNo, $formType, $displayType, $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType)
 	{
 		global $loc; // '$loc' is made globally available in 'core.php'
+
+		global $client;
 
 		// First, calculate the offset page number:
 		$pageOffset = ($rowOffset / $showRows);
@@ -1162,6 +1213,7 @@
 					. "&amp;formType=$formType"
 					. "&amp;showRows=$showRows"
 					. "&amp;rowOffset=" . (($pageOffset - $maxPageNo) * $showRows)
+					. "&amp;client=" . rawurlencode($client)
 					. "&amp;oldQuery=" . rawurlencode($oldQuery)
 					. "&amp;viewType=$viewType"
 					. "\" title=\"display results page " . $previousRangeFirstPage . " and links to pages " . $previousRangeFirstPage . "&#8211;" . $previousRangeLastPage . "\">[" . $previousRangeFirstPage . "&#8211;" . $previousRangeLastPage . "] </a>";
@@ -1182,6 +1234,7 @@
 				. "&amp;formType=$formType"
 				. "&amp;showRows=$showRows"
 				. "&amp;rowOffset=$previousOffset"
+				. "&amp;client=" . rawurlencode($client)
 				. "&amp;oldQuery=" . rawurlencode($oldQuery)
 				. "&amp;viewType=$viewType"
 				. "\" title=\"display previous results page\">&lt;&lt;</a>";
@@ -1210,6 +1263,7 @@
 						. "&amp;formType=$formType"
 						. "&amp;showRows=$showRows"
 						. "&amp;rowOffset=$x"
+						. "&amp;client=" . rawurlencode($client)
 						. "&amp;oldQuery=" . rawurlencode($oldQuery)
 						. "&amp;viewType=$viewType"
 						. "\" title=\"display results page $page\">$page</a>";
@@ -1234,6 +1288,7 @@
 				. "&amp;formType=$formType"
 				. "&amp;showRows=$showRows"
 				. "&amp;rowOffset=$nextOffset"
+				. "&amp;client=" . rawurlencode($client)
 				. "&amp;oldQuery=" . rawurlencode($oldQuery)
 				. "&amp;viewType=$viewType"
 				. "\" title=\"display next results page\">&gt;&gt;</a>";
@@ -1263,6 +1318,7 @@
 					. "&amp;formType=$formType"
 					. "&amp;showRows=$showRows"
 					. "&amp;rowOffset=" . (($pageOffset + $maxPageNo) * $showRows)
+					. "&amp;client=" . rawurlencode($client)
 					. "&amp;oldQuery=" . rawurlencode($oldQuery)
 					. "&amp;viewType=$viewType"
 					. "\" title=\"display results page " . $nextRangeFirstPage . " and links to pages " . $nextRangeFirstPage . "&#8211;" . $nextRangeLastPage . "\"> [" . $nextRangeFirstPage . "&#8211;" . $nextRangeLastPage . "]</a>";
@@ -1272,27 +1328,11 @@
 
 		$BrowseLinks .= "\n\t<td align=\"right\" valign=\"bottom\" width=\"187\">";
 
-		if ($viewType == "Print")
-			// f) create a 'Web View' link that will show the currently displayed result set in web view:
-			$BrowseLinks .= "\n\t\t<a href=\"" . $href
-				. "?sqlQuery=" . rawurlencode($query)
-				. "&amp;submit=$displayType"
-				. "&amp;citeStyleSelector=" . rawurlencode($citeStyle)
-				. "&amp;citeOrder=$citeOrder"
-				. "&amp;orderBy=" . rawurlencode($orderBy)
-				. "&amp;headerMsg=" . rawurlencode($headerMsg)
-				. "&amp;showQuery=$showQuery"
-				. "&amp;showLinks=1"
-				. "&amp;formType=$formType"
-				. "&amp;showRows=$showRows"
-				. "&amp;rowOffset=$rowOffset"
-				. "&amp;oldQuery=" . rawurlencode($oldQuery)
-				. "&amp;viewType=Web"
-				. "\"><img src=\"img/web.gif\" alt=\"web\" title=\"back to web view\" width=\"16\" height=\"16\" hspace=\"0\" border=\"0\"></a>";
-		else
+		// Note: we omit 'Web/Print View' links for include mechanisms!
+		if (!eregi("^inc", $client))
 		{
-			if (isset($_SESSION['user_permissions']) AND ereg("allow_print_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_print_view'...
-				// f) create a 'Print View' link that will show the currently displayed result set in print view:
+			if ($viewType == "Print")
+				// f) create a 'Web View' link that will show the currently displayed result set in web view:
 				$BrowseLinks .= "\n\t\t<a href=\"" . $href
 					. "?sqlQuery=" . rawurlencode($query)
 					. "&amp;submit=$displayType"
@@ -1301,13 +1341,33 @@
 					. "&amp;orderBy=" . rawurlencode($orderBy)
 					. "&amp;headerMsg=" . rawurlencode($headerMsg)
 					. "&amp;showQuery=$showQuery"
-					. "&amp;showLinks=0"
+					. "&amp;showLinks=1"
 					. "&amp;formType=$formType"
 					. "&amp;showRows=$showRows"
 					. "&amp;rowOffset=$rowOffset"
 					. "&amp;oldQuery=" . rawurlencode($oldQuery)
-					. "&amp;viewType=Print"
-					. "\"><img src=\"img/print.gif\" alt=\"print\" title=\"display print view\" width=\"17\" height=\"18\" hspace=\"0\" border=\"0\"></a>";
+					. "&amp;viewType=Web"
+					. "\"><img src=\"img/web.gif\" alt=\"web\" title=\"back to web view\" width=\"16\" height=\"16\" hspace=\"0\" border=\"0\"></a>";
+			else
+			{
+				if (isset($_SESSION['user_permissions']) AND ereg("allow_print_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_print_view'...
+					// f) create a 'Print View' link that will show the currently displayed result set in print view:
+					$BrowseLinks .= "\n\t\t<a href=\"" . $href
+						. "?sqlQuery=" . rawurlencode($query)
+						. "&amp;submit=$displayType"
+						. "&amp;citeStyleSelector=" . rawurlencode($citeStyle)
+						. "&amp;citeOrder=$citeOrder"
+						. "&amp;orderBy=" . rawurlencode($orderBy)
+						. "&amp;headerMsg=" . rawurlencode($headerMsg)
+						. "&amp;showQuery=$showQuery"
+						. "&amp;showLinks=0"
+						. "&amp;formType=$formType"
+						. "&amp;showRows=$showRows"
+						. "&amp;rowOffset=$rowOffset"
+						. "&amp;oldQuery=" . rawurlencode($oldQuery)
+						. "&amp;viewType=Print"
+						. "\"><img src=\"img/print.gif\" alt=\"print\" title=\"display print view\" width=\"17\" height=\"18\" hspace=\"0\" border=\"0\"></a>";
+			}
 		}
 
 		$BrowseLinks .= "\n\t</td>"
@@ -1335,6 +1395,7 @@
 
 	//	BUILD REFINE SEARCH ELEMENTS
 	// (i.e., provide options to refine the search results)
+	// TODO: I18n
 	function buildRefineSearchElements($href, $queryURL, $showQuery, $showLinks, $showRows, $refineSearchSelectorElements1, $refineSearchSelectorElements2, $refineSearchSelectorElementSelected, $displayType)
 	{
 		// adjust button spacing according to the calling script (which is either 'search.php' or 'users.php')
@@ -1400,6 +1461,7 @@ EOF;
 	// Note: this function serves two purposes (which must not be confused!):
 	// 		 - if "$href = search.php", it will modify the values of the 'user_groups' field of the 'user_data' table (where a user can assign one or more groups to particular *references*)
 	//       - if "$href = users.php", this function will modify the values of the 'user_groups' field of the 'users' table (where the admin can assign one or more groups to particular *users*)
+	// TODO: I18n
 	function buildGroupSearchElements($href, $queryURL, $query, $showQuery, $showLinks, $showRows, $displayType)
 	{
 		if (preg_match("/.+user_groups RLIKE \"[()|^.;* ]+[^;]+?[()|$.;* ]+\"/i", $query)) // if the query does contain a 'WHERE' clause that searches for a particular user group
@@ -1493,6 +1555,7 @@ EOF;
 
 	//	BUILD DISPLAY OPTIONS FORM ELEMENTS
 	// (i.e., provide options to show/hide columns or change the number of records displayed per page)
+	// TODO: I18n
 	function buildDisplayOptionsElements($href, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $displayOptionsSelectorElements1, $displayOptionsSelectorElements2, $displayOptionsSelectorElementSelected, $fieldsToDisplay, $displayType)
 	{
 		if ($displayType == "Browse")
@@ -1903,7 +1966,7 @@ EOF;
 		if (!empty($singleAuthorArray[1]))
 			$singleAuthorsGivenName = $singleAuthorArray[1]; // extract this author's last name into a new variable
 		else
-			$singleAuthorsGivenName='';
+			$singleAuthorsGivenName = '';
 
 		return $singleAuthorsGivenName;
 	}
@@ -4025,6 +4088,8 @@ EOF;
 		global $fileVisibility; // defined in 'ini.inc.php'
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
+		global $loc; // '$loc' is made globally available in 'core.php'
+
 		// note that, if several errors occur, only the last error message will be displayed
 
 		// disallow display/querying of the 'file' field if NONE of the following conditions are met:
@@ -4038,11 +4103,13 @@ EOF;
 		}
 
 
-		// disallow display/querying of the 'location' field if the user is NOT logged in:
+		// disallow display/querying of the 'created_by', 'modified_by' and 'location' fields if the user is NOT logged in:
 		// (this is mostly done to shield user email addresses from exposure to search engines and/or email harvesting robots)
 		if (!isset($_SESSION['loginEmail']))
 		{
-			// remove 'location' field from SQL query:
+			// remove the 'created_by', 'modified_by' and 'location' fields from the SQL query:
+			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "created_by", true);
+			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "modified_by", true);
 			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "location", true);
 		}
 
@@ -4056,12 +4123,9 @@ EOF;
 				// if the 'SELECT' clause contains any user-specific fields:
 				if (preg_match("/SELECT(.(?!FROM))+?(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)/i",$sqlQuery))
 				{
-					// save an appropriate error message:
-					$HeaderString = "<b><span class=\"warning\">Display of user-specific fields was omitted!</span></b>";
+					// return an appropriate error message:
 					// note: we don't write out any error message if the user-specific fields do only occur within the 'ORDER' clause (but not within the 'SELECT' clause)
-
-					// Write back session variable:
-					saveSessionVariable("HeaderString", $HeaderString);
+					$HeaderString = returnMsg($loc["Warning_DisplayUserSpecificFieldsOmitted"] . "!", "warning", "strong", "HeaderString");
 				}
 
 				$sqlQuery = eregi_replace("(SELECT|ORDER BY) (marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)( DESC)?", "\\1 ", $sqlQuery); // ...delete any user-specific fields from beginning of 'SELECT' or 'ORDER BY' clause
@@ -4089,11 +4153,8 @@ EOF;
 				$sqlQuery = preg_replace("/WHERE( *\( *?)* *AND/i","WHERE\\1",$sqlQuery); // ...delete any superfluous 'AND' that wasn't removed properly by the two regex patterns above
 				$sqlQuery = preg_replace("/WHERE( *\( *?)*(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i","WHERE serial RLIKE \".+\"",$sqlQuery); // ...supply generic 'WHERE' clause if it did ONLY contain user-specific fields
 
-				// save an appropriate error message:
-				$HeaderString = "<b><span class=\"warning\">Querying of user-specific fields was omitted!</span></b>"; // save an appropriate error message
-
-				// Write back session variable:
-				saveSessionVariable("HeaderString", $HeaderString);
+				// return an appropriate error message:
+				$HeaderString = returnMsg($loc["Warning_QueryUserSpecificFieldsOmitted"] . "!", "warning", "strong", "HeaderString");
 			}
 		}
 
@@ -4147,6 +4208,7 @@ EOF;
 
 	// Removes the field given in '$field' from the SQL query and
 	// issues a warning if '$issueWarning == true':
+	// TODO: I18n
 	function stripFieldFromSQLQuery($sqlQuery, $field, $issueWarning = true)
 	{
 		// note that, upon multiple warnings, only the last warning message will be displayed
@@ -4157,12 +4219,9 @@ EOF;
 			// if the 'SELECT' clause contains '$field':
 			if ($issueWarning AND (preg_match("/SELECT(.(?!FROM))+?" . $field . "/i", $sqlQuery)))
 			{
-				// save an appropriate error message:
-				$HeaderString = "<b><span class=\"warning\">Display of " . $field . " field was omitted!</span></b>";
+				// return an appropriate error message:
 				// note: we don't write out any error message if the given '$field' does only occur within the 'ORDER' clause (but not within the 'SELECT' clause)
-
-				// Write back session variable:
-				saveSessionVariable("HeaderString", $HeaderString);
+				$HeaderString = returnMsg("Display of '" . $field . "' field was omitted!", "warning", "strong", "HeaderString");
 			}
 
 			$sqlQuery = eregi_replace("(SELECT|ORDER BY) " . $field . "( DESC)?", "\\1 ", $sqlQuery); // ...delete '$field' from beginning of 'SELECT' or 'ORDER BY' clause
@@ -4184,11 +4243,8 @@ EOF;
 
 			if ($issueWarning)
 			{
-				// save an appropriate error message:
-				$HeaderString = "<b><span class=\"warning\">Querying of " . $field . " field was omitted!</span></b>"; // save an appropriate error message
-
-				// Write back session variable:
-				saveSessionVariable("HeaderString", $HeaderString);
+				// return an appropriate error message:
+				$HeaderString = returnMsg("Querying of '" . $field . "' field was omitted!", "warning", "strong", "HeaderString");
 			}
 		}
 
