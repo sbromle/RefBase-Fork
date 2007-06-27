@@ -224,6 +224,8 @@
 	// array format which can be then imported by the 'addRecords()' function in 'include.inc.php'.
 	function risToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
+		global $contentTypeCharset; // defined in 'ini.inc.php'
+
 		global $errors;
 		global $showSource;
 
@@ -264,7 +266,14 @@
 		// (If you don't want to perform any preprocessor actions, specify an empty array, like: '$preprocessorActionsArray = array();'.
 		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
 		// 								  "/Search Pattern/"  =>  "Replace Pattern"
-		$preprocessorActionsArray = array();
+		$preprocessorActionsArray = array(
+											array(
+													'match'   => "/&#?\w+;/", // if HTML encoded text (such as "&auml;", "&#xF6;" or "&#233;") occurs in the source data
+													'actions' => array(
+																		"/(&#?\w+;)/e"  =>  "html_entity_decode('\\1', ENT_QUOTES, '$contentTypeCharset')" // HTML decode source data (see <http://www.php.net/manual/en/function.html-entity-decode.php>)
+																	)
+												)
+										);
 
 		// Postprocessor actions:
 		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
