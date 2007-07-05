@@ -5242,10 +5242,13 @@
 		// Note: we do a quick'n dirty approach here, by inserting the string "_#_§_~_" as string delimiter between serial numbers/cite keys. Of course, this will only work as long the string "_#_§_~_" doesn't occur within '$sourceText'.
 		$recordSerialsKeysString = preg_replace("/(_#_§_~_)?\n?$/s", "", $recordSerialsKeysString); // remove any trailing chars (like \n or "_#_§_~_") at end of line
 
-		$recordSerialsKeysArray = split("_#_§_~_", $recordSerialsKeysString); // split string containing the serial numbers/cite keys on the string delimiter "_#_§_~_"
+		$recordSerialsKeysArray = preg_split("/_#_§_~_/", $recordSerialsKeysString, -1, PREG_SPLIT_NO_EMPTY); // split string containing the serial numbers/cite keys on the string delimiter "_#_§_~_" (the 'PREG_SPLIT_NO_EMPTY' flag causes only non-empty pieces to be returned)
+		$recordSerialsKeysArray = array_unique($recordSerialsKeysArray); // remove any duplicate serial numbers/cite keys from the list of extracted record identifiers
 
 		$recordSerialsArray = array();
 		$escapedRecordKeysArray = array();
+		$foundRecordSerialsKeysArray = array();
+		$missingRecordSerialsKeysArray = array();
 
 		foreach($recordSerialsKeysArray as $recordSerialKey)
 		{
@@ -5276,7 +5279,8 @@
 		if (isset($_SESSION['loginEmail'])) // if a user is logged in...
 			$query .= " LEFT JOIN $tableUserData ON serial = record_id AND user_id = " . quote_smart($userID); // add LEFT JOIN part to FROM clause
 
-		$query .= " WHERE"; // add WHERE clause:
+		// add WHERE clause:
+		$query .= " WHERE";
 
 		if (!empty($recordSerialsArray) OR (empty($recordSerialsArray) AND empty($escapedRecordKeysArray)) OR (empty($recordSerialsArray) AND !isset($_SESSION['loginEmail']))) // the second condition ensures a valid SQL query if no serial numbers or cite keys were found, same for the third condition if a user isn't logged in and '$sourceText' did only contain cite keys
 			$query .= " serial RLIKE " . quote_smart("^(" . $recordSerialsString . ")$"); // add any serial numbers to WHERE clause
@@ -5301,9 +5305,36 @@
 			$query .= " ORDER BY first_author, author_count, author, year, title";
 
 
+		// Check whether the extracted serial numbers and cite keys exist in the database:
+		$result = queryMySQLDatabase($query, ""); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
+
+		if (@ mysql_num_rows($result) > 0) // if there were rows found ...
+		{
+			// Loop over each row in the result set:
+			for ($rowCounter=0; $row = @ mysql_fetch_array($result); $rowCounter++)
+			{
+				if (!in_array($row["serial"], $foundRecordSerialsKeysArray) OR (!empty($row["cite_key"]) AND !in_array($row["cite_key"], $foundRecordSerialsKeysArray))) // if this record identifier hasn't been seen yet
+				{
+					// add this record's serial number and cite key to the array of found record serials and cite keys:
+					$foundRecordSerialsKeysArray[] = $row["serial"];
+					if (!empty($row["cite_key"]))
+						$foundRecordSerialsKeysArray[] = $row["cite_key"];
+				}
+			}
+		}
+
+		$missingRecordSerialsKeysArray = array_diff($recordSerialsKeysArray, $foundRecordSerialsKeysArray); // get all unique array elements of '$recordSerialsKeysArray' which are not in '$foundRecordSerialsKeysArray'
+		sort($missingRecordSerialsKeysArray);
+
 		if (!empty($escapedRecordKeysArray) AND !isset($_SESSION['loginEmail'])) // a user can only use cite keys as record identifiers when he's logged in
+			$messageSuffix = "<br>" . $loc["Warning_LoginToUseCiteKeysAsIdentifiers"] . "!";
+		else
+			$messageSuffix = "";
+
+		if (!empty($missingRecordSerialsKeysArray) OR (!empty($escapedRecordKeysArray) AND !isset($_SESSION['loginEmail']))) // if some record identifiers could not be found in the database -OR- if a user tries to use cite keys while not being logged in
 			// return an appropriate error message:
-			$HeaderString = returnMsg($loc["Warning_LoginToUseCiteKeysAsIdentifiers"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
+			$HeaderString = returnMsg("Following record identifiers could not be found: " . implode(", ", $missingRecordSerialsKeysArray), "warning", "strong", "HeaderString", "", $messageSuffix); // function 'returnMsg()' is defined in 'include.inc.php'
+
 
 		return $query;
 	}
