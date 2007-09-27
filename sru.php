@@ -129,7 +129,7 @@
 	if (isset($_REQUEST['maximumRecords'])) // contains the desired number of search results (OpenSearch equivalent: '{count}')
 		$showRows = $_REQUEST['maximumRecords'];
 	else
-		$showRows = $defaultNumberOfRecords; // '$defaultNumberOfRecords' is defined in 'ini.inc.php'
+		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 	if (isset($_REQUEST['startRecord'])) // contains the offset of the first search result, starting with one (OpenSearch equivalent: '{startIndex}')
 		$rowOffset = ($_REQUEST['startRecord']) - 1; // first row number in a MySQL result set is 0 (not 1)
@@ -311,7 +311,7 @@
 			// Build WHERE clause:
 			$query .= " WHERE";
 
-			appendToWhereClause($searchArray); // function 'appendToWhereClause()' is defined in 'webservice.inc.php'
+			appendToWhereClause($searchArray); // function 'appendToWhereClause()' is defined in 'include.inc.php'
 		}
 
 

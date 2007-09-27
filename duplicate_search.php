@@ -83,7 +83,7 @@
 		$referer = $_SERVER['HTTP_REFERER'];
 	else
 		$referer = ""; // if there's no HTTP referer available we provide the empty string here
-	
+
 
 	// Setup some required variables:
 
@@ -125,7 +125,7 @@
 	else
 		$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE serial RLIKE \".+\" ORDER BY year DESC, author";
 
-	// default display options:
+	// default search options:
 	$ignoreWhitespace = "1";
 	$ignorePunctuation = "1";
 	$ignoreCharacterCase = "1";
@@ -134,7 +134,8 @@
 
 	// default display options:
 	$showLinks = "1";
-	$showRows = $defaultNumberOfRecords; // '$defaultNumberOfRecords' is defined in 'ini.inc.php'
+
+	$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 	// b) The default query and options are overwritten if the script was called with parameters or if there were some errors on submit:
 
@@ -261,25 +262,25 @@
 	// (the list of fields is similar to that of the "Search within Results" form; while only
 	// some fields make sense with regard to duplicate identification, the other fields may be
 	// useful in finding non-duplicate records with matching field contents)
-	$dropDownItemArray1 = array("author" => "author",
-								"title" => "title",
-//								"type" => "type",
-								"year" => "year",
-								"publication" => "publication",
-								"abbrev_journal" => "abbrev_journal",
-								"volume" => "volume",
-								"issue" => "issue",
-								"pages" => "pages",
-//								"thesis" => "thesis",
-//								"keywords" => "keywords",
-//								"abstract" => "abstract",
-//								"publisher" => "publisher",
-//								"place" => "place",
-//								"editor" => "editor",
-//								"language" => "language",
-//								"series_title" => "series_title",
-//								"area" => "area",
-								"notes" => "notes");
+	$dropDownItemArray1 = array("author"         => "author",
+	                            "title"          => "title",
+//	                            "type"           => "type",
+	                            "year"           => "year",
+	                            "publication"    => "publication",
+	                            "abbrev_journal" => "abbrev_journal",
+	                            "volume"         => "volume",
+	                            "issue"          => "issue",
+	                            "pages"          => "pages",
+//	                            "thesis"         => "thesis",
+//	                            "keywords"       => "keywords",
+//	                            "abstract"       => "abstract",
+//	                            "publisher"      => "publisher",
+//	                            "place"          => "place",
+//	                            "editor"         => "editor",
+//	                            "language"       => "language",
+//	                            "series_title"   => "series_title",
+//	                            "area"           => "area",
+	                            "notes"          => "notes");
 
 //	if (isset($_SESSION['loginEmail']))
 //		$dropDownItemArray1["location"] = "location"; // we only add the 'location' field if the user is logged in
@@ -306,9 +307,9 @@
 
 
 	// define variable holding the 'nonASCIIChars' drop-down elements:
-	$dropDownItemArray2 = array("strip" => "strip",
-								"transliterate" => "transliterate",
-								"keep" => "don't change");
+	$dropDownItemArray2 = array("strip"         => "strip",
+	                            "transliterate" => "transliterate",
+	                            "keep"          => "don't change");
 
 	// build properly formatted <option> tag elements from array items given in '$dropDownItemArray2':
 	$nonASCIICharsOptionTags = buildSelectMenuOptions($dropDownItemArray2, "", "\t\t\t\t", true);

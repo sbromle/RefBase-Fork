@@ -46,10 +46,10 @@
 	else
 		$queryWhereClause = "";
 
-	if (isset($_REQUEST['showRows'])) // contains the desired number of search results (OpenSearch equivalent: '{count}')
+	if (isset($_REQUEST['showRows']) AND ereg("^[1-9]+[0-9]*$", $_REQUEST['showRows'])) // contains the desired number of search results (OpenSearch equivalent: '{count}')
 		$showRows = $_REQUEST['showRows'];
 	else
-		$showRows = 0;
+		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 	if (isset($_REQUEST['startRecord'])) // contains the offset of the first search result, starting with one (OpenSearch equivalent: '{startIndex}')
 		$rowOffset = ($_REQUEST['startRecord']) - 1; // first row number in a MySQL result set is 0 (not 1)
@@ -63,11 +63,6 @@
 
 
 	// Check the correct parameters have been passed:
-
-	// Adjust the '$showRows' value if not previously defined, or if a wrong number (<=0 or float) was given
-	if (empty($showRows) || ($showRows <= 0) || !ereg("^[0-9]+$", $showRows))
-		$showRows = $defaultNumberOfRecords; // by default, we'll return as many records as defined in variable '$defaultNumberOfRecords' in 'ini.inc.php'
-
 	if (empty($queryWhereClause)) // if 'rss.php' was called without the 'where' parameter:
 	{
 		// return an appropriate error message:
@@ -117,7 +112,7 @@
 
 	// find out how many rows are available:
 	$rowsFound = @ mysql_num_rows($result);
-	
+
 	// construct a meaningful channel description based on the specified 'WHERE' clause:
 	$rssChannelDescription = "Displays all newly added records where " . explainSQLQuery($queryWhereClause) . "."; // function 'explainSQLQuery()' is defined in 'include.inc.php'
 

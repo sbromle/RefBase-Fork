@@ -64,6 +64,9 @@
 	else
 		$viewType = "";
 
+	// Get the default number of records per page preferred by the current user:
+	$showRows = $_SESSION['userRecordsPerPage'];
+
 	// Show the login status:
 	showLogin(); // (function 'showLogin()' is defined in 'include.inc.php')
 
@@ -206,7 +209,7 @@
 			. "\n\t<td>&nbsp;</td>"
 			. "\n\t<td valign=\"top\"><b>Display Options:</b></td>\n\t<td>&nbsp;</td>"
 			. "\n\t<td valign=\"middle\"><input type=\"checkbox\" name=\"showLinks\" value=\"1\" checked>&nbsp;&nbsp;&nbsp;Display Links</td>"
-			. "\n\t<td valign=\"middle\">Show&nbsp;&nbsp;&nbsp;<input type=\"text\" name=\"showRows\" value=\"" . $defaultNumberOfRecords . "\" size=\"4\">&nbsp;&nbsp;&nbsp;records per page"
+			. "\n\t<td valign=\"middle\">Show&nbsp;&nbsp;&nbsp;<input type=\"text\" name=\"showRows\" value=\"" . $showRows . "\" size=\"4\">&nbsp;&nbsp;&nbsp;records per page"
 			. "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"Search\"></td>"
 			. "\n</tr>"
 			. "\n<tr>"
@@ -232,7 +235,7 @@
 			. "\n</tr>"
 			. "\n</table>"
 			. "\n</form>";
-	
+
 	// (5) Close the database connection:
 	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 

@@ -19,6 +19,7 @@
 	// This script shows the admin a list of all user entries available within the 'users' table.
 	// User data will be shown in the familiar column view, complete with links to show a user's
 	// details and add, edit or delete a user.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -70,7 +71,7 @@
 		$formType = $_REQUEST['formType'];
 	else
 		$formType = "";
-	
+
 	// Extract the type of display requested by the user. Normally, this will be one of the following:
 	//  - '' => if the 'submit' parameter is empty, this will produce the default columnar output style ('showUsers()' function)
 	//   - 'Add', 'Remove', 'Allow' or 'Disallow' => these values will trigger actions that act on the selected users
@@ -213,7 +214,7 @@
 
 			// Adjust the '$showRows' value if not previously defined, or if a wrong number (<=0 or float) was given
 			if (empty($showRows) || ($showRows <= 0) || !ereg("^[0-9]+$", $showRows))
-				$showRows = $defaultNumberOfRecords; // by default, we'll return as many records as defined in variable '$defaultNumberOfRecords' in 'ini.inc.php'
+				$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 			// NOTE: The current value of '$rowOffset' is embedded as hidden tag within the 'displayOptions' form. By this, the current row offset can be re-applied
 			//       after the user pressed the 'Show'/'Hide' button within the 'displayOptions' form. But then, to avoid that browse links don't behave as expected,
@@ -290,7 +291,7 @@
 	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
-	
+
 	// Display all users listed within the 'users' table
 	function showUsers($result, $rowsFound, $query, $queryURL, $oldQuery, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $citeStyle, $showMaxRow, $viewType, $displayType)
 	{
@@ -374,11 +375,11 @@
 
 			// For the column headers, start another TABLE ROW ...
 			echo "\n<tr>";
-	
+
 			// ... print a marker ('x') column (which will hold the checkboxes within the results part)
 			if ($viewType != "Print") // Note: we omit the marker column in print view! ('viewType=Print')
 				echo "\n\t<th align=\"left\" valign=\"top\">&nbsp;</th>";
-	
+
 			// for each of the attributes in the result set...
 			for ($i=0; $i<$fieldsToDisplay; $i++)
 			{
@@ -391,11 +392,11 @@
 				$tableHeaderLink = buildFieldNameLinks("users.php", $query, $oldQuery, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "", "", "", $viewType);
 				echo $tableHeaderLink; // print the attribute name as link
 			 }
-	
+
 			if ($showLinks == "1")
 				{
 					$newORDER = ("ORDER BY user_id"); // Build the appropriate ORDER BY clause to facilitate sorting by Links column
-	
+
 					$HTMLbeforeLink = "\n\t<th align=\"left\" valign=\"top\">"; // start the table header tag
 					$HTMLafterLink = "</th>"; // close the table header tag
 					// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
@@ -403,21 +404,21 @@
 					$tableHeaderLink = buildFieldNameLinks("users.php", $query, $oldQuery, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "", "Links", "user_id", $viewType);
 					echo $tableHeaderLink; // print the attribute name as link
 				}
-	
+
 			// Finish the row
 			echo "\n</tr>";
 			// END RESULTS HEADER ----------------------
-			
+
 			// BEGIN RESULTS DATA COLUMNS --------------
 			for ($rowCounter=0; (($rowCounter < $showRows) && ($row = @ mysql_fetch_array($result))); $rowCounter++)
 			{
 				// ... start a TABLE ROW ...
 				echo "\n<tr>";
-	
+
 				// ... print a column with a checkbox
 				if ($viewType != "Print") // Note: we omit the marker column in print view! ('viewType=Print')
 					echo "\n\t<td align=\"left\" valign=\"top\" width=\"10\"><input type=\"checkbox\" name=\"marked[]\" value=\"" . $row["user_id"] . "\"></td>";
-	
+
 				// ... and print out each of the attributes
 				// in that row as a separate TD (Table Data)
 				for ($i=0; $i<$fieldsToDisplay; $i++)
@@ -438,21 +439,21 @@
 				if ($showLinks == "1")
 				{
 					echo "\n\t<td valign=\"top\">";
-	
+
 					echo "\n\t\t<a href=\"user_receipt.php?userID=" . $row["user_id"]
 						. "\"><img src=\"img/details.gif\" alt=\"details\" title=\"show details and options\" width=\"9\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
-	
+
 					echo "\n\t\t<a href=\"user_details.php?userID=" . $row["user_id"]
 						. "\"><img src=\"img/edit.gif\" alt=\"edit\" title=\"edit details\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
-	
+
 					echo "\n\t\t<a href=\"user_options.php?userID=" . $row["user_id"]
 						. "\"><img src=\"img/options.gif\" alt=\"options\" title=\"edit options\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
-	
+
 					$adminUserID = getUserID($adminLoginEmail); // ...get the admin's 'user_id' using his/her 'adminLoginEmail' (function 'getUserID()' is defined in 'include.inc.php')
 					if ($row["user_id"] != $adminUserID) // we only provide a delete link if this user isn't the admin:
 						echo "\n\t\t<a href=\"user_receipt.php?userID=" . $row["user_id"] . "&amp;userAction=Delete"
 							. "\"><img src=\"img/delete.gif\" alt=\"delete\" title=\"delete user\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
-	
+
 					echo "\n\t</td>";
 				}
 				// Finish the row
@@ -547,7 +548,7 @@
 								. "\n\t\t<input type=\"radio\" name=\"userGroupActionRadio\" value=\"0\" title=\"click here if you want to setup a new group; then, enter the group name in the text box to the right\"$groupSearchTextInputChecked>"
 								. "\n\t\t<input type=\"text\" name=\"userGroupName\" value=\"\" size=\"8\" title=\"$groupSearchTextInputTitle\">"
 								. "\n\t</td>"
-	
+
 								. "\n</tr>";
 
 		// Set user permissions functionality:
@@ -584,7 +585,7 @@
 
 		$userResultsFooterRow .= "\n\t\t</select>"
 								. "\n\t</td>"
-	
+
 								. "\n</tr>";
 
 		// Finish the table:
@@ -678,13 +679,13 @@
 					$userPermissionsArray = array("$userPermission" => "yes");
 				else // ($displayType == "Disallow")
 					$userPermissionsArray = array("$userPermission" => "no");
-	
+
 				// Update the specified user permission for the current user:
 				updateUserPermissions($recordSerialsString, $userPermissionsArray);
-	
+
 				// save an informative message:
 				$HeaderString = "User permission <code>$userPermission</code> was updated successfully!";
-			
+
 				// Write back session variables:
 				saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 			}

@@ -68,6 +68,9 @@
 	else
 		$viewType = "";
 
+	// Get the default number of records per page preferred by the current user:
+	$showRows = $_SESSION['userRecordsPerPage'];
+
 	// Show the login status:
 	showLogin(); // (function 'showLogin()' is defined in 'include.inc.php')
 
@@ -77,67 +80,67 @@
 	showPageHeader($HeaderString, "");
 
 	// Define variables holding common drop-down elements, i.e. build properly formatted <option> tag elements:
-	$dropDownConditionals1Array = array("contains" => $loc["contains"],
-										"does not contain" => $loc["contains not"],
-										"is equal to" => $loc["equal to"],
-										"is not equal to" => $loc["equal to not"],
-										"starts with" => $loc["starts with"],
-										"ends with" => $loc["ends with"]);
+	$dropDownConditionals1Array = array("contains"         => $loc["contains"],
+	                                    "does not contain" => $loc["contains not"],
+	                                    "is equal to"      => $loc["equal to"],
+	                                    "is not equal to"  => $loc["equal to not"],
+	                                    "starts with"      => $loc["starts with"],
+	                                    "ends with"        => $loc["ends with"]);
 
 	$dropDownItems1 = buildSelectMenuOptions($dropDownConditionals1Array, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 
 	$dropDownConditionals2Array = array("is greater than" => $loc["is greater than"],
-										"is less than" => $loc["is less than"],
-										"is within range" => $loc["is within range"],
-										"is within list" => $loc["is within list"]);
+	                                    "is less than"    => $loc["is less than"],
+	                                    "is within range" => $loc["is within range"],
+	                                    "is within list"  => $loc["is within list"]);
 
 	$dropDownItems2 = buildSelectMenuOptions($dropDownConditionals2Array, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 
-	$dropDownFieldNames1Array = array("author" => $loc["DropDownFieldName_Author"],
-									"address" => $loc["DropDownFieldName_Address"],
-									"corporate_author" => $loc["DropDownFieldName_CorporateAuthor"],
-									"thesis" => $loc["DropDownFieldName_Thesis"],
-									"", // empty array elements function as spacers between groups of drop-down menu items
-									"title" => $loc["DropDownFieldName_Title"],
-									"orig_title" => $loc["DropDownFieldName_OrigTitle"],
-									"",
-									"year" => $loc["DropDownFieldName_Year"],
-									"publication" => $loc["DropDownFieldName_Publication"],
-									"abbrev_journal" => $loc["DropDownFieldName_AbbrevJournal"],
-									"editor" => $loc["DropDownFieldName_Editor"],
-									"",
-									"volume_numeric" => $loc["DropDownFieldName_Volume"], // 'volume' should get replaced automatically by 'volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
-									"issue" => $loc["DropDownFieldName_Issue"],
-									"pages" => $loc["DropDownFieldName_Pages"],
-									"",
-									"series_title" => $loc["DropDownFieldName_SeriesTitle"],
-									"abbrev_series_title" => $loc["DropDownFieldName_AbbrevSeries_title"],
-									"series_editor" => $loc["DropDownFieldName_SeriesEditor"],
-									"series_volume_numeric" => $loc["DropDownFieldName_SeriesVolume"], // 'series_volume' should get replaced automatically by 'series_volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
-									"series_issue" => $loc["DropDownFieldName_SeriesIssue"],
-									"",
-									"publisher" => $loc["DropDownFieldName_Publisher"],
-									"place" => $loc["DropDownFieldName_Place"],
-									"",
-									"edition" => $loc["DropDownFieldName_Edition"],
-									"medium" => $loc["DropDownFieldName_Medium"],
-									"issn" => $loc["DropDownFieldName_Issn"],
-									"isbn" => $loc["DropDownFieldName_Isbn"],
-									"",
-									"language" => $loc["DropDownFieldName_Language"],
-									"summary_language" => $loc["DropDownFieldName_SummaryLanguage"],
-									"",
-									"keywords" => $loc["DropDownFieldName_Keywords"],
-									"abstract" => $loc["DropDownFieldName_Abstract"],
-									"",
-									"area" => $loc["DropDownFieldName_Area"],
-									"expedition" => $loc["DropDownFieldName_Expedition"],
-									"conference" => $loc["DropDownFieldName_Conference"],
-									"",
-									"doi" => $loc["DropDownFieldName_Doi"],
-									"url" => $loc["DropDownFieldName_Url"]);
+	$dropDownFieldNames1Array = array("author"                => $loc["DropDownFieldName_Author"],
+	                                  "address"               => $loc["DropDownFieldName_Address"],
+	                                  "corporate_author"      => $loc["DropDownFieldName_CorporateAuthor"],
+	                                  "thesis"                => $loc["DropDownFieldName_Thesis"],
+	                                  "", // empty array elements function as spacers between groups of drop-down menu items
+	                                  "title"                 => $loc["DropDownFieldName_Title"],
+	                                  "orig_title"            => $loc["DropDownFieldName_OrigTitle"],
+	                                  "",
+	                                  "year"                  => $loc["DropDownFieldName_Year"],
+	                                  "publication"           => $loc["DropDownFieldName_Publication"],
+	                                  "abbrev_journal"        => $loc["DropDownFieldName_AbbrevJournal"],
+	                                  "editor"                => $loc["DropDownFieldName_Editor"],
+	                                  "",
+	                                  "volume_numeric"        => $loc["DropDownFieldName_Volume"], // 'volume' should get replaced automatically by 'volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
+	                                  "issue"                 => $loc["DropDownFieldName_Issue"],
+	                                  "pages"                 => $loc["DropDownFieldName_Pages"],
+	                                  "",
+	                                  "series_title"          => $loc["DropDownFieldName_SeriesTitle"],
+	                                  "abbrev_series_title"   => $loc["DropDownFieldName_AbbrevSeriesTitle"],
+	                                  "series_editor"         => $loc["DropDownFieldName_SeriesEditor"],
+	                                  "series_volume_numeric" => $loc["DropDownFieldName_SeriesVolume"], // 'series_volume' should get replaced automatically by 'series_volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
+	                                  "series_issue"          => $loc["DropDownFieldName_SeriesIssue"],
+	                                  "",
+	                                  "publisher"             => $loc["DropDownFieldName_Publisher"],
+	                                  "place"                 => $loc["DropDownFieldName_Place"],
+	                                  "",
+	                                  "edition"               => $loc["DropDownFieldName_Edition"],
+	                                  "medium"                => $loc["DropDownFieldName_Medium"],
+	                                  "issn"                  => $loc["DropDownFieldName_Issn"],
+	                                  "isbn"                  => $loc["DropDownFieldName_Isbn"],
+	                                  "",
+	                                  "language"              => $loc["DropDownFieldName_Language"],
+	                                  "summary_language"      => $loc["DropDownFieldName_SummaryLanguage"],
+	                                  "",
+	                                  "keywords"              => $loc["DropDownFieldName_Keywords"],
+	                                  "abstract"              => $loc["DropDownFieldName_Abstract"],
+	                                  "",
+	                                  "area"                  => $loc["DropDownFieldName_Area"],
+	                                  "expedition"            => $loc["DropDownFieldName_Expedition"],
+	                                  "conference"            => $loc["DropDownFieldName_Conference"],
+	                                  "",
+	                                  "doi"                   => $loc["DropDownFieldName_Doi"],
+	                                  "url"                   => $loc["DropDownFieldName_Url"]);
 
 	if (isset($_SESSION['loginEmail'])) // we only include the 'file' field if the user is logged in
 		$dropDownFieldNames1Array["file"] = $loc["DropDownFieldName_File"];
@@ -148,14 +151,14 @@
 	if (isset($_SESSION['loginEmail'])) // we only include the 'location' field if the user is logged in
 		$dropDownFieldNames1Array["location"] = $loc["DropDownFieldName_Location"];
 
-	$dropDownFieldNames2Array = array("call_number" => $loc["DropDownFieldName_CallNumber"],
-									"",
-									"serial" => $loc["DropDownFieldName_Serial"],
-									"type" => $loc["DropDownFieldName_Type"],
-									"approved" => $loc["DropDownFieldName_Approved"],
-									"",
-									"created_date" => $loc["DropDownFieldName_CreatedDate"],
-									"created_time" => $loc["DropDownFieldName_CreatedTime"]);
+	$dropDownFieldNames2Array = array("call_number"  => $loc["DropDownFieldName_CallNumber"],
+	                                  "",
+	                                  "serial"       => $loc["DropDownFieldName_Serial"],
+	                                  "type"         => $loc["DropDownFieldName_Type"],
+	                                  "approved"     => $loc["DropDownFieldName_Approved"],
+	                                  "",
+	                                  "created_date" => $loc["DropDownFieldName_CreatedDate"],
+	                                  "created_time" => $loc["DropDownFieldName_CreatedTime"]);
 
 	if (isset($_SESSION['loginEmail'])) // we only include the 'created_by' field if the user is logged in
 		$dropDownFieldNames2Array["created_by"] = $loc["DropDownFieldName_CreatedBy"];
@@ -1758,7 +1761,7 @@
 	<td valign="top"><b><?php echo $loc["DisplayOptions"]; ?>:</b></td>
 	<td>&nbsp;</td>
 	<td valign="middle"><input type="checkbox" name="showLinks" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowLinks"]; ?></td>
-	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $defaultNumberOfRecords; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
+	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>
@@ -1771,14 +1774,14 @@
 	if (isset($_SESSION['loginEmail'])) // if a user is logged in, add user specific fields to the sort menus:
 	{
 		$userSpecificSortFieldsNameArray = array("",
-												"marked" => $loc["DropDownFieldName_Marked"],
-												"copy" => $loc["DropDownFieldName_Copy"],
-												"selected" => $loc["DropDownFieldName_Selected"],
-												"user_keys" => $loc["DropDownFieldName_UserKeys"],
-												"user_notes" => $loc["DropDownFieldName_UserNotes"],
-												"user_file" => $loc["DropDownFieldName_UserFile"],
-												"user_groups" => $loc["DropDownFieldName_UserGroups"],
-												"cite_key" => $loc["DropDownFieldName_CiteKey"]);
+		                                         "marked"      => $loc["DropDownFieldName_Marked"],
+		                                         "copy"        => $loc["DropDownFieldName_Copy"],
+		                                         "selected"    => $loc["DropDownFieldName_Selected"],
+		                                         "user_keys"   => $loc["DropDownFieldName_UserKeys"],
+		                                         "user_notes"  => $loc["DropDownFieldName_UserNotes"],
+		                                         "user_file"   => $loc["DropDownFieldName_UserFile"],
+		                                         "user_groups" => $loc["DropDownFieldName_UserGroups"],
+		                                         "cite_key"    => $loc["DropDownFieldName_CiteKey"]);
 
 		$dropDownItems4 = buildSelectMenuOptions($userSpecificSortFieldsNameArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 	}

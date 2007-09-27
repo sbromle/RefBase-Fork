@@ -128,7 +128,7 @@
 		$referer = $_SERVER['HTTP_REFERER'];
 	else
 		$referer = ""; // if there's no HTTP referer available we provide the empty string here
-	
+
 
 	// Setup some required variables:
 
@@ -200,7 +200,7 @@
 		if (@ mysql_num_rows($result) == 1) // this condition is added here to avoid the case that editing a query item which got deleted in the meantime invokes a seemingly correct but empty 'edit query' form
 		{
 			// (3b) EXTRACT results:
-			$row = mysql_fetch_array($result); //fetch the current row into the array $row (it'll be always *one* row, but anyhow)
+			$row = mysql_fetch_array($result); // fetch the current row into the array $row (it'll be always *one* row, but anyhow)
 
 			// check whether the user tries to edit a query that does not belong to his own set of saved queries:
 			if ($row['user_id'] != getUserID($loginEmail)) // the function 'getUserID' and the '$loginEmail' variable are specified in 'include.inc.php'
@@ -260,7 +260,7 @@
 				$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
 //				$sqlQuery = str_replace('\"','"',$sqlQuery); // convert \" into "
 //				$sqlQuery = str_replace('\\\\','\\',$sqlQuery);
-		
+
 				$showQuery = $_REQUEST['showQuery']; // extract the $showQuery parameter
 				$showLinks = $_REQUEST['showLinks']; // extract the $showLinks parameter
 				$showRows = $_REQUEST['showRows']; // extract the $showRows parameter
@@ -273,7 +273,7 @@
 				$sqlQuery = "SELECT author, title, year, created_by, modified_date, modified_time, modified_by FROM $tableRefs WHERE modified_date = CURDATE() ORDER BY modified_date DESC, modified_time DESC";
 				$showQuery = "0";
 				$showLinks = "1";
-				$showRows = $defaultNumberOfRecords; // '$defaultNumberOfRecords' is defined in 'ini.inc.php'
+				$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 				$citeStyle = "";
 				$citeOrder = "";
 			}			

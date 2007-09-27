@@ -63,6 +63,9 @@
 	else
 		$viewType = "";
 
+	// Get the default number of records per page preferred by the current user:
+	$showRows = $_SESSION['userRecordsPerPage'];
+
 	// Show the login status:
 	showLogin(); // (function 'showLogin()' is defined in 'include.inc.php')
 
@@ -72,30 +75,30 @@
 	showPageHeader($HeaderString, "");
 
 	// Define variables holding common drop-down elements, i.e. build properly formatted <option> tag elements:
-	$dropDownConditionals1Array = array("contains" => $loc["contains"],
-										"does not contain" => $loc["contains not"],
-										"is equal to" => $loc["equal to"],
-										"is not equal to" => $loc["equal to not"],
-										"starts with" => $loc["starts with"],
-										"ends with" => $loc["ends with"]);
+	$dropDownConditionals1Array = array("contains"         => $loc["contains"],
+	                                    "does not contain" => $loc["contains not"],
+	                                    "is equal to"      => $loc["equal to"],
+	                                    "is not equal to"  => $loc["equal to not"],
+	                                    "starts with"      => $loc["starts with"],
+	                                    "ends with"        => $loc["ends with"]);
 
 	$dropDownItems1 = buildSelectMenuOptions($dropDownConditionals1Array, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 
 	$dropDownConditionals2Array = array("is greater than" => $loc["is greater than"],
-										"is less than" => $loc["is less than"],
-										"is within range" => $loc["is within range"],
-										"is within list" => $loc["is within list"]);
+	                                    "is less than"    => $loc["is less than"],
+	                                    "is within range" => $loc["is within range"],
+	                                    "is within list"  => $loc["is within list"]);
 
 	$dropDownItems2 = buildSelectMenuOptions($dropDownConditionals2Array, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 
-	$dropDownFieldNameArray = array("author" => $loc["DropDownFieldName_Author"],
-									"title" => $loc["DropDownFieldName_Title"],
-									"year" => $loc["DropDownFieldName_Year"],
-									"publication" => $loc["DropDownFieldName_Publication"],
-									"volume_numeric" => $loc["DropDownFieldName_Volume"], // 'volume' should get replaced automatically by 'volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
-									"pages" => $loc["DropDownFieldName_Pages"]);
+	$dropDownFieldNameArray = array("author"         => $loc["DropDownFieldName_Author"],
+	                                "title"          => $loc["DropDownFieldName_Title"],
+	                                "year"           => $loc["DropDownFieldName_Year"],
+	                                "publication"    => $loc["DropDownFieldName_Publication"],
+	                                "volume_numeric" => $loc["DropDownFieldName_Volume"], // 'volume' should get replaced automatically by 'volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
+	                                "pages"          => $loc["DropDownFieldName_Pages"]);
 
 	$dropDownItems3 = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
@@ -242,7 +245,7 @@
 	<td valign="top"><b><?php echo $loc["DisplayOptions"]; ?>:</b></td>
 	<td>&nbsp;</td>
 	<td valign="middle"><input type="checkbox" name="showLinks" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowLinks"]; ?></td>
-	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $defaultNumberOfRecords; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
+	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>

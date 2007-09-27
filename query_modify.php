@@ -43,7 +43,7 @@
 
 	// Clear any errors that might have been found previously:
 	$errors = array();
-	
+
 	// Write the (POST) form variables into an array:
 	foreach($_POST as $varname => $value)
 		$formVars[$varname] = trim($value); // remove any leading or trailing whitespace from the field's contents & copy the trimmed string to the '$formVars' array
@@ -61,7 +61,7 @@
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
-		
+
 		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
 			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
 		else
@@ -129,10 +129,10 @@
 	else
 		$showLinks = "";
 
-	if (isset($formVars['showRows']))
+	if (isset($formVars['showRows']) AND ereg("^[1-9]+[0-9]*$", $formVars['showRows'])) // NOTE: we silently adjust the 'showRows' parameter if anything other than a positive integer was given
 		$showRows = $formVars['showRows'];
 	else
-		$showRows = 0;
+		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 	if (isset($formVars['citeStyleSelector']))
 		$citeStyle = $formVars['citeStyleSelector']; // get the cite style chosen by the user
@@ -185,13 +185,13 @@
 
 	elseif (ereg(";", $queryName))
 		$errors["queryName"] = "Your query name cannot contain a semicolon (';')<br>since this character is used as delimiter:"; // the user's query name cannot contain a semicolon (';') since this character is used as delimiter between query names within the 'userQueries' session variable (see function 'getUserQueries()' in 'include.inc.php')
-	
+
 	if (($queryAction == "add") OR (($queryAction == "edit") AND ($queryName != $origQueryName))) // if the user did modify the query name, check if the new query name does already exist for this user:
 	{
 		$query = "SELECT query_id, query_name FROM $tableQueries WHERE user_id = $loginUserID AND query_name = '$queryName'"; // the global variable '$loginUserID' gets set in function 'start_session()' within 'include.inc.php'
-	
+
 		$result = queryMySQLDatabase($query, ""); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
-	
+
 		if (@ mysql_num_rows($result) > 0) // if there's already a saved query (belonging to this user) with exactly the same name
 			$errors["queryName"] = "You've got already a query with that name!<br>Please choose a different name:"; // the user's query name must be unique (since the query popup of the 'Recall My Query' form on the main page uses the query's name to recall a particular query)
 			// note that we could allow for duplicate query names if the query popup on the main page would work with query IDs instead. However, from an interface design perspective, duplicate query names shouldn't be allowed anyhow. So we simply don't permit them.
@@ -203,7 +203,7 @@
 
 	elseif (!eregi("^SELECT", $sqlQuery))
 		$errors["sqlQuery"] = "You can only save SELECT queries:"; // currently, the user is only allowed to save SELECT queries
-	
+
 	// --------------------------------------------------------------------
 
 	// Now the script has finished the validation, check if there were any errors:
@@ -278,6 +278,8 @@
 		$affectedRows = ($result ? mysql_affected_rows ($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
 
 		if ($affectedRows == 0) // no rows were affected by the update, i.e., the query must have been deleted in the meantime!
+		// NOTE: MySQL does also return 0 if nothing was changed since identical form data were submitted!
+		//       So, if '$affectedRows=0', it would be better to check for the existence of the record and adopt the error message accordingly.
 		{
 			// return an appropriate error message:
 			$HeaderString = returnMsg($loc["Warning_SavedQueryDoesNotExistAnymore"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
@@ -286,7 +288,7 @@
 			getUserQueries($loginUserID); // function 'getUserQueries()' is defined in 'include.inc.php'
 
 			header("Location: index.php"); // redirect to main page ('index.php')
-	
+
 			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		}
 	}

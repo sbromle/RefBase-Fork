@@ -68,53 +68,56 @@
 		$customQuery = "0";
 
 	if ($customQuery == "1") // the script was called with parameters
-		{
-			$sqlQuery = $_REQUEST['sqlQuery']; // accept any previous SQL queries
-			$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery);
-//			$sqlQuery = str_replace('\"','"',$sqlQuery); // convert \" into "
-//			$sqlQuery = str_replace('\\\\','\\',$sqlQuery);
+	{
+		$sqlQuery = $_REQUEST['sqlQuery']; // accept any previous SQL queries
+		$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery);
+//		$sqlQuery = str_replace('\"','"',$sqlQuery); // convert \" into "
+//		$sqlQuery = str_replace('\\\\','\\',$sqlQuery);
 
-			$showQuery = $_REQUEST['showQuery']; // extract the $showQuery parameter
-			if ("$showQuery" == "1")
-				$checkQuery = " checked";
-			else
-				$checkQuery = "";
-			
-			$showLinks = $_REQUEST['showLinks']; // extract the $showLinks parameter
-			if ("$showLinks" == "1")
-				$checkLinks = " checked";
-			else
-				$checkLinks = "";
-
-			$showRows = $_REQUEST['showRows']; // extract the $showRows parameter
-
-			$displayType = $_REQUEST['submit']; // extract the type of display requested by the user (either 'Display', 'Cite' or '')
-			$citeStyle = $_REQUEST['citeStyleSelector']; // get the cite style chosen by the user (only occurs in 'extract.php' form and in query result lists)
-			$citeOrder = $_REQUEST['citeOrder']; // get the citation sort order chosen by the user (only occurs in 'extract.php' form and in query result lists)
-
-			$oldQuery = $_REQUEST['oldQuery']; // get the query URL of the formerly displayed results page (if available) so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-			if (ereg('sqlQuery%3D', $oldQuery)) // if '$oldQuery' still contains URL encoded data... ('%3D' is the URL encoded form of '=', see note below!)
-				$oldQuery = rawurldecode($oldQuery); // ...URL decode old query URL
-												// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
-												//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
-			$oldQuery = stripSlashesIfMagicQuotes($oldQuery);
-//			$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
-		}
-	else // if there was no previous SQL query provide the default one:
-		{
-			if (isset($_SESSION['loginEmail']))
-				$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE location RLIKE \"" . $loginEmail . "\" ORDER BY year DESC, author"; // '$loginEmail' is defined in function 'start_session()' (in 'include.inc.php')
-			else
-				$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE year &gt; 2001 ORDER BY year DESC, author";
-
+		$showQuery = $_REQUEST['showQuery']; // extract the $showQuery parameter
+		if ("$showQuery" == "1")
+			$checkQuery = " checked";
+		else
 			$checkQuery = "";
+
+		$showLinks = $_REQUEST['showLinks']; // extract the $showLinks parameter
+		if ("$showLinks" == "1")
 			$checkLinks = " checked";
-			$showRows = $defaultNumberOfRecords;
-			$displayType = ""; // ('' will produce the default columnar output style)
-			$citeStyle = "";
-			$citeOrder = "";
-			$oldQuery = "";
-		}
+		else
+			$checkLinks = "";
+
+		$showRows = $_REQUEST['showRows']; // extract the $showRows parameter
+
+		$displayType = $_REQUEST['submit']; // extract the type of display requested by the user (either 'Display', 'Cite' or '')
+		$citeStyle = $_REQUEST['citeStyleSelector']; // get the cite style chosen by the user (only occurs in 'extract.php' form and in query result lists)
+		$citeOrder = $_REQUEST['citeOrder']; // get the citation sort order chosen by the user (only occurs in 'extract.php' form and in query result lists)
+
+		$oldQuery = $_REQUEST['oldQuery']; // get the query URL of the formerly displayed results page (if available) so that its's available on the subsequent receipt page that follows any add/edit/delete action!
+		if (ereg('sqlQuery%3D', $oldQuery)) // if '$oldQuery' still contains URL encoded data... ('%3D' is the URL encoded form of '=', see note below!)
+			$oldQuery = rawurldecode($oldQuery); // ...URL decode old query URL
+											// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
+											//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
+		$oldQuery = stripSlashesIfMagicQuotes($oldQuery);
+//		$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
+	}
+	else // if there was no previous SQL query provide the default one:
+	{
+		if (isset($_SESSION['loginEmail']))
+			$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE location RLIKE \"" . $loginEmail . "\" ORDER BY year DESC, author"; // '$loginEmail' is defined in function 'start_session()' (in 'include.inc.php')
+		else
+			$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE year &gt; 2001 ORDER BY year DESC, author";
+
+		$checkQuery = "";
+		$checkLinks = " checked";
+
+		// Get the default number of records per page preferred by the current user:
+		$showRows = $_SESSION['userRecordsPerPage'];
+
+		$displayType = ""; // ('' will produce the default columnar output style)
+		$citeStyle = "";
+		$citeOrder = "";
+		$oldQuery = "";
+	}
 
 	// Show the login status:
 	showLogin(); // (function 'showLogin()' is defined in 'include.inc.php')
