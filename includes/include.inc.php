@@ -95,6 +95,10 @@
 			// if the user isn't logged in we set the available export formats, citation styles, document types and permissions to
 			// the defaults which are specified in the 'formats', 'styles', 'types' and 'user_permissions' tables for 'user_id = 0'.
 			// (a 'user_id' of zero is used within these tables to indicate the default settings if the user isn't logged in)
+			// NOTE: As an exception, for anyone who isn't logged in, we don't load the default number of records from option
+			//       'records_per_page' in table 'user_options', but instead use the value given in variable '$defaultNumberOfRecords'
+			//       in 'ini.inc.php'. Similarly, if the user isn't logged in, the list of "main fields" is taken from variable
+			//       '$defaultMainFields' in 'ini.inc.php' and not from option 'main_fields' in table 'user_options.
 		{
 			// Get all export formats that were selected by the admin to be visible if a user isn't logged in
 			// and (if some formats were found) save them as semicolon-delimited string to the session variable 'user_export_formats':
@@ -115,6 +119,14 @@
 			// Get the user permissions for the current user
 			// and save all allowed user actions as semicolon-delimited string to the session variable 'user_permissions':
 			getPermissions(0, "user", true);
+
+			// Get the default number of records per page preferred by the current user
+			// and save it to the session variable 'userRecordsPerPage':
+			getDefaultNumberOfRecords(0);
+
+			// Get the list of "main fields" for the current user
+			// and save the list of fields as comma-delimited string to the session variable 'userMainFields':
+			getMainFields(0);
 		}
 
 //		if (isset($_SESSION['referer']))
@@ -248,8 +260,6 @@
 	// '$rowsFound', '$previousOffset', '$nextOffset' and '$showMaxRow'.
 	function seekInMySQLResultsToOffset($result, $rowOffset, $showRows, $displayType, $citeType)
 	{
-		global $defaultNumberOfRecords; // defined in 'ini.inc.php'
-
 		// Find out how many rows are available:
 		$rowsFound = @ mysql_num_rows($result);
 		if ($rowsFound > 0) // If there were rows found ...
@@ -261,7 +271,7 @@
 
 			// Adjust the '$showRows' value if not previously defined, or if a wrong number (<=0 or float) was given
 			if (empty($showRows) || ($showRows <= 0) || !ereg("^[0-9]+$", $showRows))
-				$showRows = $defaultNumberOfRecords;
+				$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 			// Adjust '$rowOffset' if it's value exceeds the number of rows found:
 			if ($rowOffset > ($rowsFound - 1))
@@ -3201,6 +3211,41 @@ EOF;
 
 	// --------------------------------------------------------------------
 
+	// Get the list of "main fields" preferred by the current user:
+	// and save the list of fields as comma-delimited string to the session variable 'userMainFields'
+	function getMainFields($userID)
+	{
+		global $loginEmail;
+
+		global $adminLoginEmail; // these variables are defined in 'ini.inc.php'
+		global $defaultMainFields;
+
+		$userOptionsArray = array(); // initialize array variable
+
+		// Get all user options for the current user:
+		// note that if the user isn't logged in (userID=0), the list of "main fields" is taken from variable
+		// '$defaultMainFields' in 'ini.inc.php' and not from option 'main_fields' in table 'user_options
+		if ($userID != 0)
+			$userOptionsArray = getUserOptions($userID);
+
+		// Extract the list of "main fields":
+		if (!empty($userOptionsArray) AND !empty($userOptionsArray['main_fields']))
+			$userMainFieldsString = $userOptionsArray['main_fields']; // honour the logged in user's preferred list of "main fields" (if not empty or NULL)
+		else
+			$userMainFieldsString = $defaultMainFields; // by default, we take the list of "main fields" from the global variable '$defaultMainFields'
+
+		// We'll only update the appropriate session variable if either a normal user is logged in -OR- the admin is logged in and views his own user options page
+		if (($loginEmail != $adminLoginEmail) OR (($loginEmail == $adminLoginEmail) && ($userID == getUserID($loginEmail))))
+			// Write the list of fields into a session variable:
+			saveSessionVariable("userMainFields", $userMainFieldsString);
+
+		$userMainFieldsArray = split(" *, *", $userMainFieldsString); // split the string of fields into its individual fields
+
+		return $userMainFieldsArray;
+	}
+
+	// --------------------------------------------------------------------
+
 	// Returns the current date (e.g. '2003-12-31'), time (e.g. '23:59:49') and user name & email address (e.g. 'Matthias Steffens (refbase@extracts.de)'):
 	// this information is used when adding/updating/deleting records in the database
 	function getCurrentDateTimeUser()
@@ -3235,7 +3280,7 @@ EOF;
 	// --------------------------------------------------------------------
 
 	// Returns the total number of records in the database:
-	function getNumberOfRecords()
+	function getTotalNumberOfRecords()
 	{
 		global $tableRefs; // defined in 'db.inc.php'
 
@@ -3250,6 +3295,39 @@ EOF;
 		$numberOfRecords = $row[0]; // extract the contents of the first (and only) row
 
 		return $numberOfRecords;
+	}
+
+	// --------------------------------------------------------------------
+
+	// Get the default number of records per page preferred by the current user:
+	function getDefaultNumberOfRecords($userID)
+	{
+		global $loginEmail;
+
+		global $adminLoginEmail; // these variables are defined in 'ini.inc.php'
+		global $defaultNumberOfRecords;
+
+		$userOptionsArray = array(); // initialize array variable
+
+		// Get all user options for the current user:
+		// note that if the user isn't logged in (userID=0), we don't load the default number of records from option
+		// 'records_per_page' in table 'user_options' (where 'user_id = 0'). Instead, we'll return as many records as
+		// defined in variable '$defaultNumberOfRecords' in 'ini.inc.php'.
+		if ($userID != 0)
+			$userOptionsArray = getUserOptions($userID);
+
+		// Extract the number of records that's to be returned by default:
+		if (!empty($userOptionsArray) AND !empty($userOptionsArray['records_per_page']))
+			$showRows = $userOptionsArray['records_per_page']; // honour the logged in user's preferred number of records (if not empty or NULL)
+		else
+			$showRows = $defaultNumberOfRecords; // by default, we take the number of records from the global variable '$defaultNumberOfRecords'
+
+		// We'll only update the appropriate session variable if either a normal user is logged in -OR- the admin is logged in and views his own user options page
+		if (($loginEmail != $adminLoginEmail) OR (($loginEmail == $adminLoginEmail) && ($userID == getUserID($loginEmail))))
+			// Write the list of fields into a session variable:
+			saveSessionVariable("userRecordsPerPage", $showRows);
+
+		return $showRows;
 	}
 
 	// --------------------------------------------------------------------
@@ -3746,7 +3824,10 @@ EOF;
 	{
 		// Remove slashes from value if 'magic_quotes_gpc = On':
 		$value = stripSlashesIfMagicQuotes($value);
-		
+
+		// Remove any leading or trailing whitespace:
+		$value = trim($value);
+
 		// Quote & escape special chars if not a number or a numeric string:
 		if (!is_numeric($value))
 		{
@@ -3961,6 +4042,48 @@ EOF;
 
 	// --------------------------------------------------------------------
 
+	// Send '$dataString' as POST request (using the 'application/x-www-form-urlencoded'
+	// content type) to the given '$host'/'$path':
+	function sendPostRequest($host, $path, $referer, $dataString)
+	{
+		$port = 80; // server port to be used with the connection
+		$timeout = 600; // connection time out in seconds
+		$result = "";
+
+		// build header:
+		$header = "POST " . $path . " HTTP/1.0\r\n" // "HTTP/1.1" would return data with "Transfer-Encoding: chunked"
+		        . "Host: " . $host . "\r\n"
+		        . "Referer: " . $referer . "\r\n"
+		        . "Content-Type: application/x-www-form-urlencoded\r\n"
+		        . "Content-Length: ". strlen($dataString) ."\r\n"
+		        . "\r\n";
+
+		// open connection:
+		// see <http://www.php.net/manual/en/function.fsockopen.php>
+		$fp = fsockopen($host, $port, $errorNo, $errorMsg, $timeout);
+
+		if (!$fp)
+		{
+			$result = "Error $errorNo : $errorMsg";
+		}
+		else
+		{
+			// POST data:
+			fputs($fp, $header . $dataString);
+
+			// read result:
+			while (!feof($fp))
+				$result .= fgets($fp, 1024);
+
+			// close connection:
+			fclose($fp);
+		}
+
+		return $result;
+	}
+
+	// --------------------------------------------------------------------
+
 	// Convert to character encoding:
 	// This function converts text that's represented in the refbase database encoding
 	// (which is indicated in '$contentTypeCharset') into the character encoding given
@@ -4103,13 +4226,11 @@ EOF;
 		}
 
 
-		// disallow display/querying of the 'created_by', 'modified_by' and 'location' fields if the user is NOT logged in:
+		// disallow display/querying of the 'location' field if the user is NOT logged in:
 		// (this is mostly done to shield user email addresses from exposure to search engines and/or email harvesting robots)
 		if (!isset($_SESSION['loginEmail']))
 		{
-			// remove the 'created_by', 'modified_by' and 'location' fields from the SQL query:
-			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "created_by", true);
-			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "modified_by", true);
+			// remove 'location' field from SQL query:
 			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "location", true);
 		}
 
@@ -4148,9 +4269,9 @@ EOF;
 			// Note that this also implies that a user who's not logged in might perform a query such as: 'http://localhost/refs/show.php?cite_key=...&userID=...'
 			{
 				// Note: in the patterns below we'll attempt to account for parentheses but this won't catch all cases!
-				$sqlQuery = preg_replace("/WHERE( *\( *?)* *(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related).+?(?= AND| ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i","WHERE\\1",$sqlQuery); // ...delete any user-specific fields from 'WHERE' clause
-				$sqlQuery = preg_replace("/( *\( *?)*( *AND)? *(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related).+?(?=( *\) *?)* +(AND|ORDER BY|LIMIT|GROUP BY|HAVING|PROCEDURE|FOR UPDATE|LOCK IN|$))/i","\\1",$sqlQuery); // ...delete any user-specific fields from 'WHERE' clause
-				$sqlQuery = preg_replace("/WHERE( *\( *?)* *AND/i","WHERE\\1",$sqlQuery); // ...delete any superfluous 'AND' that wasn't removed properly by the two regex patterns above
+				$sqlQuery = preg_replace("/WHERE( *\( *?)* *(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related).+?(?= (AND|OR)\b| ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i","WHERE\\1",$sqlQuery); // ...delete any user-specific fields from 'WHERE' clause
+				$sqlQuery = preg_replace("/( *\( *?)*( *(AND|OR)\b)? *(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related).+?(?=( *\) *?)* +((AND|OR)\b|ORDER BY|LIMIT|GROUP BY|HAVING|PROCEDURE|FOR UPDATE|LOCK IN|$))/i","\\1",$sqlQuery); // ...delete any user-specific fields from 'WHERE' clause
+				$sqlQuery = preg_replace("/WHERE( *\( *?)* *(AND|OR)\b/i","WHERE\\1",$sqlQuery); // ...delete any superfluous 'AND' or 'OR' that wasn't removed properly by the two regex patterns above
 				$sqlQuery = preg_replace("/WHERE( *\( *?)*(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i","WHERE serial RLIKE \".+\"",$sqlQuery); // ...supply generic 'WHERE' clause if it did ONLY contain user-specific fields
 
 				// return an appropriate error message:
@@ -4236,9 +4357,9 @@ EOF;
 		if (eregi("WHERE.+" . $field, $sqlQuery)) // this simple pattern works since we have already stripped any instance(s) of the given '$field' from the ORDER BY clause
 		{
 			// Note: in the patterns below we'll attempt to account for parentheses but this won't catch all cases!
-			$sqlQuery = preg_replace("/WHERE( *\( *?)* *" . $field . ".+?(?= AND| ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", "WHERE\\1", $sqlQuery); // ...delete '$field' from 'WHERE' clause
-			$sqlQuery = preg_replace("/( *\( *?)*( *AND)? *" . $field . ".+?(?=( *\) *?)* +(AND|ORDER BY|LIMIT|GROUP BY|HAVING|PROCEDURE|FOR UPDATE|LOCK IN|$))/i", "\\1", $sqlQuery); // ...delete '$field' from 'WHERE' clause
-			$sqlQuery = preg_replace("/WHERE( *\( *?)* *AND/i","WHERE\\1",$sqlQuery); // ...delete any superfluous 'AND' that wasn't removed properly by the two regex patterns above
+			$sqlQuery = preg_replace("/WHERE( *\( *?)* *" . $field . ".+?(?= (AND|OR)\b| ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", "WHERE\\1", $sqlQuery); // ...delete '$field' from 'WHERE' clause
+			$sqlQuery = preg_replace("/( *\( *?)*( *(AND|OR)\b)? *" . $field . ".+?(?=( *\) *?)* +((AND|OR)\b|ORDER BY|LIMIT|GROUP BY|HAVING|PROCEDURE|FOR UPDATE|LOCK IN|$))/i", "\\1", $sqlQuery); // ...delete '$field' from 'WHERE' clause
+			$sqlQuery = preg_replace("/WHERE( *\( *?)* *(AND|OR)\b/i","WHERE\\1",$sqlQuery); // ...delete any superfluous 'AND' that wasn't removed properly by the two regex patterns above
 			$sqlQuery = preg_replace("/WHERE( *\( *?)*(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", "WHERE serial RLIKE \".+\"", $sqlQuery); // ...supply generic 'WHERE' clause if it did ONLY contain the given '$field'
 
 			if ($issueWarning)
@@ -4310,21 +4431,21 @@ EOF;
 
 		// define an array of search & replace actions:
 		// (Note that the order of array elements IS important since it defines when a search/replace action gets executed)
-		$sqlSearchReplacePatterns = array(" != "                         =>  " is not equal to ",
-										" = "                            =>  " is equal to ",
-										" > "                            =>  " is greater than ",
-										" >= "                           =>  " is equal to or greater than ",
-										" < "                            =>  " is less than ",
-										" <= "                           =>  " is equal to or less than ",
-										"NOT RLIKE \"\\^([^\"]+?)\\$\""  =>  "is not equal to '\\1'",
-										"NOT RLIKE \"\\^"                =>  "does not start with '",
-										"NOT RLIKE \"([^\"]+?)\\$\""     =>  "does not end with '\\1'",
-										"NOT RLIKE"                      =>  "does not contain",
-										"RLIKE \"\\^([^\"]+?)\\$\""      =>  "is equal to '\\1'",
-										"RLIKE \"\\^"                    =>  "starts with '",
-										"RLIKE \"([^\"]+?)\\$\""         =>  "ends with '\\1'",
-										"RLIKE"                          =>  "contains",
-										"AND"                            =>  "and");
+		$sqlSearchReplacePatterns = array(" != "                           =>  " is not equal to ",
+		                                  " = "                            =>  " is equal to ",
+		                                  " > "                            =>  " is greater than ",
+		                                  " >= "                           =>  " is equal to or greater than ",
+		                                  " < "                            =>  " is less than ",
+		                                  " <= "                           =>  " is equal to or less than ",
+		                                  "NOT RLIKE \"\\^([^\"]+?)\\$\""  =>  "is not equal to '\\1'",
+		                                  "NOT RLIKE \"\\^"                =>  "does not start with '",
+		                                  "NOT RLIKE \"([^\"]+?)\\$\""     =>  "does not end with '\\1'",
+		                                  "NOT RLIKE"                      =>  "does not contain",
+		                                  "RLIKE \"\\^([^\"]+?)\\$\""      =>  "is equal to '\\1'",
+		                                  "RLIKE \"\\^"                    =>  "starts with '",
+		                                  "RLIKE \"([^\"]+?)\\$\""         =>  "ends with '\\1'",
+		                                  "RLIKE"                          =>  "contains",
+		                                  "AND"                            =>  "and");
 
 		// Perform search & replace actions on the SQL query:
 		$translatedSQL = searchReplaceText($sqlSearchReplacePatterns, $translatedSQL, false); // function 'searchReplaceText()' is defined in 'include.inc.php'
@@ -4347,6 +4468,69 @@ EOF;
 
 	// --------------------------------------------------------------------
 
+	// This function walks a '$searchArray' and appends its items to the WHERE clause:
+	// (the array hierarchy will be maintained, i.e. if the '_query' item is itself
+	//  an array of query items these sub-items will get properly nested in parentheses)
+	// Example '$searchArray':
+	//   Array
+	//   (
+	//       [0] => Array
+	//           (
+	//               [_boolean] => 
+	//               [_query] => location RLIKE "user@refbase.net"
+	//           )
+	//       [1] => Array
+	//           (
+	//               [_boolean] => AND
+	//               [_query] => Array
+	//                        (
+	//                            [0] => Array
+	//                                (
+	//                                    [_boolean] => OR
+	//                                    [_query] => author RLIKE "steffens"
+	//                                )
+	//                            [1] => Array
+	//                                (
+	//                                    [_boolean] => OR
+	//                                    [_query] => title RLIKE "refbase"
+	//                                )
+	//                            [2] => Array
+	//                                (
+	//                                    [_boolean] => OR
+	//                                    [_query] => keywords RLIKE "refbase"
+	//                                )
+	//                        )
+	//           )
+	//   )
+	function appendToWhereClause($searchArray)
+	{
+		global $query;
+
+		foreach ($searchArray as $searchArrayItem)
+		{
+			if (!ereg("\($", $query)) // add whitespace & any given boolean search operator if this item isn't the first one within a sub-array of query items
+			{
+				$query .= " ";
+
+				if (!empty($searchArrayItem["_boolean"]))
+					$query .= $searchArrayItem["_boolean"] . " ";
+			}
+
+			if (is_array($searchArrayItem["_query"])) // recursively parse any sub-arrays of query items and nest them in parentheses 
+			{
+				$query .= "("; // NOTE: the parentheses must be on their own code lines to allow for correct recursion
+				$query .= appendToWhereClause($searchArrayItem["_query"]);
+				$query .= ")";
+			}
+			else
+			{
+				$query .= $searchArrayItem["_query"];
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------------------------------------------------
+
 	// Generate an URL pointing to a RSS feed:
 	function generateRSSURL($queryWhereClause, $showRows)
 	{
@@ -4365,6 +4549,7 @@ EOF;
 		global $feedbackEmail;
 		global $defaultCiteStyle;
 		global $contentTypeCharset;
+		global $logoImageURL;
 
 		global $transtab_refbase_html; // defined in 'transtab_refbase_html.inc.php'
 
@@ -4373,14 +4558,15 @@ EOF;
 		// (The only exception is the item description which will contain HTML tags & entities that were defined by '$transtab_refbase_html' or by the 'reArrangeAuthorContents()' function)
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"     => "<b>",
-									"bold-suffix"      => "</b>",
-									"italic-prefix"    => "<i>",
-									"italic-suffix"    => "</i>",
-									"underline-prefix" => "<u>",
-									"underline-suffix" => "</u>",
-									"endash"           => "&#8211;",
-									"emdash"           => "&#8212;");
+		$markupPatternsArray = array("bold-prefix"      => "<b>",
+		                             "bold-suffix"      => "</b>",
+		                             "italic-prefix"    => "<i>",
+		                             "italic-suffix"    => "</i>",
+		                             "underline-prefix" => "<u>",
+		                             "underline-suffix" => "</u>",
+		                             "endash"           => "&#8211;",
+		                             "emdash"           => "&#8212;",
+		                             "newline"          => "\n<br>\n");
 
 		$currentDateTimeStamp = date('r'); // get the current date & time (in UNIX time stamp format => "date('D, j M Y H:i:s O')")
 
@@ -4400,7 +4586,7 @@ EOF;
 
 		// write image data:
 		$rssData .=  "\n\n\t\t<image>"
-					. "\n\t\t\t<url>" . $databaseBaseURL . "img/logo.gif</url>"
+					. "\n\t\t\t<url>" . $databaseBaseURL . $logoImageURL . "</url>"
 					. "\n\t\t\t<title>" . encodeHTMLspecialchars($officialDatabaseName) . "</title>"
 					. "\n\t\t\t<link>" . $databaseBaseURL . "</link>"
 					. "\n\t\t</image>";
