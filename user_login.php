@@ -19,6 +19,7 @@
 	// This script manages the login process. It should only be called when the user is not logged in.
 	// If the user is logged in, it will redirect back to the calling page.
 	// If the user is not logged in, it will show a login <form>.
+	// TODO: I18n
 
 
 	// Incorporate some include files:
@@ -57,14 +58,14 @@
 		else
 			$referer = "index.php"; // if all other attempts fail, we'll re-direct to the main page
 	}
-	
-	if (isset($_POST["loginEmail"]))
-		$loginEmail = $_POST["loginEmail"];
-//		$loginEmail = clean($_POST["loginEmail"], 30); // using the clean function would be secure!
 
-	if (isset($_POST["loginPassword"]))
-		$loginPassword = $_POST["loginPassword"];
-//		$loginPassword = clean($_POST["loginPassword"], 8); // using the clean function would be secure!
+	if (isset($_REQUEST["loginEmail"]))
+		$loginEmail = $_REQUEST["loginEmail"];
+//		$loginEmail = clean($_REQUEST["loginEmail"], 30); // using the clean function would be secure!
+
+	if (isset($_REQUEST["loginPassword"]))
+		$loginPassword = $_REQUEST["loginPassword"];
+//		$loginPassword = clean($_REQUEST["loginPassword"], 8); // using the clean function would be secure!
 
 	// Check if the user is already logged in
 	if (isset($_SESSION['loginEmail']))
@@ -77,7 +78,7 @@
 
 	// The user did submit the form but provided none or only one of the two required values: email address AND password:
 	if ((isset($loginEmail) && empty($loginEmail)) || (isset($loginPassword) && empty($loginPassword)))
-//	if ((empty($_POST["loginEmail"]) && !empty($_POST["loginPassword"])) || (!empty($_POST["loginEmail"]) && empty($_POST["loginPassword"])))
+//	if ((empty($_REQUEST["loginEmail"]) && !empty($_REQUEST["loginPassword"])) || (!empty($_REQUEST["loginEmail"]) && empty($_REQUEST["loginPassword"])))
 	{		 
 		// Save an error message:
 		$HeaderString = "<b><span class=\"warning\">In order to login you must supply both, email address and password!</span></b>";
@@ -136,10 +137,10 @@
 
 		// (4) EXTRACT results:
 		if (mysql_num_rows($result) == 1) // Interpret query result: Do we have exactly one row?
-			{
-				$foundUser = true; // then we have found the user
-				$row = mysql_fetch_array($result); //fetch the one row into the array $row
-			}
+		{
+			$foundUser = true; // then we have found the user
+			$row = mysql_fetch_array($result); // fetch the one row into the array '$row'
+		}
 		else
 			$foundUser = false;
 
@@ -159,10 +160,7 @@
 
 			// Now we need to get the user's first name and last name (e.g., in order to display them within the login welcome message)
 			$query = "SELECT user_id, first_name, last_name, abbrev_institution, language, last_login FROM $tableUsers WHERE user_id = " . quote_smart($userID); // CONSTRUCT SQL QUERY
-	
-			// RUN the query on the database through the connection:
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
-
+			$result = queryMySQLDatabase($query, ""); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
 			$row2 = mysql_fetch_array($result); // EXTRACT results: fetch the one row into the array '$row2'
 
 			// Save the fetched user details to the session file:
@@ -209,6 +207,14 @@
 			// and save all allowed user actions as semicolon-delimited string to the session variable 'user_permissions':
 			getPermissions($row2["user_id"], "user", true); // function 'getPermissions()' is defined in 'include.inc.php'
 
+			// Get the default number of records per page preferred by the current user
+			// and save it to the session variable 'userRecordsPerPage':
+			getDefaultNumberOfRecords($row2["user_id"]); // function 'getDefaultNumberOfRecords()' is defined in 'include.inc.php'
+
+			// Get the list of "main fields" for the current user
+			// and save the list of fields as comma-delimited string to the session variable 'userMainFields':
+			getMainFields($row2["user_id"]); // function 'getMainFields()' is defined in 'include.inc.php'
+
 
 			// We also update the user's entry within the 'users' table:
 			$query = "UPDATE $tableUsers SET "
@@ -227,7 +233,7 @@
 		}
 		else
 		{
-		// Ensure loginEmail is not registered, so the user is not logged in
+			// Ensure 'loginEmail' is not registered, so the user is not logged in
 			if (isset($_SESSION['loginEmail'])) // delete the 'loginEmail' session variable:
 				deleteSessionVariable("loginEmail"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 
