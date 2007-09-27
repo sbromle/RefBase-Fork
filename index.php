@@ -66,20 +66,22 @@
 
 	if (isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
 	{
-		$rssURLArray[] = array("href" => "rss.php?where=serial%20RLIKE%20%22.%2B%22&amp;showRows=" . $defaultNumberOfRecords, // '$defaultNumberOfRecords' is defined in 'ini.inc.php'
-								"title" => "records added most recently");
+		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
-		$rssURLArray[] = array("href" => "rss.php?where=created_date%20%3D%20CURDATE%28%29&amp;showRows=" . $defaultNumberOfRecords,
-								"title" => "records added today");
+		$rssURLArray[] = array("href"  => "rss.php?where=serial%20RLIKE%20%22.%2B%22&amp;showRows=" . $showRows,
+		                       "title" => "records added most recently");
 
-		$rssURLArray[] = array("href" => "rss.php?where=modified_date%20%3D%20CURDATE%28%29&amp;showRows=" . $defaultNumberOfRecords,
-								"title" => "records edited today");
+		$rssURLArray[] = array("href"  => "rss.php?where=created_date%20%3D%20CURDATE%28%29&amp;showRows=" . $showRows,
+		                       "title" => "records added today");
+
+		$rssURLArray[] = array("href"  => "rss.php?where=modified_date%20%3D%20CURDATE%28%29&amp;showRows=" . $showRows,
+		                       "title" => "records edited today");
 	}
 
 	// --------------------------------------------------------------------
 
 	// Get the total number of records:
-	$recordCount = getNumberOfRecords(); // function 'getNumberOfRecords()' is defined in 'include.inc.php'
+	$recordCount = getTotalNumberOfRecords(); // function 'getTotalNumberOfRecords()' is defined in 'include.inc.php'
 
 	// Show the login status:
 	showLogin(); // (function 'showLogin()' is defined in 'include.inc.php')
@@ -89,20 +91,29 @@
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["Home"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, $rssURLArray);
 	showPageHeader($HeaderString, "");
 
-	// Define variable holding common drop-down elements, i.e. build properly formatted <option> tag elements:
-	$dropDownFieldNameArray = array("author" => $loc["DropDownFieldName_Author"],
-									"title" => $loc["DropDownFieldName_Title"],
-									"year" => $loc["DropDownFieldName_Year"],
-									"keywords" => $loc["DropDownFieldName_Keywords"],
-									"abstract" => $loc["DropDownFieldName_Abstract"]);
+	// Define variables holding common drop-down elements, i.e. build properly formatted <option> tag elements:
+	// - "Quick Search" form:
+	$userMainFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
+
+	$dropDownFieldNameArray = array("main fields" => $loc["DropDownFieldName_MainFields"]);
+
+	foreach($userMainFieldsArray as $userMainField)
+	{
+		// generate the variable name of the correct '$loc' locale for this field:
+		$dropDownFieldNameLocale = preg_replace("/_(\w)/e", "ucfirst('\\1')", $userMainField); // the 'e' modifier allows to execute PHP code within the replacement pattern
+		$dropDownFieldNameLocale = "DropDownFieldName_" . ucfirst($dropDownFieldNameLocale);
+		// add this field's name and localized string to the array of fields that will be included in the "Quick Search" drop-down menu:
+		$dropDownFieldNameArray[$userMainField] = $loc[$dropDownFieldNameLocale];
+	}
 
 	$dropDownItems = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
-	$dropDownFieldNameArray2 = array("author" => $loc["DropDownFieldName_Author"],
-									"year" => $loc["DropDownFieldName_Year"],
-									"publication" => $loc["DropDownFieldName_Publication"],
-									"keywords" => $loc["DropDownFieldName_Keywords"],
-									"user_keys" => $loc["DropDownFieldName_UserKeys"]);
+	// - "Browse My Refs" form:
+	$dropDownFieldNameArray2 = array("author"      => $loc["DropDownFieldName_Author"],
+	                                 "year"        => $loc["DropDownFieldName_Year"],
+	                                 "publication" => $loc["DropDownFieldName_Publication"],
+	                                 "keywords"    => $loc["DropDownFieldName_Keywords"],
+	                                 "user_keys"   => $loc["DropDownFieldName_UserKeys"]);
 
 	$dropDownItems2 = buildSelectMenuOptions($dropDownFieldNameArray2, "", "\t\t\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
@@ -132,7 +143,7 @@ else
 			<?php echo $loc["ThisDatabaseProvides"] . ":"; ?>
 
 			<ul type="circle">
-				<li><?php echo $loc["Features_ComprehensiveDataset"]; 
+				<li><?php echo $loc["Features_ComprehensiveDataset"];
 					// report the total number of records:
 					echo ", ". $loc["currently featuring"]; ?><a href="show.php?records=all" title="<?php echo $loc["LinkTitle_ShowAll"]; ?>"><?php echo $recordCount . " " . $loc["records"]; ?></a></li>
 				<li><?php echo $loc["Features_StandardizedInterface"]; ?></li>
@@ -254,7 +265,7 @@ else
 				<input type="hidden" name="showLinks" value="1">
 				<select name="quickSearchSelector"><?php
 
-$quickSearchDropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems); // select the 'author' menu entry ...
+$quickSearchDropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_MainFields"], "<option\\1 selected>" . $loc["DropDownFieldName_MainFields"], $dropDownItems); // select the 'main fields' menu entry ...
 echo $quickSearchDropDownItems;
 ?>
 
@@ -533,7 +544,7 @@ else
 	<tr>
 		<td width="15">&nbsp;</td>
 		<td><?php echo $loc["ThisDatabaseIsMaintained"]; ?> <a href="<?php echo $hostInstitutionURL; ?>"><?php echo encodeHTML($hostInstitutionName); ?></a> (<?php echo encodeHTML($hostInstitutionAbbrevName); ?>). <?php echo $loc["You are welcome to send"]; ?> <a href="mailto:<?php echo $feedbackEmail; ?>"><?php echo $loc["feedback address"]; ?></a>. <?php echo $loc["refbaseDesc"]; ?></td>
-		<td width="182" valign="top"><a href="http://www.refbase.net/"><img src="img/refbase_credit.gif" alt="powered by refbase" width="80" height="44" hspace="0" border="0"></a></td>
+		<td width="182" valign="top"><a href="http://www.refbase.net/"><img src="img/refbase_credit.gif" alt="powered by refbase" width="142" height="51" hspace="0" border="0"></a></td>
 	</tr>
 </table><?php
 
