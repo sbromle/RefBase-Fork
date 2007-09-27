@@ -316,7 +316,7 @@
 
       // Book Chapters and Journal Articles only have a dateIssued
       // (editions, places, and publishers are associated with the host)
-      if (!ereg("Book Chapter|Journal Article", $row['type'])) {
+      if (!ereg("^(Book Chapter|Journal Article)$", $row['type'])) {
         // publisher
         if (!empty($row['publisher']))
           $origin->setTagContent($row['publisher'], "originInfo/publisher");
@@ -537,13 +537,13 @@
 
     // -----------------------------------------
 
-    // --- BEGIN TYPE != BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE || NEWSPAPER ARTICLE ---
+    // --- BEGIN TYPE != ABSTRACT || BOOK CHAPTER || CONFERENCE ARTICLE || JOURNAL ARTICLE || MAGAZINE ARTICLE || NEWSPAPER ARTICLE ---
     //   |
     //   | BOOK WHOLE, CONFERENCE VOLUME, JOURNAL, MANUAL, MANUSCRIPT, MAP, MISCELLANEOUS, PATENT,
-    //   | REPORT, and SOFTWARE have some info as a branch off the root, where as BOOK CHAPTER,
-    //   | JOURNAL ARTICLE, CONFERENCE ARTICLE and NEWSPAPER ARTICLE place it in the relatedItem branch.
+    //   | REPORT, and SOFTWARE have some info as a branch off the root, whereas ABSTRACT, BOOK CHAPTER,
+    //   | CONFERENCE ARTICLE, JOURNAL ARTICLE, MAGAZINE ARTICLE and NEWSPAPER ARTICLE place it in the relatedItem branch.
 
-    if (!ereg("Book Chapter|Journal Article|Conference Article|Newspaper Article", $row['type'])) {
+    if (!ereg("^(Abstract|Book Chapter|Conference Article|Journal Article|Magazine Article|Newspaper Article)$", $row['type'])) {
       // name
       //   editor
       if (!empty($row['editor'])) {
@@ -648,6 +648,10 @@
         $thesismarc->setTagContent("theses");
         $thesismarc->setTagAttribute("authority", "marcgt");
 
+        // tweak thesis names so that Bibutils will recognize them:
+        if ($row['thesis'] == "Master's thesis")
+          $row['thesis'] = "Masters thesis";
+
         $thesis->setTagContent($row['thesis']);
 
         $record->addXMLBranch($thesismarc);
@@ -710,17 +714,17 @@
       }
     }
 
-    // --- END TYPE != BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE || NEWSPAPER ARTICLE ---
+    // --- END TYPE != ABSTRACT || BOOK CHAPTER || CONFERENCE ARTICLE || JOURNAL ARTICLE || MAGAZINE ARTICLE || NEWSPAPER ARTICLE ---
 
     // -----------------------------------------
 
-    // --- BEGIN TYPE == BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE || NEWSPAPER ARTICLE ---
+    // --- BEGIN TYPE == ABSTRACT || BOOK CHAPTER || CONFERENCE ARTICLE || JOURNAL ARTICLE || MAGAZINE ARTICLE || NEWSPAPER ARTICLE ---
     //   |
     //   | NOTE: These are currently the only types that have publication,
     //   |       abbrev_journal, volume, and issue added.
     //   | A lot of info goes into the relatedItem branch.
 
-    else { // if (ereg("Book Chapter|Journal Article|Conference Article|Newspaper Article", $row['type']))
+    else { // if (ereg("^(Abstract|Book Chapter|Conference Article|Journal Article|Magazine Article|Newspaper Article)$", $row['type']))
       // relatedItem
       $related = new XMLBranch("relatedItem");
       $related->setTagAttribute("type", "host");
@@ -793,7 +797,7 @@
 
       // genre (and originInfo/issuance)
       if (empty($row['thesis'])) { // theses will get their own genre (see below)
-        if ($row['type'] == "Journal Article") {
+        if (ereg("^(Journal Article|Magazine Article)$", $row['type'])) {
           $related->setTagContent("continuing",
                                   "relatedItem/originInfo/issuance");
           $genremarc = new XMLBranch("genre");
@@ -802,10 +806,17 @@
           $genremarc->setTagContent("periodical");
           $genremarc->setTagAttribute("authority", "marcgt");
 
-          $genre->setTagContent("academic journal");
+          if ($row['type'] == "Magazine Article")
+            $genre->setTagContent("magazine");
+          else
+            $genre->setTagContent("academic journal");
 
           $related->addXMLBranch($genremarc);
           $related->addXMLBranch($genre);
+        }
+        else if ($row['type'] == "Abstract") {
+          $record->setTagContent("abstract or summary", "mods/genre");
+          $record->setTagAttribute("authority", "marcgt", "mods/genre");
         }
         else if ($row['type'] == "Conference Article") {
           $related->setTagContent("conference publication", "relatedItem/genre");
@@ -831,6 +842,10 @@
 
         $thesismarc->setTagContent("theses");
         $thesismarc->setTagAttribute("authority", "marcgt");
+
+        // tweak thesis names so that Bibutils will recognize them:
+        if ($row['thesis'] == "Master's thesis")
+          $row['thesis'] = "Masters thesis";
 
         $thesis->setTagContent($row['thesis']);
 
@@ -868,7 +883,10 @@
             }
             else {
               $pages = new XMLBranch("detail");
-              $pages->setTagContent($row['pages'], "detail/number");
+              if ($pagestart == $pageend) // single-page item
+                $pages->setTagContent($pagestart, "detail/number");
+              else
+                $pages->setTagContent($row['pages'], "detail/number");
               $pages->setTagAttribute("type", "page");
             }
           }
@@ -912,7 +930,7 @@
       $record->addXMLBranch($related);
     }
 
-    // --- END TYPE == BOOK CHAPTER || JOURNAL ARTICLE || CONFERENCE ARTICLE || NEWSPAPER ARTICLE ---
+    // --- END TYPE == ABSTRACT || BOOK CHAPTER || CONFERENCE ARTICLE || JOURNAL ARTICLE || MAGAZINE ARTICLE || NEWSPAPER ARTICLE ---
 
 
     return $record;
