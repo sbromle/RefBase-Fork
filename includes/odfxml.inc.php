@@ -489,10 +489,12 @@
 		//											""                   => "15", // e-mail (currently not supported by refbase)
 		//											""                   => "16", // WWW document (currently not supported by refbase)
 													"Newspaper Article"  => "17", // User-defined1
-													"Patent"             => "18", // User-defined2
-													"Software"           => "19", // User-defined3
-													"Journal"            => "20", // User-defined4 (a whole journal)
+													"Magazine Article"   => "18", // User-defined2
+													"Patent"             => "19", // User-defined3
+													"Software"           => "20", // User-defined4
 													"Map"                => "21"  // User-defined5
+		//											"Abstract"           => ""    // could we specify more than 21 ODF types?
+		//											"Journal"            => ""
 												);
 
 
