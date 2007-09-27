@@ -100,21 +100,23 @@
 			if (!isset($availableTypeTitlesArray))
 				// Map record types with items of the global localization array ('$loc'):
 				$availableTypeTitlesArray = array(
-													"Journal Article"    => "JournalArticles",
-													"Book Chapter"       => "BookContributions",
-													"Book Whole"         => "Monographs",
-													"Conference Article" => "ConferenceArticles",
-													"Conference Volume"  => "ConferenceVolumes",
-													"Journal"            => "Journals",
-													"Manual"             => "Manuals",
-													"Manuscript"         => "Manuscripts",
-													"Map"                => "Maps",
-													"Miscellaneous"      => "Miscellaneous",
-													"Newspaper Article"  => "NewspaperArticles",
-													"Patent"             => "Patents",
-													"Report"             => "Reports",
-													"Software"           => "Software"
-												);
+				                                   "Journal Article"    => "JournalArticles",
+				                                   "Abstract"           => "Abstracts",
+				                                   "Book Chapter"       => "BookContributions",
+				                                   "Book Whole"         => "Monographs",
+				                                   "Conference Article" => "ConferenceArticles",
+				                                   "Conference Volume"  => "ConferenceVolumes",
+				                                   "Journal"            => "Journals",
+				                                   "Magazine Article"   => "MagazineArticles",
+				                                   "Manual"             => "Manuals",
+				                                   "Manuscript"         => "Manuscripts",
+				                                   "Map"                => "Maps",
+				                                   "Miscellaneous"      => "Miscellaneous",
+				                                   "Newspaper Article"  => "NewspaperArticles",
+				                                   "Patent"             => "Patents",
+				                                   "Report"             => "Reports",
+				                                   "Software"           => "Software"
+				                                 );
 
 			if (isset($recordType, $availableTypeTitlesArray))
 				$typeTitle = $loc[$availableTypeTitlesArray[$recordType]];
@@ -126,13 +128,13 @@
 			if (!isset($availableThesisTitlesArray))
 				// Map thesis types with items of the global localization array ('$loc'):
 				$availableThesisTitlesArray = array(
-													"Bachelor's thesis"   => "Theses_Bachelor",
-													"Master's thesis"     => "Theses_Master",
-													"Ph.D. thesis"        => "Theses_PhD",
-													"Diploma thesis"      => "Theses_Diploma",
-													"Doctoral thesis"     => "Theses_Doctoral",
-													"Habilitation thesis" => "Theses_Habilitation"
-												);
+				                                     "Bachelor's thesis"   => "Theses_Bachelor",
+				                                     "Master's thesis"     => "Theses_Master",
+				                                     "Ph.D. thesis"        => "Theses_PhD",
+				                                     "Diploma thesis"      => "Theses_Diploma",
+				                                     "Doctoral thesis"     => "Theses_Doctoral",
+				                                     "Habilitation thesis" => "Theses_Habilitation"
+				                                   );
 
 			if (isset($thesis, $availableThesisTitlesArray))
 				$typeTitle = $loc[$availableThesisTitlesArray[$thesis]];
