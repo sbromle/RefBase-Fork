@@ -86,10 +86,10 @@
 	else
 		$showLinks = "1"; // for 'show.php' we'll always show the links column by default if the 'showLinks' parameter isn't set explicitly to "0"
 
-	if (isset($_REQUEST['showRows'])) // contains the desired number of search results (OpenSearch equivalent: '{count}')
+	if (isset($_REQUEST['showRows']) AND ereg("^[1-9]+[0-9]*$", $_REQUEST['showRows'])) // contains the desired number of search results (OpenSearch equivalent: '{count}')
 		$showRows = $_REQUEST['showRows'];
 	else
-		$showRows = $defaultNumberOfRecords; // '$defaultNumberOfRecords' is defined in 'ini.inc.php'
+		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 	if (isset($_REQUEST['startRecord'])) // contains the offset of the first search result, starting with one (OpenSearch equivalent: '{startIndex}')
 		$rowOffset = ($_REQUEST['startRecord']) - 1; // first row number in a MySQL result set is 0 (not 1)
@@ -118,7 +118,8 @@
 	// - 'LaTeX' => return citations as LaTeX data with mime type 'application/x-latex'
 	// - 'Markdown' => return citations as Markdown TEXT data with mime type 'text/plain'
 	// - 'ASCII' => return citations as TEXT data with mime type 'text/plain'
-	if (isset($_REQUEST['citeType']) AND eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII)$", $_REQUEST['citeType']))
+	// - 'LaTeX .bbl' => return citations as LaTeX .bbl file (for use with LaTeX/BibTeX) with mime type 'application/x-latex'
+	if (isset($_REQUEST['citeType']) AND eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $_REQUEST['citeType']))
 		$citeType = $_REQUEST['citeType'];
 	else
 		$citeType = "html";
@@ -360,7 +361,7 @@
 		$callNumber = $serial; // treat content in '$serial' as call number
 		$serial = "";
 	}
-		
+
 	elseif ($recordIDSelector == "cite_key")
 	{
 		$citeKey = $serial; // treat content in '$serial' as cite key
@@ -398,9 +399,9 @@
 		showPageHeader($HeaderString, "");
 
 		// Define variables holding drop-down elements, i.e. build properly formatted <option> tag elements:
-		$dropDownConditionalsArray = array("is equal to" => $loc["equal to"],
-											"contains" => $loc["contains"],
-											"is within list" => $loc["is within list"]);
+		$dropDownConditionalsArray = array("is equal to"    => $loc["equal to"],
+		                                   "contains"       => $loc["contains"],
+		                                   "is within list" => $loc["is within list"]);
 
 		$dropDownItems1 = buildSelectMenuOptions($dropDownConditionalsArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
@@ -497,7 +498,6 @@
 
 			if ($displayType == "Export") // for export, we inject some additional fields into the SELECT clause (again, we must add these additional fields *before* ", call_number, serial" in order to have the described query completion feature work correctly!)
 				$query = eregi_replace(', call_number, serial', ', online_publication, online_citation, modified_date, modified_time, call_number, serial', $query);
-	
 		}
 
 		elseif ($displayType == "Cite") // select all fields required to build proper record citations:
@@ -872,7 +872,7 @@
 		{
 			if ($citeOrder == "year")
 				$query .= " ORDER BY year DESC, first_author, author_count, author, title"; // sort records first by year (descending), then in the usual way
-	
+
 			elseif ($citeOrder == "type") // sort records first by record type (and thesis type), then in the usual way:
 				$query .= " ORDER BY type DESC, thesis DESC, first_author, author_count, author, year, title";
 
@@ -883,7 +883,7 @@
 			{
 				if (!empty($recordIDSelector)) // if a record identifier (either 'serial', 'call_number' or 'cite_key') was entered via the 'show.php' web form
 					$query .= " ORDER BY " . escapeSQL($recordIDSelector) . ", author, year DESC, publication"; // sort by the appropriate column
-	
+
 				else // supply the default ORDER BY clause:
 				{
 					if ($displayType == "Cite")
@@ -896,13 +896,63 @@
 
 		// Build the correct query URL:
 		// (we skip unnecessary parameters here since 'search.php' will use it's default values for them)
-		$queryURL = "sqlQuery=" . rawurlencode($query) . "&client=" . $client ."&formType=sqlSearch&submit=" . $displayType . "&viewType=" . $viewType . "&showQuery=" . $showQuery . "&showLinks=" . $showLinks . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . "&wrapResults=" . $wrapResults . "&citeOrder=" . $citeOrder . "&citeStyleSelector=" . rawurlencode($citeStyle) . "&exportFormatSelector=" . rawurlencode($exportFormat) . "&exportType=" . $exportType . "&citeType=" . $citeType . "&headerMsg=" . rawurlencode($headerMsg);
+		$queryParametersArray = array("sqlQuery"             => $query,
+		                              "client"               => $client,
+		                              "formType"             => "sqlSearch",
+		                              "submit"               => $displayType,
+		                              "viewType"             => $viewType,
+		                              "showQuery"            => $showQuery,
+		                              "showLinks"            => $showLinks,
+		                              "showRows"             => $showRows,
+		                              "rowOffset"            => $rowOffset,
+		                              "wrapResults"          => $wrapResults,
+		                              "citeOrder"            => $citeOrder,
+		                              "citeStyleSelector"    => $citeStyle,
+		                              "exportFormatSelector" => $exportFormat,
+		                              "exportType"           => $exportType,
+		                              "citeType"             => $citeType,
+		                              "headerMsg"            => $headerMsg
+		                             );
 
-		// call 'search.php' with the correct query URL in order to display record details:
-		header("Location: search.php?$queryURL");
+		// Call 'search.php' in order to display record details:
+		if ($_SERVER['REQUEST_METHOD'] == "POST")
+		{
+			// save POST data to session variable:
+			// NOTE: If the original request was a POST (as is the case for the refbase command line client) saving POST data to a session
+			//       variable allows to retain large param/value strings (that would exceed the maximum string limit for GET requests).
+			//       'search.php' will then write the saved POST data back to '$_POST' and '$_REQUEST'. (see also note and commented code below)
+			saveSessionVariable("postData", $queryParametersArray); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+
+			header("Location: search.php?client=" . $client); // we also pass the 'client' parameter in the GET request so that it's available to 'search.php' before sessions are initiated
+		}
+		else
+		{
+			$queryURL = "";
+			foreach ($queryParametersArray as $varname => $value)
+				$queryURL .= "&" . $varname . "=" . rawurlencode($value);
+
+			header("Location: search.php?$queryURL");
+		}
+
+		// NOTE: If the original request was a POST (as is the case for the refbase command line client), we must also pass the data via POST to 'search.php'
+		//       in order to retain large param/value strings (that would exceed the maximum string limit for GET requests). We could POST the data via function
+		//       'sendPostRequest()' as shown in the commented code below. However, the problem with this is that this does NOT *redirect* to 'search.php' but
+		//       directly prints results from within this script ('show.php'). Also, the printed results include the full HTTP response, including the HTTP header.
+//		if ($_SERVER['REQUEST_METHOD'] == "POST") // redirect via a POST request:
+//		{
+//			// extract the host & path on server from the base URL:
+//			$host = preg_replace("#^[^:]+://([^/]+).*#", "\\1", $databaseBaseURL); // variable '$databaseBaseURL' is defined in 'ini.inc.php'
+//			$path = preg_replace("#^[^:]+://[^/]+(/.*)#", "\\1", $databaseBaseURL);
+//
+//			// send POST request:
+//			$httpResult = sendPostRequest($host, $path . "search.php", $databaseBaseURL . "show.php", $queryURL); // function 'sendPostRequest()' is defined in 'include.inc.php'
+//			echo $httpResult;
+//		}
+//		else // redirect via a GET request:
+//			header("Location: search.php?$queryURL");
 	}
 
-	
+
 	// -------------------------------------------------------------------------------------------------------------------
 
 
