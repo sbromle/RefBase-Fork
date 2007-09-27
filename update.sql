@@ -73,7 +73,9 @@ INSERT INTO `formats` VALUES (1, 'MODS XML', 'import', 'true', 'bibutils/import_
 (25, 'ASCII', 'cite', 'true', 'formats/cite_ascii.php', '19', 1),
 (26, 'RefWorks', 'import', 'true', 'import_refworks2refbase.php', '20', 1),
 (27, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', '21', 1),
-(28, 'Word XML', 'export', 'true', 'bibutils/export_xml2word.php', '22', 2);
+(28, 'Word XML', 'export', 'true', 'bibutils/export_xml2word.php', '22', 2),
+(29, 'LaTeX .bbl', 'cite', 'true', 'formats/cite_latex_bbl.php', '23', 1),
+(30, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', '24', 1);
 
 # --------------------------------------------------------
 
@@ -86,6 +88,20 @@ INSERT INTO `languages` VALUES (NULL, 'fr', 'true', '3'),
 (NULL, 'cn', 'true', '5');
 
 UPDATE `languages` SET `language_enabled` = 'true' WHERE `language_name` = 'de';
+
+# --------------------------------------------------------
+
+#
+# update table `refs`
+#
+
+UPDATE `refs` SET `thesis` = NULL WHERE `thesis` = '';
+
+UPDATE `refs` SET `type` = 'Conference Article' WHERE `type` RLIKE '^(Unsupported: )?Conference Proceeding$';
+UPDATE `refs` SET `type` = 'Miscellaneous' WHERE `type` RLIKE '^(Unsupported: )?Generic$';
+UPDATE `refs` SET `type` = 'Newspaper Article' WHERE `type` RLIKE '^(Unsupported: )?Newspaper$';
+UPDATE `refs` SET `type` = 'Software' WHERE `type` RLIKE '^(Unsupported: )?Computer Program$';
+UPDATE `refs` SET `type` = REPLACE(`type`, "Unsupported: ", "") WHERE `type` RLIKE "^Unsupported: (Abstract|Conference (Article|Volume)|Magazine Article|Manual|Miscellaneous|Newspaper Article|Patent|Report|Software)$";
 
 # --------------------------------------------------------
 
@@ -112,21 +128,33 @@ UPDATE `styles` SET `order_by` = 'B040' WHERE `style_name` = 'Deep Sea Res';
 # update table `types`
 #
 
-INSERT INTO `types` VALUES (NULL, 'Conference Article', 'true', 2, '04'),
-(NULL, 'Conference Volume', 'true', 3, '05'),
-(NULL, 'Manual', 'true', 3, '07'),
-(NULL, 'Miscellaneous', 'true', 3, '10'),
-(NULL, 'Newspaper Article', 'true', 1, '11'),
-(NULL, 'Patent', 'true', 3, '12'),
-(NULL, 'Report', 'true', 3, '13'),
-(NULL, 'Software', 'true', 3, '14');
-
 UPDATE `types` SET `order_by` = '01' WHERE `type_name` = 'Journal Article';
-UPDATE `types` SET `order_by` = '02' WHERE `type_name` = 'Book Chapter';
-UPDATE `types` SET `order_by` = '03' WHERE `type_name` = 'Book Whole';
-UPDATE `types` SET `order_by` = '06' WHERE `type_name` = 'Journal';
-UPDATE `types` SET `order_by` = '08' WHERE `type_name` = 'Manuscript';
-UPDATE `types` SET `order_by` = '09' WHERE `type_name` = 'Map';
+UPDATE `types` SET `order_by` = '02' WHERE `type_name` = 'Abstract';
+UPDATE `types` SET `order_by` = '03' WHERE `type_name` = 'Book Chapter';
+UPDATE `types` SET `order_by` = '04' WHERE `type_name` = 'Book Whole';
+UPDATE `types` SET `order_by` = '05' WHERE `type_name` = 'Conference Article';
+UPDATE `types` SET `order_by` = '06' WHERE `type_name` = 'Conference Volume';
+UPDATE `types` SET `order_by` = '07' WHERE `type_name` = 'Journal';
+UPDATE `types` SET `order_by` = '08' WHERE `type_name` = 'Magazine Article';
+UPDATE `types` SET `order_by` = '09' WHERE `type_name` = 'Manual';
+UPDATE `types` SET `order_by` = '10' WHERE `type_name` = 'Manuscript';
+UPDATE `types` SET `order_by` = '11' WHERE `type_name` = 'Map';
+UPDATE `types` SET `order_by` = '12' WHERE `type_name` = 'Miscellaneous';
+UPDATE `types` SET `order_by` = '13' WHERE `type_name` = 'Newspaper Article';
+UPDATE `types` SET `order_by` = '14' WHERE `type_name` = 'Patent';
+UPDATE `types` SET `order_by` = '15' WHERE `type_name` = 'Report';
+UPDATE `types` SET `order_by` = '16' WHERE `type_name` = 'Software';
+
+INSERT INTO `types` VALUES (NULL, 'Abstract', 'true', 2, '02'),
+(NULL, 'Conference Article', 'true', 2, '05'),
+(NULL, 'Conference Volume', 'true', 3, '06'),
+(NULL, 'Magazine Article', 'true', 1, '08'),
+(NULL, 'Manual', 'true', 3, '09'),
+(NULL, 'Miscellaneous', 'true', 3, '12'),
+(NULL, 'Newspaper Article', 'true', 1, '13'),
+(NULL, 'Patent', 'true', 3, '14'),
+(NULL, 'Report', 'true', 3, '15'),
+(NULL, 'Software', 'true', 3, '16');
 
 # --------------------------------------------------------
 
@@ -147,6 +175,8 @@ CREATE TABLE `user_options` (
   `nonascii_chars_in_cite_keys` enum('transliterate','strip','keep') default NULL,
   `use_custom_text_citation_format` enum('no','yes') NOT NULL default 'no',
   `text_citation_format` varchar(255) default NULL,
+  `records_per_page` smallint(5) unsigned default NULL,
+  `main_fields` text,
   PRIMARY KEY  (`option_id`),
   KEY `user_id` (`user_id`)
 ) TYPE=MyISAM;
@@ -155,8 +185,8 @@ CREATE TABLE `user_options` (
 # data for table `user_options`
 #
 
-INSERT INTO `user_options` VALUES (1, 0, 'yes', 'yes', 'no', 'no', '<:authors:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>'),
-(2, 1, 'yes', 'yes', 'no', 'no', '<:firstAuthor:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>');
+INSERT INTO `user_options` VALUES (1, 0, 'yes', 'yes', 'no', 'no', '<:authors:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>', NULL, 'author, title, publication, keywords, abstract'),
+(2, 1, 'yes', 'yes', 'no', 'no', '<:firstAuthor:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>', NULL, 'author, title, publication, keywords, abstract');
 
 # --------------------------------------------------------
 

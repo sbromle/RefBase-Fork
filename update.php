@@ -16,7 +16,7 @@
 	//             $Author$
 	//             $Revision$
 
-	// This file will update any refbase MySQL database installation from v0.8.0 (and, to a certain extent, intermediate cvs versions) to v0.9.0.
+	// This file will update any refbase MySQL database installation from v0.8.0 or greater to v0.9.1.
 	// (Note that this script currently doesn't offer any conversion from 'latin1' to 'utf8')
 	// CAUTION: YOU MUST REMOVE THIS SCRIPT FROM YOUR WEB DIRECTORY AFTER THE UPDATE!!
 
@@ -64,7 +64,7 @@
 	if (empty($adminUserName) AND empty($adminPassword))
 	{
 		// if 'update.php' was called without any valid parameters:
-		//Display an update form:
+		// Display an update form:
 
 		if (isset($_SESSION['errors']))
 		{
@@ -243,7 +243,32 @@
 
 		$resultArray = array();
 
-		// (2.1) Create new MySQL table 'user_options'
+		// Update table 'refs'
+		$query = "UPDATE " . $tableRefs . " SET thesis = NULL WHERE thesis = ''"; // this fix is required to ensure correct sorting when outputting citations with '$citeOrder="type"' or '$citeOrder="type-year"'
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'refs': updated 'thesis' field (replaced empty string with NULL). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableRefs . " SET type = 'Conference Article' WHERE type RLIKE '^(Unsupported: )?Conference Proceeding$'"; // this may not be perfect since some items of type "Conference Proceeding" may be actually a "Conference Volume"
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'refs': updated 'type' field ('Conference Proceeding' => 'Conference Article'). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableRefs . " SET type = 'Miscellaneous' WHERE type RLIKE '^(Unsupported: )?Generic$'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'refs': updated 'type' field ('Generic' => 'Miscellaneous'). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableRefs . " SET type = 'Newspaper Article' WHERE type RLIKE '^(Unsupported: )?Newspaper$'"; // this may not be perfect since some items of type "Newspaper" may be actually a "Newspaper Volume"
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'refs': updated 'type' field ('Newspaper' => 'Newspaper Article'). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableRefs . " SET type = 'Software' WHERE type RLIKE '^(Unsupported: )?Computer Program$'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'refs': updated 'type' field ('Computer Program' => 'Software'). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableRefs . " SET type = REPLACE(type,'Unsupported: ','') WHERE type RLIKE '^Unsupported: (Abstract|Conference (Article|Volume)|Magazine Article|Manual|Miscellaneous|Newspaper Article|Patent|Report|Software)$'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'refs': updated 'type' field (removed 'Unsupported' label for all newly supported types). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		// Create new MySQL table 'user_options'
 		$properties = "(option_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
 					. "user_id MEDIUMINT UNSIGNED NOT NULL, "
 					. "export_cite_keys ENUM('yes','no') NOT NULL, "
@@ -255,15 +280,17 @@
 					. "nonascii_chars_in_cite_keys ENUM('transliterate','strip','keep'), "
 					. "use_custom_text_citation_format ENUM('no','yes') NOT NULL, "
 					. "text_citation_format VARCHAR(255), "
+					. "records_per_page SMALLINT(5) UNSIGNED DEFAULT NULL, "
+					. "main_fields TEXT, "
 					. "INDEX (user_id))";
 
 		$resultArray["Created table 'user_options'"] = addTableIfNotExists($tableUserOptions, $properties); // function 'addTableIfNotExists()' is defined in 'install.inc.php'
 
-		// (2.2) Insert default user options for anyone who's not logged in
-		$values = "(NULL, 0, 'yes', 'yes', 'no', 'no', '<:authors:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>')";
+		// Insert default user options for anyone who's not logged in
+		$values = "(NULL, 0, 'yes', 'yes', 'no', 'no', '<:authors:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>', NULL, 'author, title, publication, keywords, abstract')";
 		$resultArray["Table 'user_options': inserted default options for anyone who's not logged in"] = insertIfNotExists(array("user_id" => 0), $tableUserOptions, $values); // function 'insertIfNotExists()' is defined in 'install.inc.php'
 
-		// (2.3) Insert default user options for all users
+		// Insert default user options for all users
 		// First, check how many users are contained in table 'users':
 		$query = "SELECT user_id, first_name, last_name FROM " . $tableUsers;
 		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
@@ -272,21 +299,29 @@
 		{
 			while ($row = @ mysql_fetch_array($result))
 			{
-				$values = "(NULL, " . $row['user_id'] . ", 'yes', 'yes', 'no', 'yes', '<:authors[2|+|++]:><:year:>', 'yes', 'transliterate', 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>')";
+				$values = "(NULL, " . $row['user_id'] . ", 'yes', 'yes', 'no', 'yes', '<:authors[2|+|++]:><:year:>', 'yes', 'transliterate', 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>', NULL, 'author, title, publication, keywords, abstract')";
 				$resultArray["Table 'user_options': inserted default options for user " . $row['user_id'] . " (" . $row['first_name'] . " " . $row['last_name'] . ")"] = insertIfNotExists(array("user_id" => $row['user_id']), $tableUserOptions, $values);
 			}
 		}
 
-		// (2.4) Add field 'allow_browse_view' to table 'user_permissions'
+		// Add field 'records_per_page' to table 'user_options'
+		$properties = "SMALLINT(5) UNSIGNED DEFAULT NULL AFTER text_citation_format";
+		$resultArray["Table 'user_options': added field 'records_per_page'"] = addColumnIfNotExists("records_per_page", $tableUserOptions, $properties); // function 'addColumnIfNotExists()' is defined in 'install.inc.php'
+
+		// Add field 'main_fields' to table 'user_options'
+		$properties = "TEXT AFTER records_per_page";
+		$resultArray["Table 'user_options': added field 'main_fields'"] = addColumnIfNotExists("main_fields", $tableUserOptions, $properties); // function 'addColumnIfNotExists()' is defined in 'install.inc.php'
+
+		// Add field 'allow_browse_view' to table 'user_permissions'
 		$properties = "ENUM('yes','no') NOT NULL AFTER allow_print_view";
 		$resultArray["Table 'user_permissions': added field 'allow_browse_view'"] = addColumnIfNotExists("allow_browse_view", $tableUserPermissions, $properties); // function 'addColumnIfNotExists()' is defined in 'install.inc.php'
 
-		// (2.5) Disable the Browse view feature (which isn't done yet) for all users
+		// Disable the Browse view feature (which isn't done yet) for all users
 		$query= "UPDATE " . $tableUserPermissions . " SET allow_browse_view = 'no'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'user_permissions': disabled the Browse view feature (which isn't done yet). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
 
-		// (2.6) Update table 'styles'
+		// Update table 'styles'
 		$query = "UPDATE " . $tableStyles . " SET style_spec = REPLACE(style_spec,'cite_','styles/cite_') WHERE style_spec RLIKE '^cite_'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'styles': updated 'style_spec' field. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
@@ -299,7 +334,7 @@
 
 		$values = "(NULL, 'APA', 'true', 'styles/cite_APA.php', 'A010', '1')";
 		$resultArray["Table 'styles': inserted style 'APA'"] = insertIfNotExists(array("style_name" => "APA"), $tableStyles, $values);
-		
+
 		$values = "(NULL, 'MLA', 'true', 'styles/cite_MLA.php', 'A030', '1')";
 		$resultArray["Table 'styles': inserted style 'MLA'"] = insertIfNotExists(array("style_name" => "MLA"), $tableStyles, $values);
 
@@ -331,56 +366,102 @@
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'styles': updated 'J Glaciol' style. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.7) Update table 'types'
-		$values = "(NULL, 'Conference Article', 'true', 2, '04')";
-		$resultArray["Table 'types': inserted type 'Conference Article'"] = insertIfNotExists(array("type_name" => "Conference Article"), $tableTypes, $values);
-
-		$values = "(NULL, 'Conference Volume', 'true', 3, '05')";
-		$resultArray["Table 'types': inserted type 'Conference Volume'"] = insertIfNotExists(array("type_name" => "Conference Volume"), $tableTypes, $values);
-
-		$values = "(NULL, 'Manual', 'true', 3, '07')";
-		$resultArray["Table 'types': inserted type 'Manual'"] = insertIfNotExists(array("type_name" => "Manual"), $tableTypes, $values);
-
-		$values = "(NULL, 'Miscellaneous', 'true', 3, '10')";
-		$resultArray["Table 'types': inserted type 'Miscellaneous'"] = insertIfNotExists(array("type_name" => "Miscellaneous"), $tableTypes, $values);
-
-		$values = "(NULL, 'Newspaper Article', 'true', 1, '11')";
-		$resultArray["Table 'types': inserted type 'Newspaper Article'"] = insertIfNotExists(array("type_name" => "Newspaper Article"), $tableTypes, $values);
-
-		$values = "(NULL, 'Patent', 'true', 3, '12')";
-		$resultArray["Table 'types': inserted type 'Patent'"] = insertIfNotExists(array("type_name" => "Patent"), $tableTypes, $values);
-
-		$values = "(NULL, 'Report', 'true', 3, '13')";
-		$resultArray["Table 'types': inserted type 'Report'"] = insertIfNotExists(array("type_name" => "Report"), $tableTypes, $values);
-
-		$values = "(NULL, 'Software', 'true', 3, '14')";
-		$resultArray["Table 'types': inserted type 'Software'"] = insertIfNotExists(array("type_name" => "Software"), $tableTypes, $values);
-
+		// Update table 'types'
 		$query = "UPDATE " . $tableTypes . " SET order_by = '01' WHERE type_name = 'Journal Article'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'types': updated 'Journal Article' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		$query = "UPDATE " . $tableTypes . " SET order_by = '02' WHERE type_name = 'Book Chapter'";
+		$query = "UPDATE " . $tableTypes . " SET order_by = '02' WHERE type_name = 'Abstract'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Abstract' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '03' WHERE type_name = 'Book Chapter'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'types': updated 'Book Chapter' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		$query = "UPDATE " . $tableTypes . " SET order_by = '03' WHERE type_name = 'Book Whole'";
+		$query = "UPDATE " . $tableTypes . " SET order_by = '04' WHERE type_name = 'Book Whole'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'types': updated 'Book Whole' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		$query = "UPDATE " . $tableTypes . " SET order_by = '06' WHERE type_name = 'Journal'";
+		$query = "UPDATE " . $tableTypes . " SET order_by = '05' WHERE type_name = 'Conference Article'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Conference Article' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '06' WHERE type_name = 'Conference Volume'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Conference Volume' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '07' WHERE type_name = 'Journal'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'types': updated 'Journal' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		$query = "UPDATE " . $tableTypes . " SET order_by = '08' WHERE type_name = 'Manuscript'";
+		$query = "UPDATE " . $tableTypes . " SET order_by = '08' WHERE type_name = 'Magazine Article'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Magazine Article' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '09' WHERE type_name = 'Manual'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Manual' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '10' WHERE type_name = 'Manuscript'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'types': updated 'Manuscript' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		$query = "UPDATE " . $tableTypes . " SET order_by = '09' WHERE type_name = 'Map'";
+		$query = "UPDATE " . $tableTypes . " SET order_by = '11' WHERE type_name = 'Map'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'types': updated 'Map' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.8) Add new language options to table 'languages'
+		$query = "UPDATE " . $tableTypes . " SET order_by = '12' WHERE type_name = 'Miscellaneous'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Miscellaneous' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '13' WHERE type_name = 'Newspaper Article'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Newspaper Article' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '14' WHERE type_name = 'Patent'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Patent' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '15' WHERE type_name = 'Report'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Report' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$query = "UPDATE " . $tableTypes . " SET order_by = '16' WHERE type_name = 'Software'";
+		$result = queryMySQLDatabase($query, "");
+		$resultArray["Table 'types': updated 'Software' type. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		$values = "(NULL, 'Abstract', 'true', 2, '02')";
+		$resultArray["Table 'types': inserted type 'Abstract'"] = insertIfNotExists(array("type_name" => "Abstract"), $tableTypes, $values);
+
+		$values = "(NULL, 'Conference Article', 'true', 2, '05')";
+		$resultArray["Table 'types': inserted type 'Conference Article'"] = insertIfNotExists(array("type_name" => "Conference Article"), $tableTypes, $values);
+
+		$values = "(NULL, 'Conference Volume', 'true', 3, '06')";
+		$resultArray["Table 'types': inserted type 'Conference Volume'"] = insertIfNotExists(array("type_name" => "Conference Volume"), $tableTypes, $values);
+
+		$values = "(NULL, 'Magazine Article', 'true', 1, '08')";
+		$resultArray["Table 'types': inserted type 'Magazine Article'"] = insertIfNotExists(array("type_name" => "Magazine Article"), $tableTypes, $values);
+
+		$values = "(NULL, 'Manual', 'true', 3, '09')";
+		$resultArray["Table 'types': inserted type 'Manual'"] = insertIfNotExists(array("type_name" => "Manual"), $tableTypes, $values);
+
+		$values = "(NULL, 'Miscellaneous', 'true', 3, '12')";
+		$resultArray["Table 'types': inserted type 'Miscellaneous'"] = insertIfNotExists(array("type_name" => "Miscellaneous"), $tableTypes, $values);
+
+		$values = "(NULL, 'Newspaper Article', 'true', 1, '13')";
+		$resultArray["Table 'types': inserted type 'Newspaper Article'"] = insertIfNotExists(array("type_name" => "Newspaper Article"), $tableTypes, $values);
+
+		$values = "(NULL, 'Patent', 'true', 3, '14')";
+		$resultArray["Table 'types': inserted type 'Patent'"] = insertIfNotExists(array("type_name" => "Patent"), $tableTypes, $values);
+
+		$values = "(NULL, 'Report', 'true', 3, '15')";
+		$resultArray["Table 'types': inserted type 'Report'"] = insertIfNotExists(array("type_name" => "Report"), $tableTypes, $values);
+
+		$values = "(NULL, 'Software', 'true', 3, '16')";
+		$resultArray["Table 'types': inserted type 'Software'"] = insertIfNotExists(array("type_name" => "Software"), $tableTypes, $values);
+
+		// Add new language options to table 'languages'
 		$values = "(NULL, 'fr', 'true', '3')";
 		$resultArray["Table 'languages': inserted French language option"] = insertIfNotExists(array("language_name" => "fr"), $tableLanguages, $values);
 
@@ -390,17 +471,17 @@
 		$values = "(NULL, 'cn', 'true', '5')";
 		$resultArray["Table 'languages': inserted Chinese language option"] = insertIfNotExists(array("language_name" => "cn"), $tableLanguages, $values);
 
-		// (2.9) Enable disabled localizations
+		// Enable disabled localizations
 		$query = "UPDATE " . $tableLanguages . " SET language_enabled = 'true' WHERE language_name = 'de'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'languages': enabled German language option. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.10) Alter table specification for table 'formats'
+		// Alter table specification for table 'formats'
 		$query = "ALTER table " . $tableFormats . " MODIFY format_type enum('export','import','cite') NOT NULL default 'export'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'formats': altered table specification. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.11) Update existing formats in table 'formats'
+		// Update existing formats in table 'formats'
 		$query = "UPDATE " . $tableFormats . " SET format_name = 'BibTeX' WHERE format_name = 'Bibtex'";
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'formats': renamed format name 'Bibtex' to 'BibTeX'. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
@@ -409,7 +490,7 @@
 		$result = queryMySQLDatabase($query, "");
 		$resultArray["Table 'formats': reformatted numbers in 'order_by' field as two-digit numbers. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
-		// (2.12) Replace existing import formats with updated/new ones in table 'formats'
+		// Replace existing import formats with updated/new ones in table 'formats'
 		// NOTE: Simple, brain-dead test of UPDATEing (we should probably have a SQL function and/or make this an array and process that)
 		$query = "UPDATE " . $tableFormats . " SET format_spec = 'bibutils/import_modsxml2refbase.php', depends_id = 2 WHERE format_name = 'MODS XML' AND format_type = 'import'";
 		$result = queryMySQLDatabase($query, "");
@@ -450,10 +531,13 @@
 		$values = "(NULL, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', '21', 1)";
 		$resultArray["Table 'formats': inserted 'SciFinder' import format"] = insertIfNotExists(array("format_name" => "SciFinder", "format_type" => "import"), $tableFormats, $values);
 
+		$values = "(NULL, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', '24', 1)";
+		$resultArray["Table 'formats': inserted 'Text (Tab-Delimited)' import format"] = insertIfNotExists(array("format_name" => "Text (Tab-Delimited)", "format_type" => "import"), $tableFormats, $values);
+
 		$values = "(NULL, 'Endnote XML', 'import', 'true', 'bibutils/import_endx2refbase.php', '02', 2)";
 		$resultArray["Table 'formats': inserted 'Endnote XML' import format"] = insertIfNotExists(array("format_name" => "Endnote XML", "format_type" => "import"), $tableFormats, $values);
 
-		// (2.13) Add new export & citation formats in table 'formats'
+		// Add new export & citation formats in table 'formats'
 		$values = "(NULL, 'ISI', 'export', 'true', 'bibutils/export_xml2isi.php', '04', 2)";
 		$resultArray["Table 'formats': inserted 'ISI' export format"] = insertIfNotExists(array("format_name" => "ISI", "format_type" => "export"), $tableFormats, $values);
 
@@ -481,13 +565,16 @@
 		$values = "(NULL, 'LaTeX', 'cite', 'true', 'formats/cite_latex.php', '17', 1)";
 		$resultArray["Table 'formats': inserted 'LaTeX' citation format"] = insertIfNotExists(array("format_name" => "LaTeX", "format_type" => "cite"), $tableFormats, $values);
 
+		$values = "(NULL, 'LaTeX .bbl', 'cite', 'true', 'formats/cite_latex_bbl.php', '23', 1)";
+		$resultArray["Table 'formats': inserted 'LaTeX .bbl' citation format"] = insertIfNotExists(array("format_name" => "LaTeX .bbl", "format_type" => "cite"), $tableFormats, $values);
+
 		$values = "(NULL, 'Markdown', 'cite', 'true', 'formats/cite_markdown.php', '18', 1)";
 		$resultArray["Table 'formats': inserted 'Markdown' citation format"] = insertIfNotExists(array("format_name" => "Markdown", "format_type" => "cite"), $tableFormats, $values);
 
 		$values = "(NULL, 'ASCII', 'cite', 'true', 'formats/cite_ascii.php', '19', 1)";
 		$resultArray["Table 'formats': inserted 'ASCII' citation format"] = insertIfNotExists(array("format_name" => "ASCII", "format_type" => "cite"), $tableFormats, $values);
 
-		// (2.14) Enable some of the newly created export/citation formats, citation styles & resource types for all users:
+		// Enable some of the newly created export/citation formats, citation styles & resource types for all users:
 		// Fetch IDs for all formats that shall be enabled:
 		$formatIDArray = array();
 		$query = "SELECT format_id, format_name FROM " . $tableFormats . " WHERE (format_name RLIKE '^(ISI|Word XML|ODF XML)$' AND format_type = 'export') OR (format_name RLIKE '^(html|RTF|PDF|LaTeX)$' AND format_type = 'cite')";
@@ -512,7 +599,7 @@
 
 		// Fetch IDs for all types that shall be enabled:
 		$typeIDArray = array();
-		$query = "SELECT type_id, type_name FROM " . $tableTypes . " WHERE type_name RLIKE '^(Conference Article|Conference Volume|Manual|Miscellaneous|Newspaper Article|Patent|Report|Software)$'";
+		$query = "SELECT type_id, type_name FROM " . $tableTypes . " WHERE type_name RLIKE '^(Abstract|Conference Article|Conference Volume|Magazine Article|Manual|Miscellaneous|Newspaper Article|Patent|Report|Software)$'";
 		$result = queryMySQLDatabase($query, "");
 		$rowsFound = @ mysql_num_rows($result);
 		if ($rowsFound > 0)
@@ -631,7 +718,7 @@
 ?>
 
 	<tr>
-		<td colspan="2"><h3>Welcome to refbase v0.9.0!</h3></td>
+		<td colspan="2"><h3>Welcome to refbase v0.9.1!</h3></td>
 	</tr><?php
 
 		}
@@ -653,7 +740,7 @@
 	<tr>
 		<td valign="top"><b>Configure refbase:</b></td>
 		<td>
-			In order to re-establish your existing settings, please open file <em>initialize/ini.inc.php</em> in a text editor and restore all values from your old <em>ini.inc.php</em> file. The new include file contains many new settings which you should check out and adopt to your needs if needed. Please see the comments within the file for further information.
+			In order to re-establish your existing settings, please open file <em>initialize/ini.inc.php</em> in a text editor and restore all values from your old <em>ini.inc.php</em> file. The new include file contains new settings which you should check out and adopt to your needs if needed. Please see the comments within the file for further information.
 		</td>
 	</tr>
 	<tr>
