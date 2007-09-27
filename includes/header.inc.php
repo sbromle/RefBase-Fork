@@ -115,6 +115,9 @@
 		global $hostInstitutionName;
 		global $hostInstitutionURL;
 		global $helpResourcesURL;
+		global $logoImageURL;
+		global $logoImageWidth;
+		global $logoImageHeight;
 
 		global $loginWelcomeMsg; // these variables are globally defined in function 'showLogin()' in 'include.inc.php'
 		global $loginStatus;
@@ -125,7 +128,7 @@
 
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This holds the title logo and info">
 <tr>
-	<td valign="middle" rowspan="2" align="left" width="170"><a href="<?php echo $hostInstitutionURL; ?>"><img src="img/logo.gif" border="0" alt="<?php echo encodeHTML($hostInstitutionAbbrevName); ?> Home" title="<?php echo encodeHTML($hostInstitutionName); ?>" width="143" height="107"></a></td>
+	<td valign="bottom" rowspan="2" align="left" width="<?php echo $logoImageWidth + 26; ?>"><a href="<?php echo $hostInstitutionURL; ?>"><img src="<?php echo $logoImageURL; ?>" border="0" alt="<?php echo encodeHTML($hostInstitutionAbbrevName); ?> Home" title="<?php echo encodeHTML($hostInstitutionName); ?>" width="<?php echo $logoImageWidth; ?>" height="<?php echo $logoImageHeight; ?>"></a></td>
 	<td>
 		<h2><?php echo encodeHTML($officialDatabaseName); ?></h2>
 		<span class="smallup">
