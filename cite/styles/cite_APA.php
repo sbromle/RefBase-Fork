@@ -31,9 +31,9 @@
 	{
 		$record = ""; // make sure that our buffer variable is empty
 
-		// --- BEGIN TYPE = JOURNAL ARTICLE / NEWSPAPER ARTICLE ---------------------------------------------------------------------------------
+		// --- BEGIN TYPE = JOURNAL ARTICLE / MAGAZINE ARTICLE / NEWSPAPER ARTICLE --------------------------------------------------------------
 
-		if (ereg("Journal Article|Newspaper Article", $row['type']))
+		if (ereg("^(Journal Article|Magazine Article|Newspaper Article)$", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -92,7 +92,7 @@
 
 					if ($row['type'] == "Newspaper Article") // for newspaper articles, volume (=month) and issue (=day) information is printed after the year
 					{
-						if (!empty($row['year']))
+						if (!empty($row['year']) && (!empty($row['volume']) || !empty($row['issue'])))
 							$record .= ",";
 
 						if (!empty($row['volume']))			// volume (=month)
@@ -125,7 +125,7 @@
 				elseif (!empty($row['publication']))	// publication (= journal) name
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $row['publication'] . $markupPatternsArray["italic-suffix"];
 
-				if ($row['type'] == "Journal Article") // for journal articles, volume and issue information is printed after the publication name
+				if (ereg("^(Journal Article|Magazine Article)$", $row['type'])) // for journal and magazine articles, volume and issue information is printed after the publication name
 				{
 					if (!empty($row['abbrev_journal']) || !empty($row['publication']))
 						$record .= ", ";
@@ -199,9 +199,9 @@
 					$record .= ".";
 			}
 
-		// --- BEGIN TYPE = BOOK CHAPTER / CONFERENCE ARTICLE -----------------------------------------------------------------------------------
+		// --- BEGIN TYPE = ABSTRACT / BOOK CHAPTER / CONFERENCE ARTICLE ------------------------------------------------------------------------
 
-		elseif (ereg("Book Chapter|Conference Article", $row['type']))
+		elseif (ereg("^(Abstract|Book Chapter|Conference Article)$", $row['type']))
 			{
 				if (!empty($row['author']))			// author
 					{
@@ -523,7 +523,7 @@
 				{
 					if ((!empty($row['title']) && !ereg("[?!.]$", $row['title'])) || !empty($row['edition']))
 						$record .= ".";
-	
+
 					if (!empty($row['thesis']))			// thesis
 					{
 						$record .= " " . $row['thesis'];
