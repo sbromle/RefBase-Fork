@@ -19,7 +19,7 @@
 	// This is an import format file (which must reside within the 'import/' sub-directory of your refbase root directory). It contains a version of the
 	// 'importRecords()' function that imports records from 'Endnote XML'-formatted data, i.e. data that were formatted according to the XML export format
 	// used by the commercial bibliographic package 'Endnote' (http://www.endnote.com).
-	
+
 	// --------------------------------------------------------------------
 
 	// --- BEGIN IMPORT FORMAT ---
@@ -31,6 +31,9 @@
 
 	function importRecords($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
+		// convert Endnote XML text style markup into proper refbase markup:
+		$sourceText = standardizeEndnoteXMLInput($sourceText); // function 'standardizeEndnoteXMLInput()' is defined in 'import.inc.php'
+
 		// convert Endnote format to MODS XML format:
 		$sourceText = importBibutils($sourceText,"endx2xml"); // function 'importBibutils()' is defined in 'execute.inc.php'
 
