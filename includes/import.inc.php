@@ -19,9 +19,11 @@
 	// This file contains functions
 	// that are used when importing
 	// records into the database.
+	// TODO: I18n
 
 
 	include 'includes/transtab_bibtex_refbase.inc.php'; // include BibTeX markup -> refbase search & replace patterns
+	include 'includes/transtab_endnotexml_refbase.inc.php'; // include Endnote XML text style markup -> refbase search & replace patterns
 
 	if ($contentTypeCharset == "UTF-8") // variable '$contentTypeCharset' is defined in 'ini.inc.php'
 		include_once 'includes/transtab_latex_unicode.inc.php'; // include LaTeX -> Unicode translation table
@@ -74,8 +76,8 @@
 		//							"IB: ISBN"                 => "",
 		//							"ER: Environmental Regime" => "",
 		//							"CF: Conference"           => "",
-									"NT: Notes"                => "UT" // we'll import the ISI record ID to the notes field
-		//							"DO: DOI"                  => "DI" // Bibutils apparently recognizes "DI" to extract the DOI from ISI records, however, my tests returned only ISI records where the "DI" field contained some other identifier ?:-/
+									"NT: Notes"                => "UT", // we'll import the ISI record ID to the notes field
+		//							"DO: DOI"                  => "DI", // Bibutils apparently recognizes "DI" to extract the DOI from ISI records, however, my tests returned only ISI records where the "DI" field contained some other identifier ?:-/
 								);
 
 		// ----------------------------------------------------------------
@@ -245,7 +247,7 @@
 		// (Note: name standardization occurs after multiple author fields have been merged by '; ')
 		$personDelimiter = " *; *";
 
-		// Pattern by which a persons's family name is separated from the given name (or initials):
+		// Pattern by which a person's family name is separated from the given name (or initials):
 		$familyNameGivenNameDelimiter = " *, *";
 
 		// Specifies whether the person's family name comes first within a person's name
@@ -294,6 +296,12 @@
 																	)
 												),
 											array(
+													'fields'  => array("notes"),
+													'actions' => array(
+																		"/exported from refbase \(http[^ ]+ last updated.+?\d{2}:\d{2}:\d{2} [+-]\d{4}/" =>  "" // remove refbase attribution string (such as "exported from refbase (http://localhost/refs/show.php?record=12345), last updated on Sat, 15 Jul 2006 22:24:16 +0200")
+																	)
+												),
+											array(
 													'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"), // convert font attributes (which some publishers include in RIS records that are available on their web pages)
 													'actions' => array(
 																		"/<sup>(.+?)<\/sup>/i" =>  "[super:\\1]", // replace '<sup>...</sup>' with refbase markup ('[super:...]')
@@ -328,7 +336,6 @@
 		// 								"RIS tag" => "refbase field" // RIS tag name (comment)
 		$tagsToRefbaseFieldsArray = array(
 											"TY"  =>  "type", // Type of reference (IMPORTANT: the array element that maps to 'type' must be listed as the first element!)
-		//									""    =>  "thesis",
 
 											"AU"  =>  "author", // Author Primary
 											"A1"  =>  "author", // Author Primary
@@ -347,7 +354,7 @@
 											"Y1"  =>  "year", // Date Primary (same syntax rules as for "PY")
 		//									"Y2"  =>  "", // Date Secondary (same syntax rules as for "PY")
 
-											"BT"  =>  array("BOOK" => "series_title", "STD" => "series_title", "Other" => "publication"), // according to <http://www.refman.com/support/risformat_tags_01.asp> this would be: array("BOOK" => "title", "Other" => "publication"), // Book Whole: Title Primary; Other reference types: Title Secondary
+											"BT"  =>  array("BOOK" => "series_title", "STD" => "series_title", "THES" => "series_title", "Other" => "publication"), // according to <http://www.refman.com/support/risformat_tags_01.asp> this would be: array("BOOK" => "title", "Other" => "publication"), // Book Whole: Title Primary; Other reference types: Title Secondary
 											"JF"  =>  "publication", // Periodical name: full format
 											"JO"  =>  "publication", // Periodical name: full format
 											"JA"  =>  "abbrev_journal", // Periodical name: standard abbreviation
@@ -371,7 +378,7 @@
 
 		//									""    =>  "edition",
 		//									""    =>  "medium",
-											"SN"  =>  array("BOOK" => "isbn", "CHAP" => "isbn", "STD" => "isbn", "Other" => "issn"), // Book Whole & Book Chapter: ISBN; Other reference types: ISSN
+											"SN"  =>  array("BOOK" => "isbn", "CHAP" => "isbn", "STD" => "isbn", "THES" => "isbn", "Other" => "issn"), // Book Whole, Book Chapter, Generic and Thesis: ISBN; Other reference types: ISSN (note that this will fail for a thesis that was published within a series with an ISSN number)
 
 		//									""    =>  "language",
 		//									""    =>  "summary_language",
@@ -392,12 +399,12 @@
 		//									"L4"  =>  "", // Image(s)
 
 											"N1"  =>  "notes", // Notes
-											"ID"  =>  "call_number" // Reference ID
+											"ID"  =>  "call_number", // Reference ID
 
 		//									"M1"  =>  "", // Miscellaneous 1
 		//									"M2"  =>  "", // Miscellaneous 2
 		//									"M3"  =>  "", // Miscellaneous 3
-		//									"U1"  =>  "", // User definable 1
+											"U1"  =>  "thesis", // User definable 1 ('U1' is used by Bibutils to indicate the type of thesis, e.g. "Masters thesis" or "Ph.D. thesis"; function 'parseRecords()' will further tweak the contents of the refbase 'thesis' field)
 		//									"U2"  =>  "", // User definable 2
 		//									"U3"  =>  "", // User definable 3
 		//									"U4"  =>  "", // User definable 4
@@ -433,7 +440,7 @@
 		//  is not a perfect match but as close as currently possible)
 		// 										"RIS type"  =>  "refbase type" // name of RIS reference type (comment)
 		$referenceTypesToRefbaseTypesArray = array(
-													"ABST"  =>  "Journal Article", // Abstract (#fallback#)
+													"ABST"  =>  "Abstract", // Abstract
 													"ADVS"  =>  "Unsupported: Audiovisual Material", // Audiovisual material
 													"ART"   =>  "Unsupported: Art Work", // Art Work
 													"BILL"  =>  "Unsupported: Bill/Resolution", // Bill/Resolution
@@ -452,7 +459,7 @@
 													"JFULL" =>  "Journal", // Journal (full)
 													"JOUR"  =>  "Journal Article", // Journal
 													"MAP"   =>  "Map", // Map
-													"MGZN"  =>  "Journal Article", // Magazine article (#fallback#)
+													"MGZN"  =>  "Magazine Article", // Magazine article
 													"MPCT"  =>  "Unsupported: Motion Picture", // Motion picture
 													"MUSIC" =>  "Unsupported: Music Score", // Music score
 													"NEWS"  =>  "Newspaper Article", // Newspaper
@@ -521,7 +528,7 @@
 		// (Note: name standardization occurs after multiple author fields have been merged by '; ')
 		$personDelimiter = " *; *";
 
-		// Pattern by which a persons's family name is separated from the given name (or initials):
+		// Pattern by which a person's family name is separated from the given name (or initials):
 		$familyNameGivenNameDelimiter = " *, *";
 
 		// Specifies whether the person's family name comes first within a person's name
@@ -745,7 +752,7 @@
 
 		//#									"PUBM"  =>  "online_publication", // Publishing Model [Article's model of print or electronic publishing]
 
-											"SO"    =>  "source" // Source [Composite field containing bibliographic information] (the contents of this special field may be presented within the header message of 'record.php' for easy comparison with the extracted data)
+											"SO"    =>  "source", // Source [Composite field containing bibliographic information] (the contents of this special field may be presented within the header message of 'record.php' for easy comparison with the extracted data)
 
 		//									"CI"    =>  "", // Copyright Information [Copyright statement provided by the publisher]
 		//									"CIN"   =>  "", // Comment In [Reference containing a comment about the article]
@@ -818,6 +825,7 @@
 													"Manuscripts|Unpublished Works"                                  =>  "Manuscript",
 													"Patents"                                                        =>  "Patent",
 													"Maps"                                                           =>  "Map",
+													"Editorial"                                                      =>  "Journal Article",
 													"Letter"                                                         =>  "Journal Article", // #fallback#
 													"Validation Studies"                                             =>  "Journal Article",
 													"Research Support, N\.I\.H\., (Ex|In)tramural *"                 =>  "Journal Article",
@@ -875,7 +883,7 @@
 		// (Note: name standardization occurs after multiple author fields have been merged by '; ')
 		$personDelimiter = " *; *";
 
-		// Pattern by which a persons's family name is separated from the given name (or initials):
+		// Pattern by which a person's family name is separated from the given name (or initials):
 		$familyNameGivenNameDelimiter = " *, *";
 
 		// Specifies whether the person's family name comes first within a person's name
@@ -1018,7 +1026,7 @@
 		//									""    =>  "orig_record",
 
 		//									""    =>  "copy", // Reprint status (valid values: "IN FILE", "NOT IN FILE", "ON REQUEST (MM/DD/YY)") (NOTE: import into user-specific fields is NOT supported yet!)
-											"AV"  =>  "notes" // Availability
+											"AV"  =>  "notes", // Availability
 
 		//									"AN"  =>  "", // Accession Number
 		//									"CL"  =>  "", // Classification
@@ -1055,7 +1063,7 @@
 		//  is not a perfect match but as close as currently possible)
 		// 																  "RefWorks type"  =>  "refbase type" // name of RefWorks reference type (comment)
 		$referenceTypesToRefbaseTypesArray = array(
-													"Abstract"                             =>  "Journal Article", // Abstract (#fallback#)
+													"Abstract"                             =>  "Abstract", // Abstract
 													"Artwork"                              =>  "Unsupported: Artwork", // Artwork
 													"Bills\/Resolutions"                   =>  "Unsupported: Bills/Resolutions", // Bills/Resolutions
 													"Book,? (Section|Chapter)"             =>  "Book Chapter", // Book, Section
@@ -1072,7 +1080,7 @@
 													"Journal"                              =>  "Journal Article", // Journal
 													"Journal, Electronic"                  =>  "Journal Article", // Journal, Electronic (#fallback#) (function 'parseRecords()' should set the 'online_publication' field accordingly)
 													"Laws\/Statutes"                       =>  "Unsupported: Laws/Statutes", // Laws/Statutes
-													"Magazine Article"                     =>  "Journal Article", // Magazine Article (#fallback#)
+													"Magazine Article"                     =>  "Magazine Article", // Magazine Article
 													"Map"                                  =>  "Map", // Map
 													"Monograph"                            =>  "Book Whole", // Monograph (#fallback#)
 													"Motion Picture"                       =>  "Unsupported: Motion Picture", // Motion Picture
@@ -1148,7 +1156,7 @@
 		// (Note: name standardization occurs after multiple author fields have been merged by '; ')
 		$personDelimiter = " *; *";
 
-		// Pattern by which a persons's family name is separated from the given name (or initials):
+		// Pattern by which a person's family name is separated from the given name (or initials):
 		$familyNameGivenNameDelimiter = " *, *";
 
 		// Specifies whether the person's family name comes first within a person's name
@@ -1344,7 +1352,7 @@
 		// (NOTE: the commented reference types are NOT from SciFinder but are remains from the 'refworksToRefbase()' function!)
 		// 																 "SciFinder type"  =>  "refbase type" // name of SciFinder reference type (comment)
 		$referenceTypesToRefbaseTypesArray = array(
-		//											"Abstract"                             =>  "Journal Article", // Abstract (#fallback#)
+		//											"Abstract"                             =>  "Abstract", // Abstract
 		//											"Artwork"                              =>  "Unsupported: Artwork", // Artwork
 		//											"Bills\/Resolutions"                   =>  "Unsupported: Bills/Resolutions", // Bills/Resolutions
 		//											"Book,? (Section|Chapter)"             =>  "Book Chapter", // Book, Section
@@ -1361,7 +1369,7 @@
 													"Journal(;.*)?"                        =>  "Journal Article", // Journal
 		//											"Journal, Electronic"                  =>  "Journal Article", // Journal, Electronic (#fallback#) (function 'parseRecords()' should set the 'online_publication' field accordingly)
 		//											"Laws\/Statutes"                       =>  "Unsupported: Laws/Statutes", // Laws/Statutes
-		//											"Magazine Article"                     =>  "Journal Article", // Magazine Article (#fallback#)
+		//											"Magazine Article"                     =>  "Magazine Article", // Magazine Article
 		//											"Map"                                  =>  "Map", // Map
 		//											"Monograph"                            =>  "Book Whole", // Monograph (#fallback#)
 		//											"Motion Picture"                       =>  "Unsupported: Motion Picture", // Motion Picture
@@ -1645,7 +1653,25 @@
 				if (ereg("Thesis", $fieldParametersArray['type']))
 				{
 					$fieldParametersArray['type'] = "Book Whole";
-					$fieldParametersArray['thesis'] = "Ph.D. thesis"; // #CAUTION#: this may be incorrect since we actually don't know what kind of thesis (Master's thesis, Ph.D. thesis, etc) we're dealing with!
+
+					// standardize thesis names:
+					if (isset($fieldParametersArray['thesis']))
+					{
+						if (eregi("^Master'?s thesis$", $fieldParametersArray['thesis']))
+							$fieldParametersArray['thesis'] = "Master's thesis";
+						elseif (eregi("^Bachelor'?s thesis$", $fieldParametersArray['thesis']))
+							$fieldParametersArray['thesis'] = "Bachelor's thesis";
+						elseif (eregi("^(Diploma thesis|Diplom(arbeit)?)$", $fieldParametersArray['thesis']))
+							$fieldParametersArray['thesis'] = "Diploma thesis";
+						elseif (eregi("^(Doctoral thesis|Dissertation|Doktor(arbeit)?)$", $fieldParametersArray['thesis']))
+							$fieldParametersArray['thesis'] = "Doctoral thesis";
+						elseif (eregi("^Habilitation( thesis)?$", $fieldParametersArray['thesis']))
+							$fieldParametersArray['thesis'] = "Habilitation thesis";
+						else // if an unknown thesis name was given
+							$fieldParametersArray['thesis'] = "Ph.D. thesis"; // NOTE: this fallback may actually be not correct!
+					}
+					else // if no thesis info was given
+						$fieldParametersArray['thesis'] = "Ph.D. thesis"; // NOTE: this fallback may actually be not correct!
 				}
 
 				// merge contents of the special fields 'startPage' and 'endPage' into a range and copy it to the 'pages' field:
@@ -1879,6 +1905,22 @@
 			$bibtexSourceText = searchReplaceText($transtab_latex_latin1, $bibtexSourceText, false);
 
 		return $bibtexSourceText;
+	}
+
+	// --------------------------------------------------------------------
+
+	// This function takes an Endnote XML source and converts any contained
+	// text style markup into proper refbase markup:
+	function standardizeEndnoteXMLInput($endxSourceText)
+	{
+		// The array '$transtab_endnotexml_refbase' contains search & replace patterns for conversion from Endnote XML text style markup to refbase markup.
+		// It attempts to convert fontshape markup (italic, bold), super- and subscript as well as greek letters into appropriate refbase markup.
+		global $transtab_endnotexml_refbase; // defined in 'transtab_endnotexml_refbase.inc.php'
+
+		// Perform search & replace actions on the given BibTeX text:
+		$endxSourceText = searchReplaceText($transtab_endnotexml_refbase, $endxSourceText, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+
+		return $endxSourceText;
 	}
 
 	// --------------------------------------------------------------------
