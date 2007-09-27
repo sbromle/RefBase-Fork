@@ -53,7 +53,8 @@
 									"underline-prefix" => "<u>",
 									"underline-suffix" => "</u>",
 									"endash"           => "&#8211;",
-									"emdash"           => "&#8212;");
+									"emdash"           => "&#8212;",
+									"newline"          => "\n<br>\n");
 
 
 		// LOOP OVER EACH RECORD:

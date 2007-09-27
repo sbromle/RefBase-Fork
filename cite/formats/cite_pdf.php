@@ -59,7 +59,8 @@
 									"underline-prefix" => "<u>",
 									"underline-suffix" => "</u>",
 									"endash"           => "–",
-									"emdash"           => "––"); // I don't know how to correctly print an emdash so we'll currently use two endashes instead
+									"emdash"           => "––", // I don't know how to correctly print an emdash so we'll currently use two endashes instead
+									"newline"          => "\n");
 
 		// Defines search & replace 'actions' that will be applied upon PDF output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:

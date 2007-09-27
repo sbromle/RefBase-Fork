@@ -52,7 +52,8 @@
 		//							"underline-prefix" => "\\ul{", // the '\ul' command requires '\usepackage{soul}'
 		//							"underline-suffix" => "}",
 									"endash"           => "--", // or use '{\\textendash}'
-									"emdash"           => "---"); // or use '{\\textemdash}'
+									"emdash"           => "---", // or use '{\\textemdash}'
+									"newline"          => "\n\n");
 
 		// Defines search & replace 'actions' that will be applied upon LaTeX output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:

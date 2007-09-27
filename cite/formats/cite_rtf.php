@@ -53,7 +53,8 @@
 									"underline-prefix" => "{\\ul ",
 									"underline-suffix" => "}",
 									"endash"           => "\\endash ",
-									"emdash"           => "\\emdash ");
+									"emdash"           => "\\emdash ",
+									"newline"          => "\n{\f1\fs24 \par}\n");
 
 		// Defines search & replace 'actions' that will be applied upon RTF output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:

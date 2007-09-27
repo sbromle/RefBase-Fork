@@ -51,7 +51,8 @@
 		//							"underline-prefix" => "",
 		//							"underline-suffix" => "",
 									"endash"           => "&ndash;", // opposed to function 'citeRecordsHTML()' we use named entities here to increase plain text legibility
-									"emdash"           => "&mdash;");
+									"emdash"           => "&mdash;",
+									"newline"          => "  \n");
 
 		// Defines search & replace 'actions' that will be applied upon Markdown output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:

@@ -53,7 +53,8 @@
 									"underline-prefix" => "",
 									"underline-suffix" => "",
 									"endash"           => "-",
-									"emdash"           => "-");
+									"emdash"           => "-",
+									"newline"          => "\n");
 
 		// Defines search & replace 'actions' that will be applied upon TEXT output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:
