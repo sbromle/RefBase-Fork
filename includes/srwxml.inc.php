@@ -136,7 +136,7 @@
 		global $officialDatabaseName;
 		global $hostInstitutionName;
 		global $feedbackEmail;
-		global $defaultNumberOfRecords;
+		global $logoImageURL;
 		global $defaultLanguage;
 
 		global $loc; // defined in 'locales/core.php'
@@ -176,7 +176,10 @@
 			$databasePathOnServer = "";
 
 		// get the total number of records in the database:
-		$recordCount = getNumberOfRecords(); // function 'getNumberOfRecords()' is defined in 'include.inc.php'
+		$recordCount = getTotalNumberOfRecords(); // function 'getTotalNumberOfRecords()' is defined in 'include.inc.php'
+
+		// get the default number of records per page preferred by the current user:
+		$showRows = $_SESSION['userRecordsPerPage'];
 
 		// get date/time information when the database was last modified:
 		$lastModified = getLastModifiedDateTime(); // function 'getLastModifiedDateTime()' is defined in 'include.inc.php'
@@ -241,8 +244,8 @@
 
 		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "www"), $databaseBaseURL);
 		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "sru"), $databaseBaseURL . "sru.php");
-		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "rss"), $databaseBaseURL . "rss.php?where=serial%20RLIKE%20%22.%2B%22&amp;showRows=" . $defaultNumberOfRecords);
-		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "icon"), $databaseBaseURL . "img/logo.gif");
+		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "rss"), $databaseBaseURL . "rss.php?where=serial%20RLIKE%20%22.%2B%22&amp;showRows=" . $showRows);
+		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "icon"), $databaseBaseURL . $logoImageURL);
 
 		$srwDatabaseInfoBranch->addXMLBranch($srwDatabaseLinksBranch);
 
@@ -425,7 +428,7 @@
 		$srwConfigInfoBranch = new XMLBranch("configInfo");
 
 		// default:
-		addNewBranch($srwConfigInfoBranch, "default", array("type" => "numberOfRecords"), $defaultNumberOfRecords);
+		addNewBranch($srwConfigInfoBranch, "default", array("type" => "numberOfRecords"), $showRows);
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "stylesheet"), $databaseBaseURL . "srwmods2html.xsl");
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "contextSet"), "cql");
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "index"), "identifier");
