@@ -195,7 +195,9 @@ INSERT INTO `formats` VALUES (1, 'MODS XML', 'import', 'true', 'bibutils/import_
 (25, 'ASCII', 'cite', 'true', 'formats/cite_ascii.php', '19', 1),
 (26, 'RefWorks', 'import', 'true', 'import_refworks2refbase.php', '20', 1),
 (27, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', '21', 1),
-(28, 'Word XML', 'export', 'true', 'bibutils/export_xml2word.php', '22', 2);
+(28, 'Word XML', 'export', 'true', 'bibutils/export_xml2word.php', '22', 2),
+(29, 'LaTeX .bbl', 'cite', 'true', 'formats/cite_latex_bbl.php', '23', 1),
+(30, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', '24', 1);
 
 # --------------------------------------------------------
 
@@ -394,19 +396,21 @@ CREATE TABLE `types` (
 #
 
 INSERT INTO `types` VALUES (1, 'Journal Article', 'true', 1, '01'),
-(2, 'Book Chapter', 'true', 2, '02'),
-(3, 'Book Whole', 'true', 3, '03'),
-(4, 'Conference Article', 'true', 2, '04'),
-(5, 'Conference Volume', 'true', 3, '05'),
-(6, 'Journal', 'true', 3, '06'),
-(7, 'Manual', 'true', 3, '07'),
-(8, 'Manuscript', 'true', 3, '08'),
-(9, 'Map', 'true', 3, '09'),
-(10, 'Miscellaneous', 'true', 3, '10'),
-(11, 'Newspaper Article', 'true', 1, '11'),
-(12, 'Patent', 'true', 3, '12'),
-(13, 'Report', 'true', 3, '13'),
-(14, 'Software', 'true', 3, '14');
+(2, 'Abstract', 'true', 2, '02'),
+(3, 'Book Chapter', 'true', 2, '03'),
+(4, 'Book Whole', 'true', 3, '04'),
+(5, 'Conference Article', 'true', 2, '05'),
+(6, 'Conference Volume', 'true', 3, '06'),
+(7, 'Journal', 'true', 3, '07'),
+(8, 'Magazine Article', 'true', 1, '08'),
+(9, 'Manual', 'true', 3, '09'),
+(10, 'Manuscript', 'true', 3, '10'),
+(11, 'Map', 'true', 3, '11'),
+(12, 'Miscellaneous', 'true', 3, '12'),
+(13, 'Newspaper Article', 'true', 1, '13'),
+(14, 'Patent', 'true', 3, '14'),
+(15, 'Report', 'true', 3, '15'),
+(16, 'Software', 'true', 3, '16');
 
 # --------------------------------------------------------
 
@@ -493,32 +497,35 @@ INSERT INTO `user_formats` VALUES (1, 1, 0, 'false'),
 (22, 26, 0, 'false'),
 (23, 27, 0, 'false'),
 (24, 28, 0, 'false'),
-(25, 1, 1, 'true'),
-(26, 2, 1, 'true'),
-(27, 3, 1, 'false'),
-(28, 4, 1, 'true'),
-(29, 5, 1, 'true'),
-(30, 6, 1, 'true'),
-(31, 7, 1, 'true'),
-(32, 8, 1, 'true'),
-(33, 9, 1, 'true'),
-(34, 10, 1, 'true'),
-(35, 11, 1, 'true'),
-(36, 12, 1, 'true'),
-(37, 13, 1, 'true'),
-(38, 14, 1, 'true'),
-(39, 15, 1, 'true'),
-(40, 16, 1, 'true'),
-(41, 18, 1, 'true'),
-(42, 20, 1, 'true'),
-(43, 21, 1, 'true'),
-(44, 22, 1, 'true'),
-(45, 23, 1, 'true'),
-(46, 24, 1, 'true'),
-(47, 25, 1, 'true'),
-(48, 26, 1, 'true'),
-(49, 27, 1, 'true'),
-(50, 28, 1, 'true');
+(25, 30, 0, 'false'),
+(26, 1, 1, 'true'),
+(27, 2, 1, 'true'),
+(28, 3, 1, 'false'),
+(29, 4, 1, 'true'),
+(30, 5, 1, 'true'),
+(31, 6, 1, 'true'),
+(32, 7, 1, 'true'),
+(33, 8, 1, 'true'),
+(34, 9, 1, 'true'),
+(35, 10, 1, 'true'),
+(36, 11, 1, 'true'),
+(37, 12, 1, 'true'),
+(38, 13, 1, 'true'),
+(39, 14, 1, 'true'),
+(40, 15, 1, 'true'),
+(41, 16, 1, 'true'),
+(42, 18, 1, 'true'),
+(43, 20, 1, 'true'),
+(44, 21, 1, 'true'),
+(45, 22, 1, 'true'),
+(46, 23, 1, 'true'),
+(47, 24, 1, 'true'),
+(48, 25, 1, 'true'),
+(49, 26, 1, 'true'),
+(50, 27, 1, 'true'),
+(51, 28, 1, 'true'),
+(52, 29, 1, 'true'),
+(53, 30, 1, 'true');
 
 # --------------------------------------------------------
 
@@ -539,6 +546,8 @@ CREATE TABLE `user_options` (
   `nonascii_chars_in_cite_keys` enum('transliterate','strip','keep') default NULL,
   `use_custom_text_citation_format` enum('no','yes') NOT NULL default 'no',
   `text_citation_format` varchar(255) default NULL,
+  `records_per_page` smallint(5) unsigned default NULL,
+  `main_fields` text,
   PRIMARY KEY  (`option_id`),
   KEY `user_id` (`user_id`)
 ) TYPE=MyISAM DEFAULT CHARSET=utf8;
@@ -547,8 +556,8 @@ CREATE TABLE `user_options` (
 # data for table `user_options`
 #
 
-INSERT INTO `user_options` VALUES (1, 0, 'yes', 'yes', 'no', 'no', '<:authors:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>'),
-(2, 1, 'yes', 'yes', 'no', 'no', '<:firstAuthor:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>');
+INSERT INTO `user_options` VALUES (1, 0, 'yes', 'yes', 'no', 'no', '<:authors:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>', NULL, 'author, title, publication, keywords, abstract'),
+(2, 1, 'yes', 'yes', 'no', 'no', '<:firstAuthor:><:year:>', 'yes', NULL, 'no', '<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>', NULL, 'author, title, publication, keywords, abstract');
 
 # --------------------------------------------------------
 
@@ -657,20 +666,24 @@ INSERT INTO `user_types` VALUES (1, 1, 1, 'true'),
 (12, 12, 1, 'true'),
 (13, 13, 1, 'true'),
 (14, 14, 1, 'true'),
-(15, 1, 0, 'true'),
-(16, 2, 0, 'true'),
-(17, 3, 0, 'true'),
-(18, 4, 0, 'true'),
-(19, 5, 0, 'true'),
-(20, 6, 0, 'true'),
-(21, 7, 0, 'true'),
-(22, 8, 0, 'true'),
-(23, 9, 0, 'true'),
-(24, 10, 0, 'true'),
-(25, 11, 0, 'true'),
-(26, 12, 0, 'true'),
-(27, 13, 0, 'true'),
-(28, 14, 0, 'true');
+(15, 15, 1, 'true'),
+(16, 16, 1, 'true'),
+(17, 1, 0, 'true'),
+(18, 2, 0, 'true'),
+(19, 3, 0, 'true'),
+(20, 4, 0, 'true'),
+(21, 5, 0, 'true'),
+(22, 6, 0, 'true'),
+(23, 7, 0, 'true'),
+(24, 8, 0, 'true'),
+(25, 9, 0, 'true'),
+(26, 10, 0, 'true'),
+(27, 11, 0, 'true'),
+(28, 12, 0, 'true'),
+(29, 13, 0, 'true'),
+(30, 14, 0, 'true'),
+(31, 15, 0, 'true'),
+(32, 16, 0, 'true');
 
 # --------------------------------------------------------
 
