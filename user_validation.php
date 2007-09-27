@@ -43,7 +43,7 @@
 
 	// Clear any errors that might have been found previously:
 	$errors = array();
-	
+
 	// Write the (POST) form variables into an array:
 	foreach($_POST as $varname => $value)
 		$formVars[$varname] = $value;
@@ -202,7 +202,7 @@
 		else // Check if the email address is already in use in the database:
 		{
 			$query = "SELECT * FROM $tableAuth WHERE email = " . quote_smart($formVars["email"]); // CONSTRUCT SQL QUERY
-	
+
 			// (3) RUN the query on the database through the connection:
 			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
@@ -429,15 +429,15 @@
 			// Note: The user's email is NOT included as a regular form field for UPDATEs. To make it available as 'salt'
 			//       the user's email gets included as a hidden form tag by 'user_details.php'!
 			$salt = substr($formVars["email"], 0, 2);
-	
+
 			// Create the encrypted password
 			$stored_password = crypt($formVars["loginPassword"], $salt);
-	
+
 			// Update the user's password within the auth table
 			$query = "UPDATE $tableAuth SET "
 					. "password = " . quote_smart($stored_password)
 					. " WHERE user_id = " . quote_smart($userID);
-	
+
 			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 		}
 	}
@@ -561,7 +561,11 @@
 
 	// If an authorized user uses 'user_details.php' to add a new user (-> 'userID' is empty!):
 	if ((!isset($_SESSION['loginEmail']) && ($addNewUsers == "everyone") && ($_REQUEST['userID'] == "")) | (isset($_SESSION['loginEmail']) && ($loginEmail == $adminLoginEmail) && ($_REQUEST['userID'] == "")))
+	{
 		saveSessionVariable("userLanguage", "en");
+		saveSessionVariable("userRecordsPerPage", $defaultNumberOfRecords); // '$defaultNumberOfRecords' is defined in 'ini.inc.php' (TODO: it would be more correct to use $defaultUserOptions['records_per_page'])
+		saveSessionVariable("userMainFields", $defaultMainFields); // '$defaultMainFields' is defined in 'ini.inc.php' (TODO: it would be more correct to use $defaultUserOptions['main_fields'])
+	}
 
 	// Get all user groups specified by the current user
 	// and (if some groups were found) save them as semicolon-delimited string to the session variable 'userGroups':

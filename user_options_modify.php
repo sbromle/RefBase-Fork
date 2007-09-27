@@ -43,7 +43,7 @@
 
 	// Clear any errors that might have been found previously:
 	$errors = array();
-	
+
 	// Write the (POST) form variables into an array:
 	foreach($_POST as $varname => $value)
 		$formVars[$varname] = $value;
@@ -103,6 +103,10 @@
 //		// Language cannot be a null string
 //		$errors["languageName"] = "The language field cannot be blank:";
 
+	// Validate the number of records per page
+	if (!ereg("^[1-9]+[0-9]*$", $formVars["recordsPerPageNo"]))
+		$errors["recordsPerPageNo"] = "Please enter a number (positive integer greater than zero):";
+
 	// Note: currently, the user must select at least one item within the type/style/format lists. Alternatively, we could grey out the corresponding interface elements
 	//       if a user deselects all items. Or, hiding the corresponding interface elements *completely* would actually give the user the possibility to remove unwanted/unneeded "features"!
 
@@ -121,6 +125,10 @@
 	// Validate the export format selector
 	if (empty($formVars["exportFormatSelector"]))
 		$errors["exportFormatSelector"] = "You must choose at least one export format:";
+
+	// Validate the main fields selector
+	if (empty($formVars["mainFieldsSelector"]))
+		$errors["mainFieldsSelector"] = "You must specify at least one field as \"main field\":";
 
 	// --------------------------------------------------------------------
 
@@ -180,7 +188,7 @@
 				$queryArray[] = "DELETE FROM $tableUserTypes "
 								. "WHERE user_id = " . quote_smart($userID) . " AND type_id RLIKE " . quote_smart("^(" . $enabledUserTypesNOTInSelectedTypesString . ")$");
 			}
-	
+
 			if (!empty($selectedTypesNOTInEnabledUserTypesArray))
 			{
 				// - insert types that were selected by the admin but which do not yet exist within the 'user_types' table:
@@ -214,7 +222,7 @@
 				$queryArray[] = "DELETE FROM $tableUserStyles "
 								. "WHERE user_id = " . quote_smart($userID) . " AND style_id RLIKE " . quote_smart("^(" . $enabledUserStylesNOTInSelectedStylesString . ")$");
 			}
-	
+
 			if (!empty($selectedStylesNOTInEnabledUserStylesArray))
 			{
 				// - insert styles that were selected by the admin but which do not yet exist within the 'user_styles' table:
@@ -227,7 +235,7 @@
 
 				$queryArray[] = $insertStylesQuery . implode(", ", $insertStylesQueryValues) . ";";
 			}
-	
+
 			// ---------------------
 			// d) update all cite entries for this user within the 'user_formats' table:
 
@@ -248,7 +256,7 @@
 				$queryArray[] = "DELETE FROM $tableUserFormats "
 								. "WHERE user_id = " . quote_smart($userID) . " AND format_id RLIKE " . quote_smart("^(" . $enabledUserFormatsNOTInSelectedFormatsString . ")$");
 			}
-	
+
 			if (!empty($selectedFormatsNOTInEnabledUserFormatsArray))
 			{
 				// - insert cite formats that were selected by the admin but which do not yet exist within the 'user_formats' table:
@@ -282,7 +290,7 @@
 				$queryArray[] = "DELETE FROM $tableUserFormats "
 								. "WHERE user_id = " . quote_smart($userID) . " AND format_id RLIKE " . quote_smart("^(" . $enabledUserFormatsNOTInSelectedFormatsString . ")$");
 			}
-	
+
 			if (!empty($selectedFormatsNOTInEnabledUserFormatsArray))
 			{
 				// - insert export formats that were selected by the admin but which do not yet exist within the 'user_formats' table:
@@ -325,44 +333,44 @@
 		{
 			// b) update all entries for this user within the 'user_types' table:
 			$typeIDString = implode("|", $formVars["referenceTypeSelector"]); // join array of type IDs using a pipe as separator
-	
+
 			$queryArray[] = "UPDATE $tableUserTypes SET "
 							. "show_type = \"true\" "
 							. "WHERE user_id = " . quote_smart($userID) . " AND type_id RLIKE " . quote_smart("^(" . $typeIDString . ")$");
-	
+
 			$queryArray[] = "UPDATE $tableUserTypes SET "
 							. "show_type = \"false\" "
 							. "WHERE user_id = " . quote_smart($userID) . " AND type_id NOT RLIKE " . quote_smart("^(" . $typeIDString . ")$");
-	
+
 			// c) update all entries for this user within the 'user_styles' table:
 			$styleIDString = implode("|", $formVars["citationStyleSelector"]); // join array of style IDs using a pipe as separator
-	
+
 			$queryArray[] = "UPDATE $tableUserStyles SET "
 							. "show_style = \"true\" "
 							. "WHERE user_id = " . quote_smart($userID) . " AND style_id RLIKE " . quote_smart("^(" . $styleIDString . ")$");
-	
+
 			$queryArray[] = "UPDATE $tableUserStyles SET "
 							. "show_style = \"false\" "
 							. "WHERE user_id = " . quote_smart($userID) . " AND style_id NOT RLIKE " . quote_smart("^(" . $styleIDString . ")$");
-	
+
 			// d) update all cite entries for this user within the 'user_formats' table:
 			$citeFormatIDString = implode("|", $formVars["citationFormatSelector"]); // join array of format IDs using a pipe as separator
-	
+
 			$queryArray[] = "UPDATE $tableUserFormats SET "
 							. "show_format = \"true\" "
 							. "WHERE user_id = " . quote_smart($userID) . " AND format_id RLIKE " . quote_smart("^(" . $citeFormatIDString . ")$");
-	
+
 			$queryArray[] = "UPDATE $tableUserFormats SET "
 							. "show_format = \"false\" "
 							. "WHERE user_id = " . quote_smart($userID) . " AND format_id NOT RLIKE " . quote_smart("^(" . $citeFormatIDString . ")$");
-	
+
 			// e) update all export entries for this user within the 'user_formats' table:
 			$exportFormatIDString = implode("|", $formVars["exportFormatSelector"]); // join array of format IDs using a pipe as separator
-	
+
 			$queryArray[] = "UPDATE $tableUserFormats SET "
 							. "show_format = \"true\" "
 							. "WHERE user_id = " . quote_smart($userID) . " AND format_id RLIKE " . quote_smart("^(" . $exportFormatIDString . ")$");
-	
+
 			$queryArray[] = "UPDATE $tableUserFormats SET "
 							. "show_format = \"false\" "
 							. "WHERE user_id = " . quote_smart($userID) . " AND format_id NOT RLIKE " . quote_smart("^(" . $exportFormatIDString . ")$") . " AND format_id NOT RLIKE " . quote_smart("^(" . $citeFormatIDString . ")$"); // we need to include '$citeFormatIDString' here, otherwise the user's selected cite formats would get deleted again
@@ -375,6 +383,8 @@
 			$nonASCIICharsInCiteKeys = "NULL"; // use the site default given in '$handleNonASCIICharsInCiteKeysDefault' in 'ini.inc.php'
 		else
 			$nonASCIICharsInCiteKeys = quote_smart($formVars["nonascii_chars_in_cite_keys"]); // use the setting chosen by the user
+
+		$mainFieldsString = implode(", ", $formVars["mainFieldsSelector"]); // join array of the user's preferred main fields using a comma (and whitespace) as separator
 
 
 		// we account for the possibility that no entry in table 'user_options' exists for the current user
@@ -398,6 +408,8 @@
 							. ", nonascii_chars_in_cite_keys = " . $nonASCIICharsInCiteKeys // already quote_smart
 							. ", use_custom_text_citation_format = " . quote_smart($formVars["use_custom_text_citation_format"])
 							. ", text_citation_format = " . quote_smart($formVars["text_citation_format"])
+							. ", records_per_page = " . quote_smart($formVars["recordsPerPageNo"])
+							. ", main_fields = " . quote_smart($mainFieldsString)
 							. " WHERE user_id = " . quote_smart($userID);
 
 		else // otherwise we perform an INSERT action:
@@ -411,6 +423,8 @@
 							. ", nonascii_chars_in_cite_keys = " . $nonASCIICharsInCiteKeys // already quote_smart
 							. ", use_custom_text_citation_format = " . quote_smart($formVars["use_custom_text_citation_format"])
 							. ", text_citation_format = " . quote_smart($formVars["text_citation_format"])
+							. ", records_per_page = " . quote_smart($formVars["recordsPerPageNo"])
+							. ", main_fields = " . quote_smart($mainFieldsString)
 							. ", user_id = " . quote_smart($userID)
 							. ", option_id = NULL"; // inserting 'NULL' into an auto_increment PRIMARY KEY attribute allocates the next available key value
 	}
@@ -428,9 +442,11 @@
 	{
 		// Write back session variables:
 		saveSessionVariable("userLanguage", $formVars["languageName"]); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-	
+
 		// Note: the user's types/styles/formats will be written to their corresponding session variables in function 'getVisibleUserFormatsStylesTypes()'
 		//       which will be called by the following receipt page ('user_receipt.php') anyhow, so we won't call the function here...
+		//       The same is true for the user's preferred number of records per page and the list of "main fields" which will be saved to session variables
+		//       from within 'user_receipt.php' thru functions 'getMainFields()' and 'getDefaultNumberOfRecords()', respectively.
 	}
 
 	// Clear the 'errors' and 'formVars' session variables so a future <form> is blank:

@@ -47,7 +47,7 @@
 		else
 			$referer = "index.php"; // if all other attempts fail, we'll re-direct to the main page
 	}
-	
+
 	// Is the user logged in?
 	if (isset($_SESSION['loginEmail']))
 	{
@@ -59,8 +59,10 @@
 		deleteSessionVariable("loginLastName"); // clear the user's last name
 		deleteSessionVariable("abbrevInstitution"); // clear the user's abbreviated institution name
 		deleteSessionVariable("userLanguage"); // clear the user's preferred language
+		deleteSessionVariable("userRecordsPerPage"); // clear the user's preferred number of records per page
+		deleteSessionVariable("userMainFields"); // clear the user's preferred list of "main fields"
 		deleteSessionVariable("lastLogin"); // clear the user's last login date & time
-	
+
 		if (isset($_SESSION['userGroups']))
 			deleteSessionVariable("userGroups"); // clear the user's user groups (if any)
 
