@@ -26,7 +26,7 @@
 	include 'includes/footer.inc.php'; // include footer
 	include 'includes/include.inc.php'; // include common functions
 	include 'initialize/ini.inc.php'; // include common variables
-	
+
 	// --------------------------------------------------------------------
 
 	// START A SESSION:
@@ -155,7 +155,7 @@
 
 		// (A) main import form:
 		$sourceText = "";
-		$importRecordsRadio = "only";
+		$importRecordsRadio = "all";
 		$importRecords = "1";
 		$skipBadRecords = "";
 
@@ -193,7 +193,7 @@
 				$skipBadRecordsCheckBoxIsChecked = " checked"; // mark the 'Skip records with unrecognized data format' checkbox
 			else
 				$skipBadRecordsCheckBoxIsChecked = "";
-	
+
 			// display the 'Skip records with unrecognized data format' checkbox:
 			$skipBadRecordsInput = "<br><input type=\"checkbox\" name=\"skipBadRecords\" value=\"1\"$skipBadRecordsCheckBoxIsChecked title=\"mark this checkbox to omit records with unrecognized data format during import\">&nbsp;&nbsp;" . fieldError("skipBadRecords", $errors);
 		}
@@ -332,7 +332,7 @@
 			. "\n</tr>"
 			. "\n</table>"
 			. "\n</form>";
-	
+
 	// --------------------------------------------------------------------
 
 	// SHOW ERROR IN RED:
