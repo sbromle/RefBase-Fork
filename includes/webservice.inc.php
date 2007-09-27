@@ -49,7 +49,8 @@
 	// Parse CQL query:
 	// This function parses a CQL query into its elements (context set, index, relation and search term(s)),
 	// builds appropriate SQL search terms and returns a hierarchical array containing the converted search terms
-	// (this array, in turn, gets merged into a full sql WHERE clause by function 'appendToWhereClause()')
+	// (this array, in turn, gets merged into a full SQL WHERE clause by function 'appendToWhereClause()' in
+	// 'include.inc.php')
 	// NOTE: we don't provide a full CQL parser here but will (for now) concentrate on a rather limited feature
 	//       set that makes sense in conjunction with refbase. However, future versions should employ far better
 	//       CQL parsing logic.
@@ -220,7 +221,7 @@
 				$whereClausePart .= " >= " . quote_smart($searchTerm);
 
 			$searchSubArray1[] = array("_boolean" => "",
-										"_query" => $whereClausePart);
+			                           "_query"   => $whereClausePart);
 		}
 
 		else // no context set/index name and relation was given -> search the 'serial' field by default:
@@ -236,40 +237,16 @@
 
 			if (!empty($serialsString))
 				$searchSubArray1[] = array("_boolean" => "",
-											"_query" => "serial RLIKE " . quote_smart("^(" . $serialsString . ")$"));
+				                           "_query"   => "serial RLIKE " . quote_smart("^(" . $serialsString . ")$"));
 		}
 
 
 		if (!empty($searchSubArray1))
 			$searchArray[] = array("_boolean" => "",
-									"_query" => $searchSubArray1);
+			                       "_query"   => $searchSubArray1);
 
 
 		return $searchArray;
-	}
-
-	// -------------------------------------------------------------------------------------------------------------------
-
-	// This function walks a '$searchArray' and appends its items to the WHERE clause:
-	// (the array hierarchy will be maintained, i.e. if the '_query' item is itself
-	//  an array of query items these sub-items will get properly nested in parentheses)
-	function appendToWhereClause($searchArray)
-	{
-		global $query;
-
-		foreach ($searchArray as $searchArrayItem)
-		{
-			if (is_array($searchArrayItem["_query"]))
-			{
-				$query .= " " . $searchArrayItem["_boolean"] . " (";
-				$query .= appendToWhereClause($searchArrayItem["_query"]);
-				$query .= " )";
-			}
-			else
-			{
-				$query .= " " . $searchArrayItem["_boolean"] . " " . $searchArrayItem["_query"];
-			}
-		}
 	}
 
 	// -------------------------------------------------------------------------------------------------------------------
@@ -289,21 +266,21 @@
 								"dc.format" => "medium",
 								"dc.publisher" => "publisher",
 								"dc.coverage" => "area",
-	
+
 //								"bath.name" => "author",
 //								"bath.topicalSubject" => "keywords",
 								"bath.issn" => "issn",
 								"bath.corporateName" => "corporate_author",
 								"bath.conferenceName" => "conference",
-	
+
 								"rec.identifier" => "serial",
 								"rec.creationDate" => "created_date-created_time",
 								"rec.creationAgentName" => "created_by",
 								"rec.lastModificationDate" => "modified_date-modified_time",
 								"rec.lastModificationAgentName" => "modified_by",
-	
+
 								"bib.citekey" => "cite_key",
-	
+
 								"author" => "author", // for indexes that have no public context set we simply accept refbase field names
 								"title" => "title",
 								"year" => "year",
@@ -312,7 +289,7 @@
 								"volume" => "volume",
 								"issue" => "issue",
 								"pages" => "pages",
-	
+
 								"address" => "address",
 								"corporate_author" => "corporate_author",
 								"keywords" => "keywords",
@@ -323,14 +300,14 @@
 								"language" => "language",
 								"summary_language" => "summary_language",
 								"orig_title" => "orig_title",
-	
+
 								"series_editor" => "series_editor",
 								"series_title" => "series_title",
 								"abbrev_series_title" => "abbrev_series_title",
 								"series_volume" => "series_volume",
 								"series_issue" => "series_issue",
 								"edition" => "edition",
-	
+
 								"issn" => "issn",
 								"isbn" => "isbn",
 								"medium" => "medium",
@@ -339,27 +316,27 @@
 								"conference" => "conference",
 								"notes" => "notes",
 								"approved" => "approved",
-	
+
 								"location" => "location",
 								"call_number" => "call_number",
 								"serial" => "serial",
 								"type" => "type",
 								"thesis" => "thesis",
-	
+
 								"file" => "file",
 								"url" => "url",
 								"doi" => "doi",
 								"contribution_id" => "contribution_id",
 								"online_publication" => "online_publication",
 								"online_citation" => "online_citation",
-	
+
 								"created_date-created_time" => "created_date-created_time",
 								"created_by" => "created_by",
 								"modified_date-modified_time" => "modified_date-modified_time",
 								"modified_by" => "modified_by",
-	
+
 								"orig_record" => "orig_record",
-	
+
 //								"marked" => "marked", // querying for user-specific fields requires that the 'x-...authenticationToken' is given in the SRU query
 //								"copy" => "copy",
 //								"selected" => "selected",
