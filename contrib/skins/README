@@ -1,4 +1,4 @@
 The current method to change the appearance of refbase is to edit the style
 files in the 'css' subdirectory and/or to replace the 'header.inc.php' and
 'footer.inc.php' in the 'includes' subdirectory.  This directory contains
-exampless of customized versions of these files.
+examples of customized versions of these files.

@@ -13,9 +13,11 @@ About
 Use
 ---
   Part I: Configuration
-  - Both scripts may be edited in a text editor.  It is suggested that you set:
+  - Both scripts may be edited in a text editor. It is suggested that you set:
     - %hosts
     - %loginParams
   Part II: Use
   - Both scripts will print help if run with an argument of '-h' or '--help'
   - They will print usage examples if run with '-X' or '--examples'
+  See also:
+    <http://cli.refbase.net>
