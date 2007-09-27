@@ -23,6 +23,7 @@
 
 	$transtab_refbase_latex = array(
 
+		"/([{}])/"             =>  '\\\\\\1', // escaping of curly brackets has to be done as the first action so that conversion is only applied to field contents and doesn't mess with the generated LaTeX code
 		"/_(.+?)_/"            =>  '\\textit{\\1}', // or use '\\it{\\1}'
 		"/\\*\\*(.+?)\\*\\*/"  =>  '\\textbf{\\1}', // or use '\\bf{\\1}'
 		"/\\[super:(.+?)\\]/i" =>  '$^{\\1}$', // or use '\\textsuperscript{\\1}'
@@ -78,7 +79,6 @@
 		"/\\[Chi\\]/"          =>  '$X$',
 		"/\\[Psi\\]/"          =>  '$\\Psi$',
 		"/\\[Omega\\]/"        =>  '$\\Omega$',
-		"/([{}])/"             =>  '\\\\\\1', // escaping of curly brackets has to be done here (and not in 'transtab_*' files) so that conversion is only applied to field contents and doesn't mess with the generated LaTeX code
 		"/\"(.+?)\"/"          =>  '{\\textquotedblleft}\\1{\\textquotedblright}',
 		"/ +- +/"              =>  " -- ",
 		"/–/"                  =>  '--'
