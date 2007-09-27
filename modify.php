@@ -381,7 +381,7 @@
 			{
 				$maxFileSize = ini_get("upload_max_filesize");
 				$fileError = "File size must not be greater than " . $maxFileSize . ":";
-		
+
 				$errors["uploadFile"] = $fileError; // inform the user that the maximum upload file size was exceeded
 			}
 			else // a tmp file exists...
@@ -431,7 +431,7 @@
 
 	// CAUTION: validation of other fields is currently disabled, since, IMHO, there are too many open questions how to implement this properly
 	//          and without frustrating the user! Uncomment the commented code below to enable the current validation features:
-	
+
 //	// Validate fields that SHOULD not be empty:
 //	// Validate the 'Author' field:
 //	if (empty($authorName))
@@ -546,7 +546,7 @@
 		if ($authorName == $editorName) // if the 'Author' field contents equal the 'Editor' field contents...
 			$editorName = ""; // ...clear contents of 'editor' field (that is, we assume that the user did uncheck the 'is Editor' checkbox, which was previously marked)
 	}
-	
+
 
 	// Assign correct values to the calculation fields 'first_author', 'author_count', 'first_page', 'volume_numeric' and 'series_volume_numeric':
 	// function 'generateCalculationFieldContent()' is defined in 'include.inc.php'
@@ -582,13 +582,13 @@
 			// Note that, for normal users, we process the user's call number information even if the '$locationSelectorName' is NOT set to 'add'.
 			// This is done, since the user should be able to update his/her personal reference ID while the '$locationSelectorName' is set to 'don't touch'.
 			// If the '$locationSelectorName' is set to 'remove', then any changes made to the personal reference ID will be discarded anyhow.
-	
+
 			// build a correct call number string for the current user & record:
 			if ($callNumberNameUserOnly == "") // if the user didn't enter any personal reference ID for this record...
 				$callNumberNameUserOnly = $callNumberPrefix . " @ "; // ...insert the user's call number prefix only
 			else // if the user entered (or modified) his/her personal reference ID for this record...
 				$callNumberNameUserOnly = $callNumberPrefix . " @ " . $callNumberNameUserOnly; // ...prefix the entered reference ID with the user's call number prefix
-	
+
 			// insert or update the user's call number within the full contents of the 'call_number' field:
 			if ($callNumberName == "") // if the 'call_number' field is empty...
 				$callNumberName = $callNumberNameUserOnly; // ...insert the user's call number prefix
@@ -906,12 +906,13 @@
 	}
 
 	// Apply some clean-up to the SQL query:
-	// if a field of type=NUMBER is empty, we set it back to NULL (otherwise the empty string would be converted to "0")
-	if (ereg("(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record) = [\"']0?[\"']", $queryRefs))
-		$queryRefs = preg_replace("/(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record) = [\"']0?[\"']/", "\\1 = NULL", $queryRefs);
+	// - if a field of type=NUMBER is empty, we set it back to NULL (otherwise the empty string would be converted to "0")
+	// - if the 'thesis' field is empty, we also set it back to NULL (this ensures correct sorting when outputting citations with '$citeOrder="type"' or '$citeOrder="type-year"')
+	if (ereg("(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']", $queryRefs))
+		$queryRefs = preg_replace("/(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']/", "\\1 = NULL", $queryRefs);
 
-	if (ereg("(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record) = [\"']0?[\"']", $queryDeleted))
-		$queryDeleted = preg_replace("/(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record) = [\"']0?[\"']/", "\\1 = NULL", $queryDeleted);
+	if (ereg("(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']", $queryDeleted))
+		$queryDeleted = preg_replace("/(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']/", "\\1 = NULL", $queryDeleted);
 
 	// --------------------------------------------------------------------
 
@@ -981,7 +982,7 @@
 												" *, *",
 												1,
 												$authorName);
-	
+
 			if ($authorCount == "2") // two authors
 			{
 				$authorString .= " & ";
@@ -990,13 +991,13 @@
 													2,
 													$authorName);
 			}
-	
+
 			if ($authorCount == "3") // at least three authors
 				$authorString .= " et al";		
-		
+
 			// send a notification email to the mailing list email address '$mailingListEmail' (specified in 'ini.inc.php'):
 			$emailRecipient = "Literature Database Announcement List <" . $mailingListEmail . ">";
-	
+
 			$emailSubject = "New entry: " . $authorString . " " . $yearNo;
 			if (!empty($publicationName))
 			{
@@ -1006,7 +1007,7 @@
 				else
 					$emailSubject .= ")";
 			}
-	
+
 			$emailBody = "The following record has been added to the " . $officialDatabaseName . ":"
 						. "\n\n  author:       " . $authorName
 						. "\n  title:        " . $titleName
@@ -1083,7 +1084,7 @@
 		}
 		else // take the file name as given by the user:
 			$newFileName = $uploadFile["name"];
-		
+
 
 		// Generate directory structure:
 		if ($moveFilesIntoSubDirectories != "never")
