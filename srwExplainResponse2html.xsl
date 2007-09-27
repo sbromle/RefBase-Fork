@@ -69,13 +69,13 @@
 		<!-- page header: -->
 		<table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This holds the title logo and info">
 			<tr>
-				<td valign="middle" rowspan="2" align="left" width="170">
+				<td valign="bottom" rowspan="2" align="left" width="120">
 				<a>
 					<xsl:attribute name="href">
 						<!-- note that the logo should point to the URL given in '$hostInstitutionURL' but this information is currently not available in the SRU explain response -->
 						<xsl:value-of select='srw:record/srw:recordData/zr:explain/zr:databaseInfo/zr:links/zr:link[@type="www"]' />
 					</xsl:attribute>
-					<img src="img/logo.gif" alt="" border="0" />
+					<img src="img/logo.png" alt="" border="0" />
 				</a>
 				</td>
 				<td>
