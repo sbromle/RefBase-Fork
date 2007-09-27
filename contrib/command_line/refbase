@@ -1,12 +1,21 @@
 #!/usr/bin/perl
 
 # Project:    Web Reference Database (refbase) <http://www.refbase.net>
-# Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-#             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-#             Please see the GNU General Public License for more details.
-# File:       ./refbase
+# Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+#             original author(s).
+#
+#             This code is distributed in the hope that it will be useful,
+#             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+#             License for more details.
+#
+# File:       ./contrib/command_line/refbase
+# Repository: $HeadURL$
+# Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+#
 # Created:    06-Jun-06, 18:00
-# Modified:   03-Oct-06, 22:40
+# Modified:   $Date$
+#             $Author$
+#             $Revision$
 
 # REFBASE -- a refbase command line interface
 
@@ -17,23 +26,24 @@
 #             To view some usage examples type 'refbase -X'
 #             Further information is available at <http://cli.refbase.net/>
 
-# Version:    1.1
+# Version:    1.2
 
 # Requires:   - a shell with Perl execution capabilities
 #             - the Perl CPAN modules LWP::UserAgent, HTTP::Request::Common, HTTP::Response, HTTP::Cookies and URI::URL
-#             - access to an up-to-date refbase CVS version
+#             - access to a refbase database (refbase-0.9.0 or greater, refbase-0.9.1 required for '-A|--append' and '-B|--update' mode)
 
 # Limits:     - Currently, this utility supports search & retrieve, but does not support update actions such as add, edit or delete.
 #             - This script is currently just an interface to 'show.php', which for example does not support arbitrary sort orders.
 #             - Specifying the record offset (using '-S|--start') as well as the number of records to be returned (using '-R|--rows') will
-#               only work for the formats 'html', 'rtf', 'pdf', 'latex', 'markdown', 'ascii' and 'srw', since the other formats are designed
-#               to always export the entire result set. Note that for 'html', '--start' is adjusted to the next lower value that is an
+#               only work for the formats 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii' and 'srw', since the other formats are
+#               designed to always export the entire result set. Note that for 'html', '--start' is adjusted to the next lower value that is an
 #               exact multiple of '--rows' (which ensures correct behaviour of the browse links).
 #             - The authentication mechanism is currently limited in that a given password will be transferred as parameter in the POST request
+#             - The '-A|--append' and '-B|--update' modes currently only work with formats 'bibtex', 'mods' and 'srw'
 
 # --------------------------------------------------------------------------------------------------------------
 
-$version = "1.1";
+$version = "1.2";
 
 # Configure variables:
 
@@ -45,7 +55,9 @@ $version = "1.1";
 %hosts = (
 				'default' => 'http://polaris.ipoe.uni-kiel.de/refs/',
 				'local'   => 'http://localhost/refs/',
-				'beta'    => 'http://beta.refbase.net/'
+				'beta'    => 'http://beta.refbase.net/',
+				'demo'    => 'http://demo.refbase.net/',
+				'org'     => 'http://www.refbase.org/'
 );
 
 # Specify the default values for all options that are not explicitly specified:
@@ -75,41 +87,141 @@ $version = "1.1";
 				'serial'          => '.+',  # -z|--serial      => the default '.+' causes all database records to be returned if only empty params are given (normally, you should leave this default as is)
 
 				# output options:
-				'citeStyle'   => '',        # -C|--style     => desired citation style, given name must match an entry within the database's MySQL table 'styles' (keep empty to use the database default)
-				'format'      => 'ascii',   # -F|--format    => output format must be 'html', 'rtf', 'pdf', 'latex', 'markdown', 'ascii', 'bibtex', 'endnote', 'ris', 'mods', 'srw', 'odf' or '' (the empty string '' will produce the default 'ascii' output style)
-				'showLinks'   => '1',       # -L|--showlinks => hide/display links column in HTML output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. print any links)
-				'citeOrder'   => 'author',  # -O|--order     => cite order must be 'author', 'year', 'type', 'type-year' or '' (the empty string '' will produce the default 'author' sort order)
-				'showQuery'   => '0',       # -Q|--showquery => hide/display SQL query in ASCII output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. not showing the SQL query)
-				'showRows'    => '',        # -R|--rows      => desired number of search results (keep empty to use the database default)
-				'startRecord' => '1',       # -S|--start     => offset of the first search result, starting with one
-				'viewType'    => 'web',     # -V|--view      => view type of HTML output; must be 'Web', 'Print' or '' (the empty string '' will produce the default 'Web' output style)
+				'appendFile'      => '',        # -A|--append    => file to which search results will be appended
+				'updateRecords'   => '0',       # -B|--update    => update existing records in '-A, --append' file; must be '0' (=no) or '1' (=yes)
+				'citeStyle'       => '',        # -C|--style     => desired citation style, given name must match an entry within the database's MySQL table 'styles' (keep empty to use the database default)
+				'extractFile'     => '',        # -E|--extract   => file from which citations will be extracted
+				'format'          => 'ascii',   # -F|--format    => output format must be 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii', 'bibtex', 'endnote', 'ris', 'isi', 'mods', 'srw', 'odf', 'word' or '' (the empty string '' will produce the default 'ascii' output style)
+				'showLinks'       => '1',       # -L|--showlinks => hide/display links column in HTML output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. print any links)
+				'citeOrder'       => 'author',  # -O|--order     => cite order must be 'author', 'year', 'type', 'type-year' or '' (the empty string '' will produce the default 'author' sort order)
+				'showQuery'       => '0',       # -Q|--showquery => hide/display SQL query in ASCII output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. not showing the SQL query)
+				'showRows'        => '',        # -R|--rows      => desired number of search results (keep empty to use the database default)
+				'startRecord'     => '1',       # -S|--start     => offset of the first search result, starting with one
+				'viewType'        => 'web',     # -V|--view      => view type of HTML output; must be 'Web', 'Print' or '' (the empty string '' will produce the default 'Web' output style)
 
 				# fixed parameters:
-				'submit'      => 'Cite',    # display type for HTML output; must be 'Display', 'Cite', 'Export', or '' (the empty string '' will produce the default 'columnar' output style); this param's value will get adopted below based on the chosen '--format'
-				'client'      => "cli-refbase-" . $version # the client ID of this command line utility
+				'submit'          => 'Cite',    # display type for HTML output; must be 'Display', 'Cite', 'Export', or '' (the empty string '' will produce the default 'columnar' output style); this param's value will get adopted below based on the chosen '--format'
+				'client'          => "cli-refbase-" . $version # the client ID of this command line utility
 
 );
 
 # Specify the default login credentials for a refbase user account:
 %loginParams = (
-				'loginEmail'     => '', # -U|--user     -> the login email address of an existing refbase user
-				'loginPassword'  => ''  # -P|--password -> the password for the given user account
+				'loginEmail'      => '', # -U|--user     -> the login email address of an existing refbase user
+				'loginPassword'   => ''  # -P|--password -> the password for the given user account
 );
 
 # Specify the location of the cookie jar file:
 # This file will be used to store & retrieve cookies
 $cookieJarFile = "$ENV{HOME}/.lwpcookies.txt";
 
+# For '-A|--append' mode, specify whether all records in the given file
+# shall be sorted by cite key after any records have been appended/updated:
+$sortAppendFileData = 1; # must be '1' (=yes) or '0' (=no)
+
+# For '-A|--append' mode, specify whether all appended/updated
+# records shall be reported as citations to STDOUT:
+$reportResults = 1; # must be '1' (=yes) or '0' (=no)
+
+# For '-A|--append' mode, specify whether a backup file shall be created
+# before anything gets updated or appended to the given file:
+$backupAppendFile = 1; # must be '1' (=yes) or '0' (=no)
+
+# By default, the backup file uses the given file name with a tilde character
+# added at the end of the file name. Adopt to your needs if necessary:
+$backupFileNameSuffix = "~";
+
+# For '-E|--extract' mode, specify regular expression patterns that match the
+# citation IDs (i.e. refbase serial numbers or cite keys from the 'cite_key'
+# field) in the given file:
+
+# For each recognized file name extension[*], there must be a triplet of code
+# (as shown below), each hash element contains an array with three elements:
+# 1) a regex pattern that matches the cite IDs in the file (e.g. '\\\\cite\{(.+?)\}')
+#    (note that the regex patterns will be applied using the 'msg' mode modifiers)
+# 2) the number of the sub-pattern that captures the cite IDs (e.g. '1')
+# 3) a regex split pattern that matches the delimiter(s) used between multiple cite IDs (e.g. '[, ]+')
+# [*]: The hash key must match the file's file name extension. If the given file is
+#      of unknown file type the 'default' pattern will be applied.
+%citeIDPatterns = (
+# - LaTeX, .tex file:
+					'tex' => [  '\\\\(?:(?:no)?cite|cite(?:n|num|online)|cite(?:al)?[tp]\*?|cite(?:author\*?|year(?:par)?|text|[tp]alias))(?:\[.*?\])*\{(.+?)\}', # 1), matches e.g.: '\cite{...}', '\nocite{...}', '\cite[...]{...}' and cite commands from the 'cite' & 'natbib' packages
+								'1', # 2)
+								'[, ]+' ], # 3)
+
+# - LaTeX, .aux file:
+					'aux' => [  '\\\\(?:citation|bibcite)\{(.+?)\}', # matches '\citation{...}' or '\bibcite{...}'
+								'1',
+								'[, ]+' ],
+
+# - LaTeX, .bib file:
+					'bib' => [  '^[\t ]*@[A-Za-z]+\{(.+?),', # matches '@Article{...,' etc
+								'1',
+								'[, ]+' ],
+
+# - LaTeX, .bbl file:
+					'bbl' => [  '\\\\bibitem(?s:\[.*?\])*\{(.+?)\}', # matches '\bibitem{...}' or '\bibitem[...]{...}'
+								'1',
+								'[, ]+' ],
+
+# - MODS, SRW+MODS, or Endnote XML file:
+					'xml' => [  '(?:<mods.+?ID="|<identifier.+?type="citekey">|<(?:label|accession-num)>\s*<style.*?>\s*)(.+?)(?:</identifier>|\s*</style>\s*</(?:label|accession-num)>|")', # matches MODS IDs like '<mods ID="..."', '<mods version="..." ID="..."' or '<identifier type="citekey">...</identifier>' etc -OR- Endnote XML IDs, e.g. '<label><style face="normal" font="default" size="100%">...</style></label>' etc
+								'1',
+								'[, ]+' ],
+
+# - Endnote tagged text, .enw file:
+					'enw' => [  '^%F ([^\n\r]+)$', # matches '%F ...'
+								'1',
+								'[, ]+' ],
+
+# - RIS, .ris file:
+					'ris' => [  '^ID  - ([^\n\r]+)$', # matches 'ID  - ...'
+								'1',
+								'[, ]+' ],
+
+# - Generic, extracts IDs from lists of comma-separated refbase serial numbers (or cite keys) that are enclosed by braces:
+					'default' => [  '\{([^\n\r]+?)\}', # matches e.g.: '{123}', '{1,12,33}', '{Arrigo+Thomas2004}' or '{Arrigo+Thomas2004,Assur1958}'
+									'1',
+									'[,]+' ],
+);
+
 # --------------------------------------------------------------------------------
 
+# NOTE: You shouldn't need to change anything below this line
+
+# CPAN modules:
 use LWP::UserAgent; # more info: <http://search.cpan.org/~gaas/libwww-perl-5.805/lib/LWP/UserAgent.pm>
 use HTTP::Request::Common; # more info: <http://search.cpan.org/~gaas/libwww-perl-5.805/lib/HTTP/Request/Common.pm>
 use HTTP::Response; # more info: <http://search.cpan.org/~gaas/libwww-perl-5.805/lib/HTTP/Response.pm>
 use HTTP::Cookies; # more info: <http://search.cpan.org/~gaas/libwww-perl-5.805/lib/HTTP/Cookies.pm>
 use URI::URL; # more info: <http://search.cpan.org/~gaas/URI-1.35/URI/URL.pm>
 
+# standard modules:
+use Time::Local;
+
+# initialize variables:
 $host = $hosts{'default'};
 $optCt = 0;
+$format = '';
+@appendFileSerials = ();
+$updateRecords = 0;
+@extractFileSerials = ();
+@extractFileKeys = ();
+
+%months = (
+				'Jan' => 0,
+				'Feb' => 1,
+				'Mar' => 2,
+				'Apr' => 3,
+				'May' => 4,
+				'Jun' => 5,
+				'Jul' => 6,
+				'Aug' => 7,
+				'Sep' => 8,
+				'Oct' => 9,
+				'Nov' => 10,
+				'Dec' => 11
+);
 
 # Extract options:
 
@@ -145,7 +257,10 @@ else {
 		elsif ($_ =~ /^(?:-z|--serial)=(.+)$/) { $params{'serial'} = $1; }
 
 		# extract output options:
+		elsif ($_ =~ /^(?:-A|--append)=(.+)$/) { $params{'appendFile'} = $1; }
+		elsif ($_ =~ /^(?:-B|--update)=(.+)$/) { $params{'updateRecords'} = $1; }
 		elsif ($_ =~ /^(?:-C|--style)=(.+)$/) { $params{'citeStyle'} = $1; }
+		elsif ($_ =~ /^(?:-E|--extract)=(.+)$/) { $params{'extractFile'} = $1; }
 		elsif ($_ =~ /^(?:-F|--format)=(.+)$/) { $params{'format'} = $1; }
 		elsif ($_ =~ /^(?:-L|--showlinks)=(.+)$/) { $params{'showLinks'} = $1; }
 		elsif ($_ =~ /^(?:-O|--order)=(.+)$/) { $params{'citeOrder'} = $1; }
@@ -185,21 +300,23 @@ if (($optCt > 0) && ($params{'serial'} eq '.+')) {
 
 # assign correct URL params based on the '-F|--format' option:
 if (exists($params{'format'})) {
-	if ($params{'format'} =~ /^(rtf|pdf|latex|markdown|ascii)$/i) {
+	$format = $params{'format'};
+	if ($format =~ /^(rtf|pdf|latex|latex_bbl|markdown|ascii)$/i) {
 		$params{'submit'} = "Cite";
 	}
-	if ($params{'format'} =~ /^(html|rtf|pdf|latex|markdown|ascii)$/i) {
-		$params{'citeType'} = $params{'format'};
+	if ($format =~ /^(html|rtf|pdf|latex|latex_bbl|markdown|ascii)$/i) {
+		$format =~ s/^latex_bbl$/LaTeX .bbl/i;
+		$params{'citeType'} = $format;
 	}
-	elsif ($params{'format'} =~ /^(bibtex|endnote|ris|mods|srw|odf)$/i) {
+	elsif ($format =~ /^(bibtex|endnote|ris|isi|mods|srw|odf|word)$/i) {
 		$params{'submit'} = "Export";
 		$params{'exportType'} = "file";
-	
-		if ($params{'format'} =~ /^(bibtex|endnote|ris)$/i) {
-			$params{'exportFormat'} = $params{'format'};
+
+		if ($format =~ /^(bibtex|endnote|ris|isi)$/i) {
+			$params{'exportFormat'} = $format;
 		}
-		elsif ($params{'format'} =~ /^(mods|srw|odf)$/i) {
-			$params{'exportFormat'} = $params{'format'} . " xml";
+		elsif ($format =~ /^(mods|srw|odf|word)$/i) {
+			$params{'exportFormat'} = $format . " xml";
 		}
 	}
 	else {
@@ -209,16 +326,158 @@ if (exists($params{'format'})) {
 	delete($params{'format'});
 }
 
+# '-E|--extract' functionality:
+if ($params{'extractFile'} ne '') {
+	$extractFile = $params{'extractFile'};
+	# remove 'extractFile' parameter (which we don't need to send to the refbase server):
+	delete($params{'extractFile'});
+
+	# check if the given file exists and is readable:
+	if (!(-r $extractFile)) {
+		print "The '-E|--extract' option requires a name/path to an existing file.\n\n";
+		exit;
+	}
+	else { 	# the given '$extractFile' exists and is readable
+		$fileExtension = "default"; # triggers default regex patterns for extraction of cite IDs
+		# extract any file name extension:
+		if ($extractFile =~ /\.([^.\n]+)$/) {
+			if (exists($citeIDPatterns{$1})) { # if '$extractFile' has a recognized file name extension
+				$fileExtension = $1; # use file-specific regex patterns for extraction of cite IDs
+			}
+		}
+
+		$citeIDRegex = @{$citeIDPatterns{$fileExtension}}[0]; # get regex pattern that matches the cite IDs in '$extractFile'
+		$citeIDNum   = @{$citeIDPatterns{$fileExtension}}[1]; # get number of the sub-pattern that captures the cite IDs
+		$citeIDSplit = @{$citeIDPatterns{$fileExtension}}[2]; # get regex split pattern that matches the delimiter(s) used between multiple cite IDs
+
+		# open '$extractFile' in read mode:
+		open(KEYS, "<", $extractFile) || die "Can't open file '" . $extractFile . "': $!\n";
+
+		# read the entire file at once:
+		undef $/;
+		$extractFileString = <KEYS>;
+
+		# close '$extractFile':
+		close(KEYS) || die "Can't close file: $!\n";
+
+		# extract all refbase serial numbers or cite keys that exist in '$extractFile':
+		while ($extractFileString =~ /$citeIDRegex/msg) {
+			$citeID = $$citeIDNum;
+			if ($citeID =~ /^(?:\d+|$citeIDSplit)+$/) { # '$citeID' is assumed to be a refbase serial number (or a list of multiple serials)
+				while ($citeID =~ /(\d+)/g) {
+					push(@extractFileSerials, $1);
+				}
+			}
+			else { # '$citeID' is assumed to be a cite key (or a list of multiple cite keys)
+				push(@extractFileKeys, split(/$citeIDSplit/, $citeID));
+			}
+		}
+
+		# remove any duplicate cite IDs:
+		@extractFileSerials = &uniquify(@extractFileSerials);
+		@extractFileKeys = &uniquify(@extractFileKeys);
+
+		# add query clause to restrict search results to records existing in '$extractFile':
+		if (@extractFileSerials || @extractFileKeys) {
+			if ($params{'where'} ne '') { $params{'where'} .= " AND "; }
+			$params{'where'} .= "(";
+			if (@extractFileSerials) {
+				$params{'where'} .= 'serial RLIKE "^(' . join('|', @extractFileSerials) . ')$"';
+			}
+			if (@extractFileKeys) {
+				if (@extractFileSerials) { $params{'where'} .= " OR "; }
+				$params{'where'} .= 'cite_key RLIKE "^(' . join('|', map {quotemeta(quotemeta($_))} @extractFileKeys) . ')$"'; # quotes each key before joining them
+			}
+			$params{'where'} .= ")";
+		}
+		else { # no citation IDs could be extracted from '$extractFile'
+			print "No citation IDs were found in file '" . $extractFile . "'!\n\n";
+			exit;
+		}
+	}
+}
+
+# '-A|--append' mode:
+if ($params{'appendFile'} ne '') {
+	# '-A|--append' mode currently only works with formats 'bibtex', 'mods' and 'srw',
+	# for all other formats (or if no format was specified), we'll return an error message:
+	if ($format !~ /^(bibtex|mods|srw)$/i) {
+		print "The '-A, --append' option requires '-F, --format' set to 'bibtex', 'mods' or 'srw'.\n\n";
+		exit;
+	}
+
+	$appendFile = $params{'appendFile'};
+	# remove 'appendFile' parameter (which we don't need to send to the refbase server):
+	delete($params{'appendFile'});
+
+	$appendFileString = '';
+
+	# if the given '$appendFile' exists and is readable:
+	if (-r $appendFile) {
+		# open '$appendFile' in read mode:
+		open(FILEIN, "<", $appendFile) || die "Can't open file '" . $appendFile . "': $!\n";
+
+		# read the entire file at once:
+		undef $/;
+		$appendFileString = <FILEIN>;
+
+		# extract all refbase serial numbers (which already exist in '$appendFile') into an array:
+		while ($appendFileString =~ /(?<=show\.php\?record=)(\d+)/g) {
+			push(@appendFileSerials, $1);
+		}
+
+		# close '$appendFile':
+		close(FILEIN) || die "Can't close file: $!\n";
+
+		# backup existing contents of '$appendFile':
+		# (note that, currently, this will overwrite contents of any existing backup file
+		#  with the same  backup file name, even if nothing gets updated/appended further down)
+		if ($backupAppendFile) {
+			# create suitable backup file name:
+			if ($appendFile =~ /\.([^.\n]+)$/) { # if the file has a file name extension
+				($appendFileBackup = $appendFile) =~ s/\.([^.\n]+)$/$backupFileNameSuffix.$1/; # add backup suffix in front of the file name extension
+			}
+			else {
+				$appendFileBackup = $appendFile . $backupFileNameSuffix; # add backup suffix at end of file
+			}
+
+			# open backup file in write mode (creates new file if it doesn't exist):
+			open(FILEBACKUP, ">", $appendFileBackup) || die "Can't open file '" . $appendFileBackup . "': $!\n";
+
+			# write existing contents of '$appendFile' to backup file (replacing any previous contents):
+			print FILEBACKUP $appendFileString;
+
+			# close backup file:
+			close(FILEBACKUP) || die "Can't close file: $!\n";
+		}
+
+		# add query clause to exclude existing records from search results:
+		if (@appendFileSerials) {
+			# save current contents of the '-w|--where' option before messing with it further:
+			# (it will be needed in the 'append' and 'update' subroutines below)
+			$where = $params{'where'};
+
+			if ($params{'where'} ne '') { $params{'where'} .= " AND "; }
+			$params{'where'} .= 'serial NOT RLIKE "^(' . join('|', @appendFileSerials) . ')$"';
+		}
+	}
+	# if no '$appendFile' exists, it will be created by the 'append' subroutine below
+}
+
+# '-B|--update' functionality:
+if ($params{'updateRecords'} == 1) {
+	$updateRecords = 1;
+}
+# remove 'updateRecords' parameter (which we don't need to send to the refbase server):
+delete($params{'updateRecords'});
+
 # for HTML output, we'll adjust the display type if the '-r|--records' option contains a single record serial number:
 if (($params{'citeType'} eq 'html') && ($params{'records'} =~ /^[0-9]+$/)) {
 	$params{'submit'} = "Display";
 }
 
-# construct URL:
-# (uses URI::URL)
-$script = "show.php";
-$url = url($host . $script);
-$url->query_form(%params);
+# NOTE: I tried to put all query-related code into a dedicated function but for
+#       some reason that didn't work with redirects. ?:-/
 
 # initialize new user agent:
 # (uses LWP::UserAgent)
@@ -226,6 +485,11 @@ $userAgent = LWP::UserAgent->new;
 
 # set user agent string:
 $userAgent->agent("refbase/" . $version . " (http://cli.refbase.net/) ");
+
+# allow redirection for 'POST' requests:
+# (by default, the list of request names that '$userAgent->redirect_ok(...)'
+#  will allow redirection for is only set to ['GET', 'HEAD'], as per RFC 2616)
+push @{ $userAgent->requests_redirectable }, 'POST';
 
 # set cookie jar object:
 # LWP will collect cookies and respond to cookie requests via its cookie jar, thus
@@ -238,16 +502,51 @@ if (($loginParams{'loginEmail'} ne '') && ($loginParams{'loginPassword'} ne ''))
 	$loginSuccessful = &login(0); # call the 'login' subroutine
 }
 
-# send GET request:
+# construct URL:
+# (uses URI::URL)
+$script = "show.php";
+$url = url($host . $script);
+
+# build and send GET/POST request:
 # (uses HTTP::Request::Common & HTTP::Response)
-$request = GET $url;
+
+# build POST request using the 'application/x-www-form-urlencoded' content type:
+$request = POST $url, \%params;
+
+# or, build POST request using the 'multipart/form-data' content type:
+# $request = POST $url, Content_Type => 'form-data', Content => \%params;
+
+# alternatively, build GET request:
+# (note that for large URLs, a GET request may cause an "414 Request-URI Too Large" error)
+# $url->query_form(%params);
+# $request = GET $url;
+
+# print $request->as_string(); # DEBUG (dumps the GET/POST request)
+
+# send the GET/POST request:
 $response = $userAgent->request($request); # or use: $response = $userAgent->get($url);
 
-# Print returned results to STDOUT (or, if the request fails, to STDERR):
-if ($response->is_error()) {
+# print returned results:
+if ($response->is_error()) { # if the request fails, print error message to STDERR:
 	print STDERR $response->status_line, "\n";
 }
-else {
+
+elsif (defined($appendFile)) { # if an '$appendFile' was given print results to FILE:
+	if ($updateRecords == 1 && @appendFileSerials) {
+		&update(0); # update existing records in '$appendFile' with found results
+	}
+
+	$resultsString = $response->content();
+
+	if (($resultsString eq '') || (($format =~ /^(mods|srw)$/i) && ($resultsString !~ /<mods[ >]/i))) {
+		print "There are no records that need to be added to file '" . $appendFile . "'.\n\n";
+	}
+	else { # if the query returned results which aren't yet in '$appendFile':
+		&append(0); # append search results to file
+	}
+}
+
+else { # print results to STDOUT:
 	print $response->content();
 }
 
@@ -265,15 +564,15 @@ sub login
 
 	# send POST request:
 	# (uses HTTP::Request::Common & HTTP::Response)
-	$request = POST $loginURL, \%loginParams;
-	$response = $userAgent->request($request);
-	
-	if ($response->is_error()) {
-		print STDERR $response->status_line, "\n";
+	$loginRequest = POST $loginURL, \%loginParams;
+	$loginResponse = $userAgent->request($loginRequest);
+
+	if ($loginResponse->is_error()) {
+		print STDERR $loginResponse->status_line, "\n";
 		exit $status;
 	}
 	else {
-		$location = $response->header('Location');
+		$location = $loginResponse->header('Location');
 
 		# upon successful login, refbase will redirect to 'index.php'
 		if ($location =~ /index.php/) {
@@ -283,6 +582,403 @@ sub login
 			return 0; # login NOT successful
 		}
 	}
+}
+
+# --------------------------------------------------------------------------------
+
+# Append search results to file:
+sub append
+{
+	local ($status) = @_;
+	local @newAppendFileData = ();
+	$whereAppend = "";
+
+	# TODO: In order to enable sorting of all records for MODS + SRW, we should remove the
+	#       XML file header & footer from the results (and store them in a variable). Then
+	#       merge existing & new records, split, sort, join again, and finally put the XML
+	#       header & footer back.
+	if ($format =~ /^(mods|srw)$/i) {
+		# if the '$appendFile' contains MODS XML data:
+		if (($format =~ /^mods$/i) && ($appendFileString =~ /<modsCollection/i)) {
+			# remove XML file header and '<modsCollection>' opening tag from results:
+			$resultsString =~ s/^<\?xml.+?<modsCollection[^>\n]*?>\n//ims;
+			# remove '</modsCollection>' closing tag from existing records in '$appendFile':
+			$appendFileString =~ s/^<\/modsCollection>//ims;
+		}
+		# if the '$appendFile' contains SRW XML data:
+		elsif (($format =~ /^srw$/i) && ($appendFileString =~ /<srw:records/i)) {
+			# remove XML file header and opening tags from results:
+			$resultsString =~ s/^<\?xml.+?<srw:records[^>\n]*?>\n//ims;
+			# remove closing tags from existing records in '$appendFile':
+			$appendFileString =~ s/^\s*<\/srw:records>.*?<\/srw:searchRetrieveResponse>//ims;
+
+			# TODO: update values in '<srw:numberOfRecords>' and '<srw:recordPosition>'
+		}
+	}
+
+	# append search results to the '$appendFile' contents:
+	$newAppendFileString = $appendFileString;
+	if (!($sortAppendFileData) && ($format =~ /^bibtex$/i) && ($appendFileString ne '') && ($resultsString ne '')) {
+		$newAppendFileString .= "\n";
+	}
+	$newAppendFileString .= $resultsString;
+
+	# sort all records by cite key:
+	if ($sortAppendFileData) {
+		# remove any newlines from end of string:
+		$newAppendFileString =~ s/[\n\r]+$//;
+
+		# split '$appendFile' contents & search results on (format-specific) record delimiters:
+		@newAppendFileData = &splitRecs($newAppendFileString);
+
+		# sort array of records by cite key:
+		@newAppendFileData = &sortRecs(@newAppendFileData);
+
+		# merge again records into a string:
+		if ($format =~ /^bibtex$/i) {
+			$recDelim = "\n\n";
+		}
+		else {
+			$recDelim = "\n";
+		}
+		$newAppendFileString = join($recDelim, @newAppendFileData) . "\n";
+	}
+
+	# open '$appendFile' in write mode (creates new file if it doesn't exist):
+	open(FILEADD, ">", $appendFile) || die "Can't open file '" . $appendFile . "': $!\n";
+
+	# write existing contents & new results back to '$appendFile':
+	print FILEADD $newAppendFileString;
+
+	# close '$appendFile':
+	close(FILEADD) || die "Can't close file: $!\n";
+
+	# to give some feedback, we output all appended records as citations to STDOUT:
+	# TODO: move into a dedicated function if possible (compare with 'update' subroutine)
+	if ($reportResults) {
+		$params{'submit'} = "Cite";
+		$params{'citeType'} = "ascii";
+		$params{'showRows'} = "99999";
+		$params{'headerMsg'} = "Added records:";
+
+		if ($where ne '') { $whereAppend = $where . " AND "; }
+
+		if (($appendFileString ne '') && (@appendFileSerials)) { # '$appendFile' contains some records
+			# add query clause to exclude existing records from search results:
+			$whereAppend .= 'serial NOT RLIKE "^(' . join('|', @appendFileSerials) . ')$"';
+		}
+		else { # '$appendFile' didn't exist or was empty
+			# extract all refbase serial numbers from '$resultsString' into an array:
+			while ($resultsString =~ /(?<=show\.php\?record=)(\d+)/g) {
+				push(@appendFileSerials, $1);
+			}
+			# add query clause to display all records from the current search results:
+			$whereAppend .= 'serial RLIKE "^(' . join('|', @appendFileSerials) . ')$"';
+		}
+
+		$params{'where'} = $whereAppend;
+
+		# construct URL:
+		# (uses URI::URL)
+		$appendFeedbackURL = url($host . $script);
+
+		# send POST request:
+		# (uses HTTP::Request::Common & HTTP::Response)
+		$appendFeedbackRequest = POST $appendFeedbackURL, \%params;
+		$appendFeedbackResponse = $userAgent->request($appendFeedbackRequest);
+
+		print $appendFeedbackResponse->content();
+	}
+}
+
+# --------------------------------------------------------------------------------
+
+# Update existing records (given in '$appendFile') with found results:
+sub update
+{
+	local ($status) = @_;
+	local @appendFileData = ();
+	local @newAppendFileData = ();
+	@updatedSerials = ();
+	$whereUpdate = "";
+
+	# add query clause to restrict search results to records existing in '$appendFile':
+	if ($where ne '') { $whereUpdate = $where . " AND "; }
+	$whereUpdate .= 'serial RLIKE "^(' . join('|', @appendFileSerials) . ')$"';
+	$params{'where'} = $whereUpdate;
+
+	# fetch all records that match the given query AND which exist in '$appendFile':
+
+	# construct URL:
+	# (uses URI::URL)
+	$updateURL = url($host . $script);
+
+	# send POST request:
+	# (uses HTTP::Request::Common & HTTP::Response)
+	$updateRequest = POST $updateURL, \%params;
+	$updateResponse = $userAgent->request($updateRequest);
+
+	$updateResultsString = $updateResponse->content();
+
+	# if the '$appendFile' contains MODS XML data:
+	if (($format =~ /^mods$/i) && ($appendFileString =~ /<modsCollection/i)) {
+		# remove XML file header and '<modsCollection>' opening tag from results:
+		$updateResultsString =~ s/^<\?xml.+?<modsCollection[^>\n]*?>\n//ims;
+		# remove '</modsCollection>' closing tag from results:
+		$updateResultsString =~ s/^<\/modsCollection>//ims;
+	}
+	# if the '$appendFile' contains SRW XML data:
+	elsif (($format =~ /^srw$/i) && ($appendFileString =~ /<srw:records/i)) {
+		# remove XML file header and opening tags from results:
+		$updateResultsString =~ s/^<\?xml.+?<srw:records[^>\n]*?>\n//ims;
+		# remove closing tags from results:
+		$updateResultsString =~ s/^\s*<\/srw:records>.*?<\/srw:searchRetrieveResponse>//ims;
+
+		# TODO: update values in '<srw:numberOfRecords>' and '<srw:recordPosition>'
+	}
+
+	# split search results on (format-specific) record delimiters:
+	@updateResultsData = &splitRecs($updateResultsString);
+
+	# extract refbase serial number & UNIX time stamp from returned records:
+	%updateResultsRecords = &parseRecs(@updateResultsData);
+
+	# split '$appendFile' contents on (format-specific) record delimiters:
+	@appendFileData = &splitRecs($appendFileString);
+
+	# replace existing records with new ones:
+	foreach $record (@appendFileData) { # for each of the records existing in '$appendFile'
+		# NOTE: instead of looping over all existing records, it would probably be more effective
+		#       to loop over each of the newly fetched (updated) records instead, and directly replace
+		#       all records in '$appendFileString' that have a matching serial number, but I couldn't
+		#       get this working correctly...
+
+		# if this record contains a refbase serial number & UNIX time stamp:
+		if ($record =~ /(?<=show\.php\?record=)(\d+)[^\d\n]+(\d{2}) ([[:alpha:]]{3}) (\d{4}) (\d{2}):(\d{2}):(\d{2})/i) {
+			$serial = $1;
+
+			if (exists($updateResultsRecords{$serial})) { # if one of the newly fetched (updated) records has an identical serial number
+				# extract time stamp from existing record:
+				$monthday = $2;
+				$month = $months{$3}; # 0 == January
+				$year = $4 - 1900; # by default, Perl counts years from 1900
+				$hour = $5;
+				$min = $6;
+				$sec = $7;
+
+				# convert existing record's time stamp to epoch seconds:
+				$modifiedDateExisting = timelocal($sec, $min, $hour, $monthday, $month, $year); # uses Time::Local
+
+				# extract source data & time stamp from the matching updated record:
+				$updatedRecord = @{$updateResultsRecords{$serial}}[0];
+				$modifiedDateUpdated = @{$updateResultsRecords{$serial}}[1];
+
+				if ($modifiedDateUpdated > $modifiedDateExisting) { # if the updated record has a more recent time stamp
+					# replace existing record with updated record:
+					# (variables '$recStart' and '$recEnd' get defined in subroutine 'splitRecs')
+					$record =~ s/^$recStart.+?exported from refbase.+?show\.php\?record=$serial.+?$recEnd$/$updatedRecord/ims;
+
+					push(@updatedSerials, $serial);
+				}
+			}
+		}
+
+		push(@newAppendFileData, $record);
+	}
+
+	if (! @updatedSerials) {
+		print "There are no records that need to be updated in file '" . $appendFile . "'.\n\n";
+	}
+	else {
+		# update existing records in variable '$appendFileString':
+		if ($format =~ /^bibtex$/i) {
+			$recDelim = "\n\n";
+		}
+		else {
+			$recDelim = "\n";
+		}
+		$appendFileString = join($recDelim, @newAppendFileData);
+
+		# if the initial query did not return results which aren't yet in '$appendFile':
+		# (i.e. if the 'append' subroutine won't get triggered)
+		if (($resultsString eq '') || (($format =~ /^(mods|srw)$/i) && ($resultsString !~ /<mods[ >]/i))) {
+			# open '$appendFile' in write mode:
+			open(FILEOUT, ">", $appendFile) || die "Can't open file '" . $appendFile . "': $!\n";
+
+			# write back updated file:
+			print FILEOUT $appendFileString;
+
+			# close '$appendFile':
+			close(FILEOUT) || die "Can't close file: $!\n";
+		}
+		# otherwise, the 'append' subroutine will write contents of '$appendFileString' back to '$appendFile'
+
+		# to give some feedback, we output all updated records as citations to STDOUT:
+		# TODO: move into a dedicated function if possible (compare with 'append' subroutine)
+		if ($reportResults) {
+			$params{'submit'} = "Cite";
+			$params{'citeType'} = "ascii";
+			$params{'showRows'} = "99999";
+			$params{'headerMsg'} = "Updated records:";
+			$whereUpdate = "";
+
+			# add query clause to restrict search results to updated records:
+			if ($where ne '') { $whereUpdate = $where . " AND "; }
+			$whereUpdate .= 'serial RLIKE "^(' . join('|', @updatedSerials) . ')$"';
+			$params{'where'} = $whereUpdate;
+
+			# construct URL:
+			# (uses URI::URL)
+			$updateFeedbackURL = url($host . $script);
+
+			# send POST request:
+			# (uses HTTP::Request::Common & HTTP::Response)
+			$updateFeedbackRequest = POST $updateFeedbackURL, \%params;
+			$updateFeedbackResponse = $userAgent->request($updateFeedbackRequest);
+
+			print $updateFeedbackResponse->content();
+		}
+	}
+}
+
+# --------------------------------------------------------------------------------
+
+# Split '$sourceText' on format-specific record delimiters:
+# (note that, currently, only formats 'bibtex', 'mods' and 'srw' are supported)
+sub splitRecs
+{
+	local ($sourceText) = @_;
+	local (@records) = ();
+
+	if ($format =~ /^(bibtex|mods|srw)$/i) {
+		# define format-specific strings that open/close a record:
+		# (note that '...' must be used here instead of "...", see Friedl regex book, 1st ed., p.300+)
+		if ($format =~ /^bibtex$/i) {
+			$recStart = '@';
+			$recEnd = '\}';
+		}
+		elsif ($format =~ /^mods$/i) {
+			$recStart = '\s*<mods[ >]';
+			$recEnd = 'mods>';
+		}
+		elsif ($format =~ /^srw$/i) {
+			$recStart = '\s*<srw:record[ >]';
+			$recEnd = 'srw:record>';
+		}
+
+		@records = split(/(?<=$recEnd)\s*\n(?=$recStart)/m, $sourceText);
+	}
+
+	return @records;
+}
+
+# --------------------------------------------------------------------------------
+
+# Extract records containing a refbase serial number & UNIX time stamp from '@records':
+# Returns a hash of records where each hash element
+# - is keyed by the record's serial number
+# - contains a reference to an unnamed array which holds two array elements:
+#   - the record's source data
+#   - the modified date/time stamp converted to epoch seconds
+sub parseRecs
+{
+	local (@records) = @_;
+	%refbaseRecords = ();
+
+	foreach $record (@records) {
+		# extract refbase serial number & UNIX time stamp from this record:
+		if ($record =~ /(?<=show\.php\?record=)(\d+)[^\d\n]+(\d{2}) ([[:alpha:]]{3}) (\d{4}) (\d{2}):(\d{2}):(\d{2})/i) {
+			$serial = $1;
+			$monthday = $2;
+			$month = $months{$3}; # 0 == January
+			$year = $4 - 1900; # by default, Perl counts years from 1900
+			$hour = $5;
+			$min = $6;
+			$sec = $7;
+
+			# add modified date to array (after converting to epoch seconds):
+			$modifiedDate = timelocal($sec, $min, $hour, $monthday, $month, $year); # uses Time::Local
+
+			$record =~ s/\s+$//; # remove any trailing whitespace
+
+			# note that if '@records' contains several records with the same refbase
+			# serial number, only the last one will be included in '%refbaseRecords'
+			# (and thus only the last one will get updated by the 'update' subroutine)
+			push(@{$refbaseRecords{$serial}}, $record);
+			push(@{$refbaseRecords{$serial}}, $modifiedDate);
+			# NOTE: by storing a reference to an array we can add multiple values per hash key (see Perl Cookbook 5.7)
+		}
+	}
+
+	return %refbaseRecords;
+}
+
+# --------------------------------------------------------------------------------
+
+# Sort array of records by cite key:
+# (note that, currently, only formats 'bibtex', 'endnote', 'ris' 'mods' and 'srw' are supported)
+sub sortRecs
+{
+	local (@records) = @_;
+	%keyedRecordData = ();
+	@sortedRecordData = ();
+	$i = 1;
+
+	$fileExtension = "default"; # triggers default regex patterns for extraction of cite IDs
+	# use file-specific regex patterns for extraction of cite IDs:
+	if ($format =~ /^(bibtex|endnote|ris|mods|srw)$/i) {
+		if ($format =~ /^bibtex$/i) {
+			$fileExtension = "bib";
+		}
+		elsif ($format =~ /^endnote$/i) {
+			$fileExtension = "enw";
+		}
+		elsif ($format =~ /^ris$/i) {
+			$fileExtension = "ris";
+		}
+		elsif ($format =~ /^(mods|srw)$/i) {
+			$fileExtension = "xml";
+		}
+	}
+
+	$citeIDRegex = @{$citeIDPatterns{$fileExtension}}[0]; # get regex pattern that matches the cite IDs in the records
+	$citeIDNum   = @{$citeIDPatterns{$fileExtension}}[1]; # get number of the sub-pattern that captures the cite IDs
+
+	foreach $record (@records) {
+		# extract cite IDs and use them as hash keys:
+		# (we always append an incrementing number to ensure unique keys; the number
+		# is padded with leading zeros in order to allow for correct string sorting)
+		if ($record =~ /$citeIDRegex/msg) {
+			$citeID = $$citeIDNum . sprintf("-%06d", $i++);
+		}
+		else { # no cite ID found, so we just use an incrementing number as hash key
+			$citeID = sprintf("%06d", $i++);
+		}
+		$keyedRecordData{$citeID} = $record;
+	}
+
+	@sortedKeys = sort keys %keyedRecordData;
+
+	foreach $key (@sortedKeys) {
+		push(@sortedRecordData, $keyedRecordData{$key});
+	}
+	
+	return @sortedRecordData;
+}
+
+# --------------------------------------------------------------------------------
+
+# Remove any duplicate items from '@array':
+sub uniquify
+{
+	local (@array) = @_;
+	local (%unique) = ();
+
+	foreach $item (@array) {
+		$unique{$item}++;
+	}
+
+	return (sort keys %unique);
 }
 
 # --------------------------------------------------------------------------------
@@ -334,10 +1030,16 @@ sub usage
 		. "                   -y, --year        - search year field ('" . $params{'year'} . "')\n"
 		. "                   -z, --serial      - search serial field (partial matches) ('" . $params{'serial'} . "')\n\n"
 
-		. "Output Options:    -C, --style       - citation style ('" . $params{'citeStyle'} . "')\n"
+		. "Output Options:    -A, --append      - file to which returned records are appended ('" . $params{'appendFile'} . "')\n"
+		. "                                       requires '-F, --format': bibtex, mods, srw\n"
+		. "                   -B, --update      - update existing records in '-A, --append' file ('" . $params{'updateRecords'} . "')\n"
+		. "                                       possible values: 0, 1\n"
+		. "                   -C, --style       - citation style ('" . $params{'citeStyle'} . "')\n"
+		. "                   -E, --extract     - file from which citation IDs are extracted ('" . $params{'extractFile'} . "')\n"
+		. "                                       supported file types: " . join(', ', sort keys(%citeIDPatterns)) . "\n"
 		. "                   -F, --format      - output format ('" . $params{'format'} . "')\n"
-		. "                                       possible values: html, rtf, pdf, latex, markdown, ascii,\n"
-		. "                                                        bibtex, endnote, ris, mods, srw, odf\n"
+		. "                                       possible values: html, rtf, pdf, latex, latex_bbl, markdown, ascii,\n"
+		. "                                                        bibtex, endnote, ris, isi, mods, srw, odf, word\n"
 		. "                   -L, --showlinks   - hide/display links column in html output ('" . $params{'showLinks'} . "')\n"
 		. "                                       possible values: 0, 1\n"
 		. "                   -O, --order       - sort order of returned records ('" . $params{'citeOrder'} . "')\n"
@@ -350,8 +1052,8 @@ sub usage
 		. "                                       possible values: web, print\n\n"
 
 		. "Server Options:    -H, --host        - URL of the refbase database ('" . $host . "')\n"
-		. "                                       defined shortcuts: " . join(', ', keys(%hosts)) . "\n"
-		. "                   -P, --password    - password for given user account";
+		. "                                       defined shortcuts: " . join(', ', sort keys(%hosts)) . "\n"
+		. "                   -P, --password    - password for given '-U, --user' account";
 
 	if ($loginParams{'loginPassword'} ne '') {
 		print "\n                                       (a default pwd has been defined)\n";
@@ -424,6 +1126,42 @@ sub examples
     specify a custom WHERE clause):
  
     refbase -w='modified_date = CURDATE() AND modified_by RLIKE "admin"' -l=msteffens
+ 
+ --------------------------------------------------------------------------------
+
+ 6) Find all records where the cite_key field (of a user with a user ID '2')
+    contains 'steffens', and append records in MODS XML format to file 'mods.xml'
+    if they don't yet exist in that file:
+ 
+    refbase -u=2 -c=steffens -F=mods -A=mods.xml
+ 
+ --------------------------------------------------------------------------------
+
+ 7) Find all records where the contribution_id field contains 'AWI' and where
+    the keywords field contains 'seaweeds', and append records in BibTeX format
+    to file 'paper.bib' if they don't yet exist in that file. In case found
+    records already exist in file 'paper.bib', update them if their modification
+    date is more recent:
+ 
+    refbase -i=AWI -k=seaweeds -F=bibtex -A=paper.bib -B=1
+ 
+ --------------------------------------------------------------------------------
+
+ 8) Extract all citation IDs from file 'paper.aux', and append matching records
+    (for a user with a user ID '2') in BibTeX format to file 'paper.bib' if they
+    don't yet exist in that file. In case found records already exist in file
+    'paper.bib', update them if their modification date is more recent:
+ 
+    refbase -u=2 -E=paper.aux -F=bibtex -A=paper.bib -B=1
+ 
+ --------------------------------------------------------------------------------
+
+ 9) Extract all citation IDs from file 'bibtex.bbl', and save matching records
+    (for a user with a user ID '2') in LaTeX bibliography (.bbl) format to file
+    'refbase.bbl' using the "APA" citation style (the .bbl file generated by
+    refbase can be used as a replacement of the BibTeX-generated .bbl file):
+ 
+    refbase -u=2 -E=bibtex.bbl -F=latex_bbl -C=APA > refbase.bbl
  
  --------------------------------------------------------------------------------
 
