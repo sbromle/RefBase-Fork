@@ -53,6 +53,20 @@
 	// call the 'start_session()' function (from 'include.inc.php') which will also read out available session variables:
 	start_session(true);
 
+	// Read out POST data that were saved as a session variable:
+	// NOTE: this is done by 'show.php' if the original request was a POST (as is the case for the refbase command line client)
+	//       in order to retain large param/value strings (that would exceed the maximum string limit for GET requests)
+	if (isset($_SESSION['postData']))
+	{
+		foreach ($_SESSION['postData'] as $varname => $value)
+		{
+			$_POST[$varname] = $value;
+			$_REQUEST[$varname] = $value;
+		}
+
+		deleteSessionVariable("postData"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
+	}
+
 	// --------------------------------------------------------------------
 
 	// Initialize preferred display language:
@@ -201,10 +215,10 @@
 	else
 		$showLinks = "";
 
-	if (isset($_REQUEST['showRows']))
+	if (isset($_REQUEST['showRows']) AND ereg("^[0-9]+$", $_REQUEST['showRows'])) // NOTE: we cannot use "^[1-9]+[0-9]*$" here since 'maximumRecords=0' is used in 'sru.php' queries to return just the number of found records (and not the full record data)
 		$showRows = $_REQUEST['showRows'];
 	else
-		$showRows = 0;
+		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 	if (isset($_REQUEST['rowOffset']))
 	{
@@ -256,7 +270,8 @@
 	// - 'LaTeX' => return citations as LaTeX data with mime type 'application/x-latex'
 	// - 'Markdown' => return citations as Markdown TEXT data with mime type 'text/plain'
 	// - 'ASCII' => return citations as TEXT data with mime type 'text/plain'
-	if (isset($_REQUEST['citeType']) AND eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII)$", $_REQUEST['citeType']))
+	// - 'LaTeX .bbl' => return citations as LaTeX .bbl file (for use with LaTeX/BibTeX) with mime type 'application/x-latex'
+	if (isset($_REQUEST['citeType']) AND eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $_REQUEST['citeType']))
 		$citeType = $_REQUEST['citeType'];
 	else
 		$citeType = "html";
@@ -473,7 +488,7 @@
 	// --- Quick Search Form within 'index.php': ---------------------
 	elseif ($formType == "quickSearch") // the user used the 'Quick Search' form on the main page ('index.php') for searching...
 		{
-			$query = extractFormElementsQuick($showLinks);
+			$query = extractFormElementsQuick($showLinks, $userID);
 		}
 
 	// --- Browse My Refs Form within 'index.php': -------------------
@@ -584,8 +599,8 @@
 		// (alternatively we could always use: "records matching current query")
 		$rssTitle = "records where " . encodeHTML(explainSQLQuery($queryWhereClause)); // functions 'encodeHTML()' and 'explainSQLQuery()' are defined in 'include.inc.php'
 
-		$rssURLArray[] = array("href" => $rssURL,
-								"title" => $rssTitle);
+		$rssURLArray[] = array("href"  => $rssURL,
+		                       "title" => $rssTitle);
 	}
 
 	// Finally, build the appropriate header string (which is required as parameter to the 'showPageHeader()' function):
@@ -1639,6 +1654,11 @@
 				$citeContentType = "application/x-latex";
 				$citeFileName = "citations.tex";
 			}
+			elseif (eregi("^LaTeX \.bbl$", $citeType)) // output references as LaTeX .bbl file (for use with LaTeX/BibTeX)
+			{
+				$citeContentType = "application/x-latex";
+				$citeFileName = "citations.bbl";
+			}
 			elseif (eregi("^Markdown$", $citeType)) // output references as Markdown TEXT (a plain text formatting syntax)
 			{
 				$citeContentType = "text/plain";
@@ -1877,7 +1897,7 @@
 			// Note: currently, this only works when the correct 'citeStyle' name gets incorporated into an URL *manually*
 			//       it doesn't work with previous & next browsing since these links actually don't submit the form (i.e., the current state of form variables won't get send)
 			if (!empty($citeStyle))
-				$ResultsFooterRow = ereg_replace("<option>$citeStyle", "<option selected>$citeStyle", $ResultsFooterRow);
+				$ResultsFooterRow = ereg_replace("<option>$citeStyle</option>", "<option selected>$citeStyle</option>", $ResultsFooterRow);
 
 			// Finish the table:
 			$ResultsFooterRow .= "\n</table>";
@@ -1949,7 +1969,7 @@
 
 		elseif (!eregi("^SELECT", $sqlQuery))
 			$errors["sqlQuery"] = "You can only execute SELECT queries:";
-	
+
 		// Check if there were any errors:
 		if (count($errors) > 0)
 		{
@@ -5342,21 +5362,33 @@
 	// --------------------------------------------------------------------
 
 	// Build the database query from user input provided by the "Quick Search" form on the main page ('index.php'):
-	function extractFormElementsQuick($showLinks)
+	function extractFormElementsQuick($showLinks, $userID)
 	{
-		global $tableRefs; // defined in 'db.inc.php'
+		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
+		global $query;
+
+		// Build SELECT clause:
 		$query = "SELECT author, title, year, publication";
 
 		$quickSearchSelector = $_REQUEST['quickSearchSelector']; // extract field name chosen by the user
 		$quickSearchName = $_REQUEST['quickSearchName']; // extract search text entered by the user
 
-		// if the SELECT string doesn't already contain the chosen field name...
-		// (which is only the case for 'keywords' & 'abstract')
-		if (!ereg("$quickSearchSelector", $query))
-			$query .= ", $quickSearchSelector"; // ...add chosen field to SELECT query
+		if ($quickSearchSelector == "main fields") // if we're supposed to query all of the "main fields" at once
+		{
+			$userMainFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
+
+			$query .= ", volume, pages"; // note that for the "main fields" option, we simply display the default list of columns
+		}
 		else
-			$query .= ", volume, pages"; // ...otherwise, add further default columns
+		{
+			// if the SELECT string doesn't already contain the chosen field name...
+			// (which is e.g. the case for the 'keywords' & 'abstract' fields)
+			if (!ereg("$quickSearchSelector", $query))
+				$query .= ", $quickSearchSelector"; // ...add chosen field to SELECT query
+			else
+				$query .= ", volume, pages"; // ...otherwise, add further default columns
+		}
 
 		$query .= ", orig_record"; // add 'orig_record' column (although it won't be visible the 'orig_record' column gets included in every search query)
 								//  (which is required in order to present visual feedback on duplicate records)
@@ -5367,11 +5399,42 @@
 		if ($showLinks == "1")
 			$query .= ", file, url, doi, isbn, type"; // add 'file', 'url', 'doi', 'isbn' & 'type columns
 
-		// Note: since we won't query any user specific fields (like 'marked', 'copy', 'selected', 'user_keys', 'user_notes', 'user_file', 'user_groups', 'cite_key' or 'related') we skip the 'LEFT JOIN...' part of the 'FROM' clause:
-		$query .= " FROM $tableRefs WHERE serial RLIKE \".+\""; // add FROM & (initial) WHERE clause
+
+		// Build FROM clause:
+		if (isset($_SESSION['loginEmail'])) // if a user is logged in...
+			$query .= " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = " . $userID;
+		else // NO user logged in
+			$query .= " FROM $tableRefs";
+
+
+		// Build WHERE clause:
+		$query .= " WHERE";
+
+		// we construct a hierarchical '$searchArray' from the given search field name(s) & value;
+		// this array then gets merged into a full SQL WHERE clause by function 'appendToWhereClause()'
+		$searchArray = array();
+		$searchArray[] = array("_boolean" => "",
+		                       "_query"   => "serial RLIKE \".+\"");
 
 		if ($quickSearchName != "") // if the user typed a search string into the text entry field...
-			$query .= " AND $quickSearchSelector RLIKE " . quote_smart($quickSearchName); // ...add search field name & value to the sql query
+		{
+			if ($quickSearchSelector == "main fields")
+			{
+				$searchSubArray = array();
+
+				foreach($userMainFieldsArray as $userMainField)
+					$searchSubArray[] = array("_boolean" => "OR",
+					                          "_query"   => $userMainField . " RLIKE " . quote_smart($quickSearchName));
+
+				$searchArray[] = array("_boolean" => "AND",
+				                       "_query"   => $searchSubArray);
+			}
+			else
+				$searchArray[] = array("_boolean" => "AND",
+				                       "_query"   => $quickSearchSelector . " RLIKE " . quote_smart($quickSearchName));
+		}
+
+		appendToWhereClause($searchArray); // function 'appendToWhereClause()' is defined in 'include.inc.php'
 
 		$query .= " ORDER BY author, year DESC, publication"; // add the default ORDER BY clause
 
@@ -5732,7 +5795,7 @@
 			$baseURL = $databaseBaseURL;
 		else
 			$baseURL = "";
-		
+
 
 		if (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_details_view'...
 		{
