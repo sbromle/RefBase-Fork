@@ -18,7 +18,7 @@
 
 	// This script provides options which are individual for each user.
 	// 
-	// TODO: more encodeHTML fixes?
+	// TODO: I18n, more encodeHTML fixes?
 
 
 	// Incorporate some include files:
@@ -101,7 +101,7 @@
 
 			// Write back session variables:
 			saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-	
+
 			$userID = getUserID($loginEmail); // re-establish the user's correct user_id
 		}
 
@@ -154,7 +154,7 @@
 	$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 	// (3b) EXTRACT results:
-	$row = mysql_fetch_array($result); //fetch the current row into the array $row
+	$row = mysql_fetch_array($result); // fetch the current row into the array $row
 
 	// If the admin is logged in AND the displayed user data are NOT his own, we overwrite the default header message:
 	// (Since the admin is allowed to view and edit account data from other users, we have to provide a dynamic header message in that case)
@@ -210,8 +210,12 @@
 	$userLanguage = getLanguages($userID); // get the preferred language for the current user
 	$languageOptionTags = ereg_replace("<option>$userLanguage[0]", "<option selected>$userLanguage[0]", $languageOptionTags); // select the user's preferred language
 
+	// Get the default number of records per page preferred by the current user:
+	// 'records_per_page' option:
+	$recordsPerPage = getDefaultNumberOfRecords($userID); // function 'getDefaultNumberOfRecords()' is defined in 'include.inc.php'
+
 	// Get all reference types that are available (admin logged in) or which were enabled for the current user (normal user logged in):
-	$typeOptionTags = returnFormatsStylesTypesAsOptionTags($userID, "type", "");
+	$typeOptionTags = returnFormatsStylesTypesAsOptionTags($userID, "type", ""); // function 'returnFormatsStylesTypesAsOptionTags()' is defined in 'include.inc.php'
 
 	// Get all citation styles that are available (admin logged in) or which were enabled for the current user (normal user logged in):
 	$styleOptionTags = returnFormatsStylesTypesAsOptionTags($userID, "style", "");
@@ -226,6 +230,75 @@
 		$selectListIdentifier = "Enabled";
 	else // if ($loginEmail != $adminLoginEmail) // if a normal user is logged in
 		$selectListIdentifier = "Show";
+
+	// Define fields that can be designated as "main fields":
+	$mainFieldsArray = array("author"              => $loc["DropDownFieldName_Author"],
+//	                         "address"             => $loc["DropDownFieldName_Address"],
+//	                         "corporate_author"    => $loc["DropDownFieldName_CorporateAuthor"],
+//	                         "thesis"              => $loc["DropDownFieldName_Thesis"],
+	                         "title"               => $loc["DropDownFieldName_Title"],
+//	                         "orig_title"          => $loc["DropDownFieldName_OrigTitle"],
+	                         "year"                => $loc["DropDownFieldName_Year"],
+	                         "publication"         => $loc["DropDownFieldName_Publication"],
+	                         "abbrev_journal"      => $loc["DropDownFieldName_AbbrevJournal"],
+	                         "editor"              => $loc["DropDownFieldName_Editor"],
+//	                         "volume"              => $loc["DropDownFieldName_Volume"],
+//	                         "issue"               => $loc["DropDownFieldName_Issue"],
+//	                         "pages"               => $loc["DropDownFieldName_Pages"],
+	                         "series_title"        => $loc["DropDownFieldName_SeriesTitle"],
+	                         "abbrev_series_title" => $loc["DropDownFieldName_AbbrevSeriesTitle"],
+//	                         "series_editor"       => $loc["DropDownFieldName_SeriesEditor"],
+//	                         "series_volume"       => $loc["DropDownFieldName_SeriesVolume"],
+//	                         "series_issue"        => $loc["DropDownFieldName_SeriesIssue"],
+//	                         "publisher"           => $loc["DropDownFieldName_Publisher"],
+//	                         "place"               => $loc["DropDownFieldName_Place"],
+//	                         "edition"             => $loc["DropDownFieldName_Edition"],
+//	                         "medium"              => $loc["DropDownFieldName_Medium"],
+//	                         "issn"                => $loc["DropDownFieldName_Issn"],
+//	                         "isbn"                => $loc["DropDownFieldName_Isbn"],
+//	                         "language"            => $loc["DropDownFieldName_Language"],
+//	                         "summary_language"    => $loc["DropDownFieldName_SummaryLanguage"],
+	                         "keywords"            => $loc["DropDownFieldName_Keywords"],
+	                         "abstract"            => $loc["DropDownFieldName_Abstract"],
+	                         "area"                => $loc["DropDownFieldName_Area"],
+//	                         "expedition"          => $loc["DropDownFieldName_Expedition"],
+//	                         "conference"          => $loc["DropDownFieldName_Conference"],
+//	                         "doi"                 => $loc["DropDownFieldName_Doi"],
+//	                         "url"                 => $loc["DropDownFieldName_Url"],
+//	                         "file"                => $loc["DropDownFieldName_File"],
+	                         "notes"               => $loc["DropDownFieldName_Notes"],
+//	                         "location"            => $loc["DropDownFieldName_Location"],
+	                         "call_number"         => $loc["DropDownFieldName_CallNumber"],
+	                         "serial"              => $loc["DropDownFieldName_Serial"],
+//	                         "type"                => $loc["DropDownFieldName_Type"],
+//	                         "approved"            => $loc["DropDownFieldName_Approved"],
+//	                         "created_date"        => $loc["DropDownFieldName_CreatedDate"],
+//	                         "created_time"        => $loc["DropDownFieldName_CreatedTime"],
+//	                         "created_by"          => $loc["DropDownFieldName_CreatedBy"],
+//	                         "modified_date"       => $loc["DropDownFieldName_ModifiedDate"],
+//	                         "modified_time"       => $loc["DropDownFieldName_ModifiedTime"],
+//	                         "modified_by"         => $loc["DropDownFieldName_ModifiedBy"],
+//	                         "marked"              => $loc["DropDownFieldName_Marked"],
+//	                         "copy"                => $loc["DropDownFieldName_Copy"],
+//	                         "selected"            => $loc["DropDownFieldName_Selected"],
+//	                         "user_keys"           => $loc["DropDownFieldName_UserKeys"],
+//	                         "user_notes"          => $loc["DropDownFieldName_UserNotes"],
+//	                         "user_file"           => $loc["DropDownFieldName_UserFile"],
+//	                         "user_groups"         => $loc["DropDownFieldName_UserGroups"],
+	                         "cite_key"            => $loc["DropDownFieldName_CiteKey"],
+	                        );
+
+	// Build properly formatted <option> tag elements from array items given in '$mainFieldsArray':
+	$mainFieldsOptionTags = buildSelectMenuOptions($mainFieldsArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
+
+	// Get the list of "main fields" preferred by the current user:
+	// 'main_fields' option:
+	$userMainFieldsArray = getMainFields($userID);
+
+	// select all fields that shall be searched when the "main fields" search option is chosen:
+	// (these fields will also be included as separate entries in the "Quick Search drop-down menu)
+	foreach($userMainFieldsArray as $userMainField)
+		$mainFieldsOptionTags = ereg_replace("<option([^>]*)>" . $mainFieldsArray[$userMainField] . "</option>", "<option\\1 selected>" . $mainFieldsArray[$userMainField] . "</option>", $mainFieldsOptionTags);
 
 
 	// Cite Options:
@@ -287,8 +360,8 @@
 
 	// define variable holding drop-down elements:
 	$dropDownItemArray = array("transliterate" => "transliterate",
-								"strip" => "strip",
-								"keep" => "keep");
+	                           "strip"         => "strip",
+	                           "keep"          => "keep");
 
 	// build properly formatted <option> tag elements from array items given in '$dropDownItemArray':
 	$nonASCIICharsInCiteKeysOptionTags = buildSelectMenuOptions($dropDownItemArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
@@ -312,13 +385,21 @@
 <input type="hidden" name="userID" value="<?php echo encodeHTML($userID) ?>">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds a form with user options">
 <tr>
-	<td align="left" width="169"><b>Display Options:</b></td>
+	<td align="left" width="169"><b><a id="display">Display Options:</a></b></td>
 	<td align="left" width="169">Use language:</td>
 	<td><?php echo fieldError("languageName", $errors); ?>
 
 		<select name="languageName"<?php echo $languagePopupDisabled; ?>><?php echo $languageOptionTags; ?>
 
 		</select>
+	</td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td align="left">Show records per page:</td>
+	<td><?php echo fieldError("recordsPerPageNo", $errors); ?>
+
+		<input type="text" name="recordsPerPageNo" value="<?php echo encodeHTML($recordsPerPage); ?>" size="5">
 	</td>
 </tr>
 <tr>
@@ -363,6 +444,16 @@
 </tr>
 <tr>
 	<td align="left"></td>
+	<td align="left" valign="top">"Main fields" searches:</td>
+	<td valign="top"><?php echo fieldError("mainFieldsSelector", $errors); ?>
+
+		<select name="mainFieldsSelector[]" multiple><?php echo $mainFieldsOptionTags; ?>
+
+		</select>
+	</td>
+</tr>
+<tr>
+	<td align="left"></td>
 	<td colspan="2">
 		<input type="submit" value="Submit">
 	</td>
@@ -372,7 +463,7 @@
 	<td colspan="2"></td>
 </tr>
 <tr>
-	<td align="left"><b>Cite Options:</b></td>
+	<td align="left"><b><a id="cite">Cite Options:</a></b></td>
 	<td colspan="2">
 		<input type="checkbox" name="use_custom_text_citation_format" value="yes"<?php echo $useCustomTextCitationFormatChecked; ?>>&nbsp;&nbsp;Use custom text citation format:
 	</td>
@@ -398,7 +489,7 @@
 	<td colspan="2"></td>
 </tr>
 <tr>
-	<td align="left"><b>Export Options:</b></td>
+	<td align="left"><b><a id="export">Export Options:</a></b></td>
 	<td colspan="2">
 		<input type="checkbox" name="export_cite_keys" value="yes"<?php echo $exportCiteKeysChecked; ?>>&nbsp;&nbsp;Include cite keys on export
 	</td>
@@ -566,7 +657,7 @@
 	<td colspan="2"></td>
 </tr>
 <tr>
-	<td align="left"><b>User Permissions:</b></td>
+	<td align="left"><b><a id="permissions">User Permissions:</a></b></td>
 	<td>
 		<input type="checkbox" name="allow_add" value="yes"<?php echo $allowAddChecked; ?>>&nbsp;&nbsp;Add records
 	</td>
