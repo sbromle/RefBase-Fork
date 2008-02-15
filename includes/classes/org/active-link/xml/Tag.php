@@ -1,5 +1,12 @@
 <?php
 
+/* Workaround by Richard Karnesky (refbase) for if ctype_alpha is missing */
+if(! function_exists('ctype_alpha')) {
+  function ctype_alpha($string) {
+    return (!preg_match('|[^\pL]|', $string));
+  }
+}
+
 /*
 	This file is part of ActiveLink PHP XML Package (www.active-link.com).
 	Copyright (c) 2002-2004 by Zurab Davitiani
