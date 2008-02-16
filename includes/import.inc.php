@@ -21,6 +21,10 @@
 	// records into the database.
 	// TODO: I18n
 
+  // Import the ActiveLink Packages
+  require_once("classes/include.php");
+  import("org.active-link.xml.XML");
+  import("org.active-link.xml.XMLDocument");
 
 	include 'includes/transtab_bibtex_refbase.inc.php'; // include BibTeX markup -> refbase search & replace patterns
 	include 'includes/transtab_endnotexml_refbase.inc.php'; // include Endnote XML text style markup -> refbase search & replace patterns
@@ -218,6 +222,102 @@
 		// return all CSA records merged into a string:
 		return implode("\n\n", $csaRecordsArray);
 	}
+
+	// --------------------------------------------------------------------
+
+	// CrossRef TO REFBASE
+	// This function converts records from CrossRef's "unixref" XML format into the standard "refbase"
+  // array format which can be then imported by the 'addRecords()' function in 'include.inc.php'.
+  //
+  // So far, CrossRef seems to be the only provider of this data format & they do not yet use it to
+  // return more than one result.  Therefore, this function does not yet allow batch import.
+  //
+  // Further: this is our first and only native XML import format, so we do not use validateRecords()
+  // or parseRecords()
+  // 
+  // TODO (one of these, in order of preference):
+  // * change these functions to accept non-tagged, XML references
+  // * add new XML validation/parsing functions
+  // * transform XML to a tagged format
+  //
+  // Note that this function needs to have whitespace fixed
+	function crossrefToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
+	{
+		global $contentTypeCharset; // defined in 'ini.inc.php'
+
+		global $errors;
+    global $showSource;
+
+    // We do not allow batch import yet, so we'll only have one record & assume that it is perfect.
+    $recordsCount = 1;
+    $importRecordNumbersRecognizedFormatArray = array();
+    $importRecordNumbersRecognizedFormatArray[] = 1;
+    $importRecordNumbersNotRecognizedFormatArray = array();
+
+    $parsedRecordsArray = array(); // initialize array variable which will hold parsed data of all records that shall be imported
+    $fieldParametersArray = array(); // setup an empty array (it will hold the parameters that get passed to 'record.php')
+
+    $fieldParametersArray['type']='Journal Article'; // MOST CrossRef entitites are journal articles.  TODO: find what isn't & fix the type.
+    
+    $XML = new XML($sourceText);
+
+    $metadataXML     = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_metadata");
+    $issueXML        = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_issue");
+    $articleXML      = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_article");
+    $contributorsXML = $XML->getBranches("doi_records/doi_record/crossref/journal/journal_article/contributors","person_name");
+
+
+    // Process metadataXML
+    // TODO:
+    // * Put CODEN in notes (?)
+    // * ISSN vs. eISSN
+    $fieldParametersArray['publication']    =  $metadataXML[0]->getTagContent("journal_metadata/full_title");
+    $fieldParametersArray['abbrev_journal'] =  $metadataXML[0]->getTagContent("journal_metadata/abbrev_title");
+    $fieldParametersArray['issn']           =  $metadataXML[0]->getTagContent("journal_metadata/issn");
+
+
+    // Process issueXML
+    $fieldParametersArray['year']   = $issueXML[0]->getTagContent("journal_issue/publication_date/year");
+    $fieldParametersArray['volume'] = $issueXML[0]->getTagContent("journal_issue/journal_volume/volume");
+    $fieldParametersArray['issue']  = $issueXML[0]->getTagContent("journal_issue/issue");
+
+
+    // Proccess articleXML
+    $fieldParametersArray['title'] = $articleXML[0]->getTagContent("journal_article/titles/title");
+    $fieldParametersArray['doi']   = $articleXML[0]->getTagContent("journal_article/doi_data/doi");
+
+    $startPage = $articleXML[0]->getTagContent("journal_article/pages/first_page");
+    $endPage   = $articleXML[0]->getTagContent("journal_article/pages/last_page");
+
+    $fieldParametersArray['pages']=$startPage."-".$endPage;
+
+
+    // Process contributorsXML
+    // TODO:
+    // * Differentiate authors from other types of contributors
+    // * Reformat according to preference
+    $author = "";
+    foreach ($contributorsXML as $contributor)
+    {
+      $author .= $contributor->getTagContent("person_name/surname") . ", " . $contributor->getTagContent("person_name/given_name") . "; ";
+    }
+    $author = trim($author, "; "); 
+    $fieldParametersArray['author']=$author;
+
+    // append the array of extracted field data to the main data array which holds all records to import:
+    $parsedRecordsArray[] = $fieldParametersArray;
+
+    $importDataArray = buildImportArray("refbase", // 'type' - the array format of the 'records' element
+                                        "1.0", // 'version' - the version of the given array structure
+                                        "http://refbase.net/import/crossref/", // 'creator' - the name of the script/importer (preferably given as unique URI)
+                                        "Richard Karnesky", // 'author' - author/contact name of the person who's responsible for this script/importer
+                                        "karnesky@users.sourceforge.net", // 'contact' - author's email/contact address
+                                        array('prefix_call_number' => "true"), // 'options' - array with settings that control the behaviour of the 'addRecords()' function
+                                        $parsedRecordsArray); // 'records' - array of record(s) (with each record being a sub-array of fields)
+
+    return array($importDataArray, $recordsCount, $importRecordNumbersRecognizedFormatArray, $importRecordNumbersNotRecognizedFormatArray, $errors);
+
+  }
 
 	// --------------------------------------------------------------------
 
@@ -1470,6 +1570,11 @@
 		// BibTeX format:
 		elseif (preg_match("/^@\w+\{[^ ,\r\n]* *, *[\r\n]/m", $sourceText)) // BibTeX records must start with the "@" sign, followed by a type specifier and an optional cite key (such as in '@article{steffens1988,')
 			$sourceFormat = "BibTeX";
+
+    // CrossRef "unixref XML" format:
+    // TODO:improve match
+		elseif (preg_match("/<doi_records[^<>\r\n]*>/i", $sourceText)) // CrossRef XML records must at least contain the elements "<doi_records>"
+			$sourceFormat = "CrossRef";
 
 		return $sourceFormat;
 	}
