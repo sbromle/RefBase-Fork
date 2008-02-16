@@ -1,0 +1,31 @@
+refbase extension for MediaWiki
+===============================
+
+Author
+------
+  Richard Karnesky <karnesky@gmail.com>
+
+About
+-----
+  This is an extension to MediaWiki:
+    <http://www.mediawiki.org/>
+  It allows you to cite references by enclosing the serial in tags such as:
+    <refbase>17</refbase>
+  The output will use citation templates, as are used on Wikipedia:
+    <http://en.wikipedia.org/wiki/Wikipedia:Citation_templates>
+  To use, edit the 'refbase.php' file to reflect your database settings and
+  place in the 'extensions' directory of your MediaWiki installation.  Add:
+    require_once( "extensions/refbase.php" );
+  to your 'LocalSettings.php' file.
+  
+  Currently, only journal articles may be cited.  In the future, this extension
+  is likely to be modified.  'refbase' should be able to generate WP citation
+  templates as an export format & this extension should make use of that
+  functionality directly.
+
+  You may also be interested in the MonoBook skin, included in the
+  'contrib/skins/mediawiki-monobook' directory from refbase.
+  
+  An installation of MediaWiki that uses this extension is the Northwestern
+  University Center for Atom-Probe Tomography:
+    <http://arc.nucapt.northwestern.edu/#Literature>

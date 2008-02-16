@@ -136,5 +136,27 @@ for direct upload into your newly created MySQL tables:
   Note that if you're going to use the mysqlimport data import program the data
   file *must* be named 'refs.txt'.
 
+
+
+Skins
+-----
+refbase ships with alternative skins to change the appearance of the program.
+These are in the 'contrib/skins' directory.  You can replace your
+'includes/header.inc.php', 'includes/footer.inc.php' with these.  You may also
+need to copy files to the 'css' directory.
+
+Please contribute other skins to <info@refbase.net>
+
+
+
+Extensions for other software
+-----------------------------
+In 'contribs/mediawiki', there is an extension for MediaWiki to more easily
+include reference information from refbase in a wiki page.  This will also allow
+you to use Wikipedia's citation templates, which may have an appearance that you
+like or might be easier for you (and the other users of your wiki) to customize.
+
+
+
 See also:
   <http://import.refbase.net>

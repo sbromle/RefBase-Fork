@@ -11,6 +11,10 @@ About
     <http://www.mediawiki.org/>
   This is the default skin for the Wikipedia:
     <http://wikipedia.org/>
+
+  You may also be interested in the refbase extension for MediaWiki, included in the
+    'contrib/mediawiki' directory from refbase.
+
   An installation of refbase that uses this skin is the Northwestern University
   Center for Atom-Probe Tomography:
     <http://arc.nucapt.northwestern.edu/refbase/>
