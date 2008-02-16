@@ -8,13 +8,13 @@
 	//             License for more details.
 	//
 	// File:       ./import/import_crossref2refbase.php
-	// Repository: $HeadURL: https://refbase.svn.sourceforge.net/svnroot/refbase/branches/bleeding-edge/import/import_crossref2refbase.php $
+	// Repository: $HeadURL$
 	// Author(s):  Richard Karnesky <mailto:karneskygmail.com>
 	//
 	// Created:    15-Feb-08, 16:45
-	// Modified:   $Date: 2007-02-16 19:10:14 -0600 (Fri, 16 Feb 2007) $
-	//             $Author: karnesky $
-	//             $Revision: 894 $
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// This is an import format file (which must reside within the 'import/' sub-directory of your refbase root directory). It contains a version of the
   // 'importRecords()' function that imports records from 'CrossRef "unixref XML"'-formatted data
