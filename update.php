@@ -537,9 +537,8 @@
 		$values = "(NULL, 'Endnote XML', 'import', 'true', 'bibutils/import_endx2refbase.php', '02', 2)";
 		$resultArray["Table 'formats': inserted 'Endnote XML' import format"] = insertIfNotExists(array("format_name" => "Endnote XML", "format_type" => "import"), $tableFormats, $values);
 
-    // TODO: set correct order_by
-		$values = "(NULL, 'CrossRef', 'import', 'true', 'import_crossref2refbase.php', '27', 1)";
-		$resultArray["Table 'formats': inserted 'CrossRef' import format"] = insertIfNotExists(array("format_name" => "CrossRef", "format_type" => "import"), $tableFormats, $values);
+		$values = "(NULL, 'CrossRef XML', 'import', 'true', 'import_crossref2refbase.php', '25', 1)";
+		$resultArray["Table 'formats': inserted 'CrossRef XML' import format"] = insertIfNotExists(array("format_name" => "CrossRef XML", "format_type" => "import"), $tableFormats, $values);
 
 		// Add new export & citation formats in table 'formats'
 		$values = "(NULL, 'ISI', 'export', 'true', 'bibutils/export_xml2isi.php', '04', 2)";
