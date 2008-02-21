@@ -197,7 +197,8 @@ INSERT INTO `formats` VALUES (1, 'MODS XML', 'import', 'true', 'bibutils/import_
 (27, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', '21', 1),
 (28, 'Word XML', 'export', 'true', 'bibutils/export_xml2word.php', '22', 2),
 (29, 'LaTeX .bbl', 'cite', 'true', 'formats/cite_latex_bbl.php', '23', 1),
-(30, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', '24', 1);
+(30, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', '24', 1),
+(31, 'CrossRef XML', 'import', 'true', 'import_crossref2refbase.php', '25', 1);
 
 # --------------------------------------------------------
 
