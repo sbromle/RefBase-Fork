@@ -21,10 +21,11 @@
 	// records into the database.
 	// TODO: I18n
 
-  // Import the ActiveLink Packages
-  require_once("classes/include.php");
-  import("org.active-link.xml.XML");
-  import("org.active-link.xml.XMLDocument");
+
+	// Import the ActiveLink Packages
+	require_once("classes/include.php");
+	import("org.active-link.xml.XML");
+	import("org.active-link.xml.XMLDocument");
 
 	include 'includes/transtab_bibtex_refbase.inc.php'; // include BibTeX markup -> refbase search & replace patterns
 	include 'includes/transtab_endnotexml_refbase.inc.php'; // include Endnote XML text style markup -> refbase search & replace patterns
@@ -192,7 +193,7 @@
 									// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
 									// (note that this case transformation won't do the right thing for author initials and abbreviations,
 									//  but the result is better than the whole string being upper case, IMHO)
-									$recordFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $recordFieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
+									$recordFieldData = changeCase('title', $recordFieldData); // function 'changeCase()' is defined in 'include.inc.php'
 
 								// merge again field tag and data:
 								$recordField = $recordFieldTag . "\n    " . $recordFieldData;
@@ -225,99 +226,169 @@
 
 	// --------------------------------------------------------------------
 
-	// CrossRef TO REFBASE
+	// CROSSREF TO REFBASE
 	// This function converts records from CrossRef's "unixref" XML format into the standard "refbase"
-  // array format which can be then imported by the 'addRecords()' function in 'include.inc.php'.
-  //
-  // So far, CrossRef seems to be the only provider of this data format & they do not yet use it to
-  // return more than one result.  Therefore, this function does not yet allow batch import.
-  //
-  // Further: this is our first and only native XML import format, so we do not use validateRecords()
-  // or parseRecords()
-  // 
-  // TODO (one of these, in order of preference):
-  // * change these functions to accept non-tagged, XML references
-  // * add new XML validation/parsing functions
-  // * transform XML to a tagged format
-  //
-  // Note that this function needs to have whitespace fixed
+	// array format which can be then imported by the 'addRecords()' function in 'include.inc.php'.
+	//
+	// So far, CrossRef seems to be the only provider of this data format & they do not yet use it to
+	// return more than one result.  Therefore, this function does not yet allow batch import.
+	//
+	// Further: this is our first and only native XML import format, so we do not use validateRecords()
+	// or parseRecords()
+	// 
+	// TODO (one of these, in order of preference):
+	// * change these functions to accept non-tagged, XML references
+	// * add new XML validation/parsing functions
+	// * transform XML to a tagged format
+	// 
+	// Authors: Richard Karnesky <mailto:karnesky@gmail.com> and
+	//          Matthias Steffens <mailto:refbase@extracts.de>
 	function crossrefToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
 		global $errors;
-    global $showSource;
+		global $showSource;
 
-    // We do not allow batch import yet, so we'll only have one record & assume that it is perfect.
-    $recordsCount = 1;
-    $importRecordNumbersRecognizedFormatArray = array();
-    $importRecordNumbersRecognizedFormatArray[] = 1;
-    $importRecordNumbersNotRecognizedFormatArray = array();
+		// Pattern by which multiple persons are separated within the author, editor or series editor fields of the source data:
+		// (Note: name standardization occurs after multiple author fields have been merged by '; ')
+		$personDelimiter = " *; *";
 
-    $parsedRecordsArray = array(); // initialize array variable which will hold parsed data of all records that shall be imported
-    $fieldParametersArray = array(); // setup an empty array (it will hold the parameters that get passed to 'record.php')
+		// Pattern by which a person's family name is separated from the given name (or initials):
+		$familyNameGivenNameDelimiter = " *, *";
 
-    $fieldParametersArray['type']='Journal Article'; // MOST CrossRef entitites are journal articles.  TODO: find what isn't & fix the type.
-    
-    $XML = new XML($sourceText);
+		// Specifies whether the person's family name comes first within a person's name
+		// ('true' means that the family name is followed by the given name (or initials), 'false' means that the person's family name comes *after* the given name (or initials))
+		$familyNameFirst = true;
 
-    $metadataXML     = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_metadata");
-    $issueXML        = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_issue");
-    $articleXML      = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_article");
-    $contributorsXML = $XML->getBranches("doi_records/doi_record/crossref/journal/journal_article/contributors","person_name");
+		// Specifies whether a person's full given name(s) shall be shortened to initial(s):
+		// (Notes: - if set to 'true', given names will be abbreviated and initials will get normalized (meaning removal of extra whitespace, adding of dots between initials, etc)
+		//         - if set to 'false', given names (and any initials) are taken as is
+		//         - in your database, you should stick to either fully written given names OR initials; if you mix these, records won't get sorted correctly on citation output)
+		$shortenGivenNames = true;
 
+		// Specifies whether fields whose contents are entirely in upper case shall be transformed to title case ('true') or not ('false'):
+		$transformCase = true;
 
-    // Process metadataXML
-    // TODO:
-    // * Put CODEN in notes (?)
-    // * ISSN vs. eISSN
-    $fieldParametersArray['publication']    =  $metadataXML[0]->getTagContent("journal_metadata/full_title");
-    $fieldParametersArray['abbrev_journal'] =  $metadataXML[0]->getTagContent("journal_metadata/abbrev_title");
-    $fieldParametersArray['issn']           =  $metadataXML[0]->getTagContent("journal_metadata/issn");
-
-
-    // Process issueXML
-    $fieldParametersArray['year']   = $issueXML[0]->getTagContent("journal_issue/publication_date/year");
-    $fieldParametersArray['volume'] = $issueXML[0]->getTagContent("journal_issue/journal_volume/volume");
-    $fieldParametersArray['issue']  = $issueXML[0]->getTagContent("journal_issue/issue");
-
-
-    // Proccess articleXML
-    $fieldParametersArray['title'] = $articleXML[0]->getTagContent("journal_article/titles/title");
-    $fieldParametersArray['doi']   = $articleXML[0]->getTagContent("journal_article/doi_data/doi");
-
-    $startPage = $articleXML[0]->getTagContent("journal_article/pages/first_page");
-    $endPage   = $articleXML[0]->getTagContent("journal_article/pages/last_page");
-
-    $fieldParametersArray['pages']=$startPage."-".$endPage;
+		// Postprocessor actions:
+		// Defines search & replace 'actions' that will be applied to all those refbase fields that are listed in the corresponding 'fields' element:
+		// (If you don't want to perform any search and replace actions, specify an empty array, like: '$postprocessorActionsArray = array();'.
+		//  Note that, in this case, the search patterns MUST include the leading & trailing slashes -- which is done to allow for mode modifiers such as 'imsxU'.)
+		//                              "/Search Pattern/" => "Replace Pattern"
+		$postprocessorActionsArray = array(
+		                                   array(
+		                                         'fields'  => array("title"),
+		                                         'actions' => array(
+		                                                            "/[,.;:!] *$/" =>  "" // remove any punctuation (except for question marks) from end of field contents
+		                                                           )
+		                                        )
+		                                   );
 
 
-    // Process contributorsXML
-    // TODO:
-    // * Differentiate authors from other types of contributors
-    // * Reformat according to preference
-    $author = "";
-    foreach ($contributorsXML as $contributor)
-    {
-      $author .= $contributor->getTagContent("person_name/surname") . ", " . $contributor->getTagContent("person_name/given_name") . "; ";
-    }
-    $author = trim($author, "; "); 
-    $fieldParametersArray['author']=$author;
+		// We do not allow batch import yet, so we'll only have one record & assume that it is perfect.
+		$recordsCount = 1;
+		$importRecordNumbersRecognizedFormatArray = array();
+		$importRecordNumbersRecognizedFormatArray[] = 1;
+		$importRecordNumbersNotRecognizedFormatArray = array();
 
-    // append the array of extracted field data to the main data array which holds all records to import:
-    $parsedRecordsArray[] = $fieldParametersArray;
+		$parsedRecordsArray = array(); // initialize array variable which will hold parsed data of all records that shall be imported
+		$fieldParametersArray = array(); // setup an empty array (it will hold the parameters that get passed to 'record.php')
 
-    $importDataArray = buildImportArray("refbase", // 'type' - the array format of the 'records' element
-                                        "1.0", // 'version' - the version of the given array structure
-                                        "http://refbase.net/import/crossref/", // 'creator' - the name of the script/importer (preferably given as unique URI)
-                                        "Richard Karnesky", // 'author' - author/contact name of the person who's responsible for this script/importer
-                                        "karnesky@users.sourceforge.net", // 'contact' - author's email/contact address
-                                        array('prefix_call_number' => "true"), // 'options' - array with settings that control the behaviour of the 'addRecords()' function
-                                        $parsedRecordsArray); // 'records' - array of record(s) (with each record being a sub-array of fields)
+		$fieldParametersArray['type'] = 'Journal Article'; // MOST CrossRef entitites are journal articles.  TODO: find what isn't & fix the type.
+		
+		$XML = new XML($sourceText);
 
-    return array($importDataArray, $recordsCount, $importRecordNumbersRecognizedFormatArray, $importRecordNumbersNotRecognizedFormatArray, $errors);
+		$metadataXML     = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_metadata");
+		$issueXML        = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_issue");
+		$articleXML      = $XML->getBranches("doi_records/doi_record/crossref/journal","journal_article");
+		$contributorsXML = $XML->getBranches("doi_records/doi_record/crossref/journal/journal_article/contributors","person_name");
 
-  }
+
+		// Process metadataXML
+		// TODO:
+		// * Put CODEN in notes (?)
+		$fieldParametersArray['publication']    = $metadataXML[0]->getTagContent("journal_metadata/full_title");
+		$fieldParametersArray['abbrev_journal'] = $metadataXML[0]->getTagContent("journal_metadata/abbrev_title");
+
+		// Get print ISSN ('media_type="print"')
+		$issnXML = $XML->getBranches("doi_records/doi_record/crossref/journal/journal_metadata","issn","media_type","print");
+
+		if (!empty($issnXML[0]))
+			$issn = $issnXML[0]->getTagContent("issn");
+		else // if there's no ISSN tag with attribute 'media_type="print"', we fall back to the first given ISSN tag (if any)
+		{
+			$issnXML = $XML->getBranches("doi_records/doi_record/crossref/journal/journal_metadata","issn");
+
+			if (!empty($issnXML[0]))
+				$issn = $issnXML[0]->getTagContent("issn");
+			else
+				$issn = "no issn";
+		}
+
+		if (!empty($issn))
+			$fieldParametersArray['issn'] = $issn;
+
+
+		// Process issueXML
+		$fieldParametersArray['year']   = $issueXML[0]->getTagContent("journal_issue/publication_date/year");
+		$fieldParametersArray['volume'] = $issueXML[0]->getTagContent("journal_issue/journal_volume/volume");
+		$fieldParametersArray['issue']  = $issueXML[0]->getTagContent("journal_issue/issue");
+
+
+		// Proccess articleXML
+		$fieldParametersArray['title'] = $articleXML[0]->getTagContent("journal_article/titles/title");
+		$fieldParametersArray['doi']   = $articleXML[0]->getTagContent("journal_article/doi_data/doi");
+		$fieldParametersArray['url']   = $articleXML[0]->getTagContent("journal_article/doi_data/resource");
+
+		$fieldParametersArray['startPage'] = $articleXML[0]->getTagContent("journal_article/pages/first_page");
+		$fieldParametersArray['endPage']   = $articleXML[0]->getTagContent("journal_article/pages/last_page");
+
+
+		// Process contributorsXML
+		// TODO:
+		// * Differentiate authors from other types of contributors
+		$author = "";
+		foreach ($contributorsXML as $contributor)
+		{
+			$familyName = $contributor->getTagContent("person_name/surname");
+			$givenName  = $contributor->getTagContent("person_name/given_name");
+
+			// if the author's family (or given) name is entirely in uppercase letters, we attempt to convert the string to something more readable:
+			if ($transformCase)
+			{
+				if (preg_match("/^[[:upper:]\W\d]+$/", $familyName))
+					// convert upper case to title case (converts e.g. "STEFFENS" into "Steffens"):
+					$familyName = changeCase('title', $familyName); // function 'changeCase()' is defined in 'include.inc.php'
+
+				if (preg_match("/^[[:upper:]\W\d]+$/", $givenName))
+					// convert upper case to title case (converts e.g. "MATTHIAS" into "Matthias"):
+					$givenName = changeCase('title', $givenName); // function 'changeCase()' is defined in 'include.inc.php'
+			}
+
+			$author .= $familyName . ", " . $givenName . "; ";
+		}
+		$author = trim($author, "; "); 
+		$fieldParametersArray['author'] = $author;
+
+		// standardize field data contained in '$fieldParametersArray':
+		// (function 'standardizeFieldData()' e.g. performs case transformation, standardizes thesis names, normalizes page ranges, and reformats person names according to preference)
+		$fieldParametersArray = standardizeFieldData($fieldParametersArray, "CrossRef XML", $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray);
+
+		// append the array of extracted field data to the main data array which holds all records to import:
+		$parsedRecordsArray[] = $fieldParametersArray;
+
+		$importDataArray = buildImportArray("refbase", // 'type' - the array format of the 'records' element
+		                                    "1.0", // 'version' - the version of the given array structure
+		                                    "http://refbase.net/import/crossref/", // 'creator' - the name of the script/importer (preferably given as unique URI)
+		                                    "Richard Karnesky", // 'author' - author/contact name of the person who's responsible for this script/importer
+		                                    "karnesky@users.sourceforge.net", // 'contact' - author's email/contact address
+		                                    array('prefix_call_number' => "true"), // 'options' - array with settings that control the behaviour of the 'addRecords()' function
+		                                    $parsedRecordsArray); // 'records' - array of record(s) (with each record being a sub-array of fields)
+
+
+		return array($importDataArray, $recordsCount, $importRecordNumbersRecognizedFormatArray, $importRecordNumbersNotRecognizedFormatArray, $errors);
+
+	}
 
 	// --------------------------------------------------------------------
 
@@ -1571,10 +1642,10 @@
 		elseif (preg_match("/^@\w+\{[^ ,\r\n]* *, *[\r\n]/m", $sourceText)) // BibTeX records must start with the "@" sign, followed by a type specifier and an optional cite key (such as in '@article{steffens1988,')
 			$sourceFormat = "BibTeX";
 
-    // CrossRef "unixref XML" format:
-    // TODO:improve match
+		// CrossRef "unixref" XML format:
+		// TODO: improve match
 		elseif (preg_match("/<doi_records[^<>\r\n]*>/i", $sourceText)) // CrossRef XML records must at least contain the elements "<doi_records>"
-			$sourceFormat = "CrossRef";
+			$sourceFormat = "CrossRef XML";
 
 		return $sourceFormat;
 	}
@@ -1703,12 +1774,14 @@
 						$fieldData = trim($fieldData); // remove any preceeding and trailing whitespace from the field data
 
 						// if all of the field data is in uppercase letters, we attempt to convert the string to something more readable:
+						// NOTE: while case transformation is also done in function 'standardizeFieldData()', we cannot omit it here
+						//       since tags that can occur multiple times must be treated individually (i.e. before merging them)
 						if ($transformCase AND ($tagsToRefbaseFieldsArray[$fieldLabel] != "type")) // we exclude reference types from any case transformations
 							if (preg_match("/^[[:upper:]\W\d]+$/", $fieldData))
 								// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
 								// (note that this case transformation won't do the right thing for author initials and abbreviations,
 								//  but the result is better than the whole string being upper case, IMHO)
-								$fieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $fieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
+								$fieldData = changeCase('title', $fieldData); // function 'changeCase()' is defined in 'include.inc.php'
 
 						// extract individual items of tags that can occur multiple times:
 						foreach ($tagsMultipleArray as $tagMultiple)
@@ -1755,71 +1828,6 @@
 				if (isset($fieldParametersArray['type']))
 					$fieldParametersArray['type'] = searchReplaceText($referenceTypesToRefbaseTypesArray, $fieldParametersArray['type'], false); // function 'searchReplaceText()' is defined in 'include.inc.php'
 
-				if (ereg("Thesis", $fieldParametersArray['type']))
-				{
-					$fieldParametersArray['type'] = "Book Whole";
-
-					// standardize thesis names:
-					if (isset($fieldParametersArray['thesis']))
-					{
-						if (eregi("^Master'?s thesis$", $fieldParametersArray['thesis']))
-							$fieldParametersArray['thesis'] = "Master's thesis";
-						elseif (eregi("^Bachelor'?s thesis$", $fieldParametersArray['thesis']))
-							$fieldParametersArray['thesis'] = "Bachelor's thesis";
-						elseif (eregi("^(Diploma thesis|Diplom(arbeit)?)$", $fieldParametersArray['thesis']))
-							$fieldParametersArray['thesis'] = "Diploma thesis";
-						elseif (eregi("^(Doctoral thesis|Dissertation|Doktor(arbeit)?)$", $fieldParametersArray['thesis']))
-							$fieldParametersArray['thesis'] = "Doctoral thesis";
-						elseif (eregi("^Habilitation( thesis)?$", $fieldParametersArray['thesis']))
-							$fieldParametersArray['thesis'] = "Habilitation thesis";
-						else // if an unknown thesis name was given
-							$fieldParametersArray['thesis'] = "Ph.D. thesis"; // NOTE: this fallback may actually be not correct!
-					}
-					else // if no thesis info was given
-						$fieldParametersArray['thesis'] = "Ph.D. thesis"; // NOTE: this fallback may actually be not correct!
-				}
-
-				// merge contents of the special fields 'startPage' and 'endPage' into a range and copy it to the 'pages' field:
-				// (these special fields will be then removed again from the '$fieldParametersArray' since they aren't valid refbase field names)
-				if (isset($fieldParametersArray['startPage']) OR isset($fieldParametersArray['endPage']))
-				{
-					$pages = array();
-
-					if (isset($fieldParametersArray['startPage']))
-					{
-						$pages[] = $fieldParametersArray['startPage'];
-						unset($fieldParametersArray['startPage']);
-					}
-
-					if (isset($fieldParametersArray['endPage']))
-					{
-						$pages[] = $fieldParametersArray['endPage'];
-						unset($fieldParametersArray['endPage']);
-					}
-
-					if (!empty($pages))
-						$fieldParametersArray['pages'] = implode("-", $pages);
-
-					if (ereg("Book Whole", $fieldParametersArray['type']) AND preg_match("/^\d+$/", $fieldParametersArray['pages']))
-						$fieldParametersArray['pages'] = $fieldParametersArray['pages'] . " pp"; // append "pp" identifier for whole books where the pages field contains a single number
-				}
-
-				// if the 'pages' field contains a page range, verify that the end page is actually greater than the start page:
-				if (isset($fieldParametersArray['pages']) AND preg_match("/^\d+\D*-\D*\d+$/", $fieldParametersArray['pages']))
-				{
-					list($startPage, $endPage) = preg_split("/\D*-\D*/", $fieldParametersArray['pages']);
-
-					$countStartPage = strlen($startPage);
-					$countEndPage = strlen($endPage);
-
-					if(($countStartPage > $countEndPage) AND ($startPage > $endPage))
-					{
-						$startPagePart = preg_replace("/^.*?(\d{" . $countEndPage . "})$/", "\\1", $startPage);
-						if ($startPagePart < $endPage)
-							$fieldParametersArray['pages'] = $startPage . "-" . ($startPage + ($endPage - $startPagePart)); // convert page ranges such as '673-6' or '673-85' to '673-676' or '673-685', respectively
-					}
-				}
-
 				// merge individual items of fields that can occur multiple times:
 				foreach ($tagsMultipleArray as $tagMultiple)
 				{
@@ -1827,64 +1835,9 @@
 						$fieldParametersArray[$tagsToRefbaseFieldsArray[$tagMultiple]] = implode("; ", $tagContentsMultipleArray[$tagsToRefbaseFieldsArray[$tagMultiple]]);
 				}
 
-				// standardize contents of the 'author', 'editor' and 'series_editor' fields:
-				if (!empty($fieldParametersArray['author']) OR !empty($fieldParametersArray['editor']) OR !empty($fieldParametersArray['series_editor']))
-				{
-					$namesArray = array();
-
-					if (!empty($fieldParametersArray['author']))
-						$namesArray['author'] = $fieldParametersArray['author'];
-
-					if (!empty($fieldParametersArray['editor']))
-						$namesArray['editor'] = $fieldParametersArray['editor'];
-
-					if (!empty($fieldParametersArray['series_editor']))
-						$namesArray['series_editor'] = $fieldParametersArray['series_editor'];
-
-					if (!empty($namesArray))
-						foreach ($namesArray as $nameKey => $nameString)
-							$fieldParametersArray[$nameKey] = standardizePersonNames($nameString, $familyNameFirst, $personDelimiter, $familyNameGivenNameDelimiter, $shortenGivenNames);
-				}
-
-				// if the 'author' field is empty BUT the 'editor' field is not empty AND the record type is either 'Book Whole', 'Journal', 'Manuscript' or 'Map':
-				if (empty($fieldParametersArray['author']) AND !empty($fieldParametersArray['editor']) AND ereg("^(Book Whole|Journal|Manuscript|Map)$", $fieldParametersArray['type']))
-				{
-					$fieldParametersArray['author'] = $fieldParametersArray['editor']; // duplicate field contents from 'editor' to 'author' field
-
-					if (!ereg(";", $fieldParametersArray['author'])) // if the 'author' field does NOT contain a ';' (which would delimit multiple authors) => single author
-						$fieldParametersArray['author'] .= " (ed)"; // append " (ed)" to the end of the 'author' string
-					else // the 'author' field does contain at least one ';' => multiple authors
-						$fieldParametersArray['author'] .= " (eds)"; // append " (eds)" to the end of the 'author' string
-				}
-
-				// if some (full or abbreviated) series title was given, we assume that the information given in 'volume'/'issue' is actually the 'series_volume'/'series_issue':
-				if (!empty($fieldParametersArray['series_title']) OR !empty($fieldParametersArray['abbrev_series_title']))
-				{
-					if (!empty($fieldParametersArray['volume']) AND empty($fieldParametersArray['series_volume'])) // move 'volume' to 'series_volume'
-					{
-						$fieldParametersArray['series_volume'] = $fieldParametersArray['volume'];
-						unset($fieldParametersArray['volume']);
-					}
-
-					if (!empty($fieldParametersArray['issue']) AND empty($fieldParametersArray['series_issue'])) // move 'issue' to 'series_issue'
-					{
-						$fieldParametersArray['series_issue'] = $fieldParametersArray['issue'];
-						unset($fieldParametersArray['issue']);
-					}
-				}
-
-				// if the 'url' field actually contains a DOI prefixed with "http://dx.doi.org/" (AND the 'doi' field is empty), we'll extract the DOI and move it to the 'doi' field:
-				if (!empty($fieldParametersArray['url']) AND empty($fieldParametersArray['doi']) AND preg_match("#^http://dx\.doi\.org/10\.\d{4}/[^ ]+#", $fieldParametersArray['url']))
-				{
-					$fieldParametersArray['doi'] = preg_replace("#^http://dx\.doi\.org/(10\.\d{4}/[^ ]+)#", "\\1", $fieldParametersArray['url']);
-					unset($fieldParametersArray['url']);
-				}
-
-				// apply search & replace 'actions' to all fields that are listed in the 'fields' element of the arrays contained in '$postprocessorActionsArray':
-				foreach ($postprocessorActionsArray as $fieldActionsArray)
-					foreach ($fieldParametersArray as $fieldName => $fieldValue)
-						if (in_array($fieldName, $fieldActionsArray['fields']))
-							$fieldParametersArray[$fieldName] = searchReplaceText($fieldActionsArray['actions'], $fieldValue, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+				// standardize field data contained in '$fieldParametersArray':
+				// (function 'standardizeFieldData()' e.g. performs case transformation, standardizes thesis names, normalizes page ranges, and reformats person names according to preference)
+				$fieldParametersArray = standardizeFieldData($fieldParametersArray, $recordFormat, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray);
 
 				// append the array of extracted field data to the main data array which holds all records to import:
 				$parsedRecordsArray[] = $fieldParametersArray;
@@ -1893,6 +1846,167 @@
 		// (END LOOP OVER EACH RECORD)
 
 		return array($parsedRecordsArray, $recordsCount);
+	}
+
+	// --------------------------------------------------------------------
+
+	// STANDARDIZE FIELD DATA
+	// This function standardizes field data contained in '$fieldParametersArray':
+	// (e.g. performs case transformation, standardizes thesis names, normalizes page ranges, and reformats person names according to preference)
+	function standardizeFieldData($fieldParametersArray, $recordFormat, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray)
+	{
+		if (!empty($fieldParametersArray))
+		{
+			// perform case transformation:
+			// NOTE: this case transformation is kinda redundant if the record data were passed thru function 'parseRecords()' before,
+			//       but we include it here since this function is also called individually (e.g. by function 'crossrefToRefbase()')
+			foreach ($fieldParametersArray as $fieldKey => $fieldData) // for each field within the current record...
+			{
+				// if all of the field data is in uppercase letters, we attempt to convert the string to something more readable:
+				if ($transformCase AND ($fieldKey != "type")) // we exclude reference types from any case transformations
+					if (preg_match("/^[[:upper:]\W\d]+$/", $fieldData))
+						// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
+						// (note that this case transformation won't do the right thing for author initials and abbreviations,
+						//  but the result is better than the whole string being upper case, IMHO)
+						$fieldParametersArray[$fieldKey] = changeCase('title', $fieldData); // function 'changeCase()' is defined in 'include.inc.php'
+			}
+
+			if (ereg("Thesis", $fieldParametersArray['type']))
+			{
+				$fieldParametersArray['type'] = "Book Whole";
+
+				// standardize thesis names:
+				if (isset($fieldParametersArray['thesis']))
+				{
+					if (eregi("^Master'?s thesis$", $fieldParametersArray['thesis']))
+						$fieldParametersArray['thesis'] = "Master's thesis";
+					elseif (eregi("^Bachelor'?s thesis$", $fieldParametersArray['thesis']))
+						$fieldParametersArray['thesis'] = "Bachelor's thesis";
+					elseif (eregi("^(Diploma thesis|Diplom(arbeit)?)$", $fieldParametersArray['thesis']))
+						$fieldParametersArray['thesis'] = "Diploma thesis";
+					elseif (eregi("^(Doctoral thesis|Dissertation|Doktor(arbeit)?)$", $fieldParametersArray['thesis']))
+						$fieldParametersArray['thesis'] = "Doctoral thesis";
+					elseif (eregi("^Habilitation( thesis)?$", $fieldParametersArray['thesis']))
+						$fieldParametersArray['thesis'] = "Habilitation thesis";
+					else // if an unknown thesis name was given
+						$fieldParametersArray['thesis'] = "Ph.D. thesis"; // NOTE: this fallback may actually be not correct!
+				}
+				else // if no thesis info was given
+					$fieldParametersArray['thesis'] = "Ph.D. thesis"; // NOTE: this fallback may actually be not correct!
+			}
+
+			// merge contents of the special fields 'startPage' and 'endPage' into a range and copy it to the 'pages' field:
+			// (these special fields will be then removed again from the '$fieldParametersArray' since they aren't valid refbase field names)
+			if (isset($fieldParametersArray['startPage']) OR isset($fieldParametersArray['endPage']))
+			{
+				$pages = array();
+
+				if (isset($fieldParametersArray['startPage']))
+				{
+					if (!empty($fieldParametersArray['startPage']))
+						$pages[] = $fieldParametersArray['startPage'];
+
+					unset($fieldParametersArray['startPage']);
+				}
+
+				if (isset($fieldParametersArray['endPage']))
+				{
+					if (!empty($fieldParametersArray['endPage']))
+						$pages[] = $fieldParametersArray['endPage'];
+
+					unset($fieldParametersArray['endPage']);
+				}
+
+				if (!empty($pages))
+					$fieldParametersArray['pages'] = implode("-", $pages);
+
+				if (ereg("Book Whole", $fieldParametersArray['type']) AND preg_match("/^\d+$/", $fieldParametersArray['pages']))
+					$fieldParametersArray['pages'] = $fieldParametersArray['pages'] . " pp"; // append "pp" identifier for whole books where the pages field contains a single number
+			}
+
+			// if the 'pages' field contains a page range, verify that the end page is actually greater than the start page:
+			if (isset($fieldParametersArray['pages']) AND preg_match("/^\d+\D*-\D*\d+$/", $fieldParametersArray['pages']))
+			{
+				list($startPage, $endPage) = preg_split("/\D*-\D*/", $fieldParametersArray['pages']);
+
+				$countStartPage = strlen($startPage);
+				$countEndPage = strlen($endPage);
+
+				if(($countStartPage > $countEndPage) AND ($startPage > $endPage))
+				{
+					$startPagePart = preg_replace("/^.*?(\d{" . $countEndPage . "})$/", "\\1", $startPage);
+					if ($startPagePart < $endPage)
+						$fieldParametersArray['pages'] = $startPage . "-" . ($startPage + ($endPage - $startPagePart)); // convert page ranges such as '673-6' or '673-85' to '673-676' or '673-685', respectively
+				}
+			}
+
+			// standardize contents of the 'author', 'editor' and 'series_editor' fields:
+			if (!empty($fieldParametersArray['author']) OR !empty($fieldParametersArray['editor']) OR !empty($fieldParametersArray['series_editor']))
+			{
+				$namesArray = array();
+
+				if (!empty($fieldParametersArray['author']))
+					$namesArray['author'] = $fieldParametersArray['author'];
+
+				if (!empty($fieldParametersArray['editor']))
+					$namesArray['editor'] = $fieldParametersArray['editor'];
+
+				if (!empty($fieldParametersArray['series_editor']))
+					$namesArray['series_editor'] = $fieldParametersArray['series_editor'];
+
+				if (!empty($namesArray))
+					foreach ($namesArray as $nameKey => $nameString)
+						$fieldParametersArray[$nameKey] = standardizePersonNames($nameString, $familyNameFirst, $personDelimiter, $familyNameGivenNameDelimiter, $shortenGivenNames);
+			}
+
+			// if the 'author' field is empty BUT the 'editor' field is not empty AND the record type is either a container item or a self-contained/independent item (such as 'Book Whole', 'Journal', 'Manuscript' or 'Map'):
+			if (empty($fieldParametersArray['author']) AND !empty($fieldParametersArray['editor']) AND ereg("^(Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software)$", $fieldParametersArray['type']))
+			{
+				$fieldParametersArray['author'] = $fieldParametersArray['editor']; // duplicate field contents from 'editor' to 'author' field
+
+				if (!ereg(";", $fieldParametersArray['author'])) // if the 'author' field does NOT contain a ';' (which would delimit multiple authors) => single author
+					$fieldParametersArray['author'] .= " (ed)"; // append " (ed)" to the end of the 'author' string
+				else // the 'author' field does contain at least one ';' => multiple authors
+					$fieldParametersArray['author'] .= " (eds)"; // append " (eds)" to the end of the 'author' string
+			}
+
+			// if some (full or abbreviated) series title was given, we assume that the information given in 'volume'/'issue' is actually the 'series_volume'/'series_issue':
+			if (!empty($fieldParametersArray['series_title']) OR !empty($fieldParametersArray['abbrev_series_title']))
+			{
+				if (!empty($fieldParametersArray['volume']) AND empty($fieldParametersArray['series_volume'])) // move 'volume' to 'series_volume'
+				{
+					$fieldParametersArray['series_volume'] = $fieldParametersArray['volume'];
+					unset($fieldParametersArray['volume']);
+				}
+
+				if (!empty($fieldParametersArray['issue']) AND empty($fieldParametersArray['series_issue'])) // move 'issue' to 'series_issue'
+				{
+					$fieldParametersArray['series_issue'] = $fieldParametersArray['issue'];
+					unset($fieldParametersArray['issue']);
+				}
+			}
+
+			// if the 'url' field actually contains a DOI prefixed with "http://dx.doi.org/" (AND the 'doi' field is empty), we'll extract the DOI and move it to the 'doi' field:
+			if (!empty($fieldParametersArray['url']) AND empty($fieldParametersArray['doi']) AND preg_match("#^http://dx\.doi\.org/10\.\d{4}/[^ ]+#", $fieldParametersArray['url']))
+			{
+				$fieldParametersArray['doi'] = preg_replace("#^http://dx\.doi\.org/(10\.\d{4}/[^ ]+)#", "\\1", $fieldParametersArray['url']);
+				unset($fieldParametersArray['url']);
+			}
+
+			// standardize format of ISSN number:
+			if (!empty($fieldParametersArray['issn']) AND preg_match("/^ *\d{4}\D*\d{4} *$/", $fieldParametersArray['issn']))
+			{
+				$fieldParametersArray['issn'] = preg_replace("/^ *(\d{4})\D*(\d{4}) *$/", "\\1-\\2", $fieldParametersArray['issn']);
+			}
+
+			// apply search & replace 'actions' to all fields that are listed in the 'fields' element of the arrays contained in '$postprocessorActionsArray':
+			foreach ($postprocessorActionsArray as $fieldActionsArray)
+				foreach ($fieldParametersArray as $fieldName => $fieldValue)
+					if (in_array($fieldName, $fieldActionsArray['fields']))
+						$fieldParametersArray[$fieldName] = searchReplaceText($fieldActionsArray['actions'], $fieldValue, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+		}
+
+		return $fieldParametersArray;
 	}
 
 	// --------------------------------------------------------------------
@@ -2136,7 +2250,7 @@
 
 					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the monograph title are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "BIOLOGY AND ECOLOGY OF GLACIAL RELICT CRUSTACEA" into "Biology And Ecology Of Glacial Relict Crustacea")
-						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
+						$extractedSourceFieldData = changeCase('title', $extractedSourceFieldData); // function 'changeCase()' is defined in 'include.inc.php'
 
 					$fieldArray[] = "MT: Monograph Title\r\n    " . $extractedSourceFieldData; // add field "MT: Monograph Title" to the array of fields
 				}
@@ -2150,7 +2264,7 @@
 
 					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the journal name are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "POLAR BIOLOGY" into "Polar Biology")
-						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
+						$extractedSourceFieldData = changeCase('title', $extractedSourceFieldData); // function 'changeCase()' is defined in 'include.inc.php'
 
 					$fieldArray[] = "JN: Journal Name\r\n    " . $extractedSourceFieldData; // add field "JN: Journal Name" to the array of fields
 				}
@@ -2193,7 +2307,7 @@
 
 					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the abbreviated journal name are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "BALT SEA ENVIRON PROC" into "Balt Sea Environ Proc")
-						$extractedSourceFieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $extractedSourceFieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
+						$extractedSourceFieldData = changeCase('title', $extractedSourceFieldData); // function 'changeCase()' is defined in 'include.inc.php'
 
 					$fieldArray[] = "JA: Abbrev Journal Name\r\n    " . $extractedSourceFieldData; // add field "JA: Abbrev Journal Name" to the array of fields (note that this field normally does NOT occur within the CSA full record format!)
 				}
@@ -2358,7 +2472,7 @@
 					{
 						if (preg_match("/^[[:upper:]\W\d]+$/", $fieldData)) // if all of the words within the publisher name are uppercase, we attempt to convert the string to something more readable:
 							// perform case transformation (e.g. convert "ELSEVIER SCIENCE B.V." into "Elsevier Science B.V.")
-							$fieldData = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $fieldData); // the 'e' modifier allows to execute PHP code within the replacement pattern
+							$fieldData = changeCase('title', $fieldData); // function 'changeCase()' is defined in 'include.inc.php'
 
 						$fieldParametersArray['publisher'] = $fieldData;
 					}
