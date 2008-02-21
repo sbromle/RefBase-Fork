@@ -3943,7 +3943,7 @@ EOF;
 	// --------------------------------------------------------------------
 
 	// Perform case transformations on the given text input:
-	// ('$transformation' must be either 'lower' or 'upper')
+	// ('$transformation' must be either 'lower', 'upper' or 'title')
 	function changeCase($transformation, $sourceString)
 	{
 		if (eregi("lower", $transformation)) // change source text to lower case
@@ -3951,6 +3951,9 @@ EOF;
 
 		elseif (eregi("upper", $transformation)) // change source text to upper case
 			$sourceString = strtoupper($sourceString);
+
+		elseif (eregi("title", $transformation)) // change source text to title case
+			$sourceString = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $sourceString); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
 		return $sourceString;
 	}
