@@ -26,6 +26,18 @@
 # --------------------------------------------------------
 
 #
+# update table `deleted`
+#
+
+ALTER TABLE `deleted` MODIFY COLUMN `edition` varchar(50) default NULL;
+
+ALTER TABLE `deleted` MODIFY COLUMN `thesis` enum('Bachelor''s thesis','Honours thesis','Master''s thesis','Ph.D. thesis','Diploma thesis','Doctoral thesis','Habilitation thesis') default NULL;
+
+ALTER TABLE `deleted` ADD COLUMN `version` mediumint(8) unsigned default 1 AFTER `modified_by`;
+
+# --------------------------------------------------------
+
+#
 # replace table `formats`
 #
 
@@ -46,37 +58,39 @@ CREATE TABLE `formats` (
 # data for table `formats`
 #
 
-INSERT INTO `formats` VALUES (1, 'MODS XML', 'import', 'true', 'bibutils/import_modsxml2refbase.php', '06', 2),
-(2, 'MODS XML', 'export', 'true', 'export_modsxml.php', '06', 1),
-(3, 'Text (CSV)', 'export', 'false', 'export_textcsv.php', '07', 1),
-(4, 'BibTeX', 'import', 'true', 'bibutils/import_bib2refbase.php', '01', 2),
-(5, 'BibTeX', 'export', 'true', 'bibutils/export_xml2bib.php', '01', 2),
-(6, 'Endnote', 'import', 'true', 'bibutils/import_end2refbase.php', '02', 2),
-(7, 'Endnote XML', 'import', 'true', 'bibutils/import_endx2refbase.php', '02', 2),
-(8, 'Endnote', 'export', 'true', 'bibutils/export_xml2end.php', '02', 2),
-(9, 'Pubmed Medline', 'import', 'true', 'import_medline2refbase.php', '08', 1),
-(10, 'Pubmed XML', 'import', 'true', 'bibutils/import_med2refbase.php', '09', 2),
-(11, 'RIS', 'import', 'true', 'import_ris2refbase.php', '03', 1),
-(12, 'RIS', 'export', 'true', 'bibutils/export_xml2ris.php', '03', 2),
-(13, 'ISI', 'import', 'true', 'import_isi2refbase.php', '04', 1),
-(14, 'ISI', 'export', 'true', 'bibutils/export_xml2isi.php', '04', 2),
-(15, 'CSA', 'import', 'true', 'import_csa2refbase.php', '05', 1),
-(16, 'Copac', 'import', 'true', 'bibutils/import_copac2refbase.php', '10', 2),
-(17, 'SRW XML', 'export', 'true', 'export_srwxml.php', '11', 1),
-(18, 'ODF XML', 'export', 'true', 'export_odfxml.php', '12', 1),
-(19, 'OpenSearch RSS', 'export', 'false', 'export_osrss.php', '13', 1),
-(20, 'html', 'cite', 'true', 'formats/cite_html.php', '14', 1),
-(21, 'RTF', 'cite', 'true', 'formats/cite_rtf.php', '15', 1),
-(22, 'PDF', 'cite', 'true', 'formats/cite_pdf.php', '16', 1),
-(23, 'LaTeX', 'cite', 'true', 'formats/cite_latex.php', '17', 1),
-(24, 'Markdown', 'cite', 'true', 'formats/cite_markdown.php', '18', 1),
-(25, 'ASCII', 'cite', 'true', 'formats/cite_ascii.php', '19', 1),
-(26, 'RefWorks', 'import', 'true', 'import_refworks2refbase.php', '20', 1),
-(27, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', '21', 1),
-(28, 'Word XML', 'export', 'true', 'bibutils/export_xml2word.php', '22', 2),
-(29, 'LaTeX .bbl', 'cite', 'true', 'formats/cite_latex_bbl.php', '23', 1),
-(30, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', '24', 1),
-(31, 'CrossRef XML', 'import', 'true', 'import_crossref2refbase.php', '25', 1);
+INSERT INTO `formats` VALUES (1, 'MODS XML', 'import', 'true', 'bibutils/import_modsxml2refbase.php', 'A160', 2),
+(2, 'MODS XML', 'export', 'true', 'export_modsxml.php', 'B160', 1),
+(3, 'Text (CSV)', 'export', 'false', 'export_textcsv.php', 'B105', 1),
+(4, 'BibTeX', 'import', 'true', 'bibutils/import_bib2refbase.php', 'A010', 2),
+(5, 'BibTeX', 'export', 'true', 'bibutils/export_xml2bib.php', 'B010', 2),
+(6, 'Endnote', 'import', 'true', 'bibutils/import_end2refbase.php', 'A040', 2),
+(7, 'Endnote XML', 'import', 'true', 'bibutils/import_endx2refbase.php', 'A045', 2),
+(8, 'Endnote', 'export', 'true', 'bibutils/export_xml2end.php', 'B040', 2),
+(9, 'Pubmed Medline', 'import', 'true', 'import_medline2refbase.php', 'A060', 1),
+(10, 'Pubmed XML', 'import', 'true', 'bibutils/import_med2refbase.php', 'A065', 2),
+(11, 'RIS', 'import', 'true', 'import_ris2refbase.php', 'A080', 1),
+(12, 'RIS', 'export', 'true', 'bibutils/export_xml2ris.php', 'B080', 2),
+(13, 'ISI', 'import', 'true', 'import_isi2refbase.php', 'A050', 1),
+(14, 'ISI', 'export', 'true', 'bibutils/export_xml2isi.php', 'B050', 2),
+(15, 'CSA', 'import', 'true', 'import_csa2refbase.php', 'A030', 1),
+(16, 'Copac', 'import', 'true', 'bibutils/import_copac2refbase.php', 'A020', 2),
+(17, 'SRW_MODS XML', 'export', 'true', 'export_srwxml.php', 'B195', 1),
+(18, 'ODF XML', 'export', 'true', 'export_odfxml.php', 'B180', 1),
+(19, 'Atom XML', 'export', 'true', 'export_atomxml.php', 'B140', 1),
+(20, 'html', 'cite', 'true', 'formats/cite_html.php', 'C010', 1),
+(21, 'RTF', 'cite', 'true', 'formats/cite_rtf.php', 'C020', 1),
+(22, 'PDF', 'cite', 'true', 'formats/cite_pdf.php', 'C030', 1),
+(23, 'LaTeX', 'cite', 'true', 'formats/cite_latex.php', 'C040', 1),
+(24, 'Markdown', 'cite', 'true', 'formats/cite_markdown.php', 'C050', 1),
+(25, 'ASCII', 'cite', 'true', 'formats/cite_ascii.php', 'C060', 1),
+(26, 'RefWorks', 'import', 'true', 'import_refworks2refbase.php', 'A070', 1),
+(27, 'SciFinder', 'import', 'true', 'import_scifinder2refbase.php', 'A090', 1),
+(28, 'Word XML', 'export', 'true', 'bibutils/export_xml2word.php', 'B200', 2),
+(29, 'LaTeX .bbl', 'cite', 'true', 'formats/cite_latex_bbl.php', 'C045', 1),
+(30, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', 'A100', 1),
+(31, 'CrossRef XML', 'import', 'true', 'import_crossref2refbase.php', 'A150', 1),
+(32, 'OAI_DC XML', 'export', 'true', 'export_oaidcxml.php', 'B170', 1),
+(33, 'SRW_DC XML', 'export', 'true', 'export_srwxml.php', 'B190', 1);
 
 # --------------------------------------------------------
 
@@ -96,6 +110,12 @@ UPDATE `languages` SET `language_enabled` = 'true' WHERE `language_name` = 'de';
 # update table `refs`
 #
 
+ALTER TABLE `refs` MODIFY COLUMN `edition` varchar(50) default NULL;
+
+ALTER TABLE `refs` MODIFY COLUMN `thesis` enum('Bachelor''s thesis','Honours thesis','Master''s thesis','Ph.D. thesis','Diploma thesis','Doctoral thesis','Habilitation thesis') default NULL;
+
+ALTER TABLE `refs` ADD COLUMN `version` mediumint(8) unsigned default 1 AFTER `modified_by`;
+
 UPDATE `refs` SET `thesis` = NULL WHERE `thesis` = '';
 
 UPDATE `refs` SET `type` = 'Conference Article' WHERE `type` RLIKE '^(Unsupported: )?Conference Proceeding$';
@@ -112,16 +132,18 @@ UPDATE `refs` SET `type` = REPLACE(`type`, "Unsupported: ", "") WHERE `type` RLI
 
 UPDATE `styles` SET `style_spec` = REPLACE(`style_spec`,"cite_","styles/cite_") WHERE `style_spec` RLIKE "^cite_";
 
-INSERT INTO `styles` VALUES (NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B050', 1),
-(NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B060', 1),
+INSERT INTO `styles` VALUES (NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B010', 1),
+(NULL, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B030', 1),
 (NULL, 'APA', 'true', 'styles/cite_APA.php', 'A010', 1),
-(NULL, 'MLA', 'true', 'styles/cite_MLA.php', 'A030', 1);
+(NULL, 'AMA', 'true', 'styles/cite_AMA.php', 'A020', 1),
+(NULL, 'MLA', 'true', 'styles/cite_MLA.php', 'A030', 1),
+(NULL, 'Chicago', 'true', 'styles/cite_Chicago.php', 'A070', 1);
 
 UPDATE `styles` SET `order_by` = 'C010' WHERE `style_name` = 'Text Citation';
-UPDATE `styles` SET `order_by` = 'B010' WHERE `style_name` = 'Polar Biol';
-UPDATE `styles` SET `order_by` = 'B020' WHERE `style_name` = 'Mar Biol';
-UPDATE `styles` SET `order_by` = 'B030' WHERE `style_name` = 'MEPS';
-UPDATE `styles` SET `order_by` = 'B040' WHERE `style_name` = 'Deep Sea Res';
+UPDATE `styles` SET `order_by` = 'B060' WHERE `style_name` = 'Polar Biol';
+UPDATE `styles` SET `order_by` = 'B040' WHERE `style_name` = 'Mar Biol';
+UPDATE `styles` SET `order_by` = 'B050' WHERE `style_name` = 'MEPS';
+UPDATE `styles` SET `order_by` = 'B020' WHERE `style_name` = 'Deep Sea Res';
 
 # --------------------------------------------------------
 
@@ -196,6 +218,8 @@ INSERT INTO `user_options` VALUES (1, 0, 'yes', 'yes', 'no', 'no', '<:authors:><
 #
 
 ALTER TABLE `user_permissions` ADD COLUMN `allow_browse_view` ENUM('yes', 'no') NOT NULL AFTER `allow_print_view`;
+
+ALTER TABLE `user_permissions` ADD COLUMN `allow_list_view` ENUM('yes', 'no') NOT NULL AFTER `allow_upload`;
 
 #
 # update table `user_permissions`
