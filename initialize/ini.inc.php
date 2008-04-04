@@ -108,12 +108,14 @@
 	$convertExportDataToUTF8 = "yes"; // possible values: "yes", "no"
 
 
-	// The path to the default CSS stylesheet which will be used for all page views except print view:
+	// The path to the default CSS stylesheet which will be used for all page views except print/mobile view:
 	$defaultStyleSheet = "css/style.css"; // e.g. "css/style.css"
-
 
 	// The path to the CSS stylesheet which will be used for print view:
 	$printStyleSheet = "css/style_print.css"; // e.g. "css/style_print.css"
+
+	// The path to the CSS stylesheet which will be used for mobile view (intended for mobile devices):
+	$mobileStyleSheet = "css/style_mobile.css"; // e.g. "css/style_mobile.css"
 
 
 	// The default interface language:
@@ -160,74 +162,78 @@
 	// Possible values for each of the permission settings: "yes", "no"
 	// Allow a newly created user to:
 	$defaultUserPermissions = array("yes", // add records to the database ('allow_add')
-									"yes", // edit records in the database ('allow_edit')
-									"yes", // delete records from the database ('allow_delete')
-									"yes", // download files which are associated with particular records ('allow_download')
-									"yes", // upload files to the database ('allow_upload')
-									"yes", // view any record details ('allow_details_view')
-									"yes", // view records in print view ('allow_print_view')
-									"no", // view records in browse view ('allow_browse_view')
-									"yes", // build a reference list from selected records ('allow_cite')
-									"yes", // import records into the database ('allow_import')
-									"yes", // batch import records into the database ('allow_batch_import')
-									"yes", // export records from the database ('allow_export')
-									"yes", // batch export records from the database ('allow_batch_export')
-									"yes", // use the 'user groups' feature ('allow_user_groups')
-									"yes", // use the 'user queries' feature ('allow_user_queries')
-									"yes", // generate dynamic RSS feeds from any query ('allow_rss_feeds')
-									"yes", // execute custom SQL queries via 'sql_search.php' ('allow_sql_search')
-									"yes", // change his/her personal data (like name, address or password) ('allow_modify_options')
-									"no"); // fully edit the contents of the 'call_number' field (like the database admin) ('allow_edit_call_number')
-											// [note that the 'allow_edit_call_number' permission setting isn't honoured yet!]
+	                                "yes", // edit records in the database ('allow_edit')
+	                                "yes", // delete records from the database ('allow_delete')
+	                                "yes", // download files which are associated with particular records ('allow_download')
+	                                "yes", // upload files to the database ('allow_upload')
+	                                "yes", // view records in list view ('allow_list_view')
+	                                "yes", // view any record details ('allow_details_view')
+	                                "yes", // view records in print view ('allow_print_view')
+	                                "no", // view records in browse view ('allow_browse_view')
+	                                "yes", // build a reference list from selected records ('allow_cite')
+	                                "yes", // import records into the database ('allow_import')
+	                                "yes", // batch import records into the database ('allow_batch_import')
+	                                "yes", // export records from the database ('allow_export')
+	                                "yes", // batch export records from the database ('allow_batch_export')
+	                                "yes", // use the 'user groups' feature ('allow_user_groups')
+	                                "yes", // use the 'user queries' feature ('allow_user_queries')
+	                                "yes", // generate dynamic RSS feeds from any query ('allow_rss_feeds')
+	                                "yes", // execute custom SQL queries via 'sql_search.php' ('allow_sql_search')
+	                                "yes", // change his/her personal data (like name, address or password) ('allow_modify_options')
+	                                "no"); // fully edit the contents of the 'call_number' field (like the database admin) ('allow_edit_call_number')
+	                                       // [note that the 'allow_edit_call_number' permission setting isn't honoured yet!]
 
 
 	// When adding a new user, the following export formats will be made available to the new user by default:
 	// The specified format names must have matching entries within the 'formats' MySQL table.
 	$defaultUserExportFormats = array("BibTeX",
-										"Endnote",
-										"RIS",
-										"ISI",
-										"MODS XML",
-										"ODF XML",
-										"Word XML");
+	                                  "Endnote",
+	                                  "ISI",
+	                                  "RIS",
+	                                  "Atom XML",
+	                                  "MODS XML",
+	                                  "ODF XML",
+	                                  "Word XML");
 
 
 	// When adding a new user, the following citation formats will be made available to the new user by default:
 	// The specified format names must have matching entries within the 'formats' MySQL table.
 	$defaultUserCiteFormats = array("html",
-									"RTF",
-									"PDF",
-									"LaTeX");
+	                                "RTF",
+	                                "PDF",
+	                                "LaTeX");
 
 
 	// When adding a new user, the following citation styles will be made available to the new user by default:
 	// The specified citation styles must have matching entries within the 'styles' MySQL table.
 	$defaultUserStyles = array("APA",
-								"MLA",
-								"Polar Biol",
-								"Deep Sea Res",
-								"J Glaciol",
-								"Text Citation");
+	                           "AMA",
+	                           "MLA",
+	                           "Chicago",
+	                           "Deep Sea Res",
+	                           "J Glaciol",
+	                           "Polar Biol",
+	                           "Text Citation");
 
 
 	// When adding a new user, the following reference types will be made available to the new user by default:
 	// The specified reference types must have matching entries within the 'types' MySQL table.
 	$defaultUserTypes = array("Journal Article",
-								"Abstract",
-								"Book Chapter",
-								"Book Whole",
-								"Conference Article",
-								"Conference Volume",
-								"Journal",
-								"Magazine Article",
-								"Manual",
-								"Manuscript",
-								"Map",
-								"Miscellaneous",
-								"Newspaper Article",
-								"Patent",
-								"Report",
-								"Software");
+	                          "Abstract",
+	                          "Book Chapter",
+	                          "Book Whole",
+	                          "Conference Article",
+	                          "Conference Volume",
+	                          "Journal",
+	                          "Magazine Article",
+	                          "Manual",
+	                          "Manuscript",
+	                          "Map",
+	                          "Miscellaneous",
+	                          "Newspaper Article",
+	                          "Patent",
+	                          "Report",
+	                          "Software");
 
 
 	// The default list of fields that will be searched by the "main fields" search option:
@@ -238,47 +244,78 @@
 	$defaultMainFields = "author, title, publication, keywords, abstract"; // e.g. "author, title, publication, keywords, abstract"
 
 
+	// The list of fields that will be displayed by default in List view (i.e. the default
+	// columnar output style):
+	// (specify a comma-separated list of fields from MySQL table 'refs')
+	// 
+	// - These "major" fields will be always included by default:
+	$defaultFieldsListViewMajor = "author, title, year, publication"; // e.g. "author, title, year, publication"
+
+	// - These "minor" fields will only be included by default if there are no other fields
+	//   that are to be included:
+	//   (e.g., if one uses "Quick Search" to search the 'abstract' or 'keywords' fields,
+	//    those fields will be displayed instead of the "minor" fields listed here)
+	$defaultFieldsListViewMinor = "volume, pages"; // e.g. "volume, pages"
+
+
+	// The default list of fields that will be available in dropdown menus of the
+	// results header:
+	// (given field names must match column names in MySQL tables 'refs' and 'user_data';
+	//  you can change the order of fields to control the field order in the dropdown menus)
+	// 
+	// - These fields will be visible for all users, no matter whether they are logged in or not:
+	$defaultDropDownFieldsEveryone = array("author", "title", "year", "keywords", "abstract",
+	                                       "type", "publication", "abbrev_journal", "volume",
+	                                       "issue", "pages", "thesis", "publisher", "place",
+	                                       "editor", "series_title", "language", "area",
+	                                       "notes", "call_number", "serial");
+
+	// - These fields will be only visible to logged in users:
+	$defaultDropDownFieldsLogin = array("location", "marked", "copy", "selected", "user_keys",
+	                                    "user_notes", "user_file", "user_groups", "cite_key");
+
+
 	// Defines the default user options when adding new users:
 	$defaultUserOptions = array(
-								// controls whether to include cite keys on export or not:
-								"yes", // 'export_cite_keys' -- possible values: "yes", "no"
+	                            // controls whether to include cite keys on export or not:
+	                            "yes", // 'export_cite_keys' -- possible values: "yes", "no"
 
-								// controls whether cite keys will be auto-generated on export:
-								"yes", // 'autogenerate_cite_keys' -- possible values: "yes", "no"
+	                            // controls whether cite keys will be auto-generated on export:
+	                            "yes", // 'autogenerate_cite_keys' -- possible values: "yes", "no"
 
-								// controls whether auto-generated cite keys will overwrite record-specific contents from
-								// the user-specific 'cite_key' field on export:
-								"no", // 'prefer_autogenerated_cite_keys' -- possible values: "yes", "no"
+	                            // controls whether auto-generated cite keys will overwrite record-specific contents from
+	                            // the user-specific 'cite_key' field on export:
+	                            "no", // 'prefer_autogenerated_cite_keys' -- possible values: "yes", "no"
 
-								// controls whether the user's custom cite key format shall be used (instead of the default
-								// cite key format provided in '$defaultCiteKeyFormat', see below):
-								"no", // 'use_custom_cite_key_format' -- possible values: "yes", "no"
+	                            // controls whether the user's custom cite key format shall be used (instead of the default
+	                            // cite key format provided in '$defaultCiteKeyFormat', see below):
+	                            "no", // 'use_custom_cite_key_format' -- possible values: "yes", "no"
 
-								// the user's custom cite key format:
-								// see comments for '$fileNamingScheme' (below) for more info on supported placeholders
-								"<:firstAuthor:><:year:>", // 'cite_key_format' -- e.g. "<:firstAuthor:><:year:>"
+	                            // the user's custom cite key format:
+	                            // see comments for '$fileNamingScheme' (below) for more info on supported placeholders
+	                            "<:firstAuthor:><:year:>", // 'cite_key_format' -- e.g. "<:firstAuthor:><:year:>"
 
-								// controls whether to add incrementing numbers to any duplicate cite keys:
-								"yes", // 'uniquify_duplicate_cite_keys' -- possible values: "yes", "no"
+	                            // controls whether to add incrementing numbers to any duplicate cite keys:
+	                            "yes", // 'uniquify_duplicate_cite_keys' -- possible values: "yes", "no"
 
-								// controls how non-ASCII characters will be treated in cite keys:
-								// (keep empty in order to use the site default given in '$handleNonASCIICharsInCiteKeysDefault')
-								"", // 'nonascii_chars_in_cite_keys' -- possible values: "strip", "keep", "transliterate", ""
+	                            // controls how non-ASCII characters will be treated in cite keys:
+	                            // (keep empty in order to use the site default given in '$handleNonASCIICharsInCiteKeysDefault')
+	                            "", // 'nonascii_chars_in_cite_keys' -- possible values: "strip", "keep", "transliterate", ""
 
-								// controls whether the user's custom text citation format shall be used (instead of the default
-								// text citation format provided in '$defaultTextCitationFormat', see below):
-								"no", // 'use_custom_text_citation_format' -- possible values: "yes", "no"
+	                            // controls whether the user's custom text citation format shall be used (instead of the default
+	                            // text citation format provided in '$defaultTextCitationFormat', see below):
+	                            "no", // 'use_custom_text_citation_format' -- possible values: "yes", "no"
 
-								// the user's custom text citation format:
-								// see comments for '$fileNamingScheme' (below) for more info on supported placeholders
-								"<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>", // 'text_citation_format' -- e.g. "<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>"
+	                            // the user's custom text citation format:
+	                            // see comments for '$fileNamingScheme' (below) for more info on supported placeholders
+	                            "<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>", // 'text_citation_format' -- e.g. "<:authors[2| & | et al.]:>< :year:>< {:recordIdentifier:}>"
 
-								// the user's preferred number of records that's returned by default:
-								"5", // 'records_per_page' -- e.g. "5"
+	                            // the user's preferred number of records that's returned by default:
+	                            "5", // 'records_per_page' -- e.g. "5"
 
-								// the user's preferred list of "main fields" (that will be used instead of the
-								// default list of "main fields" provided in '$defaultMainFields', see above):
-								"author, title, publication, keywords, abstract"); // 'main_fields' -- e.g. "author, title, publication, keywords, abstract"
+	                            // the user's preferred list of "main fields" (that will be used instead of the
+	                            // default list of "main fields" provided in '$defaultMainFields', see above):
+	                            "author, title, publication, keywords, abstract"); // 'main_fields' -- e.g. "author, title, publication, keywords, abstract"
 
 
 	// The default cite key format used for auto-generation of cite keys:
@@ -297,7 +334,7 @@
 
 	// The name of the default citation style:
 	// This name must correspond to an entry within the 'styles' MySQL table.
-	// It will be used for citation output within 'show.php' and the 'generateRSS()' function.
+	// It will be used for citation output within 'show.php', 'opensearch.php' and the 'generateRSS()' function.
 	$defaultCiteStyle = "APA";
 
 
@@ -314,6 +351,20 @@
 	// This name must correspond to an entry within the 'formats' MySQL table (of 'format_type' = "export").
 	// It will be used when 'show.php' was called with 'submit=Export' but no 'exportFormat' parameter was specified.
 	$defaultExportFormat = "RIS";
+
+
+	// Specify whether export of data should be allowed via the refbase GUI for anyone who isn't logged in:
+	// Note that this setting overrides the permission settings 'allow_export' and 'allow_batch_export' for
+	// anonymous users ('userID=0') w.r.t. the *web* interface. E.g., with '$allowAnonymousGUIExport' set to
+	// "no" and export permissions for 'userID=0' set to "yes", you can allow anonymous access to refbase
+	// via its export APIs while disallowing export by anonymous users via the web interface.
+	$allowAnonymousGUIExport = "yes"; // possible values: "yes", "no"
+
+
+	// The name of the default feed format:
+	// This specifies whether RSS XML or Atom XML will be offered as default feed format
+	// (e.g. in auto-discovery links of the HTML head).
+	$defaultFeedFormat = "RSS XML"; // possible values: "RSS XML", "Atom XML"
 
 
 	// Specify who'll be allowed to see files associated with any records:
@@ -347,7 +398,8 @@
 	// -> see note at the end of this file). Of course, you could also use this feature to restrict
 	// searches thru "library_search.php" by _any_ other condition. E.g., with "location" as the first
 	// parameter and your own login email address as the second parameter, any "library" search would
-	// be restricted to your personal literature data set.
+	// be restricted to your personal literature data set. If you don't want to make any use of
+	// "library_search.php", specify an empty array, like: '$librarySearchPattern = array();'
 	$librarySearchPattern = array("location", "library"); // e.g. 'array("location", "IPÖ Library")'
 
 
@@ -509,16 +561,47 @@
 	// specify an empty string (or "[|]") to use the maximum possible range: '$extractDetailsRandomNumberDefault = "";'
 	$extractDetailsRandomNumberDefault = "[0|99999]"; // e.g. "[0|99999]"
 
+	
+	// The default view that is displayed for found results:
+	//   - "List" will produce the columnar output style (List view)
+	//   - "Cite" returns found records as citations (Citation view)
+	//   - "Display" displays full record details (Details view)
+	//   - "Browse" displays unique field values (Browse view)
+	$defaultView = "List"; // possible values: "List", "Cite", "Display", "Browse"
+
+
+	// Specify whether the results header & footer should be displayed open or closed by default,
+	// or whether they should be entirely hidden from the interface:
+	// (display defaults are specified for each of the supported view types individually;
+	//  see comments for '$defaultView' for more info on the different view types)
+	// Possible view types:     "List", "Cite", "Display", "Browse"
+	// Possible display values: "open", "closed", "hidden"
+	// 
+	// - Results header:
+	//                                   "view type" => "display value"
+	$displayResultsHeaderDefault = array("List"      => "open",
+	                                     "Cite"      => "closed",
+	                                     "Display"   => "closed",
+	                                     "Browse"    => "hidden");
+
+	// - Results footer:
+	//                                   "view type" => "display value"
+	$displayResultsFooterDefault = array("List"      => "open",
+	                                     "Cite"      => "closed",
+	                                     "Display"   => "closed",
+	                                     "Browse"    => "hidden");
+
 
 	// Specify which links shall be displayed (if available and if the Links column is visible):
 	// (note that for List and Citation view, only one link will be printed for links of type
 	// url/doi/isbn/xref; order of preference: doi, url, isbn, xref)
-	// possible array items: "details", "edit", "file", "url", "doi", "isbn", "xref"
-	// List view:
+	// Possible array items: "details", "edit", "file", "url", "doi", "isbn", "xref"
+	// 
+	// - List view:
 	$showLinkTypesInListView = array("details", "edit", "file", "url", "doi", "isbn", "xref");
 
-	// Citation view:
-	$showLinkTypesInCitationView = array("details", "file");
+	// - Citation view:
+	$showLinkTypesInCitationView = array("details", "edit", "file", "url", "doi", "isbn", "xref");
 
 
 	// Specify the maximum number of links to found results pages that are displayed per page:
@@ -534,7 +617,7 @@
 	// Examples for OpenURL resolvers:
 	// - Generic OpenURL resolver provided by CrossRef: "http://www.crossref.org/openurl"
 	//   Notes: - the CrossRef resolver requires users to have an account and to supply their login
-	//            credentials in the 'pid' or 'req_dat' parameters; for more info please see:
+	//            credentials in the 'pid' or 'req_dat' parameters; for more info please see:
 	//            <http://www.crossref.org/02publishers/openurl_info.html>
 	//          - to request an account, complete the form at: <http://www.crossref.org/requestaccount/>
 	// 
@@ -582,21 +665,21 @@
 	// upon WEB DISPLAY. Search & replace patterns must be specified as perl-style regular expression (including the leading & trailing slashes)
 	// and may include mode modifiers (such as '/.../i' to perform a case insensitive match) -> see note at the end of this file.
 	// If you don't want to perform any search and replace actions, specify an empty array, like: '$searchReplaceActionsArray = array();')
-	// 								"/Search Pattern/"    =>  "Replace Pattern"
+	//                                                    "/Search Pattern/"  =>  "Replace Pattern"
 	$searchReplaceActionsArray = array(
-										array(
-												'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
-												'actions' => $transtab_refbase_html // perform search & replace actions that provide for human readable markup (as defined in 'includes/transtab_refbase_html.inc.php')
-											)
-//										,
-//										array(
-//												'fields'  => array("address", "abstract"),
-//												'actions' => array(
-//																	"/((?:ht|f)tp:\/\/[^ \"<>\r\n]+?)(?=&gt;|&quot;|[ \"<>\r\n]|$)/" => "<a target='_new' href='\\1'>\\1</a>", // generate clickable links from any web addresses
-//																	"/([0-9a-zA-Z._-]+)@([0-9a-zA-Z._-]+)\\.([a-zA-Z]{2,3})/"        => "<a href='mailto:\\1@\\2.\\3'>\\1@\\2.\\3</a>" // generate clickable links from any email addresses
-//																)
-//											)
-									);
+	                                   array(
+	                                         'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
+	                                         'actions' => $transtab_refbase_html // perform search & replace actions that provide for human readable markup (as defined in 'includes/transtab_refbase_html.inc.php')
+	                                        )
+//	                                   ,
+//	                                   array(
+//	                                         'fields'  => array("address", "abstract"),
+//	                                         'actions' => array(
+//	                                                            "/((?:ht|f)tp:\/\/[^ \"<>\r\n]+?)(?=&gt;|&quot;|[ \"<>\r\n]|$)/" => "<a target='_new' href='\\1'>\\1</a>", // generate clickable links from any web addresses
+//	                                                            "/([0-9a-zA-Z._-]+)@([0-9a-zA-Z._-]+)\\.([a-zA-Z]{2,3})/"        => "<a href='mailto:\\1@\\2.\\3'>\\1@\\2.\\3</a>" // generate clickable links from any email addresses
+//	                                                           )
+//	                                        )
+	                                   );
 
 	// --------------------------------------------------------------------
 
