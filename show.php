@@ -55,7 +55,8 @@
 	// (they control how found records are presented on screen)
 
 	// Extract the type of display requested by the user. Normally, this will be one of the following:
-	//  - '' => if the 'submit' parameter is empty, this will produce the default columnar output style ('displayColumns()' function)
+	//  - '' => if the 'submit' parameter is empty, this will produce the default view
+	//  - 'List' => display records using the columnar output style ('displayColumns()' function)
 	//  - 'Display' => display details for all found records ('displayDetails()' function)
 	//  - 'Cite' => build a proper citation for all found records ('generateCitations()' function)
 	//  - 'Export' => generate and return found records in the specified export format ('generateExport()' function)
@@ -64,12 +65,13 @@
 	else
 		$displayType = "";
 
-	// Note that for 'show.php' we don't accept any other display types than '', 'Display', 'Cite', 'Export' and 'Browse',
-	// if any other types were specified, we'll use the default columnar output style instead:
-	if (!empty($displayType) AND !eregi("^(Display|Cite|Export|Browse)$", $displayType))
+	// Note that for 'show.php' we don't accept any other display types than '', 'List', 'Display', 'Cite', 'Export' and 'Browse',
+	// if any other types were specified, we'll use the default view that's given in variable '$defaultView'. Also note that the
+	// display type is changed further down below.
+	if (!empty($displayType) AND !eregi("^(List|Display|Cite|Export|Browse)$", $displayType))
 		$displayType = "";
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -86,8 +88,8 @@
 	else
 		$showLinks = "1"; // for 'show.php' we'll always show the links column by default if the 'showLinks' parameter isn't set explicitly to "0"
 
-	if (isset($_REQUEST['showRows']) AND ereg("^[1-9]+[0-9]*$", $_REQUEST['showRows'])) // contains the desired number of search results (OpenSearch equivalent: '{count}')
-		$showRows = $_REQUEST['showRows'];
+	if (isset($_REQUEST['showRows']) AND ereg("^[0-9]+$", $_REQUEST['showRows'])) // NOTE: we cannot use "^[1-9]+[0-9]*$" here since 'maximumRecords=0' is used in 'opensearch.php' queries to return just the number of found records (and not the full record data)
+		$showRows = $_REQUEST['showRows']; // contains the desired number of search results (OpenSearch equivalent: '{count}')
 	else
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
@@ -101,7 +103,7 @@
 	else
 		$wrapResults = "1"; // we'll output a full document (HTML, RTF, LaTeX, etc) structure unless the 'wrapResults' parameter is set explicitly to "0"
 
-	if (isset($_REQUEST['citeStyle']) AND !empty($_REQUEST['citeStyle'])) // NOTE: while this parameter is normally called 'citeStyleSelector' (e.g. in 'search.php') we call it just 'citeStyle' here in an attempt to ease legibility of 'show.php' URLs
+	if (isset($_REQUEST['citeStyle']) AND !empty($_REQUEST['citeStyle']))
 		$citeStyle = $_REQUEST['citeStyle']; // get cite style
 	else
 		$citeStyle = $defaultCiteStyle; // if no cite style was given, we'll use the default cite style which is defined by the '$defaultCiteStyle' variable in 'ini.inc.php'
@@ -124,7 +126,7 @@
 	else
 		$citeType = "html";
 
-	if (isset($_REQUEST['exportFormat']) AND !empty($_REQUEST['exportFormat'])) // NOTE: while this parameter is normally called 'exportFormatSelector' (e.g. in 'search.php') we call it just 'exportFormat' here in an attempt to ease legibility of 'show.php' URLs
+	if (isset($_REQUEST['exportFormat']) AND !empty($_REQUEST['exportFormat']))
 		$exportFormat = $_REQUEST['exportFormat']; // get export format style
 	else
 		$exportFormat = $defaultExportFormat; // if no export format was given, we'll use the default export format which is defined by the '$defaultExportFormat' variable in 'ini.inc.php'
@@ -140,6 +142,11 @@
 		$exportType = $_REQUEST['exportType']; // get export type
 	else
 		$exportType = "html";
+
+	if (isset($_REQUEST['exportStylesheet']))
+		$exportStylesheet = $_REQUEST['exportStylesheet']; // extract any stylesheet information that has been specified for XML export formats
+	else
+		$exportStylesheet = "";
 
 	if (isset($_REQUEST['headerMsg']))
 		$headerMsg = stripTags($_REQUEST['headerMsg']); // we'll accept custom header messages but strip HTML tags from the custom header message to prevent cross-site scripting (XSS) attacks (function 'stripTags()' is defined in 'include.inc.php')
@@ -185,20 +192,39 @@
 
 	// If the 'records' parameter is present and contains any number(s) or 'all' as value, it will override any given 'serial' or 'record' parameters.
 	// This param was introduced to provide an easy 'Show All' link ('.../show.php?records=all') which will display all records in the database.
-	// It does also allow to easily link to multiple records (such as in '.../show.php?records=1234,5678,90123').
+	// It does also allow to easily link to multiple records (such as in '.../show.php?records=1234,5678,90123', or, for consecutive ranges, '.../show.php?records=123-131').
+	// Mixing of record serial numbers and number ranges is also supported (e.g. '.../show.php?records=123-141,145,147,150-152').
 	if (isset($_REQUEST['records']))
 	{
-		// if the 'records' parameter is given, it's value must be either 'all' or any number(s) delimited by non-digit characters:
+		// if the 'records' parameter is given, it's value must be either 'all' or any number(s) (or number ranges such as "123-141") delimited by any other characters than digits or hyphens:
 		if (eregi("^all$", $_REQUEST['records']))
 		{
 			// '.../show.php?records=all' is effectively a more nice looking variant of 'show.php?serial=%2E%2B&recordConditionalSelector=contains':
 			$serial = ".+"; // show all records
 			$recordConditionalSelector = "contains";
 		}
-		elseif (ereg("[0-9]", $_REQUEST['records']))
+		elseif (ereg("[0-9]", $_REQUEST['records'])) // show all records whose serial numbers match the given numbers (or number ranges)
 		{
-			// '.../show.php?records=1234,5678,90123' is effectively a more nice looking variant of 'show.php?serial=1,12,123,1234&recordConditionalSelector=is%20within%20list':
-			$serial = $_REQUEST['records']; // show all records whose serial numbers match the given numbers
+			// split on any character that's not a digit or a hyphen ("-"):
+			$recordSerialsArray = preg_split("/[^\d-]+/", $_REQUEST['records']);
+
+			// loop over '$recordSerialsArray' and explode any record serial number ranges (such as "123-141" or "150-152"):
+			$ct = count($recordSerialsArray);
+			for ($i=0; $i < $ct; $i++)
+			{
+				if (preg_match("/\d+-\d+/", $recordSerialsArray[$i])) // match serial number range
+				{
+					$recordSerialsRange = split("-", $recordSerialsArray[$i]); // extract start & end of serial number range into an array
+
+					// explode serial number range (e.g. transform "150-152" into "150,151,152")
+					$recordSerialsArray[$i] = $recordSerialsRange[0];
+					for ($recordSerial = $recordSerialsRange[0] + 1; $recordSerial <= $recordSerialsRange[1]; $recordSerial++)
+						$recordSerialsArray[$i] .= "," . $recordSerial;
+				}
+			}
+
+			// '.../show.php?records=1,12,123,1234' is effectively a more nice looking variant of 'show.php?serial=1,12,123,1234&recordConditionalSelector=is%20within%20list':
+			$serial = join(",", $recordSerialsArray); // join again '$recordSerialsArray' using "," as delimiter
 			$recordConditionalSelector = "is within list";
 		}
 	}
@@ -348,12 +374,16 @@
 
 
 	// normally, 'show.php' requires that parameters must be specified explicitly to gain any view that's different from the default view
-	// (which is columnar output as web view, display 5 records per page, show links but don't show query)
 	// There's one exception to this general rule which is if a user uses 'show.php' to query a *single* record by use of its record identifier (e.g. via '.../show.php?record=12345' or via the web form when using the "is equal to" option).
 	// In this case we'll directly jump to details view:
 	if (!empty($serial)) // if the 'record' parameter is present
 		if (empty($displayType) AND (($recordConditionalSelector == "is equal to") OR (empty($recordConditionalSelector) AND is_numeric($serial)))) // if the 'displayType' parameter wasn't explicitly specified -AND- we're EITHER supposed to match record identifiers exactly OR '$recordConditionalSelector' wasn't specified and '$serial' is a number (which is the case for email announcement URLs: '.../show.php?record=12345')
-			$displayType = "Display"; // display record details (instead of the default columnar view)
+			$displayType = "Display"; // display record details (instead of the default view)
+
+	// Note that for 'show.php' we don't accept any other display types than '', List', 'Display', 'Cite', 'Export' and 'Browse',
+	// if any other types were specified, we'll use the default view that's given in variable '$defaultView':
+	if (empty($displayType))
+		$displayType = $defaultView; // defined in 'ini.inc.php'
 
 	// shift some variable contents based on the value of '$recordIDSelector':
 	if ($recordIDSelector == "call_number")
@@ -396,7 +426,7 @@
 		// DISPLAY header:
 		// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["ShowRecord"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-		showPageHeader($HeaderString, "");
+		showPageHeader($HeaderString);
 
 		// Define variables holding drop-down elements, i.e. build properly formatted <option> tag elements:
 		$dropDownConditionalsArray = array("is equal to"    => $loc["equal to"],
@@ -424,7 +454,7 @@
 		// Start <form> and <table> holding the form elements:
 ?>
 
-<form action="show.php" method="POST">
+<form action="show.php" method="GET">
 <input type="hidden" name="formType" value="show">
 <input type="hidden" name="submit" value="<?php echo $loc["ButtonTitle_ShowRecord"]; ?>">
 <input type="hidden" name="showLinks" value="1">
@@ -467,7 +497,7 @@
 
 		// DISPLAY THE HTML FOOTER:
 		// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-		showPageFooter($HeaderString, "");
+		showPageFooter($HeaderString);
 
 		displayHTMLfoot();
 
@@ -482,53 +512,34 @@
 	else // the script was called with at least one of the following parameters: 'record', 'records', 'date', 'time', 'year', 'author', 'title', 'publication', 'abbrev_journal', 'keywords', 'abstract', 'area', 'notes', 'location', 'type', 'contribution_id', 'thesis', 'without', 'selected', 'marked', 'cite_key', 'call_number', 'where', 'by'
 	{
 		// CONSTRUCT SQL QUERY:
+		// TODO: build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
 
 		// Note: the 'verifySQLQuery()' function that gets called by 'search.php' to process query data with "$formType = sqlSearch" will add the user specific fields to the 'SELECT' clause
 		// and the 'LEFT JOIN...' part to the 'FROM' clause of the SQL query if a user is logged in. It will also add 'orig_record', 'serial', 'file', 'url', 'doi', 'isbn' & 'type' columns
 		// as required. Therefore it's sufficient to provide just the plain SQL query here:
 
 		// Build SELECT clause:
-		if (ereg("^(Display|Export)$", $displayType)) // select all fields required to display record details or to export a record:
+
+		$additionalFields = "";
+
+		if (eregi("^Cite$", $displayType))
 		{
-			$query = "SELECT author, title, type, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved";
-			if (isset($_SESSION['loginEmail']))
-				$query .= ", location"; // we only add the 'location' field if the user is logged in
-			$query .= ", call_number, serial";
-		//           (the above string MUST end with ", call_number, serial" in order to have the described query completion feature work correctly!
-
-			if ($displayType == "Export") // for export, we inject some additional fields into the SELECT clause (again, we must add these additional fields *before* ", call_number, serial" in order to have the described query completion feature work correctly!)
-				$query = eregi_replace(', call_number, serial', ', online_publication, online_citation, modified_date, modified_time, call_number, serial', $query);
-		}
-
-		elseif ($displayType == "Cite") // select all fields required to build proper record citations:
-		{
-			$query = "SELECT type, author, year, title, publication, abbrev_journal, volume, issue, pages, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, language, author_count, online_publication, online_citation, doi";
-
 			// Note that the if clause below is very weak since it will break if "Text Citation" gets renamed or translated (when localized).
 			// Problem: The above mentioned 'verifySQLQuery()' function requires that 'selected' is the only user-specific field present in the SELECT or WHERE clause of the SQL query.
 			//          If this is not the case (as with 'cite_key' being added below) the passed user ID will be replaced with the ID of the currently logged in user.
-			//          As a result, you won't be able to see your collegues selected publications by using an URL like '../show.php?author=steffens&userID=2&selected=yes&submit=Cite&citeOrder=year'
+			//          As a result, you won't be able to see your colleagues selected publications by using an URL like '../show.php?author=steffens&userID=2&selected=yes&submit=Cite&citeOrder=year'
 			//          On the other hand, if the 'cite_key' field isn't included within the SELECT clause, user-specific cite keys can't be written out instead of serials when citing as "Text Citation".
 			//          Since the latter is of minor importance we'll require $citeStyle == "Text Citation" here:
 			if (!empty($userID)) // if the 'userID' parameter was specified...
-					$query .= ", cite_key"; // add user-specific fields which are required in Citation view
-
-			$query .= ", serial"; // add 'serial' column
+				$additionalFields = "cite_key"; // add user-specific fields which are required in Citation view
 		}
-
-		elseif ($displayType == "Browse")
-		{
-			$query = "SELECT " . escapeSQL($browseByField) . ", COUNT(*) AS records";
-		}
-
 		else // produce the default columnar output style:
 		{
-			$query = "SELECT author, title, year, publication, volume, pages";
-
 			if (!empty($recordIDSelector)) // if a record identifier (either 'serial', 'call_number' or 'cite_key') was entered via the 'show.php' web form
-				$query .= ", " . escapeSQL($recordIDSelector); // display the appropriate column
+				$additionalFields = escapeSQL($recordIDSelector); // display the appropriate column
 		}
 
+		$query = buildSELECTclause($displayType, $showLinks, $additionalFields, false, false, "", $browseByField); // function 'buildSELECTclause()' is defined in 'include.inc.php'
 
 		// Build FROM clause:
 		// We'll explicitly add the 'LEFT JOIN...' part to the 'FROM' clause of the SQL query if '$userID' isn't empty. This is done since the 'verifySQLQuery()' function
@@ -548,7 +559,7 @@
 		if (!empty($serial)) // if the 'record' parameter is present:
 		{
 			// first, check if the user is allowed to display any record details:
-			if ($displayType == "Display" AND isset($_SESSION['user_permissions']) AND !ereg("allow_details_view", $_SESSION['user_permissions'])) // no, the 'user_permissions' session variable does NOT contain 'allow_details_view'...
+			if (eregi("^Display$", $displayType) AND isset($_SESSION['user_permissions']) AND !ereg("allow_details_view", $_SESSION['user_permissions'])) // no, the 'user_permissions' session variable does NOT contain 'allow_details_view'...
 			{
 				// return an appropriate error message:
 				$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForDisplayDetails"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
@@ -845,8 +856,8 @@
 		{
 			$query .= connectConditionals();
 
-			$where = extractWhereClause(" WHERE " . $where); // attempt to sanitize custom WHERE clause from SQL injection attacks
-			$query .= " (" . $where . ")"; // add custom WHERE clause
+			$sanitizedWhereClause = extractWHEREclause(" WHERE " . $where); // attempt to sanitize custom WHERE clause from SQL injection attacks (function 'extractWHEREclause()' is defined in 'include.inc.php')
+			$query .= " (" . $sanitizedWhereClause . ")"; // add custom WHERE clause
 		}
 
 		// If, for some odd reason, 'records=all' was passed together with other parameters (such as in '.../show.php?records=all&author=steffens') we'll remove again
@@ -859,12 +870,12 @@
 
 
 		// Build GROUP BY clause:
-		if ($displayType == "Browse")
+		if (eregi("^Browse$", $displayType))
 			$query .= " GROUP BY " . escapeSQL($browseByField); // for Browse view, group records by the chosen field
 
 
 		// Build ORDER BY clause:
-		if ($displayType == "Browse")
+		if (eregi("^Browse$", $displayType))
 		{
 			$query .= " ORDER BY records DESC, " . escapeSQL($browseByField);
 		}
@@ -879,6 +890,9 @@
 			elseif ($citeOrder == "type-year") // sort records first by record type (and thesis type), then by year (descending), then in the usual way:
 				$query .= " ORDER BY type DESC, thesis DESC, year DESC, first_author, author_count, author, title";
 
+			elseif ($citeOrder == "creation-date") // sort records such that newly added/edited records get listed top of the list:
+				$query .= " ORDER BY created_date DESC, created_time DESC, modified_date DESC, modified_time DESC, serial DESC";
+
 			else // if any other or no 'citeOrder' parameter is specified
 			{
 				if (!empty($recordIDSelector)) // if a record identifier (either 'serial', 'call_number' or 'cite_key') was entered via the 'show.php' web form
@@ -886,7 +900,7 @@
 
 				else // supply the default ORDER BY clause:
 				{
-					if ($displayType == "Cite")
+					if (eregi("^Cite$", $displayType))
 						$query .= " ORDER BY first_author, author_count, author, year, title";
 					else
 						$query .= " ORDER BY author, year DESC, publication";
@@ -896,22 +910,23 @@
 
 		// Build the correct query URL:
 		// (we skip unnecessary parameters here since 'search.php' will use it's default values for them)
-		$queryParametersArray = array("sqlQuery"             => $query,
-		                              "client"               => $client,
-		                              "formType"             => "sqlSearch",
-		                              "submit"               => $displayType,
-		                              "viewType"             => $viewType,
-		                              "showQuery"            => $showQuery,
-		                              "showLinks"            => $showLinks,
-		                              "showRows"             => $showRows,
-		                              "rowOffset"            => $rowOffset,
-		                              "wrapResults"          => $wrapResults,
-		                              "citeOrder"            => $citeOrder,
-		                              "citeStyleSelector"    => $citeStyle,
-		                              "exportFormatSelector" => $exportFormat,
-		                              "exportType"           => $exportType,
-		                              "citeType"             => $citeType,
-		                              "headerMsg"            => $headerMsg
+		$queryParametersArray = array("sqlQuery"         => $query,
+		                              "client"           => $client,
+		                              "formType"         => "sqlSearch",
+		                              "submit"           => $displayType,
+		                              "viewType"         => $viewType,
+		                              "showQuery"        => $showQuery,
+		                              "showLinks"        => $showLinks,
+		                              "showRows"         => $showRows,
+		                              "rowOffset"        => $rowOffset,
+		                              "wrapResults"      => $wrapResults,
+		                              "citeOrder"        => $citeOrder,
+		                              "citeStyle"        => $citeStyle,
+		                              "exportFormat"     => $exportFormat,
+		                              "exportType"       => $exportType,
+		                              "exportStylesheet" => $exportStylesheet,
+		                              "citeType"         => $citeType,
+		                              "headerMsg"        => $headerMsg
 		                             );
 
 		// Call 'search.php' in order to display record details:
@@ -927,17 +942,20 @@
 		}
 		else
 		{
-			$queryURL = "";
-			foreach ($queryParametersArray as $varname => $value)
-				$queryURL .= "&" . $varname . "=" . rawurlencode($value);
+			$queryURL = generateURL("search.php", "html", $queryParametersArray, false); // function 'generateURL()' is defined in 'include.inc.php'
 
-			header("Location: search.php?$queryURL");
+			header("Location: $queryURL");
 		}
 
 		// NOTE: If the original request was a POST (as is the case for the refbase command line client), we must also pass the data via POST to 'search.php'
 		//       in order to retain large param/value strings (that would exceed the maximum string limit for GET requests). We could POST the data via function
 		//       'sendPostRequest()' as shown in the commented code below. However, the problem with this is that this does NOT *redirect* to 'search.php' but
 		//       directly prints results from within this script ('show.php'). Also, the printed results include the full HTTP response, including the HTTP header.
+//		$queryURL = "";
+//		foreach ($queryParametersArray as $varname => $value)
+//			$queryURL .= "&" . $varname . "=" . rawurlencode($value);
+//		$queryURL = trimTextPattern($queryURL, "&", true, false); // remove again param delimiter from beginning of query URL (function 'trimTextPattern()' is defined in 'include.inc.php')
+//
 //		if ($_SERVER['REQUEST_METHOD'] == "POST") // redirect via a POST request:
 //		{
 //			// extract the host & path on server from the base URL:
