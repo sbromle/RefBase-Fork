@@ -167,6 +167,10 @@
 	// Get file contents
 	function readFromFile($file)
 	{
+		// Enable PHP to detect Mac (CR) EOL conventions:
+		// (see <http://www.php.net/manual/en/ref.filesystem.php#ini.auto-detect-line-endings>)
+		ini_set('auto_detect_line_endings', true);
+
 		$fileContents = file_get_contents($file);
 
 		return $fileContents;
