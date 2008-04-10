@@ -53,7 +53,7 @@
 		deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -70,9 +70,7 @@
 	if ($customQuery == "1") // the script was called with parameters
 	{
 		$sqlQuery = $_REQUEST['sqlQuery']; // accept any previous SQL queries
-		$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery);
-//		$sqlQuery = str_replace('\"','"',$sqlQuery); // convert \" into "
-//		$sqlQuery = str_replace('\\\\','\\',$sqlQuery);
+		$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
 
 		$showQuery = $_REQUEST['showQuery']; // extract the $showQuery parameter
 		if ("$showQuery" == "1")
@@ -88,24 +86,20 @@
 
 		$showRows = $_REQUEST['showRows']; // extract the $showRows parameter
 
-		$displayType = $_REQUEST['submit']; // extract the type of display requested by the user (either 'Display', 'Cite' or '')
-		$citeStyle = $_REQUEST['citeStyleSelector']; // get the cite style chosen by the user (only occurs in 'extract.php' form and in query result lists)
+		$displayType = $_REQUEST['submit']; // extract the type of display requested by the user (either 'Display', 'Cite', 'List' or '')
+		$citeStyle = $_REQUEST['citeStyle']; // get the cite style chosen by the user (only occurs in 'extract.php' form and in query result lists)
 		$citeOrder = $_REQUEST['citeOrder']; // get the citation sort order chosen by the user (only occurs in 'extract.php' form and in query result lists)
-
-		$oldQuery = $_REQUEST['oldQuery']; // get the query URL of the formerly displayed results page (if available) so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-		if (ereg('sqlQuery%3D', $oldQuery)) // if '$oldQuery' still contains URL encoded data... ('%3D' is the URL encoded form of '=', see note below!)
-			$oldQuery = rawurldecode($oldQuery); // ...URL decode old query URL
-											// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
-											//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
-		$oldQuery = stripSlashesIfMagicQuotes($oldQuery);
-//		$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
 	}
 	else // if there was no previous SQL query provide the default one:
 	{
+		// default SQL query:
+		// TODO: build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
+		$sqlQuery = buildSELECTclause("", "", "", false, false); // function 'buildSELECTclause()' is defined in 'include.inc.php'
+
 		if (isset($_SESSION['loginEmail']))
-			$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE location RLIKE \"" . $loginEmail . "\" ORDER BY year DESC, author"; // '$loginEmail' is defined in function 'start_session()' (in 'include.inc.php')
+			$sqlQuery .= " FROM $tableRefs WHERE location RLIKE \"" . $loginEmail . "\" ORDER BY year DESC, author"; // '$loginEmail' is defined in function 'start_session()' (in 'include.inc.php')
 		else
-			$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE year &gt; 2001 ORDER BY year DESC, author";
+			$sqlQuery .= " FROM $tableRefs WHERE year &gt; 2001 ORDER BY year DESC, author";
 
 		$checkQuery = "";
 		$checkLinks = " checked";
@@ -113,10 +107,9 @@
 		// Get the default number of records per page preferred by the current user:
 		$showRows = $_SESSION['userRecordsPerPage'];
 
-		$displayType = ""; // ('' will produce the default columnar output style)
+		$displayType = ""; // ('' will produce the default view)
 		$citeStyle = "";
 		$citeOrder = "";
-		$oldQuery = "";
 	}
 
 	// Show the login status:
@@ -125,17 +118,16 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["SQLSearch"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, $oldQuery);
+	showPageHeader($HeaderString);
 
 	// (2b) Start <form> and <table> holding the form elements:
 ?>
 
-<form action="search.php" method="POST">
+<form action="search.php" method="GET">
 <input type="hidden" name="formType" value="sqlSearch">
 <input type="hidden" name="submit" value="<?php echo $displayType; ?>">
-<input type="hidden" name="citeStyleSelector" value="<?php echo rawurlencode($citeStyle); ?>">
+<input type="hidden" name="citeStyle" value="<?php echo rawurlencode($citeStyle); ?>">
 <input type="hidden" name="citeOrder" value="<?php echo $citeOrder; ?>">
-<input type="hidden" name="oldQuery" value="<?php echo rawurlencode($oldQuery); ?>">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds the search form">
 <tr>
 	<td width="58" valign="top"><b><?php echo $loc["SQLQuery"]; ?>:</b></td>
@@ -152,7 +144,7 @@
 
 	</td>
 	<td valign="top">
-		<?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>
+		<?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4" title="<?php echo $loc["DescriptionShowRecordsPerPage"]; ?>">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>
 
 	</td>
 </tr>
@@ -168,6 +160,7 @@
 		<select name="viewType">
 			<option value="Web"><?php echo $loc["web"]; ?></option>
 			<option value="Print"><?php echo $loc["print"]; ?></option>
+			<option value="Mobile"><?php echo $loc["mobile"]; ?></option>
 		</select>
 	</td>
 </tr>
@@ -225,7 +218,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, $oldQuery);
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
