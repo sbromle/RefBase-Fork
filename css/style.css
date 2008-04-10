@@ -19,68 +19,362 @@
 
 	/* refbase CSS definitions - default style */
 
+body {
+	background: #FFFFFF;
+	color: #000000;
+}
 
-body           { background:#FFFFFF; color:#000000; }
+pre, code {
+	font-family: monaco,courier,monospace;
+	font-size: 7pt;
+}
 
-pre,code       { font-family:monaco,courier,monospace; font-size:7pt; }
+.spacer {
+	padding-top: 0.5em;
+}
 
-.spacer        { padding-top:0.5em; }
+.spacer2 {
+	padding-bottom: 0.3em;
+}
 
-.spacer2       { padding-bottom:0.3em; }
+.tiny {
+	font-size: x-small;
+}
 
-.tiny          { font-size:x-small; }
+.smaller {
+	font-size: smaller;
+}
 
-.smaller       { font-size:smaller; }
+.small {
+	font-size: small;
+}
 
-.small         { font-size:small; }
+.smallup {
+	font-size: small;
+	position: relative;
+	top: -10px;
+}
 
-.smallup       { font-size:small; position:relative; top:-10px; }
+.smallsans {
+	font-family: helvetica,arial,sans-serif;
+	font-size: x-small;
+}
 
-.smallsans     { font-family:helvetica,arial,sans-serif; font-size:x-small; }
+.moveup {
+	position: relative;
+	top: -8px;
+}
 
-.moveup        { position:relative; top:-8px; }
+.header {
+	font-family: helvetica,arial,sans-serif;
+}
 
-.header        { font-family:helvetica,arial,sans-serif; }
+.footer {
+	font-family: helvetica,arial,sans-serif;
+	font-size: x-small;
+	color: #999999;
+}
 
-.footer        { font-family:helvetica,arial,sans-serif; font-size:x-small; color:#999999; }
+.unapi {
+	font-size: smaller;
+}
 
-.unapi         { font-size:smaller; }
+.Z3988 {
+	font-size: smaller;
+}
 
-.Z3988         { font-size:smaller; }
+.ok {
+	color: #009900;
+}
 
-.ok            { color:#009900; }
+.warning {
+	color: red;
+}
 
-.warning       { color:red; }
+.warning2 {
+	color: red;
+	font-family: helvetica,arial,sans-serif;
+	font-size: small;
+}
 
-.warning2      { color:red; font-family:helvetica,arial,sans-serif; font-size:small; }
+.mainfieldsbg {
+	background-color: #DEDEDE;
+}
 
-.mainfieldsbg  { background-color:#DEDEDE; }
+.otherfieldsbg {
+	background-color: #FFFFFF;
+}
 
-.otherfieldsbg { background-color:#FFFFFF; }
+.userfieldsbg {
+	background-color: #FFFFCC;
+}
 
-.userfieldsbg  { background-color:#FFFFCC; }
+.outline {
+	list-style-type: none;
+	font-size: small;
+	position: relative;
+	left: -15px;
+}
 
-.outline       { list-style-type:none; font-size:small; position:relative; left:-15px; }
+.category {
+	font-family: helvetica,arial,sans-serif;
+	font-weight: bold;
+}
 
-.category      { font-family:helvetica,arial,sans-serif; font-weight: bold; }
+th {
+	font-family: helvetica,arial,sans-serif;
+}
 
-th             { font-family:helvetica,arial,sans-serif; }
+td, div {
+	font-family: "times new roman",garamond,times,serif;
+}
 
-td,div         { font-family:"times new roman",garamond,times,serif; }
+p {
+	font-family: "times new roman",garamond,times,serif;
+}
 
-p              { font-family:"times new roman",garamond,times,serif; }
+a:link {
+	color: #0033CC;
+	text-decoration: none;
+}
 
-A:link         { color:#0033CC; text-decoration:none; }
+a:visited {
+	color: #666666;
+	text-decoration: none;
+}
 
-A:visited      { color:#666666; text-decoration:none; }
+a:active {
+	color: #990000;
+	text-decoration: none;
+}
 
-A:active       { color:#990000; text-decoration:none; }
+a:hover {
+	color: #3366FF;
+	text-decoration: none;
+}
 
-A:hover        { color:#3366FF; text-decoration:none; }
+h1, h2, h3, h4 {
+	font-family: helvetica,arial,sans-serif;
+	color: #990000;
+}
 
-h1,h2,h3,h4    { font-family:helvetica,arial,sans-serif; color:#990000; }
+h5, h6 {
+	font-family: helvetica,arial,sans-serif;
+}
 
-h5,h6          { font-family:helvetica,arial,sans-serif; }
+h2, h3 {
+	margin-top: 1em;
+	margin-bottom: 0.5em;
+}
 
-h2,h3          { margin-top:1em; margin-bottom:0.5em; }
+.pageheader {
+	
+}
 
+.pagefooter {
+	
+}
+
+.results {
+	
+}
+
+.resultsheader {
+	
+}
+
+hr.resultsfooter {
+	width: 93%;
+}
+
+div.resultsfooter {
+	margin: 0.75em 2.5em 0.9em 2.5em;
+}
+
+#refgroups {
+	
+}
+
+#refineresults {
+	
+}
+
+#displayopt {
+	
+}
+
+.resultnav {
+	
+}
+
+.mainnav {
+	
+}
+
+.pagenav {
+	
+}
+
+.viewnav {
+	font-size: small;
+}
+
+#columns {
+	
+}
+
+#details {
+	
+}
+
+#citations {
+	
+}
+
+.citation {
+	
+}
+
+#error {
+	
+}
+
+.examples {
+	
+}
+
+.links {
+	
+}
+
+.sect {
+	padding-top: 2px;
+}
+
+.even {
+	background-color: #FFFFFF;
+	padding: 5px;
+}
+
+.odd {
+	background-color: #F4F4F4;
+	padding: 5px;
+}
+
+#queryform {
+	
+}
+
+.showhide {
+	
+}
+
+#resultactions {
+	margin-left: 17px;
+	text-align: center;
+}
+
+#resultactions input, #resultactions select {
+	margin-left: 0.5em;
+}
+
+#resultactions legend {
+	font-style: italic;
+	text-align: left;
+}
+
+#resultactions label {
+	margin-left: 0.15em;
+}
+
+#resultactions fieldset {
+	display: inline;
+	margin-top: 0.75em;
+	margin-left: 1.5em;
+	border: none;
+	vertical-align: top;
+	text-align: left;
+}
+
+#selectresults {
+	text-align: left;
+}
+
+#selectresults input#selRecs {
+	margin-left: 1.5em;
+}
+
+#citerefs input[type=submit], #exportrefs input[type=submit] {
+	display: block;
+	margin-top: 0.6em;
+	margin-left: 0.25em;
+}
+
+#citerefs label, #exportrefs label {
+	display: none;
+}
+
+#citerefs select, #exportrefs select {
+	margin-left: 0.25em;
+}
+
+#grouprefs div#myGroup {
+	display: block;
+}
+
+#grouprefs div#newGroup, #grouprefs div#addRemoveGroup {
+	display: inline-block;
+	margin-top: 0.25em;
+}
+
+#searchopt {
+	display: none;
+}
+
+#helptxt {
+	display: none;
+}
+
+#helptxt .even {
+	margin-left: -5px;
+	margin-top: -3px;
+}
+
+#helptxt .odd {
+	margin-left: -5px;
+}
+
+.toggleimg {
+	
+}
+
+.toggletxt {
+	display: inline;
+	margin-left: 5px;
+	font-size: small;
+}
+
+.resultviews {
+	display: inline;
+}
+
+.activeview {
+	display: inline;
+}
+
+.leftview {
+	display: inline;
+}
+
+.middleview {
+	display: inline;
+}
+
+.rightview {
+	display: inline;
+}
+
+.toggleprint {
+	position: relative;
+	top: 3px;
+}
