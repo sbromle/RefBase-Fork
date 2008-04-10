@@ -52,7 +52,7 @@
 		deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -65,7 +65,7 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Extract Citations", "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, "");
+	showPageHeader($HeaderString);
 
 	// (2b) Start <form> and <table> holding the form elements:
 	echo "\n<form action=\"search.php\" method=\"POST\">";
@@ -95,13 +95,14 @@
 			. "\n</tr>"
 			. "\n<tr>\n\t<td valign=\"top\" rowspan=\"2\"><b>Display Options:</b></td>\n\t<td>&nbsp;</td>"
 			. "\n\t<td valign=\"top\"><input type=\"checkbox\" name=\"showLinks\" value=\"1\"$citeStyleDisabled checked>&nbsp;&nbsp;&nbsp;Display Links"
-			. "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Show&nbsp;&nbsp;&nbsp;<input type=\"text\" name=\"showRows\" value=\"100\" size=\"4\"$citeStyleDisabled>&nbsp;&nbsp;&nbsp;records per page</td>"
+			. "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Show&nbsp;&nbsp;&nbsp;<input type=\"text\" name=\"showRows\" value=\"100\" size=\"4\" title=\"" .  $loc["DescriptionShowRecordsPerPage"] . "\"$citeStyleDisabled>&nbsp;&nbsp;&nbsp;records per page</td>"
 			. "\n</tr>"
 			. "\n<tr>\n\t<td>&nbsp;</td>"
 			. "\n\t<td valign=\"top\">View type:&nbsp;&nbsp;"
 			. "\n\t\t<select name=\"viewType\"$citeStyleDisabled>"
 			. "\n\t\t\t<option>Web</option>"
 			. "\n\t\t\t<option>Print</option>"
+			. "\n\t\t\t<option>Mobile</option>"
 			. "\n\t\t</select>"
 			. "\n\t</td>"
 			. "\n</tr>"
@@ -121,7 +122,7 @@
 
 	echo "\n\t<td>\n\t\t<br><input type=\"submit\" name=\"submit\" value=\"Cite\"$citeButtonLock title=\"$citeTitle\"$citeStyleDisabled>&nbsp;&nbsp;&nbsp;"
 			. "\n\t\tusing style:&nbsp;&nbsp;"
-			. "\n\t\t<select name=\"citeStyleSelector\" title=\"choose the output style for your reference list\"$citeStyleDisabled>";
+			. "\n\t\t<select name=\"citeStyle\" title=\"choose the output style for your reference list\"$citeStyleDisabled>";
 
 	if (isset($_SESSION['user_styles']))
 	{
@@ -167,7 +168,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, "");
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
