@@ -48,7 +48,7 @@
 	// --------------------------------------------------------------------
 
 	// (1) Open the database connection and use the literature database:
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// If there's no stored message available:
 	if (!isset($_SESSION['HeaderString']))
@@ -61,7 +61,7 @@
 		deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -77,7 +77,7 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["AdvancedSearch"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, "");
+	showPageHeader($HeaderString);
 
 	// Define variables holding common drop-down elements, i.e. build properly formatted <option> tag elements:
 	$dropDownConditionals1Array = array("contains"         => $loc["contains"],
@@ -98,6 +98,7 @@
 	$dropDownItems2 = buildSelectMenuOptions($dropDownConditionals2Array, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 
+	// TODO: if possible, we should use function 'mapFieldNames()' here (see also below)
 	$dropDownFieldNames1Array = array("author"                => $loc["DropDownFieldName_Author"],
 	                                  "address"               => $loc["DropDownFieldName_Address"],
 	                                  "corporate_author"      => $loc["DropDownFieldName_CorporateAuthor"],
@@ -175,7 +176,7 @@
 	// (2b) Start <form> and <table> holding the form elements:
 ?>
 
-<form action="search.php" method="POST" name="queryForm">
+<form action="search.php" method="GET" name="queryForm">
 <input type="hidden" name="formType" value="advancedSearch">
 <input type="hidden" name="showQuery" value="0">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds the search form">
@@ -251,21 +252,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "thesis",
-				 "thesisName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 false,
-				 "");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "thesis",
+	               "thesisName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               false,
+	               "");
 ?>
 
 	</td>
@@ -360,21 +361,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "publication",
-				 "publicationName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "type",
-				 "\"journal\"",
-				 false,
-				 "");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "publication",
+	               "publicationName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "type",
+	               "\"journal\"",
+	               false,
+	               "");
 ?>
 
 	</td>
@@ -422,21 +423,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "abbrev_journal",
-				 "abbrevJournalName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "type",
-				 "\"journal\"",
-				 false,
-				 "");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "abbrev_journal",
+	               "abbrevJournalName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "type",
+	               "\"journal\"",
+	               false,
+	               "");
 ?>
 
 	</td>
@@ -542,21 +543,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "series_title",
-				 "seriesTitleName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 false,
-				 "");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "series_title",
+	               "seriesTitleName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               false,
+	               "");
 ?>
 
 	</td>
@@ -604,21 +605,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "abbrev_series_title",
-				 "abbrevSeriesTitleName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 false,
-				 "");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "abbrev_series_title",
+	               "abbrevSeriesTitleName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               false,
+	               "");
 ?>
 
 	</td>
@@ -706,21 +707,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "publisher",
-				 "publisherName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 false,
-				 "");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "publisher",
+	               "publisherName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               false,
+	               "");
 ?>
 
 	</td>
@@ -768,21 +769,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "place",
-				 "placeName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "place",
+	               "placeName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -888,21 +889,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "language",
-				 "languageName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "language",
+	               "languageName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -950,21 +951,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "summary_language",
-				 "summaryLanguageName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "summary_language",
+	               "summaryLanguageName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -1048,21 +1049,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "area",
-				 "areaName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "area",
+	               "areaName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -1208,21 +1209,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "location",
-				 "locationName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "location",
+	               "locationName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -1302,21 +1303,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "type",
-				 "typeName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 false,
-				 "");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "type",
+	               "typeName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               false,
+	               "");
 ?>
 
 	</td>
@@ -1406,21 +1407,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "created_by",
-				 "createdByName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "created_by",
+	               "createdByName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -1506,21 +1507,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "modified_by",
-				 "modifiedByName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "modified_by",
+	               "modifiedByName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -1617,21 +1618,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "user_keys",
-				 "userKeysName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "user_keys",
+	               "userKeysName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -1701,21 +1702,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "user_groups",
-				 "userGroupsName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "",
-				 "",
-				 true,
-				 " *[,;()] *");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "user_groups",
+	               "userGroupsName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "",
+	               "",
+	               true,
+	               " *[,;()] *");
 ?>
 
 	</td>
@@ -1761,7 +1762,7 @@
 	<td valign="top"><b><?php echo $loc["DisplayOptions"]; ?>:</b></td>
 	<td>&nbsp;</td>
 	<td valign="middle"><input type="checkbox" name="showLinks" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowLinks"]; ?></td>
-	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
+	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4" title="<?php echo $loc["DescriptionShowRecordsPerPage"]; ?>">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>
@@ -1773,6 +1774,7 @@
 
 	if (isset($_SESSION['loginEmail'])) // if a user is logged in, add user specific fields to the sort menus:
 	{
+		// TODO: if possible, we should use function 'mapFieldNames()' here (see also above)
 		$userSpecificSortFieldsNameArray = array("",
 		                                         "marked"      => $loc["DropDownFieldName_Marked"],
 		                                         "copy"        => $loc["DropDownFieldName_Copy"],
@@ -1852,13 +1854,13 @@ echo $sortSelector3DropDownItems . $dropDownItems4;
 </form><?php
 
 	// (5) Close the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, "");
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 

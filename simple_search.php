@@ -43,7 +43,7 @@
 	// --------------------------------------------------------------------
 
 	// (1) Open the database connection and use the literature database:
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// If there's no stored message available:
 	if (!isset($_SESSION['HeaderString']))
@@ -56,7 +56,7 @@
 		deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -72,7 +72,7 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["SimpleSearch"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, "");
+	showPageHeader($HeaderString);
 
 	// Define variables holding common drop-down elements, i.e. build properly formatted <option> tag elements:
 	$dropDownConditionals1Array = array("contains"         => $loc["contains"],
@@ -93,6 +93,7 @@
 	$dropDownItems2 = buildSelectMenuOptions($dropDownConditionals2Array, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 
+	// TODO: if possible, we should use function 'mapFieldNames()' here
 	$dropDownFieldNameArray = array("author"         => $loc["DropDownFieldName_Author"],
 	                                "title"          => $loc["DropDownFieldName_Title"],
 	                                "year"           => $loc["DropDownFieldName_Year"],
@@ -105,7 +106,7 @@
 	// (2b) Start <form> and <table> holding the form elements:
 ?>
 
-<form action="search.php" method="POST">
+<form action="search.php" method="GET">
 <input type="hidden" name="formType" value="simpleSearch">
 <input type="hidden" name="showQuery" value="0">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds the search form">
@@ -181,21 +182,21 @@
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
 	selectDistinct($connection,
-				 $tableRefs,
-				 "serial",
-				 $tableUserData,
-				 "record_id",
-				 "user_id",
-				 $loginUserID,
-				 "publication",
-				 "publicationName",
-				 $loc["All"],
-				 "All",
-				 $loc["All"],
-				 "type",
-				 "\"journal\"",
-				 false,
-				 "");
+	               $tableRefs,
+	               "serial",
+	               $tableUserData,
+	               "record_id",
+	               "user_id",
+	               $loginUserID,
+	               "publication",
+	               "publicationName",
+	               $loc["All"],
+	               "All",
+	               $loc["All"],
+	               "type",
+	               "\"journal\"",
+	               false,
+	               "");
 ?>
 
 	</td>
@@ -245,7 +246,7 @@
 	<td valign="top"><b><?php echo $loc["DisplayOptions"]; ?>:</b></td>
 	<td>&nbsp;</td>
 	<td valign="middle"><input type="checkbox" name="showLinks" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowLinks"]; ?></td>
-	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
+	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4" title="<?php echo $loc["DescriptionShowRecordsPerPage"]; ?>">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>
@@ -315,13 +316,13 @@ echo $sortSelector3DropDownItems;
 </form><?php
 
 	// (5) Close the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, "");
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
