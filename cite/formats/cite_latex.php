@@ -24,7 +24,7 @@
 
 	// --- BEGIN CITATION FORMAT ---
 
-	function citeRecords($result, $rowsFound, $query, $oldQuery, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
+	function citeRecords($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
 	{
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
@@ -45,24 +45,29 @@
 		$typeTitlesArray = array();
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"     => "\\textbf{",
-									"bold-suffix"      => "}",
-									"italic-prefix"    => "\\textit{",
-									"italic-suffix"    => "}",
-		//							"underline-prefix" => "\\ul{", // the '\ul' command requires '\usepackage{soul}'
-		//							"underline-suffix" => "}",
-									"endash"           => "--", // or use '{\\textendash}'
-									"emdash"           => "---", // or use '{\\textemdash}'
-									"newline"          => "\n\n");
+		$markupPatternsArray = array("bold-prefix"      => "\\textbf{",
+		                             "bold-suffix"      => "}",
+		                             "italic-prefix"    => "\\textit{",
+		                             "italic-suffix"    => "}",
+		//                           "underline-prefix" => "\\ul{", // the '\ul' command requires '\usepackage{soul}'
+		//                           "underline-suffix" => "}",
+		                             "endash"           => "--", // or use '{\\textendash}'
+		                             "emdash"           => "---", // or use '{\\textemdash}'
+		                             "ampersand"        => "&", // conversion of ampersands is done below, after the citation has been generated
+		                             "double-quote"     => '"',
+		                             "single-quote"     => "'", // same as for ampersands
+		                             "less-than"        => "<",
+		                             "greater-than"     => ">",
+		                             "newline"          => "\n\n"
+		                            );
 
 		// Defines search & replace 'actions' that will be applied upon LaTeX output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:
 		$latexSearchReplaceActionsArray = array(
-												array(
-														'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
-														'actions' => $transtab_refbase_latex
-													)
-											);
+		                                        array('fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+		                                              'actions' => $transtab_refbase_latex
+		                                             )
+		                                       );
 
 		// For CLI queries, we'll allow paging thru the result set, i.e. we honour the values of the CLI options '-S|--start' ('$rowOffset')
 		// and '-R|--rows' ('$showRows') ('$rowOffset' and '$showRows' are re-assigned in function 'seekInMySQLResultsToOffset()' in 'include.inc.php')
@@ -74,7 +79,7 @@
 
 		// Setup the basic LaTeX document structure:
 		$latexData = "%&LaTeX\n"
-					. "\\documentclass{article}\n\n";
+		           . "\\documentclass{article}\n\n";
 
 		if ($contentTypeCharset == "UTF-8")
 			$latexData .= "\\usepackage[utf8]{inputenc}\n";
@@ -82,14 +87,14 @@
 			$latexData .= "\\usepackage[latin1]{inputenc}\n";
 
 		$latexData .= "\\usepackage[T1]{fontenc}\n"
-					. "\\usepackage{textcomp}\n\n";
+		            . "\\usepackage{textcomp}\n\n";
 
 		$latexData .= "\\begin{document}\n\n";
 
 		// Header:
 		if (!empty($headerMsg))
 			$latexData .= "\\title{" . $headerMsg . "}\n\n"
-						. "\\maketitle\n\n";
+			            . "\\maketitle\n\n";
 
 		if (!eregi("type|year", $citeOrder))
 			$latexData .= "\\begin{thebibliography}{" . $showMaxRows . "}\n\n";

@@ -24,7 +24,7 @@
 
 	// --- BEGIN CITATION FORMAT ---
 
-	function citeRecords($result, $rowsFound, $query, $oldQuery, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
+	function citeRecords($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
 	{
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
@@ -44,24 +44,29 @@
 		$typeTitlesArray = array();
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"     => "**",
-									"bold-suffix"      => "**",
-									"italic-prefix"    => "_",
-									"italic-suffix"    => "_",
-		//							"underline-prefix" => "",
-		//							"underline-suffix" => "",
-									"endash"           => "&ndash;", // opposed to function 'citeRecordsHTML()' we use named entities here to increase plain text legibility
-									"emdash"           => "&mdash;",
-									"newline"          => "  \n");
+		$markupPatternsArray = array("bold-prefix"      => "**",
+		                             "bold-suffix"      => "**",
+		                             "italic-prefix"    => "_",
+		                             "italic-suffix"    => "_",
+		//                           "underline-prefix" => "",
+		//                           "underline-suffix" => "",
+		                             "endash"           => "&ndash;",
+		                             "emdash"           => "&mdash;",
+		                             "ampersand"        => "&",
+		                             "double-quote"     => '"',
+		                             "single-quote"     => "'",
+		                             "less-than"        => "<",
+		                             "greater-than"     => ">",
+		                             "newline"          => "  \n"
+		                            );
 
 		// Defines search & replace 'actions' that will be applied upon Markdown output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:
 		$markdownSearchReplaceActionsArray = array(
-													array(
-															'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
-															'actions' => $transtab_refbase_markdown
-														)
-												);
+		                                           array('fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+		                                                 'actions' => $transtab_refbase_markdown
+		                                                )
+		                                          );
 
 		// For CLI queries, we'll allow paging thru the result set, i.e. we honour the values of the CLI options '-S|--start' ('$rowOffset')
 		// and '-R|--rows' ('$showRows') ('$rowOffset' and '$showRows' are re-assigned in function 'seekInMySQLResultsToOffset()' in 'include.inc.php')

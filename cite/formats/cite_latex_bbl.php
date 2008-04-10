@@ -28,7 +28,7 @@
 
 	// --- BEGIN CITATION FORMAT ---
 
-	function citeRecords($result, $rowsFound, $query, $oldQuery, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
+	function citeRecords($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
 	{
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
@@ -144,14 +144,19 @@
 		//                           "underline-suffix" => "}",
 		                             "endash"           => "--", // or use '{\\textendash}'
 		                             "emdash"           => "---", // or use '{\\textemdash}'
-		                             "newline"          => "\n\n");
+		                             "ampersand"        => "&", // conversion of ampersands is done below, after the citation has been generated
+		                             "double-quote"     => '"',
+		                             "single-quote"     => "'", // same as for ampersands
+		                             "less-than"        => "<",
+		                             "greater-than"     => ">",
+		                             "newline"          => "\n\n"
+		                            );
 
 		// Defines search & replace 'actions' that will be applied upon LaTeX output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:
 		$latexSearchReplaceActionsArray = array(
-		                                        array(
-		                                                'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
-		                                                'actions' => $transtab_refbase_latex
+		                                        array('fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+		                                              'actions' => $transtab_refbase_latex
 		                                             )
 		                                       );
 
