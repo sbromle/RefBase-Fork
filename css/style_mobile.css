@@ -1,0 +1,391 @@
+	/*
+	// Project:    Web Reference Database (refbase) <http://www.refbase.net>
+	// Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+	//             original author(s).
+	//
+	//             This code is distributed in the hope that it will be useful,
+	//             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+	//             License for more details.
+	//
+	// File:       ./css/style_mobile.css
+	// Repository: $HeadURL$
+	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+	//
+	// Created:    14-Mar-08, 22:00
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
+	*/
+
+	/* refbase CSS definitions - mobile view style */
+
+body {
+	background: #FFFFFF;
+	color: #000000;
+	margin: 0.5em;
+}
+
+pre, code {
+	font-family: monaco,courier,monospace;
+	font-size: 7pt;
+}
+
+.spacer {
+	padding-top: 0.5em;
+}
+
+.spacer2 {
+	padding-bottom: 0.3em;
+}
+
+.tiny {
+	font-size: x-small;
+}
+
+.smaller {
+	font-size: smaller;
+}
+
+.small {
+	font-size: small;
+}
+
+.smallup {
+	font-size: small;
+	position: relative;
+	top: -10px;
+}
+
+.smallsans {
+	font-family: helvetica,arial,sans-serif;
+	font-size: x-small;
+}
+
+.moveup {
+	position: relative;
+	top: -8px;
+}
+
+.header {
+	font-family: helvetica,arial,sans-serif;
+}
+
+.footer {
+	font-family: helvetica,arial,sans-serif;
+	font-size: x-small;
+	color: #999999;
+}
+
+.unapi {
+	font-size: smaller;
+}
+
+.Z3988 {
+	font-size: smaller;
+}
+
+.ok {
+	color: #009900;
+}
+
+.warning {
+	color: red;
+}
+
+.warning2 {
+	color: red;
+	font-family: helvetica,arial,sans-serif;
+	font-size: small;
+}
+
+.mainfieldsbg {
+	background-color: #FFFFFF;
+}
+
+.otherfieldsbg {
+	background-color: #FFFFFF;
+}
+
+.userfieldsbg {
+	background-color: #FFFFFF;
+}
+
+.outline {
+	list-style-type: none;
+	font-size: small;
+	position: relative;
+	left: -15px;
+}
+
+.category {
+	font-family: helvetica,arial,sans-serif;
+	font-weight: bold;
+}
+
+th {
+	font-family: helvetica,arial,sans-serif;
+	font-size: small;
+}
+
+td, div {
+	font-family: "times new roman",garamond,times,serif;
+	font-size: small;
+}
+
+p {
+	font-family: "times new roman",garamond,times,serif;
+	font-size: small;
+}
+
+div.items {
+}
+
+div.item, div.even, div.odd {
+	
+}
+
+div.even {
+	display: table-row;
+}
+
+div.odd {
+	display: table-row;
+}
+
+a:link {
+	color: #0033CC;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #666666;
+	text-decoration: none;
+}
+
+a:active {
+	color: #990000;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #3366FF;
+	text-decoration: underline;
+}
+
+h1, h2, h3, h4 {
+	font-family: helvetica,arial,sans-serif;
+}
+
+h5, h6 {
+	font-family: helvetica,arial,sans-serif;
+}
+
+h2, h3 {
+	margin-top: 1em;
+	margin-bottom: 0.5em;
+}
+
+div.pageheader img {
+	position: absolute;
+	top: 2em;
+	right: 2em;
+}
+
+div.pageheader p, form p {
+	margin: 0;
+	padding: 0;
+}
+
+form {
+	margin: 0;
+	margin-top: 1em;
+	font-size: 0.8em;
+}
+
+input {
+	
+}
+
+#queryform input[name=query] {
+	width: 15em;
+}
+
+.pageheader {
+	
+}
+
+.pagefooter {
+	
+}
+
+.results {
+	
+}
+
+.resultsheader {
+	
+}
+
+.resultsfooter {
+	margin-left: 2.5em;
+	margin-right: 2.5em;
+}
+
+div.resultsfooter {
+	margin-top: 0.75em;
+	margin-bottom: 0.9em;
+}
+
+#refgroups {
+	
+}
+
+#refineresults {
+	
+}
+
+#displayopt {
+	
+}
+
+.resultnav {
+	display: block;
+	margin-top: 1em;
+	margin-bottom: 0.5em;
+	text-align: center;
+}
+
+.mainnav {
+	display: inline-block;
+	margin-left: 0.5em;
+	margin-right: 1em;
+	position: absolute;
+}
+
+.pagenav {
+	display: inline-block;
+}
+
+.viewnav {
+	display: inline-block;
+	margin-top: -0.25em;
+	margin-right: 0.5em;
+	position: absolute;
+	right: 8px;
+}
+
+#columns {
+	
+}
+
+#details {
+	
+}
+
+#citations {
+	
+}
+
+.citation {
+	display: inline-block;
+	min-height: 38px;
+	margin: 0.5em;
+	padding-right: 45px;
+}
+
+#error {
+	
+}
+
+.examples {
+	
+}
+
+.links {
+	display: inline-block;
+	min-height: 38px;
+	margin: 0.5em;
+	position: absolute;
+	right: 8px;
+}
+
+.sect {
+	padding-top: 2px;
+}
+
+.even {
+	background-color: #FFFFFF;
+}
+
+.odd {
+	background-color: #F4F4F4;
+}
+
+#queryform {
+	margin-left: 0.5em;
+	text-align: center;
+}
+
+.showhide {
+	
+}
+
+#resultactions {
+	display: none;
+}
+
+#searchopt {
+	display: none;
+}
+
+#helptxt {
+	display: none;
+}
+
+#helptxt .even {
+	display: block;
+	margin-left: -5px;
+	margin-top: -3px;
+	padding: 5px;
+}
+
+#helptxt .odd {
+	display: block;
+	margin-left: -5px;
+	padding: 5px;
+}
+
+.toggleimg {
+	
+}
+
+.toggletxt {
+	display: inline;
+	margin-left: 5px;
+	font-size: small;
+}
+
+.resultviews {
+	display: inline;
+}
+
+.activeview {
+	display: inline;
+}
+
+.leftview {
+	display: inline;
+}
+
+.middleview {
+	display: inline;
+}
+
+.rightview {
+	display: inline;
+}
+
+.toggleprint {
+	position: relative;
+	top: 3px;
+}
