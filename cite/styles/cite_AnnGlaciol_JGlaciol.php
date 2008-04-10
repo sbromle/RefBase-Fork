@@ -32,7 +32,7 @@
 
 		if (ereg("^(Journal Article|Magazine Article|Newspaper Article)$", $row['type']))
 			{
-				if (!empty($row['author']))			// author
+				if (!empty($row['author']))      // author
 					{
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -51,25 +51,27 @@
 						//  11. output: for all authors except the first author: boolean value that specifies if initials go *before* the author's name ['true'], or *after* the author's name ['false'] (which is the default in the db)
 						//  12. output: boolean value that specifies whether an author's full given name(s) shall be shortened to initial(s)
 						//
-						//  13. output: if the number of authors is greater than the given number (integer >= 1), only the first author will be included along with the string given in (14); keep empty if all authors shall be returned
-						//  14. output: string that's appended to the first author if number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
+						//  13. output: if the total number of authors is greater than the given number (integer >= 1), only the number of authors given in (14) will be included in the citation along with the string given in (15); keep empty if all authors shall be returned
+						//  14. output: number of authors (integer >= 1) that is included in the citation if the total number of authors is greater than the number given in (13); keep empty if not applicable
+						//  15. output: string that's appended to the number of authors given in (14) if the total number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
 						//
-						//  15. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
+						//  16. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
 						$author = reArrangeAuthorContents($row['author'], // 1.
-															true, // 2.
-															" *; *", // 3.
-															", ", // 4.
-															" and ", // 5.
-															" *, *", // 6.
-															", ", // 7.
-															" ", // 8.
-															".", // 9.
-															false, // 10.
-															true, // 11.
-															true, // 12.
-															"6", // 13.
-															" " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 14.
-															$encodeHTML); // 15.
+						                                  true, // 2.
+						                                  " *; *", // 3.
+						                                  ", ", // 4.
+						                                  " and ", // 5.
+						                                  " *, *", // 6.
+						                                  ", ", // 7.
+						                                  " ", // 8.
+						                                  ".", // 9.
+						                                  false, // 10.
+						                                  true, // 11.
+						                                  true, // 12.
+						                                  "6", // 13.
+						                                  "1", // 14.
+						                                  " " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 15.
+						                                  $encodeHTML); // 16.
 
 						if (!ereg("\. *$", $author))
 							$record .= $author . ".";
@@ -77,7 +79,7 @@
 							$record .= $author;
 					}
 
-				if (!empty($row['year']))				// year
+				if (!empty($row['year']))      // year
 					{
 						if (!empty($row['author']))
 							$record .= " ";
@@ -85,7 +87,7 @@
 						$record .= $row['year'] . ".";
 					}
 
-				if (!empty($row['title']))			// title
+				if (!empty($row['title']))      // title
 					{
 						if (!empty($row['author']) || !empty($row['year']))
 							$record .= " ";
@@ -98,14 +100,14 @@
 				// From here on we'll assume that at least one of the fields 'author', 'year' or 'title' did contain some contents
 				// if this is not the case, the output string will begin with a space. However, any preceding/trailing whitespace will be removed at the cleanup stage (see below)
 
-				if (!empty($row['abbrev_journal']))		// abbreviated journal name
+				if (!empty($row['abbrev_journal']))      // abbreviated journal name
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $row['abbrev_journal'] . $markupPatternsArray["italic-suffix"];
 
 				// if there's no abbreviated journal name, we'll use the full journal name
-				elseif (!empty($row['publication']))	// publication (= journal) name
+				elseif (!empty($row['publication']))      // publication (= journal) name
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $row['publication'] . $markupPatternsArray["italic-suffix"];
 
-				if (!empty($row['volume']))			// volume
+				if (!empty($row['volume']))      // volume
 					{
 						if (!empty($row['abbrev_journal']) || !empty($row['publication']))
 							$record .= ",";
@@ -113,7 +115,7 @@
 						$record .= " " . $markupPatternsArray["bold-prefix"] . $row['volume'] . $markupPatternsArray["bold-suffix"];
 					}
 
-				if (!empty($row['issue']))			// issue
+				if (!empty($row['issue']))      // issue
 					$record .= "(" . $row['issue'] . ")";
 
 				if ($row['online_publication'] == "yes") // this record refers to an online article
@@ -121,17 +123,17 @@
 					// instead of any pages info (which normally doesn't exist for online publications) we append
 					// an optional string (given in 'online_citation') plus the DOI:
 
-					if (!empty($row['online_citation']))			// online_citation
+					if (!empty($row['online_citation']))      // online_citation
 					{
-						if (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))		// only add "," if either volume, issue, abbrev_journal or publication isn't empty
+						if (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication'])) // only add "," if either volume, issue, abbrev_journal or publication isn't empty
 							$record .= ",";
 
 						$record .= " " . $row['online_citation'];
 					}
 
-					if (!empty($row['doi']))			// doi
+					if (!empty($row['doi']))      // doi
 					{
-						if (!empty($row['online_citation']) OR (empty($row['online_citation']) AND (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))))		// only add "," if online_citation isn't empty, or else if either volume, issue, abbrev_journal or publication isn't empty
+						if (!empty($row['online_citation']) OR (empty($row['online_citation']) AND (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication'])))) // only add "," if online_citation isn't empty, or else if either volume, issue, abbrev_journal or publication isn't empty
 							$record .= ".";
 
 						$record .= " (" . $row['doi'] . ".)";
@@ -139,9 +141,9 @@
 				}
 				else // $row['online_publication'] == "no" -> this record refers to a printed article, so we append any pages info instead:
 				{
-					if (!empty($row['pages']))			// pages
+					if (!empty($row['pages']))      // pages
 						{
-							if (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication']))		// only add "," if either volume, issue, abbrev_journal or publication isn't empty
+							if (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication'])) // only add "," if either volume, issue, abbrev_journal or publication isn't empty
 								$record .= ",";
 
 							if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
@@ -159,7 +161,7 @@
 
 		elseif (ereg("^(Abstract|Book Chapter|Conference Article)$", $row['type']))
 			{
-				if (!empty($row['author']))			// author
+				if (!empty($row['author']))      // author
 					{
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -178,25 +180,27 @@
 						//  11. output: for all authors except the first author: boolean value that specifies if initials go *before* the author's name ['true'], or *after* the author's name ['false'] (which is the default in the db)
 						//  12. output: boolean value that specifies whether an author's full given name(s) shall be shortened to initial(s)
 						//
-						//  13. output: if the number of authors is greater than the given number (integer >= 1), only the first author will be included along with the string given in (14); keep empty if all authors shall be returned
-						//  14. output: string that's appended to the first author if number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
+						//  13. output: if the total number of authors is greater than the given number (integer >= 1), only the number of authors given in (14) will be included in the citation along with the string given in (15); keep empty if all authors shall be returned
+						//  14. output: number of authors (integer >= 1) that is included in the citation if the total number of authors is greater than the number given in (13); keep empty if not applicable
+						//  15. output: string that's appended to the number of authors given in (14) if the total number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
 						//
-						//  15. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
+						//  16. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
 						$author = reArrangeAuthorContents($row['author'], // 1.
-															true, // 2.
-															" *; *", // 3.
-															", ", // 4.
-															" and ", // 5.
-															" *, *", // 6.
-															", ", // 7.
-															" ", // 8.
-															".", // 9.
-															false, // 10.
-															true, // 11.
-															true, // 12.
-															"6", // 13.
-															" " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 14.
-															$encodeHTML); // 15.
+						                                  true, // 2.
+						                                  " *; *", // 3.
+						                                  ", ", // 4.
+						                                  " and ", // 5.
+						                                  " *, *", // 6.
+						                                  ", ", // 7.
+						                                  " ", // 8.
+						                                  ".", // 9.
+						                                  false, // 10.
+						                                  true, // 11.
+						                                  true, // 12.
+						                                  "6", // 13.
+						                                  "1", // 14.
+						                                  " " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 15.
+						                                  $encodeHTML); // 16.
 
 						if (!ereg("\. *$", $author))
 							$record .= $author . ".";
@@ -204,7 +208,7 @@
 							$record .= $author;
 					}
 
-				if (!empty($row['year']))				// year
+				if (!empty($row['year']))      // year
 					{
 						if (!empty($row['author']))
 							$record .= " ";
@@ -212,7 +216,7 @@
 						$record .= $row['year'] . ".";
 					}
 
-				if (!empty($row['title']))			// title
+				if (!empty($row['title']))      // title
 					{
 						if (!empty($row['author']) || !empty($row['year']))
 							$record .= " ";
@@ -225,7 +229,7 @@
 				// From here on we'll assume that at least one of the fields 'author', 'year' or 'title' did contain some contents
 				// if this is not the case, the output string will begin with a space. However, any preceding/trailing whitespace will be removed at the cleanup stage (see below)
 
-				if (!empty($row['editor']))			// editor
+				if (!empty($row['editor']))      // editor
 					{
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -244,25 +248,27 @@
 						//  11. output: for all authors except the first author: boolean value that specifies if initials go *before* the author's name ['true'], or *after* the author's name ['false'] (which is the default in the db)
 						//  12. output: boolean value that specifies whether an author's full given name(s) shall be shortened to initial(s)
 						//
-						//  13. output: if the number of authors is greater than the given number (integer >= 1), only the first author will be included along with the string given in (14); keep empty if all authors shall be returned
-						//  14. output: string that's appended to the first author if number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
+						//  13. output: if the total number of authors is greater than the given number (integer >= 1), only the number of authors given in (14) will be included in the citation along with the string given in (15); keep empty if all authors shall be returned
+						//  14. output: number of authors (integer >= 1) that is included in the citation if the total number of authors is greater than the number given in (13); keep empty if not applicable
+						//  15. output: string that's appended to the number of authors given in (14) if the total number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
 						//
-						//  15. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
+						//  16. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
 						$editor = reArrangeAuthorContents($row['editor'], // 1.
-															true, // 2.
-															" *; *", // 3.
-															", ", // 4.
-															" and ", // 5.
-															" *, *", // 6.
-															", ", // 7.
-															" ", // 8.
-															".", // 9.
-															false, // 10.
-															true, // 11.
-															true, // 12.
-															"6", // 13.
-															" " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 14.
-															$encodeHTML); // 15.
+						                                  true, // 2.
+						                                  " *; *", // 3.
+						                                  ", ", // 4.
+						                                  " and ", // 5.
+						                                  " *, *", // 6.
+						                                  ", ", // 7.
+						                                  " ", // 8.
+						                                  ".", // 9.
+						                                  false, // 10.
+						                                  true, // 11.
+						                                  true, // 12.
+						                                  "6", // 13.
+						                                  "1", // 14.
+						                                  " " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 15.
+						                                  $encodeHTML); // 16.
 
 						$record .= " " . $markupPatternsArray["italic-prefix"] . "In" . $markupPatternsArray["italic-suffix"] . " " . $editor;
 						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
@@ -272,13 +278,13 @@
 					}
 
 				$publication = ereg_replace("[ \r\n]*\(Eds?:[^\)\r\n]*\)", "", $row['publication']);
-				if (!empty($publication))			// publication
+				if (!empty($publication))      // publication
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $publication . $markupPatternsArray["italic-suffix"] . ".";
 
-				if (!empty($row['place']))			// place
+				if (!empty($row['place']))      // place
 					$record .= " " . $row['place'];
 
-				if (!empty($row['publisher']))		// publisher
+				if (!empty($row['publisher']))      // publisher
 					{
 						if (!empty($row['place']))
 							$record .= ",";
@@ -286,7 +292,7 @@
 						$record .= " " . $row['publisher'];
 					}
 
-				if (!empty($row['pages']))			// pages
+				if (!empty($row['pages']))      // pages
 					{
 						if (!empty($row['place']) || !empty($row['publisher']))
 							$record .= ",";
@@ -305,19 +311,19 @@
 						$record .= " (";
 
 						if (!empty($row['abbrev_series_title']))
-							$record .= $row['abbrev_series_title'];	// abbreviated series title
+							$record .= $row['abbrev_series_title'];      // abbreviated series title
 
 						// if there's no abbreviated series title, we'll use the full series title instead:
 						elseif (!empty($row['series_title']))
-							$record .= $row['series_title'];	// full series title
+							$record .= $row['series_title'];      // full series title
 
 						if (!empty($row['series_volume'])||!empty($row['series_issue']))
 							$record .= " ";
 
-						if (!empty($row['series_volume']))	// series volume
+						if (!empty($row['series_volume']))      // series volume
 							$record .= $row['series_volume'];
 
-						if (!empty($row['series_issue']))	// series issue (I'm not really sure if -- for this cite style -- the series issue should be rather omitted here)
+						if (!empty($row['series_issue']))      // series issue (I'm not really sure if -- for this cite style -- the series issue should be rather omitted here)
 							$record .= "(" . $row['series_issue'] . ")";
 
 						$record .= ".)";
@@ -329,7 +335,7 @@
 		else // if (ereg("Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software", $row['type']))
 			// note that this also serves as a fallback: unrecognized resource types will be formatted similar to whole books
 			{
-				if (!empty($row['author']))			// author
+				if (!empty($row['author']))      // author
 					{
 						$author = ereg_replace("[ \r\n]*\(eds?\)", "", $row['author']);
 
@@ -350,28 +356,30 @@
 						//  11. output: for all authors except the first author: boolean value that specifies if initials go *before* the author's name ['true'], or *after* the author's name ['false'] (which is the default in the db)
 						//  12. output: boolean value that specifies whether an author's full given name(s) shall be shortened to initial(s)
 						//
-						//  13. output: if the number of authors is greater than the given number (integer >= 1), only the first author will be included along with the string given in (14); keep empty if all authors shall be returned
-						//  14. output: string that's appended to the first author if number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
+						//  13. output: if the total number of authors is greater than the given number (integer >= 1), only the number of authors given in (14) will be included in the citation along with the string given in (15); keep empty if all authors shall be returned
+						//  14. output: number of authors (integer >= 1) that is included in the citation if the total number of authors is greater than the number given in (13); keep empty if not applicable
+						//  15. output: string that's appended to the number of authors given in (14) if the total number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
 						//
-						//  15. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
+						//  16. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
 						$author = reArrangeAuthorContents($author, // 1.
-															true, // 2.
-															" *; *", // 3.
-															", ", // 4.
-															" and ", // 5.
-															" *, *", // 6.
-															", ", // 7.
-															" ", // 8.
-															".", // 9.
-															false, // 10.
-															true, // 11.
-															true, // 12.
-															"6", // 13.
-															" " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 14.
-															$encodeHTML); // 15.
+						                                  true, // 2.
+						                                  " *; *", // 3.
+						                                  ", ", // 4.
+						                                  " and ", // 5.
+						                                  " *, *", // 6.
+						                                  ", ", // 7.
+						                                  " ", // 8.
+						                                  ".", // 9.
+						                                  false, // 10.
+						                                  true, // 11.
+						                                  true, // 12.
+						                                  "6", // 13.
+						                                  "1", // 14.
+						                                  " " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 15.
+						                                  $encodeHTML); // 16.
 
 						// if the author is actually the editor of the resource we'll append ', ed' (or ', eds') to the author string:
-						// [to distinguish editors from authors in the 'author' field, the 'modify.php' script does append ', ed' (or ', eds') if appropriate,
+						// [to distinguish editors from authors in the 'author' field, the 'modify.php' script does append ' (ed)' or ' (eds)' if appropriate,
 						//  so we're just checking for these identifier strings here. Alternatively, we could check whether the editor field matches the author field]
 						if (ereg("[ \r\n]*\(ed\)", $row['author'])) // single editor
 							$author = $author . ", " . $markupPatternsArray["italic-prefix"] . "ed" . $markupPatternsArray["italic-suffix"];
@@ -384,7 +392,7 @@
 							$record .= $author;
 					}
 
-				if (!empty($row['year']))				// year
+				if (!empty($row['year']))      // year
 					{
 						if (!empty($row['author']))
 							$record .= " ";
@@ -392,7 +400,7 @@
 						$record .= $row['year'] . ".";
 					}
 
-				if (!empty($row['title']))			// title
+				if (!empty($row['title']))      // title
 					{
 						if (!empty($row['author']) || !empty($row['year']))
 							$record .= " ";
@@ -402,17 +410,17 @@
 							$record .= ".";
 					}
 
-				if (!empty($row['thesis']))			// thesis
+				if (!empty($row['thesis']))      // thesis
 					{
 						$record .= " (" . $row['thesis'];
 						$record .= ", " . $row['publisher'] . ".)";
 					}
 				else  // not a thesis
 					{
-						if (!empty($row['place']))			// place
+						if (!empty($row['place']))      // place
 							$record .= " " . $row['place'];
 
-						if (!empty($row['publisher']))		// publisher
+						if (!empty($row['publisher']))      // publisher
 							{
 								if (!empty($row['place']))
 									$record .= ",";
@@ -420,7 +428,7 @@
 								$record .= " " . $row['publisher'];
 							}
 
-//						if (!empty($row['pages']))			// pages
+//						if (!empty($row['pages']))      // pages
 //							{
 //								if (!empty($row['place']) || !empty($row['publisher']))
 //									$record .= ",";
@@ -440,19 +448,19 @@
 						$record .= " (";
 
 						if (!empty($row['abbrev_series_title']))
-							$record .= $row['abbrev_series_title'];	// abbreviated series title
+							$record .= $row['abbrev_series_title'];      // abbreviated series title
 
 						// if there's no abbreviated series title, we'll use the full series title instead:
 						elseif (!empty($row['series_title']))
-							$record .= $row['series_title'];	// full series title
+							$record .= $row['series_title'];      // full series title
 
 						if (!empty($row['series_volume'])||!empty($row['series_issue']))
 							$record .= " ";
 
-						if (!empty($row['series_volume']))	// series volume
+						if (!empty($row['series_volume']))      // series volume
 							$record .= $row['series_volume'];
 
-						if (!empty($row['series_issue']))	// series issue (I'm not really sure if -- for this cite style -- the series issue should be rather omitted here)
+						if (!empty($row['series_issue']))      // series issue (I'm not really sure if -- for this cite style -- the series issue should be rather omitted here)
 							$record .= "(" . $row['series_issue'] . ")";
 
 						$record .= ".)";
