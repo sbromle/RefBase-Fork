@@ -85,7 +85,7 @@
 
 	// --------------------------------------------------------------------
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -138,7 +138,7 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . "Manage Duplicates", "index,follow", "Manage duplicate records in the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, $oldQuery);
+	showPageHeader($HeaderString);
 
 	// (2b) Start <form> and <table> holding the form elements:
 	// note: we provide a default value for the 'submit' form tag so that hitting <enter> within a text entry field will act as if the user clicked the 'Flag Duplicates' button
@@ -188,7 +188,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, $oldQuery);
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 

@@ -73,7 +73,7 @@
 	// Extract the form used by the user:
 	$formType = $formVars['formType'];
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($formVars['viewType']))
 		$viewType = $formVars['viewType'];
@@ -98,7 +98,7 @@
 	// --------------------------------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
@@ -159,7 +159,7 @@
 
 	// (3) RUN the queries on the database through the connection:
 	foreach($queryArray as $query)
-		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 	$affectedRows = ($result ? mysql_affected_rows ($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
 
@@ -195,7 +195,7 @@
 	// --------------------------------------------------------------------
 
 	// (5) CLOSE CONNECTION
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 ?>

@@ -87,7 +87,7 @@
 		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -130,10 +130,10 @@
 		// -------------------
 
 		// (1) OPEN CONNECTION, (2) SELECT DATABASE
-		connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+		connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 		// (3) RUN the query on the database through the connection:
-		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		// (4) EXTRACT results:
 		if (mysql_num_rows($result) == 1) // Interpret query result: Do we have exactly one row?
@@ -160,7 +160,7 @@
 
 			// Now we need to get the user's first name and last name (e.g., in order to display them within the login welcome message)
 			$query = "SELECT user_id, first_name, last_name, abbrev_institution, language, last_login FROM $tableUsers WHERE user_id = " . quote_smart($userID); // CONSTRUCT SQL QUERY
-			$result = queryMySQLDatabase($query, ""); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
+			$result = queryMySQLDatabase($query); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
 			$row2 = mysql_fetch_array($result); // EXTRACT results: fetch the one row into the array '$row2'
 
 			// Save the fetched user details to the session file:
@@ -223,7 +223,7 @@
 					. "WHERE user_id = $userID";
 
 			// RUN the query on the database through the connection:
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 
 			if (!ereg("error\.php\?.+|user_login\.php|install\.php", $referer))
@@ -249,7 +249,7 @@
 		// -------------------
 
 		// (5) CLOSE the database connection:
-		disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+		disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 	}
 
 	// --------------------------------------------------------------------
@@ -280,7 +280,7 @@
 
 		// Call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- User Login", "index,follow", "User login page. You must be logged in to the " . encodeHTML($officialDatabaseName) . " in order to add, edit or delete records", "", false, "", $viewType, array());
-		showPageHeader($HeaderString, "");
+		showPageHeader($HeaderString);
 
 		// Build the login form:
 		// Note: we use the fact here, that a page can have both, a GET and POST request.
@@ -320,7 +320,7 @@
 
 		// DISPLAY THE HTML FOOTER:
 		// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-		showPageFooter($HeaderString, "");
+		showPageFooter($HeaderString);
 
 		displayHTMLfoot();
 

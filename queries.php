@@ -65,13 +65,13 @@
 
 	else // the script was called with required parameters
 	{
-		connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+		connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 		// CONSTRUCT SQL QUERY:
 		// Fetch all saved settings for the user's query from the 'queries' table:
 		$query = "SELECT query_id, display_type, view_type, query, show_query, show_links, show_rows, cite_style_selector, cite_order FROM $tableQueries WHERE user_id = " . quote_smart($loginUserID) . " AND query_name = " . quote_smart($querySearchSelector); // the global variable '$loginUserID' gets set in function 'start_session()' within 'include.inc.php'
 
-		$result = queryMySQLDatabase($query, ""); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
+		$result = queryMySQLDatabase($query); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
 
 		$rowsFound = @ mysql_num_rows($result);
 		if ($rowsFound == 1) // if there was exactly one row found (normally, this should be the case) ...
@@ -108,16 +108,17 @@
 					. "last_execution = NOW() " // set 'last_execution' field to the current date & time in 'DATETIME' format (which is 'YYYY-MM-DD HH:MM:SS', e.g.: '2003-12-31 23:45:59')
 					. "WHERE user_id = " . quote_smart($loginUserID) . " AND query_id = " . quote_smart($row['query_id']);
 
-		$updateResult = queryMySQLDatabase($updateQuery, ""); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
+		$updateResult = queryMySQLDatabase($updateQuery); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
 
 		// update the 'userQueries' session variable:
 		getUserQueries($loginUserID); // function 'getUserQueries()' is defined in 'include.inc.php'
 
-		disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+		disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 
 		// Build the correct query URL:
-		$queryURL = "sqlQuery=" . rawurlencode($row['query']) . "&formType=sqlSearch&submit=" . $row['display_type'] . "&viewType=" . $row['view_type'] . "&showQuery=" . $row['show_query'] . "&showLinks=" . $row['show_links'] . "&showRows=" . $row['show_rows'] . "&citeOrder=" . $row['cite_order'] . "&citeStyleSelector=" . $row['cite_style_selector'];
+		// TODO: use function 'generateURL()'
+		$queryURL = "sqlQuery=" . rawurlencode($row['query']) . "&formType=sqlSearch&submit=" . $row['display_type'] . "&viewType=" . $row['view_type'] . "&showQuery=" . $row['show_query'] . "&showLinks=" . $row['show_links'] . "&showRows=" . $row['show_rows'] . "&citeOrder=" . $row['cite_order'] . "&citeStyle=" . $row['cite_style_selector'];
 
 	
 		// call 'search.php' with the correct query URL in order to display all records matching the user's query:

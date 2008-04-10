@@ -68,7 +68,7 @@
 	// --------------------------------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
@@ -204,7 +204,7 @@
 			$query = "SELECT * FROM $tableAuth WHERE email = " . quote_smart($formVars["email"]); // CONSTRUCT SQL QUERY
 
 			// (3) RUN the query on the database through the connection:
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 			if (mysql_num_rows($result) == 1) // (4) Interpret query result: Is it taken?
 				$errors["email"] = "A user already exists with this email address as login name.\n\t\t<br>\n\t\tPlease enter a different one:";
@@ -354,7 +354,7 @@
 		$query = "SELECT first_name, last_name FROM $tableUsers WHERE email = " . quote_smart($adminLoginEmail); // CONSTRUCT SQL QUERY ('$adminLoginEmail' is specified in 'ini.inc.php')
 
 		// (3a) RUN the query on the database through the connection:
-		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		$row = mysql_fetch_array($result); // (3b) EXTRACT results: fetch the current row into the array $row
 
@@ -407,7 +407,7 @@
 	// --------------------------------------------------------------------
 
 	// (3) RUN the query on the database through the connection:
-	$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+	$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 	// ----------------------------------------------
 
@@ -438,7 +438,7 @@
 					. "password = " . quote_smart($stored_password)
 					. " WHERE user_id = " . quote_smart($userID);
 
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 		}
 	}
 
@@ -479,7 +479,7 @@
 		{
 			// get the 'format_id' for the record entry in table 'formats' whose 'format_name' matches that in '$defaultUserExportFormats' (defined in 'ini.inc.php'):
 			$query = "SELECT format_id FROM $tableFormats WHERE format_name = " . quote_smart($defaultUserExportFormat) . " AND format_type = 'export'";
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 			$row = mysql_fetch_array($result);
 
 			// Insert a row with the found format ID for this new user into the 'user_formats' table:
@@ -490,7 +490,7 @@
 		{
 			// get the 'format_id' for the record entry in table 'formats' whose 'format_name' matches that in '$defaultUserCiteFormats' (defined in 'ini.inc.php'):
 			$query = "SELECT format_id FROM $tableFormats WHERE format_name = " . quote_smart($defaultUserCiteFormat) . " AND format_type = 'cite'";
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 			$row = mysql_fetch_array($result);
 
 			// Insert a row with the found format ID for this new user into the 'user_formats' table:
@@ -501,7 +501,7 @@
 		{
 			// get the 'style_id' for the record entry in table 'styles' whose 'style_name' matches that in '$defaultUserStyles' (defined in 'ini.inc.php'):
 			$query = "SELECT style_id FROM $tableStyles WHERE style_name = " . quote_smart($defaultUserStyle);
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 			$row = mysql_fetch_array($result);
 
 			// Insert a row with the found style ID for this new user into the 'user_styles' table:
@@ -512,7 +512,7 @@
 		{
 			// get the 'type_id' for the record entry in table 'types' whose 'type_name' matches that in '$defaultUserTypes' (defined in 'ini.inc.php'):
 			$query = "SELECT type_id FROM $tableTypes WHERE type_name = " . quote_smart($defaultUserType);
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 			$row = mysql_fetch_array($result);
 
 			// Insert a row with the found type ID for this new user into the 'user_types' table:
@@ -529,7 +529,7 @@
 
 		// RUN the queries on the database through the connection:
 		foreach($queryArray as $query)
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		// if EVERYONE who's not logged in is able to add a new user (which is the case if the variable '$addNewUsers' in 'ini.inc.php'
 		// is set to "everyone", see note above!), then we have to make sure that this visitor gets logged into his new
@@ -590,7 +590,7 @@
 	header("Location: user_receipt.php?userID=$userID");
 
 	// (5) CLOSE the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 ?>

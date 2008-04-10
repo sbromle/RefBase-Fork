@@ -101,11 +101,11 @@
 	// --------------------------------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// (3) RUN the queries on the database through the connection:
 	foreach($queryArray as $query)
-		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 	// ----------------------------------------------
 
@@ -119,7 +119,7 @@
 	header("Location: users.php"); // re-direct to the list of users
 
 	// (5) CLOSE the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 ?>
