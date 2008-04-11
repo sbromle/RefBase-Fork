@@ -81,7 +81,7 @@
 
 	// --------------------------------------------------------------------
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -107,20 +107,6 @@
 		$queryID = $_REQUEST['queryID']; // fetch the query ID of the query to edit
 	else
 		$queryID = "";
-
-
-	if (isset($_REQUEST['oldQuery']))
-	{
-		$oldQuery = $_REQUEST['oldQuery']; // get the query URL of the formerly displayed results page (if available) so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-		if (ereg('sqlQuery%3D', $oldQuery)) // if '$oldQuery' still contains URL encoded data... ('%3D' is the URL encoded form of '=', see note below!)
-			$oldQuery = rawurldecode($oldQuery); // ...URL decode old query URL
-											// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
-											//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
-		$oldQuery = stripSlashesIfMagicQuotes($oldQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//		$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
-	}
-	else
-		$oldQuery = ""; // if the 'oldQuery' parameter wasn't set we set the '$oldQuery' variable to the empty string ("") to prevent 'Undefined index: oldQuery...' notification messages
 
 
 	// get the referring URL (if any):
@@ -192,10 +178,10 @@
 
 
 		// (1) OPEN CONNECTION, (2) SELECT DATABASE
-		connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+		connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 		// (3a) RUN the query on the database through the connection:
-		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		if (@ mysql_num_rows($result) == 1) // this condition is added here to avoid the case that editing a query item which got deleted in the meantime invokes a seemingly correct but empty 'edit query' form
 		{
@@ -237,12 +223,12 @@
 			$queryName = $row['query_name'];
 			$displayType = $row['display_type'];
 			$queryViewType = $row['view_type'];
-			$sqlQuery = $row['query'];
 			$showQuery = $row['show_query'];
 			$showLinks = $row['show_links'];
 			$showRows = $row['show_rows'];
 			$citeStyle = encodeHTML($row['cite_style_selector']);
 			$citeOrder = $row['cite_order'];
+			$sqlQuery = $row['query'];
 			$origQueryName = $row['query_name'];
 		}
 		else // $queryAction == "add"
@@ -255,27 +241,27 @@
 			if ($customQuery == "1") // the script was called with parameters
 			{
 				$displayType = $_REQUEST['displayType']; // extract the type of display requested by the user (either 'Display', 'Cite' or '')
-
-				$sqlQuery = $_REQUEST['sqlQuery']; // accept any previous SQL queries
-				$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//				$sqlQuery = str_replace('\"','"',$sqlQuery); // convert \" into "
-//				$sqlQuery = str_replace('\\\\','\\',$sqlQuery);
-
 				$showQuery = $_REQUEST['showQuery']; // extract the $showQuery parameter
 				$showLinks = $_REQUEST['showLinks']; // extract the $showLinks parameter
 				$showRows = $_REQUEST['showRows']; // extract the $showRows parameter
-				$citeStyle = $_REQUEST['citeStyleSelector']; // get the cite style chosen by the user (only occurs in 'extract.php' form and in query result lists)
+				$citeStyle = $_REQUEST['citeStyle']; // get the cite style chosen by the user (only occurs in 'extract.php' form and in query result lists)
 				$citeOrder = $_REQUEST['citeOrder']; // get the citation sort order chosen by the user (only occurs in 'extract.php' form and in query result lists)
+
+				$sqlQuery = $_REQUEST['sqlQuery']; // accept any previous SQL queries
+				$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
 			}
 			else // if there was no previous SQL query provide the default query and options:
 			{
-				$displayType = ""; // ('' will produce the default columnar output style)
-				$sqlQuery = "SELECT author, title, year, created_by, modified_date, modified_time, modified_by FROM $tableRefs WHERE modified_date = CURDATE() ORDER BY modified_date DESC, modified_time DESC";
+				$displayType = ""; // ('' will produce the default view)
 				$showQuery = "0";
 				$showLinks = "1";
 				$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 				$citeStyle = "";
 				$citeOrder = "";
+
+				// TODO: build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
+				$sqlQuery = buildSELECTclause($displayType, $showLinks, "created_by, modified_date, modified_time, modified_by", false, false, $defaultFieldsListViewMajor); // function 'buildSELECTclause()' is defined in 'include.inc.php', and '$defaultFieldsListViewMajor' is defined in 'ini.inc.php'
+				$sqlQuery .= " FROM $tableRefs WHERE modified_date = CURDATE() ORDER BY modified_date DESC, modified_time DESC";
 			}			
 		}
 	}
@@ -286,11 +272,6 @@
 		$queryName = $formVars['queryName'];
 		$displayType = $formVars['displayType'];
 		$queryViewType = $formVars['queryViewType'];
-
-		$sqlQuery = $formVars['sqlQuery'];
-		$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//		$sqlQuery = str_replace('\"','"',$sqlQuery); // convert \" into "
-//		$sqlQuery = str_replace('\\\\','\\',$sqlQuery);
 
 		if (isset($formVars['showQuery']))
 			$showQuery = $formVars['showQuery'];
@@ -304,8 +285,8 @@
 
 		$showRows = $formVars['showRows'];
 
-		if (isset($formVars['citeStyleSelector']))
-			$citeStyle = $formVars['citeStyleSelector'];
+		if (isset($formVars['citeStyle']))
+			$citeStyle = $formVars['citeStyle'];
 		else
 			$citeStyle = "";
 		if (ereg("%20", $citeStyle)) // if '$citeStyle' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
@@ -314,6 +295,9 @@
 														//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
 
 		$citeOrder = $formVars['citeOrder'];
+
+		$sqlQuery = $formVars['sqlQuery'];
+		$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
 
 		if (isset($formVars['origQueryName']))
 			$origQueryName = rawurldecode($formVars['origQueryName']); // get the original query name that was included within a hidden form tag (and since it got URL encoded, we'll need to decode it again)
@@ -350,7 +334,7 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $pageTitle, "index,follow", "Manage queries that are used to search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, $oldQuery);
+	showPageHeader($HeaderString);
 
 	// (2b) Start <form> and <table> holding the form elements:
 	// note: we provide a default value for the 'submit' form tag so that hitting <enter> within a text entry field will act as if the user clicked the 'Add/Edit Query' button
@@ -362,9 +346,8 @@
 <input type="hidden" name="queryAction" value="<?php echo $queryAction; ?>">
 <input type="hidden" name="queryID" value="<?php echo $queryID; ?>">
 <input type="hidden" name="displayType" value="<?php echo $displayType; ?>">
-<input type="hidden" name="citeStyleSelector" value="<?php echo rawurlencode($citeStyle); ?>">
+<input type="hidden" name="citeStyle" value="<?php echo rawurlencode($citeStyle); ?>">
 <input type="hidden" name="citeOrder" value="<?php echo $citeOrder; ?>">
-<input type="hidden" name="oldQuery" value="<?php echo rawurlencode($oldQuery); ?>">
 <input type="hidden" name="origQueryName" value="<?php echo rawurlencode($origQueryName); ?>">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds forms that enable you to manage your custom queries">
 	<tr>
@@ -437,7 +420,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, $oldQuery);
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
