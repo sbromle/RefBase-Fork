@@ -49,14 +49,12 @@
 	$errorNo = $_REQUEST['errorNo'];
 	$errorMsg = $_REQUEST['errorMsg'];
 	$errorMsg = stripSlashesIfMagicQuotes($errorMsg); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//	$errorMsg = ereg_replace("\\\\(['\"])","\\1",$errorMsg); // replace any \" or \' with " or ', respectively
 
 	// Extract the header message that was returned by originating script:
 	$HeaderString = $_REQUEST['headerMsg'];
 	$HeaderString = stripSlashesIfMagicQuotes($HeaderString);
-//	$HeaderString = ereg_replace("(\\\\)+(['\"])","\\2",$HeaderString); // replace any \" or \' with " or ', respectively (Note: the expression '\\\\' describes only *one* backslash! -> '\')
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -64,9 +62,10 @@
 		$viewType = "";
 
 	// Extract generic variables from the request:
-	$oldQuery = $_REQUEST['oldQuery']; // fetch the query URL of the formerly displayed results page so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-	$oldQuery = stripSlashesIfMagicQuotes($oldQuery);
-//	$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
+	if (isset($_SESSION['oldQuery']))
+		$oldQuery = $_SESSION['oldQuery']; // get the query URL of the formerly displayed results page
+	else
+		$oldQuery = "";
 
 	if (isset($_SERVER['HTTP_REFERER']))
 		$referer = $_SERVER['HTTP_REFERER'];
@@ -84,43 +83,40 @@
 	// (4a) DISPLAY header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Error", "noindex,nofollow", "Feedback page that shows any error that occurred while using the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, $oldQuery);
+	showPageHeader($HeaderString);
 
 
-	// URL encode the sqlQuery part within '$oldQuery' while maintaining the rest unencoded(!):
-	$oldQuerySQLPart = preg_replace("/sqlQuery=(.+?)&amp;.+/", "\\1", $oldQuery); // extract the sqlQuery part within '$oldQuery'
-	$oldQueryOtherPart = preg_replace("/sqlQuery=.+?(&amp;.+)/", "\\1", $oldQuery); // extract the remaining part after the sqlQuery
-	$oldQuerySQLPart = rawurlencode($oldQuerySQLPart); // URL encode sqlQuery part within '$oldQuery'
-	$oldQueryPartlyEncoded = "sqlQuery=" . $oldQuerySQLPart . $oldQueryOtherPart; // Finally, we merge everything again
+	// Generate a 'search.php' URL that points to the formerly displayed results page:
+	$oldQueryURL = generateURL("search.php", "html", $oldQuery, true); // function 'generateURL()' is defined in 'include.inc.php'
 
 	// Build appropriate links:
 	$links = "\n<tr>"
-			. "\n\t<td>"
-			. "\n\t\tChoose how to proceed:&nbsp;&nbsp;"
-			. "\n\t\t<a href=\"" . str_replace('&','&amp;',$referer) . "\">Go Back</a>"; // provide a 'go back' link (the following would only work with javascript: <a href=\"javascript:history.back()\">Go Back</a>")
+	       . "\n\t<td>"
+	       . "\n\t\tChoose how to proceed:&nbsp;&nbsp;"
+	       . "\n\t\t<a href=\"" . str_replace('&','&amp;',$referer) . "\">Go Back</a>"; // provide a 'go back' link (the following would only work with javascript: <a href=\"javascript:history.back()\">Go Back</a>")
 
-	if ($oldQuery != "") // only provide a link to any previous search results if '$oldQuery' isn't empty
+	if (!empty($oldQuery)) // only provide a link to any previous search results if '$oldQuery' isn't empty
 		$links .= "\n\t\t&nbsp;&nbsp;-OR-&nbsp;&nbsp;"
-				. "\n\t\t<a href=\"search.php?" . $oldQueryPartlyEncoded . "\">Display previous search results</a>";
+		        . "\n\t\t<a href=\"" . $oldQueryURL . "\">Display previous search results</a>";
 
 	$links .= "\n\t\t&nbsp;&nbsp;-OR-&nbsp;&nbsp;"
-			. "\n\t\t<a href=\"index.php\">Goto " . encodeHTML($officialDatabaseName) . " Home</a>" // we include the link to the home page here
-			. "\n\t</td>"
-			. "\n</tr>";
+	        . "\n\t\t<a href=\"index.php\">Goto " . encodeHTML($officialDatabaseName) . " Home</a>" // we include the link to the home page here
+	        . "\n\t</td>"
+	        . "\n</tr>";
 
 	// SHOW ERROR MESSAGE:
 
-	echo "\n<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\">\n<tr>\n\t<td valign=\"top\"> Error "
-		. $errorNo . " : <b>" . encodeHTML($errorMsg) . "</b>" // function 'encodeHTML()' is defined in 'include.inc.php'
-		. "</td>\n</tr>"
-		. $links		
-		. "\n</table>";
+	echo "\n<table class=\"error\" align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\">\n<tr>\n\t<td valign=\"top\"> Error "
+	   . $errorNo . " : <b>" . encodeHTML($errorMsg) . "</b>" // function 'encodeHTML()' is defined in 'include.inc.php'
+	   . "</td>\n</tr>"
+	   . $links
+	   . "\n</table>";
 
 	// --------------------------------------------------------------------
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, $oldQuery);
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
