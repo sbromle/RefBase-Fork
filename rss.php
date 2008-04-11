@@ -20,6 +20,13 @@
 	// Usage: Perform your query until you've got the desired results. Then, copy the "RSS" link in the header
 	// message of any search results page and use this URL as feed URL when subscribing within your Newsreader.
 
+	// TODO: - support 'startRecord' parameter
+	//       - support 'citeOrder' parameter to allow for sort options other than the current default
+	//         (which equals '$citeOrder="creation-date"' in 'show.php')
+
+	// NOTE: As an alternative to fixing/improving 'rss.php', it may be desirable to add "RSS XML" as a proper
+	//       export format, and let 'show.php' generate the RSS output (this would effectively deprecate 'rss.php');
+	//       However, the drawback would be longer/uglier RSS URLs...
 
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password
@@ -51,15 +58,16 @@
 	else
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
+	// NOTE: while we read out the 'startRecord' parameter, it isn't yet supported by 'rss.php'!
 	if (isset($_REQUEST['startRecord'])) // contains the offset of the first search result, starting with one (OpenSearch equivalent: '{startIndex}')
 		$rowOffset = ($_REQUEST['startRecord']) - 1; // first row number in a MySQL result set is 0 (not 1)
 	else
 		$rowOffset = ""; // if no value to the 'startRecord' parameter is given, we'll output records starting with the first record in the result set
 
-	if (isset($_REQUEST['responseFormat'])) // contains the desired response format; currently, 'rss.php' will only recognize 'rss' (outputs RSS 2.0) or 'osrss' (outputs OpenSearch RSS 2.0), future versions may allow for 'atom' and 'osatom'
-		$responseFormat = $_REQUEST['responseFormat'];
+	if (isset($_REQUEST['recordSchema'])) // contains the desired response format; currently, 'rss.php' will only recognize 'rss' (outputs RSS 2.0), future versions may also allow for 'atom'
+		$recordSchema = $_REQUEST['recordSchema'];
 	else
-		$responseFormat = "rss"; // if no particular response format was requested we'll output found results as RSS 2.0
+		$recordSchema = "rss"; // if no particular response format was requested we'll output found results as RSS 2.0
 
 
 	// Check the correct parameters have been passed:
@@ -72,6 +80,10 @@
 		header("Location: index.php"); // Note: if 'header("Location: " . $_SERVER['HTTP_REFERER'])' is used, the error message won't get displayed! ?:-/
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
+	else
+	{
+		$sanitizedWhereClause = extractWHEREclause(" WHERE " . $queryWhereClause); // attempt to sanitize custom WHERE clause from SQL injection attacks (function 'extractWHEREclause()' is defined in 'include.inc.php')
+	}
 
 	// --------------------------------------------------------------------
 
@@ -82,12 +94,11 @@
 	// Note: the 'verifySQLQuery()' function that gets called below will add the user specific fields to the 'SELECT' clause and the
 	// 'LEFT JOIN...' part to the 'FROM' clause of the SQL query if a user is logged in. It will also add 'orig_record', 'serial', 'file', 'url', 'doi', 'isbn' & 'type' columns
 	// as required. Therefore it's sufficient to provide just the plain SQL query here:
-	$sqlQuery = "SELECT type, author, year, title, publication, abbrev_journal, volume, issue, pages, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, language, author_count, online_publication, online_citation, doi, created_date, created_time, created_by, modified_date, modified_time, modified_by, serial";
+	$sqlQuery = buildSELECTclause("RSS", "1", "", false, false); // function 'buildSELECTclause()' is defined in 'include.inc.php'
 
-	$sqlQuery .= " FROM $tableRefs WHERE " . $queryWhereClause; // add FROM clause and the specified WHERE clause
+	$sqlQuery .= " FROM $tableRefs WHERE " . $sanitizedWhereClause; // add FROM clause and the specified WHERE clause
 
 	$sqlQuery .= " ORDER BY created_date DESC, created_time DESC, modified_date DESC, modified_time DESC, serial DESC"; // sort records such that newly added/edited records get listed top of the list
-
 
 	// since a malicious user could change the 'where' parameter manually to gain access to user-specific data of other users, we'll run the SQL query thru the 'verifySQLQuery()' function:
 	// (this function does also add/remove user-specific query code as required and will fix problems with escape sequences within the SQL query)
@@ -103,18 +114,18 @@
 	// --------------------------------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
 	// (3) RUN the query on the database through the connection:
-	$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+	$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 	// find out how many rows are available:
 	$rowsFound = @ mysql_num_rows($result);
 
 	// construct a meaningful channel description based on the specified 'WHERE' clause:
-	$rssChannelDescription = "Displays all newly added records where " . explainSQLQuery($queryWhereClause) . "."; // function 'explainSQLQuery()' is defined in 'include.inc.php'
+	$rssChannelDescription = "Displays all newly added records where " . explainSQLQuery($sanitizedWhereClause) . "."; // function 'explainSQLQuery()' is defined in 'include.inc.php'
 
 	// Generate RSS XML data from the result set (upto the limit given in '$showRows'):
 	$rssFeed = generateRSS($result, $showRows, $rssChannelDescription); // function 'generateRSS()' is defined in 'include.inc.php'
@@ -129,7 +140,7 @@
 	// --------------------------------------------------------------------
 
 	// (5) CLOSE the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 ?>
