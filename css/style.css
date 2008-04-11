@@ -183,8 +183,11 @@ h2, h3 {
 	
 }
 
-hr.resultsfooter {
+hr.resultsheader, hr.resultsfooter {
 	width: 93%;
+	background-color: #DEDEDE;
+	height: 1px;
+	border: 0;
 }
 
 div.resultsfooter {
