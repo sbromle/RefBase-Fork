@@ -101,7 +101,7 @@
 	else
 		$displayType = "";
 
-	// For a given display type, extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// For a given display type, extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($formVars['queryViewType']))
 		$queryViewType = $formVars['queryViewType'];
@@ -134,8 +134,8 @@
 	else
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
-	if (isset($formVars['citeStyleSelector']))
-		$citeStyle = $formVars['citeStyleSelector']; // get the cite style chosen by the user
+	if (isset($formVars['citeStyle']))
+		$citeStyle = $formVars['citeStyle']; // get the cite style chosen by the user
 	else
 		$citeStyle = "";
 	if (ereg("%20", $citeStyle)) // if '$citeStyle' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
@@ -148,19 +148,6 @@
 	else
 		$citeOrder = "";
 
-	if (isset($formVars['oldQuery']))
-	{
-		$oldQuery = $formVars['oldQuery']; // fetch the query URL of the formerly displayed results page so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-		if (ereg('sqlQuery%3D', $oldQuery)) // if '$oldQuery' still contains URL encoded data... ('%3D' is the URL encoded form of '=', see note below!)
-			$oldQuery = rawurldecode($oldQuery); // ...URL decode old query URL (it was URL encoded before incorporation into a hidden tag of the 'record' form to avoid any HTML syntax errors)
-											// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_POST'!
-											//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
-		$oldQuery = stripSlashesIfMagicQuotes($oldQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//		$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
-	}
-	else
-		$oldQuery = "";
-
 
 	if (isset($formVars['origQueryName']))
 		$origQueryName = rawurldecode($formVars['origQueryName']); // get the original query name that was included within a hidden form tag (and since it got URL encoded, we'll need to decode it again)
@@ -170,7 +157,7 @@
 	// --------------------------------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase($oldQuery); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
@@ -190,7 +177,7 @@
 	{
 		$query = "SELECT query_id, query_name FROM $tableQueries WHERE user_id = $loginUserID AND query_name = '$queryName'"; // the global variable '$loginUserID' gets set in function 'start_session()' within 'include.inc.php'
 
-		$result = queryMySQLDatabase($query, ""); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
+		$result = queryMySQLDatabase($query); // RUN the query on the database through the connection (function 'queryMySQLDatabase()' is defined in 'include.inc.php')
 
 		if (@ mysql_num_rows($result) > 0) // if there's already a saved query (belonging to this user) with exactly the same name
 			$errors["queryName"] = "You've got already a query with that name!<br>Please choose a different name:"; // the user's query name must be unique (since the query popup of the 'Recall My Query' form on the main page uses the query's name to recall a particular query)
@@ -271,7 +258,7 @@
 	// (3) RUN QUERY, (4) DISPLAY HEADER & RESULTS
 
 	// (3) RUN the query on the database through the connection:
-	$result = queryMySQLDatabase($query, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+	$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 	if (ereg("^(edit|delet)$", $queryAction))
 	{
@@ -318,7 +305,7 @@
 	// --------------------------------------------------------------------
 
 	// (5) CLOSE CONNECTION
-	disconnectFromMySQLDatabase($oldQuery); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 ?>
