@@ -62,7 +62,7 @@
 
 	// --------------------------------------------------------------------
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -120,10 +120,13 @@
 	$selectedFieldsArray = array("author", "title", "year", "publication", "volume", "pages");
 
 	// default SQL query:
+	// TODO: build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
+	$sqlQuery = buildSELECTclause("", "", "", false, false); // function 'buildSELECTclause()' is defined in 'include.inc.php'
+
 	if (isset($_SESSION['loginEmail']))
-		$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE location RLIKE \"" . $loginEmail . "\" ORDER BY year DESC, author"; // '$loginEmail' is defined in function 'start_session()' (in 'include.inc.php')
+		$sqlQuery .= " FROM $tableRefs WHERE location RLIKE \"" . $loginEmail . "\" ORDER BY year DESC, author"; // '$loginEmail' is defined in function 'start_session()' (in 'include.inc.php')
 	else
-		$sqlQuery = "SELECT author, title, year, publication, volume, pages FROM $tableRefs WHERE serial RLIKE \".+\" ORDER BY year DESC, author";
+		$sqlQuery .= " FROM $tableRefs WHERE serial RLIKE \".+\" ORDER BY year DESC, author";
 
 	// default search options:
 	$ignoreWhitespace = "1";
@@ -133,8 +136,8 @@
 	$nonASCIICharsSelected = "strip";
 
 	// default display options:
+	$displayType = $defaultView; // defined in 'ini.inc.php'
 	$showLinks = "1";
-
 	$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 	// b) The default query and options are overwritten if the script was called with parameters or if there were some errors on submit:
@@ -155,8 +158,6 @@
 		{
 			$sqlQuery = $_REQUEST['sqlQuery']; // accept any previous SQL queries
 			$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//			$sqlQuery = str_replace('\"','"',$sqlQuery); // convert \" into "
-//			$sqlQuery = str_replace('\\\\','\\',$sqlQuery);
 		}
 
 		// extract search options:
@@ -176,6 +177,9 @@
 			$nonASCIICharsSelected = $_REQUEST['nonASCIIChars'];
 
 		// extract display options:
+		if (isset($_REQUEST['originalDisplayType']))
+			$displayType = $_REQUEST['originalDisplayType']; // extract the type of display requested by the user (either 'Display', 'Cite', 'List' or '')
+
 		if (isset($_REQUEST['showLinks']))
 			$showLinks = $_REQUEST['showLinks'];
 
@@ -193,9 +197,7 @@
 		if (isset($formVars['sqlQuery']))
 		{
 			$sqlQuery = $formVars['sqlQuery'];
-			$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//			$sqlQuery = str_replace('\"','"',$sqlQuery); // convert \" into "
-//			$sqlQuery = str_replace('\\\\','\\',$sqlQuery);
+			$sqlQuery = stripSlashesIfMagicQuotes($sqlQuery);
 		}
 
 		// load search options:
@@ -215,6 +217,9 @@
 			$nonASCIICharsSelected = $formVars['nonASCIIChars'];
 
 		// load display options:
+		if (isset($formVars['originalDisplayType']))
+			$displayType = $formVars['originalDisplayType'];
+
 		if (isset($formVars['showLinks']))
 			$showLinks = $formVars['showLinks'];
 
@@ -325,14 +330,15 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . "Find Duplicates", "index,follow", "Search for duplicates within the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, $oldQuery);
+	showPageHeader($HeaderString);
 
 	// (2b) Start <form> and <table> holding the form elements:
 	// note: we provide a default value for the 'submit' form tag so that hitting <enter> within a text entry field will act as if the user clicked the 'Add/Edit Query' button
 ?>
 
-<form action="search.php" method="POST">
+<form action="search.php" method="GET">
 <input type="hidden" name="formType" value="duplicateSearch">
+<input type="hidden" name="originalDisplayType" value="<?php echo $displayType; ?>">
 <input type="hidden" name="submit" value="Find Duplicates">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds a form that lets you search for duplicate records">
 	<tr>
@@ -391,7 +397,7 @@
 	<tr>
 		<td valign="top"><b>Help:</b></td>
 		<td>&nbsp;</td>
-		<td>Modify the elements of this form as needed and click the <em>Find Duplicates</em> button. You can use the field selector to specify which fields shall be considered when matching records. The search options allow you to normalize field contents before comparison. The SQL query string defines the scope of the duplicate search and specifies the columns that will be displayed in the results list.</td>
+		<td>Modify the elements of this form as needed and click the <em>Find Duplicates</em> button. You can use the field selector to specify which fields shall be considered when matching records. The search options allow you to normalize field contents before comparison. The SQL query string defines the scope of the duplicate search and (in case of List view) specifies the columns that will be displayed in the results list.</td>
 	</tr>
 	<tr>
 		<td valign="top">&nbsp;</td>
@@ -414,7 +420,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, $oldQuery);
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
