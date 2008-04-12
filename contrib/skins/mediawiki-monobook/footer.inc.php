@@ -19,7 +19,7 @@
 	// --------------------------------------------------------------------
 
 	// Displays the visible footer:
-	function showPageFooter($HeaderString, $oldQuery)
+	function showPageFooter($HeaderString)
 	{
 		global $officialDatabaseName; // usage example: <a href="index.php">[? echo encodeHTML($officialDatabaseName); ?]</a>
 		global $hostInstitutionAbbrevName; // usage example: <a href="[? echo $hostInstitutionURL; ?]">[? echo encodeHTML($hostInstitutionAbbrevName); ?] Home</a>
@@ -59,7 +59,7 @@
                 // ... include a link to 'record.php?recordAction=add...':
 ?>
 
-                <LI id="ca-watch"><a href="record.php?recordAction=add&amp;oldQuery=<? echo rawurlencode($oldQuery); ?>" title="add a record to the database">Add Record</a>
+                <LI id="ca-watch"><a href="record.php?recordAction=add" title="add a record to the database">Add Record</a>
                 <?php
                 }
 
@@ -162,7 +162,7 @@ href="/index.php/Special:Randompage">Random page</a></li>
                 // ... include a link to 'record.php?recordAction=add...':
 ?>
 
-                <LI><a href="record.php?recordAction=add&amp;oldQuery=<? echo rawurlencode($oldQuery); ?>" title="add a record to the database">Add Record</a>
+                <LI><a href="record.php?recordAction=add" title="add a record to the database">Add Record</a>
                 <?php
                 }
 

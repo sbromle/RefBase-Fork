@@ -12,6 +12,7 @@
 		global $contentTypeCharset; // these variables are specified in 'ini.inc.php' 
 		global $defaultStyleSheet;
 		global $printStyleSheet;
+		global $mobileStyleSheet;
 		global $databaseBaseURL;
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -92,7 +93,7 @@
 	// --------------------------------------------------------------------
 
 	// Displays the visible header:
-	function showPageHeader($HeaderString, $oldQuery)
+	function showPageHeader($HeaderString)
 	{
 		global $officialDatabaseName; // these variables are defined in 'ini.inc.php'
 		global $hostInstitutionAbbrevName;
