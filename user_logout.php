@@ -86,6 +86,24 @@
 
 		if (isset($_SESSION['HeaderString']))
 			deleteSessionVariable("HeaderString"); // clear any previous messages
+
+		if (isset($_SESSION['cqlQuery']))
+			deleteSessionVariable("cqlQuery"); // clear any stored OpenSearch/CQL query
+
+		if (isset($_SESSION['oldQuery']))
+			deleteSessionVariable("oldQuery"); // clear any query URL pointing to the formerly displayed results page
+
+		if (isset($_SESSION['oldMultiRecordQuery']))
+			deleteSessionVariable("oldMultiRecordQuery"); // clear any query URL pointing to the last multi-record query
+
+		if (isset($_SESSION['lastListViewQuery']))
+			deleteSessionVariable("lastListViewQuery"); // clear any SQL query generated for the last List view
+
+//		if (isset($_SESSION['lastDetailsViewQuery']))
+//			deleteSessionVariable("lastDetailsViewQuery"); // clear any SQL query generated for the last Details view
+
+//		if (isset($_SESSION['lastCitationViewQuery']))
+//			deleteSessionVariable("lastCitationViewQuery"); // clear any SQL query generated for the last Citation view
 	}
 	else
 	{
