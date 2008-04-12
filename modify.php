@@ -179,18 +179,21 @@
 
 	// if we made it here, we assume that the user is allowed to perform the current record action
 
-	// Extract generic variables from the request:
-	$oldQuery = $formVars['oldQuery']; // fetch the query URL of the formerly displayed results page so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-	if (ereg('sqlQuery%3D', $oldQuery)) // if '$oldQuery' still contains URL encoded data... ('%3D' is the URL encoded form of '=', see note below!)
-		$oldQuery = rawurldecode($oldQuery); // ...URL decode old query URL (it was URL encoded before incorporation into a hidden tag of the 'record' form to avoid any HTML syntax errors)
-										// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_POST'!
-										//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
-	$oldQuery = stripSlashesIfMagicQuotes($oldQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//	$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
+	// Get the query URL of the formerly displayed results page:
+	if (isset($_SESSION['oldQuery']))
+		$oldQuery = $_SESSION['oldQuery'];
+	else
+		$oldQuery = "";
+
+	// Get the query URL of the last multi-record query:
+	if (isset($_SESSION['oldMultiRecordQuery']))
+		$oldMultiRecordQuery = $_SESSION['oldMultiRecordQuery'];
+	else
+		$oldMultiRecordQuery = "";
 
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase($oldQuery); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 
 	// Extract all form values provided by 'record.php':
@@ -270,7 +273,7 @@
 	{
 		$queryFile = "SELECT file FROM $tableRefs WHERE serial = " . quote_smart($serialNo);
 
-		$result = queryMySQLDatabase($queryFile, ""); // RUN the query on the database through the connection
+		$result = queryMySQLDatabase($queryFile); // RUN the query on the database through the connection
 		$row = @ mysql_fetch_array($result);
 
 		$fileName = $row["file"];
@@ -743,7 +746,7 @@
 			$query = "SELECT data_id FROM $tableUserData WHERE record_id = " . quote_smart($serialNo) . " AND user_id = " . quote_smart($loginUserID); // '$loginUserID' is provided as session variable
 
 			// (3) RUN the query on the database through the connection:
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 			if (mysql_num_rows($result) == 1) // if there's already an existing user_data entry, we perform an UPDATE action:
 				$queryUserData = "UPDATE $tableUserData SET "
@@ -921,15 +924,15 @@
 	// (3) RUN the query on the database through the connection:
 	if ($recordAction == "edit")
 	{
-		$result = queryMySQLDatabase($queryRefs, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($queryRefs); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
-		$result = queryMySQLDatabase($queryUserData, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($queryUserData); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		getUserGroups($tableUserData, $loginUserID); // update the 'userGroups' session variable (function 'getUserGroups()' is defined in 'include.inc.php')
 	}
 	elseif ($recordAction == "add")
 	{
-		$result = queryMySQLDatabase($queryRefs, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($queryRefs); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		// Get the record id that was created
 		$serialNo = @ mysql_insert_id($connection); // find out the unique ID number of the newly created record (Note: this function should be called immediately after the
@@ -946,7 +949,7 @@
 
 			$queryRefsUpdateFileName = "UPDATE $tableRefs SET file = " . quote_smart($fileName) . " WHERE serial = " . quote_smart($serialNo);
 
-			$result = queryMySQLDatabase($queryRefsUpdateFileName, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($queryRefsUpdateFileName); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 		}
 
 		$queryUserData = "INSERT INTO $tableUserData SET "
@@ -964,7 +967,7 @@
 				. "data_id = NULL"; // inserting 'NULL' into an auto_increment PRIMARY KEY attribute allocates the next available key value
 
 
-		$result = queryMySQLDatabase($queryUserData, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($queryUserData); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		getUserGroups($tableUserData, $loginUserID); // update the 'userGroups' session variable (function 'getUserGroups()' is defined in 'include.inc.php')
 
@@ -1025,25 +1028,81 @@
 	}
 	else // '$recordAction' is "delet" (Note that if you delete the mother record within the 'refs' table, the corresponding child entry within the 'user_data' table will remain!)
 	{
-		$result = queryMySQLDatabase($queryDeleted, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($queryDeleted); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
-		$result = queryMySQLDatabase($queryRefs, $oldQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($queryRefs); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 	}
+
 
 	// Build correct header message:
 	$headerMsg = "The record no. " . $serialNo . " has been successfully " . $recordAction . "ed.";
 
+	// Append a "Display previous search results" link to the feedback header message if it will be displayed above a single record that was added/edited last:
+	if (!empty($oldMultiRecordQuery))
+	{
+		// Remove any previous 'headerMsg' parameter from the saved query URL:
+		unset($oldMultiRecordQuery["headerMsg"]);
 
-	// (4) Call 'receipt.php' which displays links to the modifyed/added record as well as to the previous search results page (if any)
-	//     (routing feedback output to a different script page will avoid any reload problems effectively!)
-	header("Location: receipt.php?recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg) . "&oldQuery=" . rawurlencode($oldQuery));
+		// After a record has been successfully added/edited/deleted, we include a link to the last multi-record query in the feedback header message if:
+		// 1) the SQL query in 'oldQuery' is different from that one stored in 'oldMultiRecordQuery', i.e. if 'oldQuery' points to a single record -OR-
+		// 2) one or more new records have been added/imported
+		if ((!empty($oldQuery) AND ($oldQuery["sqlQuery"] != $oldMultiRecordQuery["sqlQuery"]) AND ($recordAction != "delet")) OR ($recordAction == "add"))
+		{
+			// Generate a 'search.php' URL that points to the last multi-record query:
+			$oldMultiRecordQueryURL = generateURL("search.php", "html", $oldMultiRecordQuery, true); // function 'generateURL()' is defined in 'include.inc.php'
+
+			// Append a link to the previous search results to the feedback header message:
+			$headerMsg .= " <a href=\"" . $oldMultiRecordQueryURL . "\">Display previous search results</a>.";
+		}
+	}
+
+	// Save the header message to a session variable:
+	// NOTE: Opposed to single-record feedback (or the 'receipt.php' feedback), we don't include the header message within the 'headerMsg' URL parameter when
+	//       displaying the message above the last multi-record query. If we save the header message to a session variable ("HeaderString") this causes the
+	//       receiving script ("search.php") to display it just once; if we'd instead include the header message within the 'headerMsg' parameter, it would
+	//       be displayed above results of the last multi-record query even when the user browses to another search results page or changes the sort order.
+	$HeaderString = returnMsg($headerMsg, "", "", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
+
+
+	if ($recordAction == "add")
+	{
+		// Display the newly added record:
+		header("Location: show.php?record=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg));
+	}
+	elseif ($recordAction == "delet")
+	{
+		// Generate a 'search.php' URL that points to the last multi-record query:
+		$oldMultiRecordQueryURL = generateURL("search.php", "html", $oldMultiRecordQuery, false);
+
+		// Display the previous search results:
+		header("Location: $oldMultiRecordQueryURL");
+	}
+	elseif (!empty($oldQuery))
+	{
+		// Remove any previous 'headerMsg' parameter from the saved query URL:
+		unset($oldQuery["headerMsg"]);
+
+		// Generate a 'search.php' URL that points to the formerly displayed results page:
+		$queryURL = generateURL("search.php", "html", $oldQuery, false);
+
+		// Route back to the previous results display:
+		// (i.e., after submission of the edit mask, we now go straight back to the results list that was displayed previously,
+		//  no matter what display type it was (List view, Citation view, or Details view))
+		header("Location: $queryURL");
+	}
+	else // old method that uses 'receipt.php' for feedback:
+	{
+		// (4) Call 'receipt.php' which displays links to the modifyed/added record as well as to the previous search results page (if any)
+		//     (routing feedback output to a different script page will avoid any reload problems effectively!)
+		header("Location: receipt.php?recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg));
+	}
 
 	// --------------------------------------------------------------------
 
 	// (5) CLOSE CONNECTION
 
 	// (5) CLOSE the database connection:
-	disconnectFromMySQLDatabase($oldQuery); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
