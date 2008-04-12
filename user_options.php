@@ -18,7 +18,10 @@
 
 	// This script provides options which are individual for each user.
 	// 
-	// TODO: I18n, more encodeHTML fixes?
+	// TODO: - I18n, more encodeHTML fixes?
+	//       - refbase should automatically switch to a view that's supported for the current user
+	//         (e.g. handle the combination of 'allow_list_view=NO' and '$defaultView=List');
+	//         this may be best solved by a user-specific default view setting + some JavaScript magic
 
 
 	// Incorporate some include files:
@@ -63,7 +66,7 @@
 	// --------------------------------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
@@ -87,7 +90,7 @@
 	// --------------------------------------------------------------------
 
 	// Set the '$userID' variable:
-	if (isset($_REQUEST['userID'])) // for normal users NOT being logged in -OR- for the admin:
+	if (isset($_REQUEST['userID']) AND ereg("^[0-9]+$", $_REQUEST['userID'])) // for normal users NOT being logged in -OR- for the admin:
 		$userID = $_REQUEST['userID'];
 	else
 		$userID = NULL; // '$userID = ""' wouldn't be correct here, since then any later 'isset($userID)' statement would resolve to true!
@@ -123,6 +126,22 @@
 
 	// --------------------------------------------------------------------
 
+	// Check if the logged-in user is allowed to modify his account options:
+	if (isset($_SESSION['loginEmail']) AND preg_match("/^\d+$/", $userID) AND isset($_SESSION['user_permissions']) AND !ereg("allow_modify_options", $_SESSION['user_permissions'])) // if a user is logged in but the 'user_permissions' session variable does NOT contain 'allow_modify_options'...
+	{
+		// save an error message:
+		$HeaderString = "<b><span class=\"warning\">You have no permission to modify your user account options!</span></b>";
+
+		// Write back session variables:
+		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+
+		// Redirect the browser back to the main page
+		header("Location: index.php");
+		exit;
+	}
+
+	// --------------------------------------------------------------------
+
 	// Set header message:
 	if (!isset($_SESSION['HeaderString'])) // if there's no stored message available
 	{
@@ -139,7 +158,7 @@
 		deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -151,7 +170,7 @@
 	$query = "SELECT first_name, last_name, email, language FROM $tableUsers WHERE user_id = " . quote_smart($userID);
 
 	// (3a) RUN the query on the database through the connection:
-	$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+	$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 	// (3b) EXTRACT results:
 	$row = mysql_fetch_array($result); // fetch the current row into the array $row
@@ -169,7 +188,7 @@
 	// (4) DISPLAY header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- User Options", "noindex,nofollow", "User options offered by the " . encodeHTML($officialDatabaseName), "\n\t<meta http-equiv=\"expires\" content=\"0\">", true, "", $viewType, array());
-	showPageHeader($HeaderString, "");
+	showPageHeader($HeaderString);
 
 	// --------------------------------------------------------------------
 
@@ -198,12 +217,12 @@
 	{
 		// Get all languages that were setup and enabled by the admin:
 		$languagesArray = getLanguages(""); // function 'getLanguages()' is defined in 'include.inc.php'
-		$languagePopupDisabled = "";
+		$fieldDisabled = "";
 	}
 	else // if '$userID == 0' which indicates a user not being logged in
 	{
 		$languagesArray = array($defaultLanguage); // for a user who's not logged in, we fall back to the default language (defined in 'ini.inc.php')
-		$languagePopupDisabled = " disabled"; // disable the language popup if the user isn't logged in
+		$fieldDisabled = " disabled"; // disable some fields if the user isn't logged in (in which case the display language, no. of records per page & the "main fields" search option will be taken from global variables in 'ini.inc.php')
 	}
 
 	$languageOptionTags = buildSelectMenuOptions($languagesArray, " *; *", "\t\t\t", false); // build properly formatted <option> tag elements from language items returned by function 'getLanguages()'
@@ -389,7 +408,7 @@
 	<td align="left" width="169">Use language:</td>
 	<td><?php echo fieldError("languageName", $errors); ?>
 
-		<select name="languageName"<?php echo $languagePopupDisabled; ?>><?php echo $languageOptionTags; ?>
+		<select name="languageName"<?php echo $fieldDisabled; ?>><?php echo $languageOptionTags; ?>
 
 		</select>
 	</td>
@@ -399,7 +418,7 @@
 	<td align="left">Show records per page:</td>
 	<td><?php echo fieldError("recordsPerPageNo", $errors); ?>
 
-		<input type="text" name="recordsPerPageNo" value="<?php echo encodeHTML($recordsPerPage); ?>" size="5">
+		<input type="text" name="recordsPerPageNo" value="<?php echo encodeHTML($recordsPerPage); ?>" size="5"<?php echo $fieldDisabled; ?>>
 	</td>
 </tr>
 <tr>
@@ -447,7 +466,7 @@
 	<td align="left" valign="top">"Main fields" searches:</td>
 	<td valign="top"><?php echo fieldError("mainFieldsSelector", $errors); ?>
 
-		<select name="mainFieldsSelector[]" multiple><?php echo $mainFieldsOptionTags; ?>
+		<select name="mainFieldsSelector[]" multiple<?php echo $fieldDisabled; ?>><?php echo $mainFieldsOptionTags; ?>
 
 		</select>
 	</td>
@@ -586,6 +605,11 @@
 		else
 			$allowUploadChecked = "";
 
+		if ($userPermissionsArray['allow_list_view'] == 'yes')
+			$allowListViewChecked = " checked";
+		else
+			$allowListViewChecked = "";
+
 		if ($userPermissionsArray['allow_details_view'] == 'yes')
 			$allowDetailsViewChecked = " checked";
 		else
@@ -691,16 +715,27 @@
 <tr>
 	<td align="left"></td>
 	<td>
-		<input type="checkbox" name="allow_details_view" value="yes"<?php echo $allowDetailsViewChecked; ?>>&nbsp;&nbsp;Details view
+		<input type="checkbox" name="allow_list_view" value="yes"<?php echo $allowListViewChecked; ?>>&nbsp;&nbsp;List view
 	</td>
 	<td>
-		<input type="checkbox" name="allow_sql_search" value="yes"<?php echo $allowSQLSearchChecked; ?>>&nbsp;&nbsp;SQL search
+		<input type="checkbox" name="allow_print_view" value="yes"<?php echo $allowPrintViewChecked; ?>>&nbsp;&nbsp;Print view
 	</td>
 </tr>
 <tr>
 	<td align="left"></td>
 	<td>
-		<input type="checkbox" name="allow_print_view" value="yes"<?php echo $allowPrintViewChecked; ?>>&nbsp;&nbsp;Print view
+		<input type="checkbox" name="allow_details_view" value="yes"<?php echo $allowDetailsViewChecked; ?>>&nbsp;&nbsp;Details view
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td colspan="2"></td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td>
+		<input type="checkbox" name="allow_sql_search" value="yes"<?php echo $allowSQLSearchChecked; ?>>&nbsp;&nbsp;SQL search
 	</td>
 	<td></td>
 </tr>
@@ -783,7 +818,7 @@
 	// --------------------------------------------------------------------
 
 	// (5) CLOSE the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// SHOW ERROR IN RED:
 	function fieldError($fieldName, $errors)
@@ -796,7 +831,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, "");
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
