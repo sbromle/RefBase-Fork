@@ -44,7 +44,7 @@
 	// --------------------------------------------------------------------
 
 	// Extract the 'userID' parameter from the request:
-	if (isset($_REQUEST['userID']))
+	if (isset($_REQUEST['userID']) AND ereg("^-?[0-9]+$", $_REQUEST['userID']))
 		$userID = $_REQUEST['userID'];
 	else
 		$userID = ""; // we do it for clarity reasons here (and in order to prevent any 'Undefined variable...' messages)
@@ -76,7 +76,21 @@
 		// Write back session variables:
 		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 
-		// Redirect the browser back to the calling page
+		// Redirect the browser back to the main page
+		header("Location: index.php"); // Note: if 'header("Location: " . $_SERVER['HTTP_REFERER'])' is used, the error message won't get displayed! ?:-/
+		exit;
+	}
+
+	// Check if the logged-in user is allowed to modify his account details and options
+	if (isset($_SESSION['loginEmail']) AND preg_match("/^\d+$/", $userID) AND isset($_SESSION['user_permissions']) AND !ereg("allow_modify_options", $_SESSION['user_permissions'])) // if a user is logged in but the 'user_permissions' session variable does NOT contain 'allow_modify_options'...
+	{
+		// save an error message:
+		$HeaderString = "<b><span class=\"warning\">You have no permission to modify your user account details and options!</span></b>";
+
+		// Write back session variables:
+		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+
+		// Redirect the browser back to the main page
 		header("Location: index.php"); // Note: if 'header("Location: " . $_SERVER['HTTP_REFERER'])' is used, the error message won't get displayed! ?:-/
 		exit;
 	}
@@ -84,7 +98,7 @@
 	// --------------------------------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
@@ -132,7 +146,7 @@
 	else // otherwise we simply assume an 'edit' action, no matter what was passed to the script (thus, no regular user will be able to delete a user)
 		$userAction = "Edit";
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -153,7 +167,7 @@
 	// ----------------------------------------------
 
 	// (5) CLOSE the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
@@ -182,7 +196,7 @@
 
 		// Call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- User Receipt", "noindex,nofollow", "Receipt page confirming correct submission of new user details to the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-		showPageHeader($HeaderString, "");
+		showPageHeader($HeaderString);
 
 		$confirmationText = "Thanks for your interest in the " . encodeHTML($officialDatabaseName) . "!"
 		                  . "<br><br>The data you provided have been sent to our database admin."
@@ -220,7 +234,7 @@
 		$query = "SELECT * FROM $tableUsers WHERE user_id = " . quote_smart($userID);
 
 		// (3) RUN the query on the database through the connection:
-		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		// (4) EXTRACT results (since 'user_id' is the unique primary key for the 'users' table, there will be only one matching row)
 		$row = @ mysql_fetch_array($result);
@@ -243,7 +257,7 @@
 
 		// Call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- User Receipt", "noindex,nofollow", "Receipt page confirming correct entry of user details and options for the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-		showPageHeader($HeaderString, "");
+		showPageHeader($HeaderString);
 
 		// Start main table:
 		echo "\n<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\" summary=\"This table displays user account details and options\">";
@@ -518,6 +532,7 @@
 														   'allow_delete'           => 'UserPermission_AllowDelete',
 														   'allow_download'         => 'UserPermission_AllowDownload',
 														   'allow_upload'           => 'UserPermission_AllowUpload',
+														   'allow_list_view'        => 'UserPermission_AllowListView',
 														   'allow_details_view'     => 'UserPermission_AllowDetailsView',
 														   'allow_print_view'       => 'UserPermission_AllowPrintView',
 														   'allow_browse_view'      => 'UserPermission_AllowBrowseView',
@@ -587,7 +602,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, "");
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
