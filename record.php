@@ -85,15 +85,6 @@
 	else
 		$serialNo = ""; // this is actually unneccessary, but we do it for clarity reasons here
 
-	if (isset($_REQUEST['oldQuery']))
-		$oldQuery = $_REQUEST['oldQuery']; // fetch the query URL of the formerly displayed results page so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-	else
-		$oldQuery = ""; // if the 'oldQuery' parameter wasn't set we set the '$oldQuery' variable to the empty string ("") to prevent 'Undefined index: oldQuery...' notification messages
-	
-	$oldQuery = stripSlashesIfMagicQuotes($oldQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//	$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
-//	$oldQuery = ereg_replace('(\\\\)+','\\\\',$oldQuery);
-
 	// Setup some required variables:
 
 	// If there's no stored message available:
@@ -124,7 +115,7 @@
 		deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -177,19 +168,18 @@
 	if ($recordAction == "edit")
 	{
 		// for the selected record, select *all* available fields:
-		// (note: we also add the 'serial' column at the end in order to provide standardized input [compare processing of form 'sql_search.php' in 'search.php'])
+		$query = buildSELECTclause("Edit", "1"); // function 'buildSELECTclause()' is defined in 'include.inc.php'
+
 		if (isset($_SESSION['loginEmail'])) // if a user is logged in, show user specific fields:
-			$query = "SELECT author, title, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, approved, notes, file, serial, location, type, call_number, created_date, created_time, created_by, modified_date, modified_time, modified_by, orig_record, contribution_id, online_publication, online_citation, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related, serial, url, doi"
-					. " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id =" . quote_smart($loginUserID) . " WHERE serial RLIKE " . quote_smart("^(" . $serialNo . ")$"); // since we'll only fetch one record, the ORDER BY clause is obsolete here
+			$query .= " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id =" . quote_smart($loginUserID) . " WHERE serial RLIKE " . quote_smart("^(" . $serialNo . ")$"); // since we'll only fetch one record, the ORDER BY clause is obsolete here
 		else // if NO user logged in, don't display any user specific fields:
-			$query = "SELECT author, title, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, approved, notes, file, serial, location, type, call_number, created_date, created_time, created_by, modified_date, modified_time, modified_by, orig_record, contribution_id, online_publication, online_citation, serial, url, doi"
-					. " FROM $tableRefs WHERE serial RLIKE " . quote_smart("^(" . $serialNo . ")$"); // since we'll only fetch one record, the ORDER BY clause is obsolete here
+			$query .= " FROM $tableRefs WHERE serial RLIKE " . quote_smart("^(" . $serialNo . ")$"); // since we'll only fetch one record, the ORDER BY clause is obsolete here
 	}
 
 	// --------------------------------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// Initialize some variables (to prevent "Undefined variable..." messages):
 	$isEditorCheckBox = "";
@@ -199,7 +189,7 @@
 	if ($recordAction == "edit" AND empty($errors))
 		{
 			// (3a) RUN the query on the database through the connection:
-			$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 			if (@ mysql_num_rows($result) == 1) // this condition is added here to avoid the case that clicking on a search result item which got deleted in the meantime invokes a seemingly correct but empty 'edit record' search form
 			{
@@ -361,12 +351,8 @@
 			{
 
 				foreach($_REQUEST as $varname => $value)
-				{
 					// remove slashes from parameter values if 'magic_quotes_gpc = On':
 					$_REQUEST[$varname] = stripSlashesIfMagicQuotes($value); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-
-//					$_REQUEST[$varname] = preg_replace("/\\\\([\"'])/", "\\1", $value); // replace any \" with " and any \' with '
-				}
 
 				// read field data from a GET/POST request:
 				if (isset($_REQUEST['author']))
@@ -591,12 +577,8 @@
 				if (!empty($errors)) // ...there were some errors on submit. -> Re-load the data that were submitted by the user:
 				{
 					foreach($formVars as $varname => $value)
-					{
 						// remove slashes from parameter values if 'magic_quotes_gpc = On':
 						$formVars[$varname] = stripSlashesIfMagicQuotes($value); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-
-//						$formVars[$varname] = preg_replace("/\\\\([\"'])/", "\\1", $value); // replace any \" with " and any \' with '
-					}
 
 					$authorName = $formVars['authorName'];
 
@@ -774,7 +756,7 @@
 	// (4a) DISPLAY header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $pageTitle, "index,follow", "Add, edit or delete a record in the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, $oldQuery);
+	showPageHeader($HeaderString);
 
 	// (4b) DISPLAY results:
 	// Start <form> and <table> holding the form elements:
@@ -782,7 +764,6 @@
 	echo "\n<input type=\"hidden\" name=\"formType\" value=\"record\">";
 	echo "\n<input type=\"hidden\" name=\"submit\" value=\"" . $addEditButtonTitle . "\">"; // provide a default value for the 'submit' form tag (then, hitting <enter> within a text entry field will act as if the user clicked the 'Add/Edit Record' button)
 	echo "\n<input type=\"hidden\" name=\"recordAction\" value=\"" . $recordAction . "\">";
-	echo "\n<input type=\"hidden\" name=\"oldQuery\" value=\"" . rawurlencode($oldQuery) . "\">"; // we include a link to the formerly displayed results page as hidden form tag so that it's available on the subsequent receipt page that follows any add/edit/delete action!
 	echo "\n<input type=\"hidden\" name=\"contributionIDName\" value=\"" . rawurlencode($contributionID) . "\">";
 	echo "\n<input type=\"hidden\" name=\"origRecord\" value=\"" . $origRecord . "\">";
 
@@ -1213,7 +1194,7 @@
 			. "\n</form>";
 	
 	// (5) CLOSE the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
@@ -1228,7 +1209,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, $oldQuery);
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
