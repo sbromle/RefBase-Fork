@@ -26,7 +26,7 @@
 #             To view some usage examples type 'refbase -X'
 #             Further information is available at <http://cli.refbase.net/>
 
-# Version:    1.2
+# Version:    1.2.1
 
 # Requires:   - a shell with Perl execution capabilities
 #             - the Perl CPAN modules LWP::UserAgent, HTTP::Request::Common, HTTP::Response, HTTP::Cookies and URI::URL
@@ -35,15 +35,15 @@
 # Limits:     - Currently, this utility supports search & retrieve, but does not support update actions such as add, edit or delete.
 #             - This script is currently just an interface to 'show.php', which for example does not support arbitrary sort orders.
 #             - Specifying the record offset (using '-S|--start') as well as the number of records to be returned (using '-R|--rows') will
-#               only work for the formats 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii' and 'srw', since the other formats are
-#               designed to always export the entire result set. Note that for 'html', '--start' is adjusted to the next lower value that is an
-#               exact multiple of '--rows' (which ensures correct behaviour of the browse links).
+#               only work for the formats 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii', 'atom', 'srw_dc' and 'srw_mods',
+#               since the other formats are designed to always export the entire result set. Note that for 'html', '--start' is adjusted to
+#               the next lower value that is an exact multiple of '--rows' (which ensures correct behaviour of the browse links).
 #             - The authentication mechanism is currently limited in that a given password will be transferred as parameter in the POST request
-#             - The '-A|--append' and '-B|--update' modes currently only work with formats 'bibtex', 'mods' and 'srw'
+#             - The '-A|--append' and '-B|--update' modes currently only work with formats 'bibtex', 'mods' and 'srw_mods'
 
 # --------------------------------------------------------------------------------------------------------------
 
-$version = "1.2";
+$version = "1.2.1";
 
 # Configure variables:
 
@@ -91,13 +91,13 @@ $version = "1.2";
 				'updateRecords'   => '0',       # -B|--update    => update existing records in '-A, --append' file; must be '0' (=no) or '1' (=yes)
 				'citeStyle'       => '',        # -C|--style     => desired citation style, given name must match an entry within the database's MySQL table 'styles' (keep empty to use the database default)
 				'extractFile'     => '',        # -E|--extract   => file from which citations will be extracted
-				'format'          => 'ascii',   # -F|--format    => output format must be 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii', 'bibtex', 'endnote', 'ris', 'isi', 'mods', 'srw', 'odf', 'word' or '' (the empty string '' will produce the default 'ascii' output style)
+				'format'          => 'ascii',   # -F|--format    => output format must be 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii', 'bibtex', 'endnote', 'ris', 'isi', 'atom', 'mods', 'oai_dc', 'odf', 'srw_dc', 'srw_mods', 'word' or '' (the empty string '' will produce the default 'ascii' output style)
 				'showLinks'       => '1',       # -L|--showlinks => hide/display links column in HTML output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. print any links)
-				'citeOrder'       => 'author',  # -O|--order     => cite order must be 'author', 'year', 'type', 'type-year' or '' (the empty string '' will produce the default 'author' sort order)
+				'citeOrder'       => 'author',  # -O|--order     => cite order must be 'author', 'year', 'type', 'type-year', 'creation-date' or '' (the empty string '' will produce the default 'author' sort order)
 				'showQuery'       => '0',       # -Q|--showquery => hide/display SQL query in ASCII output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. not showing the SQL query)
 				'showRows'        => '',        # -R|--rows      => desired number of search results (keep empty to use the database default)
 				'startRecord'     => '1',       # -S|--start     => offset of the first search result, starting with one
-				'viewType'        => 'web',     # -V|--view      => view type of HTML output; must be 'Web', 'Print' or '' (the empty string '' will produce the default 'Web' output style)
+				'viewType'        => 'web',     # -V|--view      => view type of HTML output; must be 'Web', 'Print', 'Mobile' or '' (the empty string '' will produce the default 'Web' output style)
 
 				# fixed parameters:
 				'submit'          => 'Cite',    # display type for HTML output; must be 'Display', 'Cite', 'Export', or '' (the empty string '' will produce the default 'columnar' output style); this param's value will get adopted below based on the chosen '--format'
@@ -164,7 +164,8 @@ $backupFileNameSuffix = "~";
 								'1',
 								'[, ]+' ],
 
-# - MODS, SRW+MODS, or Endnote XML file:
+# - MODS, SRW_MODS, or Endnote XML file:
+#   TODO: add support for OAI_DC, SRW_DC and refbase OpenSearch Atom XML (<dc.identifier>citekey:...</dc.identifier>)
 					'xml' => [  '(?:<mods.+?ID="|<identifier.+?type="citekey">|<(?:label|accession-num)>\s*<style.*?>\s*)(.+?)(?:</identifier>|\s*</style>\s*</(?:label|accession-num)>|")', # matches MODS IDs like '<mods ID="..."', '<mods version="..." ID="..."' or '<identifier type="citekey">...</identifier>' etc -OR- Endnote XML IDs, e.g. '<label><style face="normal" font="default" size="100%">...</style></label>' etc
 								'1',
 								'[, ]+' ],
@@ -308,14 +309,14 @@ if (exists($params{'format'})) {
 		$format =~ s/^latex_bbl$/LaTeX .bbl/i;
 		$params{'citeType'} = $format;
 	}
-	elsif ($format =~ /^(bibtex|endnote|ris|isi|mods|srw|odf|word)$/i) {
+	elsif ($format =~ /^(bibtex|endnote|ris|isi|atom|mods|oai_dc|odf|srw(_dc|_mods)?|word)$/i) {
 		$params{'submit'} = "Export";
 		$params{'exportType'} = "file";
 
 		if ($format =~ /^(bibtex|endnote|ris|isi)$/i) {
 			$params{'exportFormat'} = $format;
 		}
-		elsif ($format =~ /^(mods|srw|odf|word)$/i) {
+		elsif ($format =~ /^(atom|mods|oai_dc|odf|srw(_dc|_mods)?|word)$/i) {
 			$params{'exportFormat'} = $format . " xml";
 		}
 	}
@@ -399,10 +400,10 @@ if ($params{'extractFile'} ne '') {
 
 # '-A|--append' mode:
 if ($params{'appendFile'} ne '') {
-	# '-A|--append' mode currently only works with formats 'bibtex', 'mods' and 'srw',
+	# '-A|--append' mode currently only works with formats 'bibtex', 'mods' and 'srw_mods',
 	# for all other formats (or if no format was specified), we'll return an error message:
-	if ($format !~ /^(bibtex|mods|srw)$/i) {
-		print "The '-A, --append' option requires '-F, --format' set to 'bibtex', 'mods' or 'srw'.\n\n";
+	if ($format !~ /^(bibtex|mods|srw(_mods)?)$/i) {
+		print "The '-A, --append' option requires '-F, --format' set to 'bibtex', 'mods' or 'srw_mods'.\n\n";
 		exit;
 	}
 
@@ -538,7 +539,7 @@ elsif (defined($appendFile)) { # if an '$appendFile' was given print results to 
 
 	$resultsString = $response->content();
 
-	if (($resultsString eq '') || (($format =~ /^(mods|srw)$/i) && ($resultsString !~ /<mods[ >]/i))) {
+	if (($resultsString eq '') || (($format =~ /^(mods|srw(_mods)?)$/i) && ($resultsString !~ /<mods[ >]/i))) {
 		print "There are no records that need to be added to file '" . $appendFile . "'.\n\n";
 	}
 	else { # if the query returned results which aren't yet in '$appendFile':
@@ -597,7 +598,7 @@ sub append
 	#       XML file header & footer from the results (and store them in a variable). Then
 	#       merge existing & new records, split, sort, join again, and finally put the XML
 	#       header & footer back.
-	if ($format =~ /^(mods|srw)$/i) {
+	if ($format =~ /^(mods|srw(_mods)?)$/i) {
 		# if the '$appendFile' contains MODS XML data:
 		if (($format =~ /^mods$/i) && ($appendFileString =~ /<modsCollection/i)) {
 			# remove XML file header and '<modsCollection>' opening tag from results:
@@ -605,8 +606,8 @@ sub append
 			# remove '</modsCollection>' closing tag from existing records in '$appendFile':
 			$appendFileString =~ s/^<\/modsCollection>//ims;
 		}
-		# if the '$appendFile' contains SRW XML data:
-		elsif (($format =~ /^srw$/i) && ($appendFileString =~ /<srw:records/i)) {
+		# if the '$appendFile' contains SRW_MODS XML data:
+		elsif (($format =~ /^srw(_mods)?$/i) && ($appendFileString =~ /<srw:records/i)) {
 			# remove XML file header and opening tags from results:
 			$resultsString =~ s/^<\?xml.+?<srw:records[^>\n]*?>\n//ims;
 			# remove closing tags from existing records in '$appendFile':
@@ -727,8 +728,8 @@ sub update
 		# remove '</modsCollection>' closing tag from results:
 		$updateResultsString =~ s/^<\/modsCollection>//ims;
 	}
-	# if the '$appendFile' contains SRW XML data:
-	elsif (($format =~ /^srw$/i) && ($appendFileString =~ /<srw:records/i)) {
+	# if the '$appendFile' contains SRW_MODS XML data:
+	elsif (($format =~ /^srw(_mods)?$/i) && ($appendFileString =~ /<srw:records/i)) {
 		# remove XML file header and opening tags from results:
 		$updateResultsString =~ s/^<\?xml.+?<srw:records[^>\n]*?>\n//ims;
 		# remove closing tags from results:
@@ -801,7 +802,7 @@ sub update
 
 		# if the initial query did not return results which aren't yet in '$appendFile':
 		# (i.e. if the 'append' subroutine won't get triggered)
-		if (($resultsString eq '') || (($format =~ /^(mods|srw)$/i) && ($resultsString !~ /<mods[ >]/i))) {
+		if (($resultsString eq '') || (($format =~ /^(mods|srw(_mods)?)$/i) && ($resultsString !~ /<mods[ >]/i))) {
 			# open '$appendFile' in write mode:
 			open(FILEOUT, ">", $appendFile) || die "Can't open file '" . $appendFile . "': $!\n";
 
@@ -844,13 +845,13 @@ sub update
 # --------------------------------------------------------------------------------
 
 # Split '$sourceText' on format-specific record delimiters:
-# (note that, currently, only formats 'bibtex', 'mods' and 'srw' are supported)
+# (note that, currently, only formats 'bibtex', 'mods' and 'srw_mods' are supported)
 sub splitRecs
 {
 	local ($sourceText) = @_;
 	local (@records) = ();
 
-	if ($format =~ /^(bibtex|mods|srw)$/i) {
+	if ($format =~ /^(bibtex|mods|srw(_mods)?)$/i) {
 		# define format-specific strings that open/close a record:
 		# (note that '...' must be used here instead of "...", see Friedl regex book, 1st ed., p.300+)
 		if ($format =~ /^bibtex$/i) {
@@ -861,7 +862,7 @@ sub splitRecs
 			$recStart = '\s*<mods[ >]';
 			$recEnd = 'mods>';
 		}
-		elsif ($format =~ /^srw$/i) {
+		elsif ($format =~ /^srw(_mods)?$/i) {
 			$recStart = '\s*<srw:record[ >]';
 			$recEnd = 'srw:record>';
 		}
@@ -916,7 +917,7 @@ sub parseRecs
 # --------------------------------------------------------------------------------
 
 # Sort array of records by cite key:
-# (note that, currently, only formats 'bibtex', 'endnote', 'ris' 'mods' and 'srw' are supported)
+# (note that, currently, only formats 'bibtex', 'endnote', 'ris' 'mods' and 'srw_mods' are supported)
 sub sortRecs
 {
 	local (@records) = @_;
@@ -926,7 +927,7 @@ sub sortRecs
 
 	$fileExtension = "default"; # triggers default regex patterns for extraction of cite IDs
 	# use file-specific regex patterns for extraction of cite IDs:
-	if ($format =~ /^(bibtex|endnote|ris|mods|srw)$/i) {
+	if ($format =~ /^(bibtex|endnote|ris|mods|srw(_mods)?)$/i) {
 		if ($format =~ /^bibtex$/i) {
 			$fileExtension = "bib";
 		}
@@ -936,7 +937,7 @@ sub sortRecs
 		elsif ($format =~ /^ris$/i) {
 			$fileExtension = "ris";
 		}
-		elsif ($format =~ /^(mods|srw)$/i) {
+		elsif ($format =~ /^(mods|srw(_mods)?)$/i) {
 			$fileExtension = "xml";
 		}
 	}
@@ -1031,7 +1032,7 @@ sub usage
 		. "                   -z, --serial      - search serial field (partial matches) ('" . $params{'serial'} . "')\n\n"
 
 		. "Output Options:    -A, --append      - file to which returned records are appended ('" . $params{'appendFile'} . "')\n"
-		. "                                       requires '-F, --format': bibtex, mods, srw\n"
+		. "                                       requires '-F, --format': bibtex, mods, srw_mods\n"
 		. "                   -B, --update      - update existing records in '-A, --append' file ('" . $params{'updateRecords'} . "')\n"
 		. "                                       possible values: 0, 1\n"
 		. "                   -C, --style       - citation style ('" . $params{'citeStyle'} . "')\n"
@@ -1039,17 +1040,18 @@ sub usage
 		. "                                       supported file types: " . join(', ', sort keys(%citeIDPatterns)) . "\n"
 		. "                   -F, --format      - output format ('" . $params{'format'} . "')\n"
 		. "                                       possible values: html, rtf, pdf, latex, latex_bbl, markdown, ascii,\n"
-		. "                                                        bibtex, endnote, ris, isi, mods, srw, odf, word\n"
+		. "                                                        bibtex, endnote, ris, isi, atom, mods, oai_dc, odf,\n"
+		. "                                                        srw_dc, srw_mods, word\n"
 		. "                   -L, --showlinks   - hide/display links column in html output ('" . $params{'showLinks'} . "')\n"
 		. "                                       possible values: 0, 1\n"
 		. "                   -O, --order       - sort order of returned records ('" . $params{'citeOrder'} . "')\n"
-		. "                                       possible values: author, year, type, type-year\n"
+		. "                                       possible values: author, year, type, type-year, creation-date\n"
 		. "                   -Q, --showquery   - hide/display SQL query in ASCII output ('" . $params{'showQuery'} . "')\n"
 		. "                                       possible values: 0, 1\n"
 		. "                   -R, --rows        - number of records to be returned ('" . $params{'showRows'} . "')\n"
 		. "                   -S, --start       - number of first record to be returned ('" . $params{'startRecord'} . "')\n"
 		. "                   -V, --view        - view type of html output ('" . $params{'viewType'} . "')\n"
-		. "                                       possible values: web, print\n\n"
+		. "                                       possible values: web, print, mobile\n\n"
 
 		. "Server Options:    -H, --host        - URL of the refbase database ('" . $host . "')\n"
 		. "                                       defined shortcuts: " . join(', ', sort keys(%hosts)) . "\n"
