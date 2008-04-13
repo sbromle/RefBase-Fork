@@ -32,11 +32,13 @@
 
 	// --------------------------------------------------------------------
 
-	// Return MODS XML records wrapped into SRW XML ('searchRetrieveResponse'):
+	// Return DC XML or MODS XML records wrapped into SRW XML ('searchRetrieveResponse'):
 	function srwCollection($result, $rowOffset, $showRows, $exportStylesheet, $displayType)
 	{
 		global $contentTypeCharset; // these variables are defined in 'ini.inc.php'
 		global $convertExportDataToUTF8;
+
+		global $exportFormat; // this is needed so that we can distinguish between "SRW_DC XML" and "SRW_MODS XML" record formats
 
 		// Individual records are objects and collections of records are strings
 
@@ -69,8 +71,13 @@
 			// Generate the export for each record and push them onto an array:
 			for ($rowCounter=0; (($rowCounter < $showRows) && ($row = @ mysql_fetch_array($result))); $rowCounter++)
 			{
-				// Export the current record as MODS XML:
-				$record = modsRecord($row); // function 'modsRecord()' is defined in 'modsxml.inc.php'
+				if (eregi("DC", $exportFormat)) // export the current record as DC XML (i.e. simple Dublin Core):
+					$record = oaidcRecord($row, "srw_dc"); // function 'oaidcRecord()' is defined in 'oaidcxml.inc.php'
+				else  // by default, we export the current record as MODS XML:
+					$record = modsRecord($row); // function 'modsRecord()' is defined in 'modsxml.inc.php'
+
+				// TODO: build 'extraRecordData' for OAI-PMH (see below) using:
+				//       $row['serial'], $row['modified_date'], $row['modified_time']
 
 				if (!empty($record)) // unless the record buffer is empty...
 					array_push($exportArray, $record); // ...add it to an array of exports
@@ -78,28 +85,49 @@
 
 			$i = $rowOffset; // initialize counter
 
-			// for each of the MODS records in the result set...
-			foreach ($exportArray as $mods)
+			// for each of the DC/MODS records in the result set...
+			foreach ($exportArray as $record)
 			{
 				++$i; // increment $i by one, then return $i
 
 				$srwRecordBranch = new XMLBranch("srw:record");
 
-				srwGeneratePackingSchema($srwRecordBranch, "xml", "mods");
+				if (eregi("DC", $exportFormat))
+					srwGeneratePackingSchema($srwRecordBranch, "xml", "dc");
+				else
+					srwGeneratePackingSchema($srwRecordBranch, "xml", "mods");
 
 				$srwRecordDataBranch = new XMLBranch("srw:recordData");
 
-				// NOTE: converting the MODS object into a string to perform search & replace actions
-				//       may be very clumsy but I don't know any better... ?:-/
-				$modsString = $mods->getXMLString();
-				$modsString = preg_replace('/<mods/i','<mods xmlns="http://www.loc.gov/mods/v3"',$modsString);
-				// alternatively to the above line we could add a 'mods:' identifier to all MODS XML tags:
-//				$modsString = preg_replace("#<(/)?#","<\\1mods:",$modsString);
-				$mods->removeAllBranches();
-				$mods->parseFromString($modsString);
+				if (eregi("MODS", $exportFormat))
+				{
+					// NOTE: converting the MODS object into a string to perform search & replace actions
+					//       may be very clumsy but I don't know any better... ?:-/
+					$recordString = $record->getXMLString();
+					$recordString = preg_replace('/<mods/i','<mods xmlns="http://www.loc.gov/mods/v3"',$recordString);
+					// alternatively to the above line we could add a 'mods:' identifier to all MODS XML tags:
+	//				$recordString = preg_replace("#<(/)?#","<\\1mods:",$recordString);
+					$record->removeAllBranches();
+					$record->parseFromString($recordString);
+				}
 
-				$srwRecordDataBranch->addXMLasBranch($mods);
+				$srwRecordDataBranch->addXMLasBranch($record);
 				$srwRecordBranch->addXMLBranch($srwRecordDataBranch);
+
+				// TODO: add 'extraRecordData' for OAI-PMH as explained in <http://www.dlib.org/dlib/february05/sanderson/02sanderson.html>
+				//       Example:
+				//                <extraRecordData>
+				//                    <oai:header xmlns:oai="http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+				//                        <oai:identifier>...</oai:identifier>
+				//                        <oai:datestamp>...</oai:datestamp>
+				//                        <oai:setSpec>...</oai:setSpec>
+				//                    </oai:header>
+				//                </extraRecordData>
+				//
+				//       Then add to the SRW 'Explain' response:
+				//          1.  an oai.identifier index containing a unique identifier for each record in the database
+				//          2.  an oai.datestamp index containing the date/time the record was added or changed in the database
+				//          3.  an optional oai.set index, browsable via the scan operation, to support selective harvesting of records
 
 				addNewBranch($srwRecordBranch, "srw:recordPosition", array(), $i);
 
@@ -138,6 +166,7 @@
 		global $feedbackEmail;
 		global $logoImageURL;
 		global $defaultLanguage;
+		global $defaultFeedFormat;
 
 		global $loc; // defined in 'locales/core.php'
 
@@ -244,7 +273,7 @@
 
 		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "www"), $databaseBaseURL);
 		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "sru"), $databaseBaseURL . "sru.php");
-		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "rss"), $databaseBaseURL . "rss.php?where=serial%20RLIKE%20%22.%2B%22&amp;showRows=" . $showRows);
+		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "rss"), $databaseBaseURL . generateURL("show.php", $defaultFeedFormat, array("where" => 'serial RLIKE ".+"'), true, $showRows)); // function 'generateURL()' is defined in 'include.inc.php'
 		addNewBranch($srwDatabaseLinksBranch, "link", array("type" => "icon"), $databaseBaseURL . $logoImageURL);
 
 		$srwDatabaseInfoBranch->addXMLBranch($srwDatabaseLinksBranch);
@@ -261,109 +290,157 @@
 		addNewBranch($srwIndexInfoBranch, "set", array("identifier" => "http://zing.z3950.org/cql/bath/2.0/", "name" => "bath"), "");
 		addNewBranch($srwIndexInfoBranch, "set", array("identifier" => "info:srw/cql-context-set/2/rec-1.1", "name" => "rec"), "");
 
-		$indexArray = array();
+// TODO: The index info of the refbase explain response should also list the original refbase field names,
+//       similar to how the COPAC SRU gateway does it (<http://tweed.lib.ed.ac.uk:8080/elf/search/copac>).
+//       Example:
+//			<index search="true" scan="false" sort="false">
+//				<title>Author</title>
+ 
+//				<map>
+//					<name>
+//						author
+//					</name>
+//				</map>
+//				<map>
+//					<name set="dc">
+//						creator
+//					</name>
+//				</map>
+//			</index>
 
-		$indexArray["dc.creator"] = array("_set" => "dc",
-										"_index" => "creator",
-										"_title" => "Author",
-										"_refbaseIndex" => "refbase-author");
+		$indexArray = array(); // TODO: '$indexArray' should be an array of arrays so that it can hold multiple mappings
 
-		$indexArray["dc.title"] = array("_set" => "dc",
-										"_index" => "title",
-										"_title" => "Publication title",
-										"_refbaseIndex" => "refbase-title");
+		$indexArray["dc.creator"] = array("_set"          => "dc",
+		                                  "_index"        => "creator",
+		                                  "_title"        => "author(s) of the resource",
+		                                  "_refbaseIndex" => "refbase-author");
 
-		$indexArray["dc.date"] = array("_set" => "dc",
-									"_index" => "date",
-									"_title" => "Year of publication",
-									"_refbaseIndex" => "refbase-year");
+		$indexArray["dc.title"] = array("_set"          => "dc",
+		                                "_index"        => "title",
+		                                "_title"        => "publication title of the resource",
+		                                "_refbaseIndex" => "refbase-title");
 
-		$indexArray["dc.language"] = array("_set" => "dc",
-										"_index" => "language",
-										"_title" => "Language",
-										"_refbaseIndex" => "refbase-language");
+		$indexArray["dc.date"] = array("_set"          => "dc",
+		                               "_index"        => "date",
+		                               "_title"        => "year of publication of the resource",
+		                               "_refbaseIndex" => "refbase-year");
 
-		$indexArray["dc.description"] = array("_set" => "dc",
-											"_index" => "description",
-											"_title" => "Abstract",
-											"_refbaseIndex" => "refbase-abstract");
+		$indexArray["dc.language"] = array("_set"          => "dc",
+		                                   "_index"        => "language",
+		                                   "_title"        => "language of the resource",
+		                                   "_refbaseIndex" => "refbase-language");
 
-		$indexArray["dc.subject"] = array("_set" => "dc",
-										"_index" => "subject",
-										"_title" => "Keywords",
-										"_refbaseIndex" => "refbase-keywords");
+		$indexArray["dc.description"] = array("_set"          => "dc",
+		                                      "_index"        => "description",
+		                                      "_title"        => "abstract or summary of the resource",
+		                                      "_refbaseIndex" => "refbase-abstract");
 
-		$indexArray["dc.format"] = array("_set" => "dc",
-										"_index" => "format",
-										"_title" => "Format/Type of Material",
-										"_refbaseIndex" => "refbase-medium");
+		$indexArray["dc.contributor"] = array("_set"          => "dc",
+		                                      "_index"        => "contributor",
+		                                      "_title"        => "editor(s) of the resource",
+		                                      "_refbaseIndex" => "refbase-editor"); // the mapping dc.contributor <-> refbase-editor might be suboptimal, but probably as best as we can do for now
 
-		$indexArray["dc.publisher"] = array("_set" => "dc",
-										"_index" => "publisher",
-										"_title" => "Publisher",
-										"_refbaseIndex" => "refbase-publisher");
+		$indexArray["dc.subject"] = array("_set"          => "dc",
+		                                  "_index"        => "subject",
+		                                  "_title"        => "topic of the resource",
+		                                  "_refbaseIndex" => "refbase-keywords");
 
-		$indexArray["dc.coverage"] = array("_set" => "dc",
-											"_index" => "coverage",
-											"_title" => "Geographic or topographic area of research",
-											"_refbaseIndex" => "refbase-area");
+		$indexArray["dc.format"] = array("_set"          => "dc",
+		                                 "_index"        => "format",
+		                                 "_title"        => "physical or digital manifestation of the resource",
+		                                 "_refbaseIndex" => "refbase-medium");
 
-// Note: I'm note sure, if 'bath.name' can be also used to describe the author/creator ('dc.creator') of a publication
-//		$indexArray["bath.name"] = array("_set" => "bath",
-//										"_index" => "name",
-//										"_title" => "Author",
-//										"_refbaseIndex" => "refbase-author");
+		// Note: Currently, we simply expose the contents of the refbase 'type' field as 'dc.type'.
+		//       This may not be ideal since it differs from the approved terms that should be used as values for the 'dc.type' element: <http://dublincore.org/documents/dcmi-type-vocabulary/>.
+		//       However, the document "Using simple Dublin Core to describe eprints" (<http://eprints-uk.rdn.ac.uk/project/docs/simpledc-guidelines/#type>)
+		//       recommends type values that are much closer (but still not identical) to our own type values.
+		$indexArray["dc.type"] = array("_set"          => "dc",
+		                               "_index"        => "type",
+		                               "_title"        => "nature or genre of the resource",
+		                               "_refbaseIndex" => "refbase-type");
+
+		$indexArray["dc.publisher"] = array("_set"          => "dc",
+		                                    "_index"        => "publisher",
+		                                    "_title"        => "publisher",
+		                                    "_refbaseIndex" => "refbase-publisher");
+
+		$indexArray["dc.coverage"] = array("_set"          => "dc",
+		                                   "_index"        => "coverage",
+		                                   "_title"        => "geographic or topographic area of research",
+		                                   "_refbaseIndex" => "refbase-area");
+
+// Note: I'm note sure, if 'bath.name' (or maybe better: 'bath.personalName') can be also used to describe the author/creator ('dc.creator') of a publication
+//      "'Name Search -- Keyword' searches for complete word in headings (or references) for people, corporate bodies, conferences, and geographic names."
+//		$indexArray["bath.name"] = array("_set"          => "bath",
+//		                                 "_index"        => "name",
+//		                                 "_title"        => "author",
+//		                                 "_refbaseIndex" => "refbase-author");
 
 // Note: Not sure again whether 'bath.topicalSubject' can be offered as synonym for 'dc.subject'
-//		$indexArray["bath.topicalSubject"] = array("_set" => "bath",
-//												"_index" => "topicalSubject",
-//												"_title" => "Keywords",
-//												"_refbaseIndex" => "refbase-keywords");
+//       "'Topical Subject Search -- Keyword' searches for complete word in a topical subject heading or reference."
+//		$indexArray["bath.topicalSubject"] = array("_set"          => "bath",
+//		                                           "_index"        => "topicalSubject",
+//		                                           "_title"        => "keywords",
+//		                                           "_refbaseIndex" => "refbase-keywords");
 
-		$indexArray["bath.issn"] = array("_set" => "bath",
-										"_index" => "issn",
-										"_title" => "International standard serial number",
-										"_refbaseIndex" => "refbase-issn");
+		// NOTE: I'm not sure if 'isbn' is a valid name for the Bath Context Set? At least, it's not listed at <http://zing.z3950.org/srw/bath/2.0/#2>.
+		//       However, 'bath.isbn' is used e.g. by <http://z3950.loc.gov:7090/voyager?operation=explain&version=1.1> and other SRU servers.
+		$indexArray["bath.isbn"] = array("_set"          => "bath",
+		                                 "_index"        => "isbn",
+		                                 "_title"        => "international standard book number",
+		                                 "_refbaseIndex" => "refbase-isbn");
 
-		$indexArray["bath.corporateName"] = array("_set" => "bath",
-												"_index" => "corporateName",
-												"_title" => "Corporate Author",
-												"_refbaseIndex" => "refbase-corporate_author");
+		$indexArray["bath.issn"] = array("_set"          => "bath",
+		                                 "_index"        => "issn",
+		                                 "_title"        => "international standard serial number",
+		                                 "_refbaseIndex" => "refbase-issn");
 
-		$indexArray["bath.conferenceName"] = array("_set" => "bath",
-												"_index" => "conferenceName",
-												"_title" => "Conference",
-												"_refbaseIndex" => "refbase-conference");
+		$indexArray["bath.corporateName"] = array("_set"          => "bath",
+		                                          "_index"        => "corporateName",
+		                                          "_title"        => "corporate author of this publication",
+		                                          "_refbaseIndex" => "refbase-corporate_author");
 
-		$indexArray["rec.identifier"] = array("_set" => "rec",
-										"_index" => "identifier",
-										"_title" => "Database record number",
-										"_refbaseIndex" => "refbase-serial");
+		$indexArray["bath.conferenceName"] = array("_set"          => "bath",
+		                                           "_index"        => "conferenceName",
+		                                           "_title"        => "conference this publication was presented at",
+		                                           "_refbaseIndex" => "refbase-conference");
 
-		$indexArray["rec.creationDate"] = array("_set" => "rec",
-												"_index" => "creationDate",
-												"_title" => "Date/Time at which the record was created",
-												"_refbaseIndex" => "refbase-created_date-created_time"); // 'sru.php': CQL search term should get splitted into date & time information!
+		// NOTE: I'm not sure if 'notes' is a valid name for the Bath Context Set? 
+		//       'bath.notes' is mentioned at <http://www.loc.gov/z3950/lcserver.html> and <http://zing.z3950.org/srw/bath/2.0/#3>.
+		$indexArray["bath.notes"] = array("_set"          => "bath",
+		                                  "_index"        => "notes",
+		                                  "_title"        => "notes about the resource",
+		                                  "_refbaseIndex" => "refbase-notes");
 
-		$indexArray["rec.creationAgentName"] = array("_set" => "rec",
-													"_index" => "creationAgentName",
-													"_title" => "Name of the agent responsible for creation of the record",
-													"_refbaseIndex" => "refbase-created_by");
+		$indexArray["rec.identifier"] = array("_set"          => "rec",
+		                                      "_index"        => "identifier",
+		                                      "_title"        => "database record number",
+		                                      "_refbaseIndex" => "refbase-serial");
 
-		$indexArray["rec.lastModificationDate"] = array("_set" => "rec",
-													"_index" => "lastModificationDate",
-													"_title" => "Date/Time at which the record was last modified",
-													"_refbaseIndex" => "refbase-modified_date-modified_time"); // 'sru.php': CQL search term should get splitted into date & time information!
+		$indexArray["rec.creationDate"] = array("_set"          => "rec",
+		                                        "_index"        => "creationDate",
+		                                        "_title"        => "date/time at which the record was created",
+		                                        "_refbaseIndex" => "refbase-created_date-created_time"); // 'sru.php': CQL search term should get splitted into date & time information!
 
-		$indexArray["rec.lastModificationAgentName"] = array("_set" => "rec",
-														"_index" => "lastModificationAgentName",
-														"_title" => "Name of the agent responsible for last modifying the record",
-														"_refbaseIndex" => "refbase-modified_by");
+		$indexArray["rec.creationAgentName"] = array("_set"          => "rec",
+		                                             "_index"        => "creationAgentName",
+		                                             "_title"        => "name of the agent responsible for creation of the record",
+		                                             "_refbaseIndex" => "refbase-created_by");
 
-		$indexArray["bib.citekey"] = array("_set" => "bib",
-													"_index" => "citekey",
-													"_title" => "User-specific cite key for the record",
-													"_refbaseIndex" => "refbase-cite_key");
+		$indexArray["rec.lastModificationDate"] = array("_set"          => "rec",
+		                                                "_index"        => "lastModificationDate",
+		                                                "_title"        => "date/time at which the record was last modified",
+		                                                "_refbaseIndex" => "refbase-modified_date-modified_time"); // 'sru.php': CQL search term should get splitted into date & time information!
+
+		$indexArray["rec.lastModificationAgentName"] = array("_set"          => "rec",
+		                                                     "_index"        => "lastModificationAgentName",
+		                                                     "_title"        => "name of the agent responsible for last modifying the record",
+		                                                     "_refbaseIndex" => "refbase-modified_by");
+
+		$indexArray["bib.citekey"] = array("_set"          => "bib",
+		                                   "_index"        => "citekey",
+		                                   "_title"        => "user-specific cite key for the record",
+		                                   "_refbaseIndex" => "refbase-cite_key");
 
 // Not sure how these fields can be mapped:
 // 		"publication" => "Book title or journal name",
@@ -371,15 +448,12 @@
 // 		"volume" => "Publication volume",
 // 		"issue" => "Publication issue",
 // 		"pages" => "Range or total number of pages",
-// 		"editor" => "Editor",
 // 		"place" => "Place of publication",
-// 		"series_title" => "Series title",
+// 		"series_title" => "Series title",                     // -> could 'bath.seriesTitle' be used? compare with <http://www.loc.gov/z3950/lcserver.html> and <http://copac.ac.uk/interfaces/srw/>
 // 		"abbrev_series_title" => "Abbreviated series title",
 // 		"series_volume" => "Series volume",
 // 		"series_issue" => "Series issue",
-// 		"notes" => "Notes",
 // 		"thesis" => "Thesis",
-// 		"isbn" => "International standard book number",
 // 		"doi" => "Digital object identifier",
 // 		"url" => "Uniform resource locator",
 
@@ -409,16 +483,43 @@
 		// --- begin schema info -------------------------------------
 		$srwSchemaInfoBranch = new XMLBranch("schemaInfo");
 
-		$srwSchemaBranch = new XMLBranch("schema");
-		$srwSchemaBranch->setTagAttribute("identifier", "http://www.loc.gov/mods/v3");
-		$srwSchemaBranch->setTagAttribute("location", "http://www.loc.gov/standards/mods/v3/mods-3-0.xsd");
-		$srwSchemaBranch->setTagAttribute("sort", "false");
-		$srwSchemaBranch->setTagAttribute("retrieve", "true");
-		$srwSchemaBranch->setTagAttribute("name", "mods");
+		// MODS:
+		$modsSchemaBranch = new XMLBranch("schema");
+		$modsSchemaBranch->setTagAttribute("identifier", "http://www.loc.gov/mods/v3"); // or should 'info:srw/schema/1/mods-v3.2' be used?
+		$modsSchemaBranch->setTagAttribute("location", "http://www.loc.gov/standards/mods/v3/mods-3-0.xsd");
+		$modsSchemaBranch->setTagAttribute("sort", "false");
+		$modsSchemaBranch->setTagAttribute("retrieve", "true");
+		$modsSchemaBranch->setTagAttribute("name", "mods");
 
-		addNewBranch($srwSchemaBranch, "title", array("lang" => "en"), "Metadata Object Description Schema (MODS) v3");
+		addNewBranch($modsSchemaBranch, "title", array("lang" => "en"), "Metadata Object Description Schema (MODS) v3");
 
-		$srwSchemaInfoBranch->addXMLBranch($srwSchemaBranch);
+		$srwSchemaInfoBranch->addXMLBranch($modsSchemaBranch);
+
+		// Simple Dublin Core (DC):
+		$dcSchemaBranch = new XMLBranch("schema");
+		$dcSchemaBranch->setTagAttribute("identifier", "http://purl.org/dc/elements/1.1/"); // or should 'info:srw/schema/1/dc-v1.1' be used?
+		$dcSchemaBranch->setTagAttribute("location", "http://dublincore.org/schemas/xmls/simpledc20021212.xsd");
+		$dcSchemaBranch->setTagAttribute("sort", "false");
+		$dcSchemaBranch->setTagAttribute("retrieve", "true");
+		$dcSchemaBranch->setTagAttribute("name", "dc");
+
+		addNewBranch($dcSchemaBranch, "title", array("lang" => "en"), "Simple Dublin Core (DC) v1.1");
+
+		$srwSchemaInfoBranch->addXMLBranch($dcSchemaBranch);
+
+		// Simple Dublin Core (OAI_DC):
+		// See recommendations for use of simple Dublin Core metadata to describe eprints in eprint archives: <http://eprints-uk.rdn.ac.uk/project/docs/simpledc-guidelines/>
+		// Example SRW+DC output from LoC: <http://z3950.loc.gov:7090/voyager?query=dc.creator+%3D+%22miller%22&version=1.1&operation=searchRetrieve&recordSchema=dc&startRecord=1&maximumRecords=10>
+//		$oaidcSchemaBranch = new XMLBranch("schema");
+//		$oaidcSchemaBranch->setTagAttribute("identifier", "http://www.openarchives.org/OAI/2.0/oai_dc/");
+//		$oaidcSchemaBranch->setTagAttribute("location", "http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
+//		$oaidcSchemaBranch->setTagAttribute("sort", "false");
+//		$oaidcSchemaBranch->setTagAttribute("retrieve", "true");
+//		$oaidcSchemaBranch->setTagAttribute("name", "oai_dc");
+//
+//		addNewBranch($oaidcSchemaBranch, "title", array("lang" => "en"), "Simple Dublin Core for OAI-PMH (OAI_DC)");
+//
+//		$srwSchemaInfoBranch->addXMLBranch($oaidcSchemaBranch);
 
 		$srwExplainBranch->addXMLBranch($srwSchemaInfoBranch);
 		// --- end schema info ---------------------------------------
@@ -428,22 +529,22 @@
 		$srwConfigInfoBranch = new XMLBranch("configInfo");
 
 		// default:
+		addNewBranch($srwConfigInfoBranch, "default", array("type" => "retrieveSchema"), "mods");
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "numberOfRecords"), $showRows);
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "stylesheet"), $databaseBaseURL . "srwmods2html.xsl");
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "contextSet"), "cql");
-		addNewBranch($srwConfigInfoBranch, "default", array("type" => "index"), "identifier");
+		addNewBranch($srwConfigInfoBranch, "default", array("type" => "index"), "cql.serverChoice");
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "relation"), "any");
 
 		// setting:
 		addNewBranch($srwConfigInfoBranch, "setting", array("type" => "sortSchema"), "identifier");
-		addNewBranch($srwConfigInfoBranch, "setting", array("type" => "retrieveSchema"), "mods");
 		addNewBranch($srwConfigInfoBranch, "setting", array("type" => "recordPacking"), "xml");
 
 		// supports:
 		addNewBranch($srwConfigInfoBranch, "supports", array("type" => "proximity"), "false");
 		addNewBranch($srwConfigInfoBranch, "supports", array("type" => "resultSets"), "false");
 		addNewBranch($srwConfigInfoBranch, "supports", array("type" => "relationModifier"), "false");
-		addNewBranch($srwConfigInfoBranch, "supports", array("type" => "booleanModifier"), "false");
+		addNewBranch($srwConfigInfoBranch, "supports", array("type" => "booleanModifier"), "false"); // TODO: set to 'true' when Rob's CQL-PHP has been implemented successfully
 		addNewBranch($srwConfigInfoBranch, "supports", array("type" => "sort"), "false");
 		addNewBranch($srwConfigInfoBranch, "supports", array("type" => "maskingCharacter"), "true");
 		addNewBranch($srwConfigInfoBranch, "supports", array("type" => "anchoring"), "true");
@@ -479,38 +580,8 @@
 	{
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
-		$diagMessages = array(1 => "General system error", // Details: Debugging information (traceback)
-								2 => "System temporarily unavailable",
-								3 => "Authentication error",
-								4 => "Unsupported operation",
-								5 => "Unsupported version", // Details: Highest version supported
-								6 => "Unsupported parameter value", // Details: Name of parameter
-								7 => "Mandatory parameter not supplied", // Details: Name of missing parameter
-								8 => "Unsupported Parameter", // Details: Name of the unsupported parameter
-
-								10 => "Query syntax error",
-								15 => "Unsupported context set", // Details: URI or short name of context set
-								16 => "Unsupported index", // Details: Name of index
-								24 => "Unsupported combination of relation and term",
-								36 => "Term in invalid format for index or relation",
-								39 => "Proximity not supported",
-
-								50 => "Result sets not supported",
-
-								61 => "First record position out of range",
-								64 => "Record temporarily unavailable",
-								65 => "Record does not exist",
-								66 => "Unknown schema for retrieval", // Details: Schema URI or short name (of the unsupported one)
-								67 => "Record not available in this schema", // Details: Schema URI or short name
-								68 => "Not authorised to send record",
-								69 => "Not authorised to send record in this schema",
-								70 => "Record too large to send", // Details: Maximum record size
-								71 => "Unsupported record packing",
-								72 => "XPath retrieval unsupported",
-
-								80 => "Sort not supported",
-
-								110 => "Stylesheets not supported");
+		// Map SRU/W diagnostic numbers to their corresponding messages:
+		$diagMessages = mapSRWDiagnostics(); // function 'mapSRWDiagnostics()' is defined in 'webservice.inc.php'
 
 		if (isset($diagMessages[$diagCode]))
 			$diagMessage = $diagMessages[$diagCode];
@@ -538,6 +609,11 @@
 		$srwCollectionDoc->setXML($srwCollection);
 		$srwCollectionString = $srwCollectionDoc->getXMLString();
 
+		// Add the XML Stylesheet definition:
+		// Note that this is just a hack (that should get fixed) since I don't know how to do it properly using the ActiveLink PHP XML Package ?:-/
+		if (!empty($exportStylesheet))
+			$srwCollectionString = preg_replace("/(?=\<srw:searchRetrieveResponse)/i","<?xml-stylesheet type=\"text/xsl\" href=\"" . $exportStylesheet . "\"?>\n",$srwCollectionString);
+
 		return $srwCollectionString;
 	}
 
@@ -546,6 +622,8 @@
 	// Generate the basic SRW XML tree required for a 'searchRetrieveResponse' or 'explainResponse':
 	function srwGenerateBaseTags($srwOperation)
 	{
+		global $exportFormat; // this is needed so that we can distinguish between "SRW_DC XML" and "SRW_MODS XML" record formats
+
 		$srwCollection = new XML("srw:" . $srwOperation);
 		$srwCollection->setTagAttribute("xmlns:srw", "http://www.loc.gov/zing/srw/");
 
@@ -553,7 +631,15 @@
 		{
 			$srwCollection->setTagAttribute("xmlns:diag", "http://www.loc.gov/zing/srw/diagnostic/");
 			$srwCollection->setTagAttribute("xmlns:xcql", "http://www.loc.gov/zing/cql/xcql/");
-			$srwCollection->setTagAttribute("xmlns:mods", "http://www.loc.gov/mods/v3");
+
+			if (eregi("DC", $exportFormat)) // add namespace declarations for "SRW_DC XML":
+			{
+				$srwCollection->setTagAttribute("xmlns:srw_dc", "info:srw/schema/1/dc-v1.1");
+				$srwCollection->setTagAttribute("xmlns:dc", "http://purl.org/dc/elements/1.1/");
+				$srwCollection->setTagAttribute("xmlns:prism", "http://prismstandard.org/namespaces/1.2/basic/");
+			}
+			else // add namespace declarations for "SRW_MODS XML":
+				$srwCollection->setTagAttribute("xmlns:mods", "http://www.loc.gov/mods/v3");
 		}
 	//	elseif ($srwOperation == "explainResponse")
 	//	{
@@ -571,18 +657,19 @@
 	function srwGeneratePackingSchema(&$thisObject, $srwPacking, $srwSchema)
 	{
 		// available schemas taken from <http://www.loc.gov/z3950/agency/zing/srw/record-schemas.html>
-		$srwSchemas = array("dc" => "info:srw/schema/1/dc-v1.1",
-							"diag" => "info:srw/schema/1/diagnostic-v1.1", // it says 'info:srw/schema/1/diagnostics-v1.1' at <http://www.loc.gov/standards/sru/diagnostics.html> ?:-/
-							"zeerex" => "http://explain.z3950.org/dtd/2.0/",
-							"mods" => "info:srw/schema/1/mods-v3.0",
-							"onix" => "info:srw/schema/1/onix-v2.0",
-							"marcxml" => "info:srw/schema/1/marcxml-v1.1",
-							"ead" => "info:srw/schema/1/ead-2002",
-							"zthes" => "http://zthes.z3950.org/xml/0.5/",
-							"ccg" => "http://srw.cheshire3.org/schemas/ccg/1.0/",
-							"rec" => "info:srw/schema/2/rec-1.0",
-							"server-choice" => "info:srw/schema/1/server-choice",
-							"xpath" => "info:srw/schema/1/xpath-1.0");
+		$srwSchemas = array("dc"            => "info:srw/schema/1/dc-v1.1", // or should <http://purl.org/dc/elements/1.1/> be used?
+		//                  "dcterms"       => "http://purl.org/dc/terms/",
+		                    "diag"          => "info:srw/schema/1/diagnostic-v1.1", // it says 'info:srw/schema/1/diagnostics-v1.1' at <http://www.loc.gov/standards/sru/diagnostics.html> ?:-/
+		                    "zeerex"        => "http://explain.z3950.org/dtd/2.0/",
+		                    "mods"          => "info:srw/schema/1/mods-v3.2",
+		                    "onix"          => "info:srw/schema/1/onix-v2.0",
+		                    "marcxml"       => "info:srw/schema/1/marcxml-v1.1",
+		                    "ead"           => "info:srw/schema/1/ead-2002",
+		                    "zthes"         => "http://zthes.z3950.org/xml/0.5/",
+		                    "ccg"           => "http://srw.cheshire3.org/schemas/ccg/1.0/",
+		                    "rec"           => "info:srw/schema/2/rec-1.0",
+		                    "server-choice" => "info:srw/schema/1/server-choice",
+		                    "xpath"         => "info:srw/schema/1/xpath-1.0");
 
 		addNewBranch($thisObject, "srw:recordPacking", array(), $srwPacking); // function 'addNewBranch()' is defined in 'webservice.inc.php'
 		addNewBranch($thisObject, "srw:recordSchema", array(), $srwSchemas[$srwSchema]);
