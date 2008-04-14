@@ -17,8 +17,8 @@
 	//             $Revision$
 
 	// This exports SRW XML. This file must reside in the 'export' directory of the refbase root directory.
-	// It uses functions from include files 'srwxml.inc.php' and 'modsxml.inc.php' that require the ActiveLink PHP XML Package,
-	// which is available under the GPL from: <http://www.active-link.com/software/>
+	// It uses functions from include files 'srwxml.inc.php', 'modsxml.inc.php' and 'oaidcxml.inc.php' that require
+	// the ActiveLink PHP XML Package, which is available under the GPL from: <http://www.active-link.com/software/>
 	
 	// --------------------------------------------------------------------
 
@@ -27,8 +27,7 @@
 	// Export found records as SRW XML:
 	function exportRecords($result, $rowOffset, $showRows, $exportStylesheet, $displayType)
 	{
-		// Find out how many rows are available:
-		$rowsFound = @ mysql_num_rows($result);
+		global $rowsFound;
 
 		if ($rowsFound > 0 && ($rowOffset + 1) > $rowsFound) // Invalid offset for current MySQL result set, error with an appropriate diagnostics response:
 		{
@@ -37,7 +36,7 @@
 			else
 				$recordString = "records";
 
-			$recordCollection = srwDiagnostics(61, "Record offset " . ($rowOffset + 1) . " is invalid for current result set: " . $rowsFound . " " . $recordString . " found", $exportStylesheet); // function 'srwDiagnostics()' is defined in 'srwxml.inc.php'
+			$recordCollection = srwDiagnostics(61, "Record offset " . ($rowOffset + 1) . " is invalid for current result set (" . $rowsFound . " " . $recordString . " found)", $exportStylesheet); // function 'srwDiagnostics()' is defined in 'srwxml.inc.php'
 		}
 		else // Generate and serve a SRW XML file of ALL records:
 		{
