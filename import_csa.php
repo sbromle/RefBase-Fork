@@ -101,7 +101,7 @@
 		$rowSpan = " rowspan=\"2\"";
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -153,7 +153,7 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . $pageTitle, "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, "");
+	showPageHeader($HeaderString);
 
 	// (2b) Start <form> and <table> holding the form elements:
 	echo "\n<form action=\"import_csa_modify.php\" method=\"POST\">";
@@ -339,7 +339,7 @@ BL: Bibliographic Level
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, "");
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
