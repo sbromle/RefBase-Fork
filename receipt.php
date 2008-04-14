@@ -77,17 +77,18 @@
 	// Function 'showLogin()' in 'include.inc.php' requires the header string being available in the '$headerMsg' variable so that it gets included within the Login/Logout links:
 	$headerMsg = $HeaderString;
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
 	else
 		$viewType = "";
 
-	// Extract generic variables from the request:
-	$oldQuery = $_REQUEST['oldQuery']; // fetch the query URL of the formerly displayed results page so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-	$oldQuery = stripSlashesIfMagicQuotes($oldQuery); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//	$oldQuery = str_replace('\"','"',$oldQuery); // replace any \" with "
+	// Get the query URL of the last multi-record query:
+	if (isset($_SESSION['oldMultiRecordQuery']))
+		$oldMultiRecordQuery = $_SESSION['oldMultiRecordQuery'];
+	else
+		$oldMultiRecordQuery = "";
 
 	// --------------------------------------------------------------------
 
@@ -100,56 +101,56 @@
 	// (4a) DISPLAY header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Record Action Feedback", "noindex,nofollow", "Feedback page that confirms any adding, editing or deleting of records in the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, $oldQuery);
+	showPageHeader($HeaderString);
 
 
 	// (4b) DISPLAY results:
-	// First, construct the correct sql query that will link back to the added/edited record:
+	// construct the correct SQL query that will link back to the added/edited record:
+	$sqlQuery = buildSELECTclause("Display", "1", "", true, false); // function 'buildSELECTclause()' is defined in 'include.inc.php'
+
 	if (isset($_SESSION['loginEmail'])) // if a user is logged in, show user specific fields:
-		$sqlQuery = "SELECT author, title, type, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved, location, call_number, serial, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related"
-				. " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = " . quote_smart($loginUserID) . " WHERE serial RLIKE " . quote_smart("^(" . $serialNo . ")$") . " ORDER BY author, year DESC, publication"; // we simply use the fixed default ORDER BY clause here
+		$sqlQuery .= " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = " . quote_smart($loginUserID) . " WHERE serial RLIKE " . quote_smart("^(" . $serialNo . ")$") . " ORDER BY author, year DESC, publication"; // we simply use the fixed default ORDER BY clause here
 	else // if NO user logged in, don't display any user specific fields:
-		$sqlQuery = "SELECT author, title, type, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved, call_number, serial"
-				. " FROM $tableRefs WHERE serial RLIKE " . quote_smart("^(" . $serialNo . ")$") . " ORDER BY author, year DESC, publication"; // we simply use the fixed default ORDER BY clause here
+		$sqlQuery .= " FROM $tableRefs WHERE serial RLIKE " . quote_smart("^(" . $serialNo . ")$") . " ORDER BY author, year DESC, publication"; // we simply use the fixed default ORDER BY clause here
 
 	$sqlQuery = rawurlencode($sqlQuery);
 
-	// Second, prepare the previous query stored in '$oldQuery' so that it can be used as active query again:
-	$reactivatedOldQuery = reactivateOldQuery($oldQuery); // function 'reactivateOldQuery()' is defined in 'include.inc.php'
+	// Generate a 'search.php' URL that points to the formerly displayed results page:
+	$oldMultiRecordQueryURL = generateURL("search.php", "html", $oldMultiRecordQuery, true); // function 'generateURL()' is defined in 'include.inc.php'
 
 
 	// Build a TABLE, containing one ROW and DATA tag:
 	echo "\n<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\" summary=\"This table holds links to the added/edited records as well as to the previously displayed search results page\">"
-		. "\n<tr>"
-		. "\n\t<td valign=\"top\">"
-		. "\n\t\tChoose how to proceed:&nbsp;&nbsp;";
+	   . "\n<tr>"
+	   . "\n\t<td valign=\"top\">"
+	   . "\n\t\tChoose how to proceed:&nbsp;&nbsp;";
 
 	if (isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_details_view'...
 	{
 		if ($recordAction != "delet")
-			echo "\n\t\t<a href=\"search.php?sqlQuery=" . $sqlQuery . "&amp;showQuery=0&amp;showLinks=1&amp;formType=sqlSearch&amp;submit=Display&amp;oldQuery=" . rawurlencode($oldQuery) . "\">Show " . $recordAction . "ed record</a>";
+			echo "\n\t\t<a href=\"search.php?sqlQuery=" . $sqlQuery . "&amp;showQuery=0&amp;showLinks=1&amp;formType=sqlSearch&amp;submit=Display\">Show " . $recordAction . "ed record</a>";
 	
-		if ($recordAction != "delet" && $oldQuery != "")
+		if ($recordAction != "delet" && !empty($oldMultiRecordQuery))
 			echo "\n\t\t&nbsp;&nbsp;-OR-&nbsp;&nbsp;";
 	}
 
-	if ($oldQuery != "") // only provide a link to any previous search results if '$oldQuery' isn't empty (which occurs for "Add Record")
-		echo "\n\t\t<a href=\"search.php?" . $reactivatedOldQuery . "\">Display previous search results</a>";
+	if (!empty($oldMultiRecordQuery)) // only provide a link to any previous search results if '$oldMultiRecordQuery' isn't empty
+		echo "\n\t\t<a href=\"" . $oldMultiRecordQueryURL . "\">Display previous search results</a>";
 
-	if ((isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions']) AND ($recordAction != "delet")) || $oldQuery != "")
+	if ((isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions']) AND ($recordAction != "delet")) || !empty($oldMultiRecordQuery))
 		echo "\n\t\t&nbsp;&nbsp;-OR-&nbsp;&nbsp;";
 
 		echo "\n\t\t<a href=\"index.php\">Goto " . encodeHTML($officialDatabaseName) . " Home</a>"; // we include the link to the home page here so that "Choose how to proceed:" never stands without any link to go
 
 	echo "\n\t</td>"
-		. "\n</tr>"
-		. "\n</table>";
+	   . "\n</tr>"
+	   . "\n</table>";
 
 	// --------------------------------------------------------------------
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, $oldQuery);
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
