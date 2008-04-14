@@ -46,10 +46,15 @@
 		if (!empty($unapiID))
 			$unapiCollection->setTagAttribute("id", $unapiID);
 
+		// Recommended format names are given at <http://unapi.stikipad.com/unapi/show/existing+formats>
+		// TODO: add 'ISI', 'ODF XML' and 'Word XML'
 		addNewBranch($unapiCollection, "format", array("name" => "bibtex", "type" => "text/plain", "docs" => "http://en.wikipedia.org/wiki/BibTeX"), ""); // function 'addNewBranch()' is defined in 'webservice.inc.php'
 		addNewBranch($unapiCollection, "format", array("name" => "endnote", "type" => "text/plain", "docs" => "http://www.ecst.csuchico.edu/~jacobsd/bib/formats/endnote.html"), "");
 		addNewBranch($unapiCollection, "format", array("name" => "ris", "type" => "text/plain", "docs" => "http://www.adeptscience.co.uk/kb/article/A626"), "");
+		addNewBranch($unapiCollection, "format", array("name" => "atom", "type" => "application/atom+xml", "docs" => "http://www.atomenabled.org/developers/syndication/"), "");
 		addNewBranch($unapiCollection, "format", array("name" => "mods", "type" => "application/xml", "docs" => "http://www.loc.gov/standards/mods/"), "");
+		addNewBranch($unapiCollection, "format", array("name" => "oai_dc", "type" => "application/xml", "docs" => "http://www.openarchives.org/OAI/openarchivesprotocol.html#dublincore"), "");
+		addNewBranch($unapiCollection, "format", array("name" => "srw_dc", "type" => "application/xml", "docs" => "http://www.loc.gov/standards/sru/"), "");
 		addNewBranch($unapiCollection, "format", array("name" => "srw_mods", "type" => "application/xml", "docs" => "http://www.loc.gov/standards/sru/"), "");
 		addNewBranch($unapiCollection, "format", array("name" => "html", "type" => "text/html", "docs" => "http://www.w3.org/MarkUp/"), "");
 		addNewBranch($unapiCollection, "format", array("name" => "rtf", "type" => "application/rtf", "docs" => "http://en.wikipedia.org/wiki/Rich_Text_Format"), "");
