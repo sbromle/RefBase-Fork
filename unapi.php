@@ -21,7 +21,8 @@
 	// More info is given at <http://unapi.refbase.net/>.
 
 	// Examples for recognized unAPI queries:
-	// (your server URL will be different, of course)
+	// (URL encoding left out for better readibility, and your server URL will be different,
+	//  of course)
 	//
 	// - ask the unAPI server to list all of its supported formats:
 	//     unapi.php
@@ -33,7 +34,10 @@
 	//     unapi.php?id=http://polaris.ipoe.uni-kiel.de/refs/show.php?record=1&format=bibtex
 	//     unapi.php?id=http://polaris.ipoe.uni-kiel.de/refs/show.php?record=1&format=endnote
 	//     unapi.php?id=http://polaris.ipoe.uni-kiel.de/refs/show.php?record=1&format=ris
+	//     unapi.php?id=http://polaris.ipoe.uni-kiel.de/refs/show.php?record=1&format=atom
 	//     unapi.php?id=http://polaris.ipoe.uni-kiel.de/refs/show.php?record=1&format=mods
+	//     unapi.php?id=http://polaris.ipoe.uni-kiel.de/refs/show.php?record=1&format=oai_dc
+	//     unapi.php?id=http://polaris.ipoe.uni-kiel.de/refs/show.php?record=1&format=srw_dc
 	//     unapi.php?id=http://polaris.ipoe.uni-kiel.de/refs/show.php?record=1&format=srw_mods
 	//
 	// - return record with serial number 1 in various citation formats:
@@ -52,7 +56,6 @@
 
 	// TODO: - return appropriate HTML status codes
 	//       - improve error handling
-	//       - add support for (OpenSearch) RSS format
 
 
 	// Incorporate some include files:
@@ -87,30 +90,42 @@
 	// - 'bibtex' => return as BibTeX data with mime type 'text/plain'
 	// - 'endnote' => return as Endnote data with mime type 'text/plain'
 	// - 'ris' => return as RIS data with mime type 'text/plain'
+	// - 'atom' => return as Atom XML data with mime type 'application/atom+xml'
 	// - 'mods' => return as MODS XML data with mime type 'application/xml'
-	// - 'srw_mods' => return as SRW MODS XML data with mime type 'application/xml'
-	// - 'rss' => return as RSS XML data with mime type 'application/rss+xml'  -> the refbase unAPI server does NOT yet re-locate to 'rss.php' (and it would be even better if it would export OpenSearch RSS XML for 'format=rss')!
+	// - 'oai_dc' => return as OAI_DC XML data with mime type 'application/xml'
+	// - 'srw_dc' => return as SRW_DC XML data with mime type 'application/xml'
+	// - 'srw_mods' => return as SRW_MODS XML data with mime type 'application/xml'
 	// - 'html' => return as HTML with mime type 'text/html'
 	// - 'rtf' => return as RTF data with mime type 'application/rtf'
 	// - 'pdf' => return as PDF data with mime type 'application/pdf'
 	// - 'latex' => return as LaTeX data with mime type 'application/x-latex'
 	// - 'markdown' => return as Markdown TEXT data with mime type 'text/plain'
 	// - 'text' or 'ascii' => return as ASCII TEXT data with mime type 'text/plain'
-	if (isset($_REQUEST['format']) AND eregi("^(BibTeX|Endnote|RIS|MODS( XML)?|SRW( XML|_MODS)?|RSS|html|RTF|PDF|LaTeX|Markdown|ASCII|TEXT)$", $_REQUEST['format']))
+	// TODO: add 'ISI', 'ODF XML' and 'Word XML'
+	if (isset($_REQUEST['format']) AND eregi("^(BibTeX|Endnote|RIS|Atom( XML)?|MODS( XML)?|(OAI_)?DC( XML)?|SRW( XML|_MODS|_DC)?|html|RTF|PDF|LaTeX|Markdown|ASCII|TEXT)$", $_REQUEST['format']))
 		$unapiFormat = $_REQUEST['format'];
 	else
 		$unapiFormat = "";
 
 	// Set some required parameters based on the requested format:
 
-	if (eregi("^(BibTeX|Endnote|RIS|MODS( XML)?|SRW( XML|_MODS)?)$", $unapiFormat))
+	if (eregi("^(BibTeX|Endnote|RIS|Atom( XML)?|MODS( XML)?|(OAI_)?DC( XML)?|SRW( XML|_MODS|_DC)?)$", $unapiFormat))
 	{
 		$displayType = "Export";
 
-		if (eregi("^MODS", $unapiFormat))
+		// Standardize XML export format names:
+		// NOTE: the below regex patterns are potentially too lax and might cause misbehaviour in case any custom export formats have been added
+		// TODO: add 'ODF XML' and 'Word XML' when they're supported by 'unapi.php'
+		if (eregi("^Atom", $unapiFormat))
+			$exportFormat = "Atom XML";
+		elseif (eregi("^MODS", $unapiFormat))
 			$exportFormat = "MODS XML";
+		elseif (eregi("^(OAI_)?DC", $unapiFormat))
+			$exportFormat = "OAI_DC XML";
+		elseif (eregi("^SRW_DC", $unapiFormat))
+			$exportFormat = "SRW_DC XML";
 		elseif (eregi("^SRW", $unapiFormat))
-			$exportFormat = "SRW XML";
+			$exportFormat = "SRW_MODS XML";
 		else
 			$exportFormat = $unapiFormat;
 
@@ -128,7 +143,7 @@
 	}
 	else // unrecognized format
 	{
-		$displayType = ""; // if the 'submit' parameter is empty, this will produce the default columnar output style
+		$displayType = ""; // if the 'submit' parameter is empty, this will produce the default view
 		$exportFormat = ""; // if no export format was given, 'show.php' will use the default export format which is defined by the '$defaultExportFormat' variable in 'ini.inc.php'
 		$citeType = "html";
 	}
