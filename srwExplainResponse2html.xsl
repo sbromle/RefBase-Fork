@@ -67,7 +67,7 @@
 		</head>
 	<body bgcolor="#FFFFFF">
 		<!-- page header: -->
-		<table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This holds the title logo and info">
+		<table class="pageheader" align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This holds the title logo and info">
 			<tr>
 				<td valign="bottom" rowspan="2" align="left" width="120">
 				<a>
@@ -94,7 +94,7 @@
 				<td class="small" align="right" valign="middle"><a href="user_login.php" title="login to the database">Login</a></td>
 			</tr>
 		</table>
-		<hr align="center" width="95%" />
+		<hr class="pageheader" align="center" width="95%" />
 		<!-- search forms: -->
 		<xsl:apply-templates select="srw:diagnostics" />
 		<table align="center" border="0" cellpadding="2" cellspacing="5" width="95%" summary="This table holds the search form">
@@ -347,37 +347,29 @@
 				</td>
 				<td valign="top">
 					<xsl:text>This form gets dynamically created from the </xsl:text><a href="http://www.loc.gov/standards/sru/" target="top">SRU</a><xsl:text> explain response, it exposes indexes and capabilities offered by the refbase SRU server.</xsl:text>
-					<xsl:text> Queries must be specified as </xsl:text><a href="http://www.loc.gov/standards/sru/cql/index.html" target="top">CQL (Common Query Language)</a><xsl:text>, an introduction to CQL is given </xsl:text><a href="http://zing.z3950.org/cql/intro.html" target="top">here</a><xsl:text>.</xsl:text>
+					<xsl:text> Queries must be specified as </xsl:text><a href="http://www.loc.gov/standards/sru/specs/cql.html" target="top">CQL (Common Query Language)</a><xsl:text>, an introduction to CQL is given </xsl:text><a href="http://zing.z3950.org/cql/intro.html" target="top">here</a><xsl:text>.</xsl:text>
 					<xsl:text> Please see the </xsl:text><a href="http://sru.refbase.net/" target="top">refbase online documentation</a>
 					<xsl:text> for more information about the SRU web service.</xsl:text>
 				</td>
 			</tr>
 		</table>
 		<!-- page footer: -->
-		<hr align="center" width="95%" />
-		<table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds the footer">
+		<hr class="pagefooter" align="center" width="95%" />
+		<table class="pagefooter" align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds the footer">
 			<tr>
 				<td class="small" width="105"><a href="index.php" title="go to main page">Home</a></td>
 				<td class="small" align="center">
-					<a href="show.php?records=all" title="show all records in the database">Show All</a><xsl:text> | </xsl:text>
-					<a href="simple_search.php" title="search the main fields of the database">Simple Search</a><xsl:text> | </xsl:text>
-					<a href="advanced_search.php" title="search all fields of the database">Advanced Search</a><xsl:text> | </xsl:text>
+					<a href="sru.php" title="search the SRU web service">SRU Search</a><xsl:text> | </xsl:text>
 					<a href="library_search.php">
 						<xsl:attribute name="title">
 							<xsl:text>search the library of the </xsl:text><xsl:value-of select="srw:record/srw:recordData/zr:explain/zr:databaseInfo/zr:author" />
 						</xsl:attribute>
 						<xsl:text>Library Search</xsl:text>
-					</a>
-				</td>
-				<td class="small" align="right" width="105"><!-- <xsl:value-of select="date:date()" /> --></td>
-			</tr>
-			<tr>
-				<td class="small" width="105"><a href="http://wiki.refbase.net/" title="display help">Help</a></td>
-				<td class="small" align="center">
+					</a><xsl:text> | </xsl:text>
 					<a href="show.php" title="display details for a particular record by entering its database serial number">Show Record</a><xsl:text> | </xsl:text>
 					<a href="extract.php" title="extract citations from a text and build an appropriate reference list">Extract Citations</a>
 				</td>
-				<td class="small" align="right" width="105"><!-- <xsl:value-of select="date:time()" /> --></td>
+				<td class="small" align="right" width="105"><a href="http://wiki.refbase.net/" title="display help">Help</a></td>
 			</tr>
 		</table>
 		</body>
