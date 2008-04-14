@@ -18,7 +18,7 @@
 
 	// This is an export format file (which must reside within the 'export/' sub-directory of your refbase root directory). It contains a version of the
 	// 'exportRecords()' function that outputs records according to the Word 2007 bibliography XML format (http://office.microsoft.com/word/).
-	// This function is basically a wrapper for the bibutils 'xml2word' command line tool (http://www.scripps.edu/~cdputnam/software/bibutils/bibutils.html).
+	// This function is basically a wrapper for the bibutils 'xml2wordbib' command line tool (http://www.scripps.edu/~cdputnam/software/bibutils/bibutils.html).
 
 	// --------------------------------------------------------------------
 
@@ -33,7 +33,9 @@
 	function exportRecords($result, $rowOffset, $showRows, $exportStylesheet, $displayType)
 	{
 		// function 'exportBibutils()' is defined in 'execute.inc.php'
-		return exportBibutils($result,"xml2word");
+		// NOTE: if you're using a Bibutils version prior to Bibutils v3.40,
+		//       you must rename "xml2wordbib" to "xml2word" in the line below
+		return exportBibutils($result,"xml2wordbib");
 	}
 
 	// --- END EXPORT FORMAT ---
