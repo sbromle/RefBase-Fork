@@ -570,13 +570,13 @@
 		//									"L4"  =>  "", // Image(s)
 
 											"N1"  =>  "notes", // Notes
-											"ID"  =>  "call_number", // Reference ID
+											"ID"  =>  "call_number", // Reference ID (NOTE: alternatively, we could map 'ID' to the user-specific 'cite_key' field which would copy the contents of the 'ID' field to the 'cite_key' field of the currently logged-in user)
 
 		//									"M1"  =>  "", // Miscellaneous 1
 		//									"M2"  =>  "", // Miscellaneous 2
 		//									"M3"  =>  "", // Miscellaneous 3
 											"U1"  =>  "thesis", // User definable 1 ('U1' is used by Bibutils to indicate the type of thesis, e.g. "Masters thesis" or "Ph.D. thesis"; function 'parseRecords()' will further tweak the contents of the refbase 'thesis' field)
-		//									"U2"  =>  "", // User definable 2
+											"U2"  =>  "user_notes", // User definable 2
 		//									"U3"  =>  "", // User definable 3
 		//									"U4"  =>  "", // User definable 4
 		//									"U5"  =>  "", // User definable 5
@@ -599,7 +599,7 @@
 									"ED",
 									"A3",
 									"KW",
-		//							"UR", // currently, refbase does only support one URL per record
+									"UR", // currently, refbase does only support one URL per record (however, we allow 'UR' to occur multiple times to extract any DOI given as URL, otherwise only the first URL will be taken)
 		//							"L1", // currently, refbase does only support one file per record
 									"N1"
 								);
@@ -1987,11 +1987,18 @@
 			}
 
 			// if the 'url' field actually contains a DOI prefixed with "http://dx.doi.org/" (AND the 'doi' field is empty), we'll extract the DOI and move it to the 'doi' field:
-			if (!empty($fieldParametersArray['url']) AND empty($fieldParametersArray['doi']) AND preg_match("#^http://dx\.doi\.org/10\.\d{4}/[^ ]+#", $fieldParametersArray['url']))
+			if (!empty($fieldParametersArray['url']) AND empty($fieldParametersArray['doi']) AND preg_match("#(?<=^|; )http://dx\.doi\.org/10\.\d{4}/[^ ]+?(?=$|; )#", $fieldParametersArray['url']))
 			{
-				$fieldParametersArray['doi'] = preg_replace("#^http://dx\.doi\.org/(10\.\d{4}/[^ ]+)#", "\\1", $fieldParametersArray['url']);
-				unset($fieldParametersArray['url']);
+				$fieldParametersArray['doi'] = preg_replace("#(?:.+?; )?http://dx\.doi\.org/(10\.\d{4}/[^ ]+?)(?=$|; ).*#", "\\1", $fieldParametersArray['url']); // extract DOI to 'doi' field
+				$fieldParametersArray['url'] = preg_replace("#^http://dx\.doi\.org/10\.\d{4}/[^ ]+?(?=$|; )(; )?#", "", $fieldParametersArray['url']); // remove DOI URL from beginning of 'url' field
+				$fieldParametersArray['url'] = preg_replace("#(; )?http://dx\.doi\.org/10\.\d{4}/[^ ]+?(?=$|; )#", "", $fieldParametersArray['url']); // remove DOI URL from middle (or end) of 'url' field
+
+				if (empty($fieldParametersArray['url'])) // the DOI URL was the only URL given
+					unset($fieldParametersArray['url']);
 			}
+
+			if (!empty($fieldParametersArray['url'])) // besides any DOI URL, some other URL(s) were given
+				$fieldParametersArray['url'] = preg_replace("/^([^ ]+?)(?=$|; ).*/", "\\1", $fieldParametersArray['url']); // remove everything but the first URL from the 'url' field (currently, refbase does only support one URL per record)
 
 			// standardize format of ISSN number:
 			if (!empty($fieldParametersArray['issn']) AND preg_match("/^ *\d{4}\D*\d{4} *$/", $fieldParametersArray['issn']))
@@ -2034,10 +2041,11 @@
 		//  11. output: for all authors except the first author: boolean value that specifies if initials go *before* the author's name ['true'], or *after* the author's name ['false'] (which is the default in the db)
 		//  12. output: boolean value that specifies whether an author's full given name(s) shall be shortened to initial(s)
 		//
-		//  13. output: if the number of authors is greater than the given number (integer >= 1), only the first author will be included along with the string given in (14); keep empty if all authors shall be returned
-		//  14. output: string that's appended to the first author if number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
+		//  13. output: if the total number of authors is greater than the given number (integer >= 1), only the number of authors given in (14) will be included in the citation along with the string given in (15); keep empty if all authors shall be returned
+		//  14. output: number of authors (integer >= 1) that is included in the citation if the total number of authors is greater than the number given in (13); keep empty if not applicable
+		//  15. output: string that's appended to the number of authors given in (14) if the total number of authors is greater than the number given in (13); the actual number of authors can be printed by including '__NUMBER_OF_AUTHORS__' (without quotes) within the string
 		//
-		//  15. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
+		//  16. output: boolean value that specifies whether the re-ordered string shall be returned with higher ASCII chars HTML encoded
 		$reorderedNameString = reArrangeAuthorContents($nameString, // 1.
 														$familyNameFirst, // 2.
 														$personDelimiter, // 3.
@@ -2052,7 +2060,8 @@
 														$shortenGivenNames, // 12.
 														"", // 13.
 														"", // 14.
-														false); // 15.
+														"", // 15.
+														false); // 16.
 
 		return $reorderedNameString;
 	}
