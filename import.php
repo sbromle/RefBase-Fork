@@ -109,7 +109,7 @@
 		$rowSpan = " rowspan=\"2\"";
 	}
 
-	// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -169,7 +169,7 @@
 	// (2a) Display header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . $pageTitle, "index,follow", "Import records into the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-	showPageHeader($HeaderString, "");
+	showPageHeader($HeaderString);
 
 	// (2b) Start <form> and <table> holding the form elements of the main import form:
 	echo "\n<form enctype=\"multipart/form-data\" action=\"import_modify.php\" method=\"POST\">"
@@ -315,7 +315,7 @@
 	// (2d) Display a table row with some help text:
 	echo "\n<tr>\n\t<td valign=\"top\"><b>Help:</b></td>\n\t<td>&nbsp;</td>"
 			. "\n\t<td valign=\"top\" colspan=\"3\">The upper form enables you to import records from "
-			. "<a href=\"http://www.endnote.com/\" target=\"top\">Endnote</a>, "
+			. "<a href=\"http://www.endnote.com/\" target=\"top\">Endnote</a> (tagged text or XML), "
 			. "<a href=\"http://www.refman.com/\" target=\"top\">Reference Manager</a> (RIS), "
 			. "<a href=\"http://www.refworks.com/\" target=\"top\">RefWorks</a>, "
 			. "<a href=\"http://en.wikipedia.org/wiki/Bibtex\" target=\"top\">BibTeX</a>, "
@@ -328,7 +328,7 @@
 			. " Please see the <a href=\"http://import.refbase.net/\" target=\"top\">refbase online documentation</a> for more information about the supported formats and any requirements in format structure.</td>"
 			. "\n</tr>"
 			. "\n<tr>\n\t<td>&nbsp;</td>\n\t<td>&nbsp;</td>"
-			. "\n\t<td colspan=\"3\">The lower form allows you to import records by their <a href=\"http://www.pubmed.gov/\" target=\"top\">PubMed</a> ID (PMID). Just enter one or more PubMed IDs (delimited by any non-digit characters) and press the <em>Import</em> button.</td>"
+			. "\n\t<td colspan=\"3\">The lower form allows you to import MEDLINE records by their <a href=\"http://www.pubmed.gov/\" target=\"top\">PubMed</a> ID (PMID). Just enter one or more PubMed IDs (delimited by any non-digit characters) and press the <em>Import</em> button.</td>"
 			. "\n</tr>"
 			. "\n</table>"
 			. "\n</form>";
@@ -346,7 +346,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	showPageFooter($HeaderString, "");
+	showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
