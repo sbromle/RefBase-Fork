@@ -176,12 +176,14 @@
 				$exportStylesheet = "srwmods2html.xsl";
 		}
 
+		$displayType = "Export";
 		$exportContentType = "application/xml";
 		$citeOrder = "";
 	}
 	elseif (eregi("^rss([ _]?xml)?$", $recordSchema)) // if RSS XML is requested as response format
 	{
 		$exportFormat = "RSS XML";
+		$displayType = "Export";
 		$exportContentType = "application/rss+xml";
 		if ($exportStylesheet == "DEFAULT")
 			$exportStylesheet = "";
@@ -190,6 +192,12 @@
 	elseif (eregi("^html$", $recordSchema)) // if HTML is requested as response format
 	{
 		$exportFormat = ""; // since search results won't be routed thru the 'generateExport()' function, '$exportFormat' will be without effect (which is why we leave it blank)
+
+		if (eregi("^Mobile$", $viewType)) // for Mobile view, we enforce the compact Citation view
+			$displayType = "Cite";
+		else
+			$displayType = ""; // if '$displayType' is empty, 'show.php' will use the default view that's given in variable '$defaultView' in 'ini.inc.php'
+
 		$exportContentType = "text/html";
 		if ($exportStylesheet == "DEFAULT")
 			$exportStylesheet = "";
@@ -198,6 +206,7 @@
 	else // by default, OpenSearch Atom XML ('atom') is assumed as response format
 	{
 		$exportFormat = "Atom XML";
+		$displayType = "Export";
 		$exportContentType = "application/atom+xml";
 		if ($exportStylesheet == "DEFAULT")
 			$exportStylesheet = ""; // TODO: finish 'opensearch2xhtml.xsl'
@@ -258,6 +267,7 @@
 		// Build the correct query URL:
 		// (we skip unnecessary parameters here since function 'generateURL()' and 'show.php' will use their default values for them)
 		$queryParametersArray = array("where"            => $query,
+		                              "submit"           => $displayType,
 		                              "viewType"         => $viewType,
 		                              "exportStylesheet" => $exportStylesheet
 		                             );
