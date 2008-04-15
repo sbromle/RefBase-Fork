@@ -5467,7 +5467,7 @@
 			$queryParametersArray = array("record" => $row["serial"]);
 
 			// we only add further parameters to the 'show.php' URL if their current value differs from the defaults used by 'show.php' or 'search.php':
-			if (!empty($viewType) AND $viewType != "Web")
+			if (!empty($viewType) AND !eregi("^Web$", $viewType))
 				$queryParametersArray["viewType"] = $viewType;
 
 			if ($showQuery == "1")

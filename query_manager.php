@@ -316,7 +316,7 @@
 	else
 		$checkLinks = "";
 
-	if ($queryViewType == "Print")
+	if (eregi("^Print$", $queryViewType))
 	{
 		$webViewTypeSelected = "";
 		$printViewTypeSelected = " selected";
