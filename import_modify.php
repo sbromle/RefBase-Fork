@@ -532,9 +532,29 @@
 
 	if (!empty($importedRecordsArray)) // if some records were successfully imported
 	{
-		$recordSerialsQueryString = implode(",", $importedRecordsArray);
-
 		$importedRecordsCount = count($importedRecordsArray);
+
+		// build string of record serial numbers (to be used with the 'records' query parameter):
+		$recordSerialsQueryString = $importedRecordsArray[0]; // add first serial number
+		for ($i=1; $i < $importedRecordsCount; $i++) // for the second to the last serial number...
+		{
+			// implode consecutive serial numbers into a range (e.g. transform "150,151,152" into "150-152"):
+			if ($importedRecordsArray[$i] == ($importedRecordsArray[$i - 1] + 1)) // if this number is consecutive to the previous one
+			{
+				if (!ereg("-$", $recordSerialsQueryString))
+					$recordSerialsQueryString .= "-"; // start range
+
+				if ($i == ($importedRecordsCount - 1)) // if this is the last item in the array
+					$recordSerialsQueryString .= $importedRecordsArray[$i]; // end range
+			}
+			else // this number is NOT consecutive to the previous one
+			{
+				if (ereg("-$", $recordSerialsQueryString))
+					$recordSerialsQueryString .= $importedRecordsArray[$i - 1]; // end any previous range
+
+				$recordSerialsQueryString .= "," . $importedRecordsArray[$i]; // append this number using a comma as a delimiter
+			}
+		}
 
 		// Send EMAIL announcement:
 		if ($sendEmailAnnouncements == "yes")
