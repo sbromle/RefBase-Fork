@@ -21,10 +21,10 @@
 	// More info is given at <http://sru.refbase.net/>.
 
 	// Supports 'explain' and 'searchRetrieve' operations (but not 'scan') and outputs
-	// records as MODS XML wrapped into SRW XML. Allows to query all global refbase fields
-	// (the given index name must match either one of the 'set.index' names listed
-	// in the explain response or match a refbase field name directly). If no
-	// index name is given the 'serial' field will be searched by default.
+	// records as DC XML or MODS XML wrapped into SRW XML. Allows to query all global
+	// refbase fields (the given index name must match either one of the 'set.index'
+	// names listed in the explain response or match a refbase field name directly).
+	// If no index name is given the 'serial' field will be searched by default.
 
 	// Examples for recognized SRU/CQL queries:
 	//
@@ -56,17 +56,17 @@
 	// - return just the number of found records (but not the full record data):
 	//     sru.php?version=1.1&query=1%20123%20499%20612%2021654%2023013&maximumRecords=0
 	//
-	// - supress the default stylesheet or specify your own:
+	// - suppress the default stylesheet or specify your own:
 	//     sru.php?version=1.1&query=1&stylesheet=
 	//     sru.php?version=1.1&query=1&stylesheet=xml2html.xsl
 
 	// Note that (if the 'version' & 'query' parameters are present in the
 	// query) 'operation=searchRetrieve' is assumed if omitted. Additionally,
-	// only 'recordPacking=xml' and 'recordSchema=mods' are supported and
-	// 'sru.php' will use these settings by default if not given in the query.
-	// Data will be returned together with a default stylesheet if the
-	// 'stylesheet' parameter wasn't given in the query. XPath, sort and
-	// result sets are not supported and only SRW version 1.1 is recognized.
+	// only 'recordPacking=xml' and 'recordSchema=dc' or 'recordSchema=mods' are
+	// supported and 'sru.php' will default to 'recordSchema=mods' if these settings
+	// weren't given in the query. Data will be returned together with a default
+	// stylesheet if the 'stylesheet' parameter wasn't given in the query. XPath,
+	// sort and result sets are not supported and only SRW/SRU version 1.1 is recognized.
 
 	// For more on SRW/SRU, see:
 	//   <http://www.loc.gov/standards/sru>
@@ -74,6 +74,7 @@
 	// TODO: - proper parsing of CQL query string (currently, 'sru.php' allows only for a limited set of CQL queries)
 	//       - offer support for the boolean CQL operators 'and/or/not' and parentheses
 	//       - honour the 'sortKeys' parameter and return records sorted accordingly
+	//       - create an XSLT stylesheet for SRW diagnostics
 
 
 	// Incorporate some include files:
@@ -111,17 +112,17 @@
 
 	// Extract optional parameters passed to the script:
 
-	if (isset($_REQUEST['operation']))
+	if (isset($_REQUEST['operation']) AND !empty($_REQUEST['operation']))
 		$sruOperation = $_REQUEST['operation'];
 	else
 		$sruOperation = "searchRetrieve"; // we assume a 'searchRetrieve' operation if not given
 
-	if (isset($_REQUEST['recordSchema'])) // note that we'll currently always output as 'mods'
+	if (isset($_REQUEST['recordSchema']) AND !empty($_REQUEST['recordSchema'])) // 'recordSchema' must be either 'dc' or 'mods'
 		$sruRecordSchema = $_REQUEST['recordSchema'];
 	else
-		$sruRecordSchema = "mods";
+		$sruRecordSchema = "mods"; // we default to 'mods' if not given
 
-	if (isset($_REQUEST['recordPacking'])) // note that we'll currently always output as 'xml'
+	if (isset($_REQUEST['recordPacking']) AND !empty($_REQUEST['recordPacking'])) // note that we'll currently always output as 'xml'
 		$sruRecordPacking = $_REQUEST['recordPacking'];
 	else
 		$sruRecordPacking = "xml";
@@ -137,9 +138,9 @@
 		$rowOffset = ""; // if no value to the 'startRecord' parameter is given, we'll output records starting with the first record in the result set
 
 	if (isset($_REQUEST['stylesheet'])) // contains the desired stylesheet to be returned for transformation of XML data
-		$exportStylesheet = $_REQUEST['stylesheet'];
+		$exportStylesheet = $_REQUEST['stylesheet']; // if the 'stylesheet' parameter was given in the query without a value, this will suppress the default stylesheet
 	else
-		$exportStylesheet = "srwmods2html.xsl"; // we provide a default stylesheet if no stylesheet was specified in the query (for 'operation=explain', a different default stylesheet will be assigned below)
+		$exportStylesheet = "DEFAULT"; // the special keyword "DEFAULT" causes a default stylesheet to be assigned below based on the requested operation and response format
 
 	// Note that PHP will translate dots ('.') in parameter names into substrings ('_'). This is so that the
 	// import_request_variables function can generate legitimate variable names (and a . is not permissable
@@ -176,7 +177,12 @@
 	// For the context of 'sru.php' we set some parameters explicitly:
 
 	$displayType = "Export";
-	$exportFormat = "SRW XML";
+
+	if (eregi("^((oai_|srw_)?dc|info:srw/schema/1/dc-v1\.1|http://purl\.org/dc/elements/1\.1/)$", $sruRecordSchema)) // simple Dublin Core was requested as record schema
+		$exportFormat = "SRW_DC XML";
+	else
+		$exportFormat = "SRW_MODS XML";
+
 	$exportType = "xml";
 	$showLinks = "1";
 	$exportContentType = "application/xml";
@@ -226,7 +232,7 @@
 		// if 'sru.php' was called with 'operation=explain' -OR- without any recognized parameters, we'll return an appropriate 'explainResponse':
 
 		// use an appropriate default stylesheet:
-		if ($exportStylesheet == "srwmods2html.xsl")
+		if ($exportStylesheet == "DEFAULT")
 			$exportStylesheet = "srwExplainResponse2html.xsl";
 
 		// Set the appropriate mimetype & set the character encoding to the one given
@@ -249,8 +255,8 @@
 	elseif ($sruVersion != "1.1")
 		returnDiagnostic(5, "1.1"); // only SRW version 1.1 is supported
 
-	elseif (!eregi("^mods$",$sruRecordSchema) AND !eregi("^info:srw/schema/1/mods-v3\.0$",$sruRecordSchema) AND !eregi("^http://www\.loc\.gov/mods/v3$",$sruRecordSchema))
-		returnDiagnostic(66, $sruRecordSchema); // no other schema than MODS is supported
+	elseif (!eregi("^((srw_)?mods|info:srw/schema/1/mods-v3\.2|http://www\.loc\.gov/mods/v3)$",$sruRecordSchema) AND !eregi("^((oai_|srw_)?dc|info:srw/schema/1/dc-v1\.1|http://purl\.org/dc/elements/1\.1/)$",$sruRecordSchema))
+		returnDiagnostic(66, $sruRecordSchema); // no other schema than MODS v3.2 or DC v1.1 (i.e. simple Dublin Core aka OAI_DC) is supported
 
 	elseif (!eregi("^xml$",$sruRecordPacking))
 		returnDiagnostic(71, "Only 'recordPacking=xml' is supported"); // no other record packing than XML is supported
@@ -268,19 +274,25 @@
 
 	else // the script was called at least with the required parameters 'query' and 'version'
 	{
+		// use an appropriate default stylesheet:
+		if ($exportStylesheet == "DEFAULT")
+		{
+			if (eregi("^((oai_|srw_)?dc|info:srw/schema/1/dc-v1\.1|http://purl\.org/dc/elements/1\.1/)$", $sruRecordSchema)) // simple Dublin Core was requested as record schema
+				$exportStylesheet = "srwdc2html.xsl"; // use a stylesheet that's appropriate for SRW+DC XML
+			else // use a stylesheet that's appropriate for SRW+MODS XML:
+				$exportStylesheet = "srwmods2html.xsl";
+		}
 
 //		// NOTE: the generation of SQL queries (or parts of) should REALLY be modular and be moved to separate dedicated functions!
 
 		// CONSTRUCT SQL QUERY:
+		// TODO: build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
 
 		// Note: the 'verifySQLQuery()' function that gets called by 'search.php' to process query data with "$formType = sqlSearch" will add the user-specific fields to the 'SELECT' clause
 		// (with one exception: see note below!) and the 'LEFT JOIN...' part to the 'FROM' clause of the SQL query if a user is logged in. It will also add 'orig_record', 'serial', 'file',
 		// 'url' & 'doi' columns as required. Therefore it's sufficient to provide just the plain SQL query here:
 
 		// Build SELECT clause:
-		// select all fields required to export a record as SRW XML:
-		$query = "SELECT author, title, type, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved, location, online_publication, online_citation, modified_date, modified_time, call_number, serial";
-		//           (the above string MUST end with ", call_number, serial" in order to have the described query completion feature work correctly!
 
 		// if a user-specific index was queried together with an authentication token that could be resolved to a user ID
 		// - AND no user is logged in
@@ -290,7 +302,11 @@
 		// here since (while user 'A' should be allowed to query cite keys of user 'B') we don't want user 'A' to be able to view other user-specific content of
 		// user 'B'. By adding only 'cite_key' here, no other user-specific fields will be disclosed in case a logged-in user queries another user's cite keys.
 		if ($userSpecificIndex AND (!empty($userID)) AND (!isset($_SESSION['loginEmail']) OR (isset($_SESSION['loginEmail']) AND ($userID != getUserID($loginEmail))))) // the session variable '$loginEmail' is made available globally by the 'start_session()' function
-			$query .= ", cite_key"; // add 'cite_key' field
+			$additionalFields = "cite_key"; // add 'cite_key' field
+		else
+			$additionalFields = "";
+
+		$query = buildSELECTclause($displayType, $showLinks, $additionalFields, false, false); // function 'buildSELECTclause()' is defined in 'include.inc.php'
 
 
 		// Build FROM clause:
@@ -322,10 +338,18 @@
 
 		// Build the correct query URL:
 		// (we skip unnecessary parameters here since 'search.php' will use it's default values for them)
-		$queryURL = "sqlQuery=" . rawurlencode($query) . "&formType=sqlSearch&submit=" . $displayType . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . "&showLinks=" . $showLinks . "&exportFormatSelector=" . rawurlencode($exportFormat) . "&exportType=" . $exportType . "&exportStylesheet=" . $exportStylesheet;
+		$queryParametersArray = array("sqlQuery"         => $query,
+		                              "formType"         => "sqlSearch",
+		//                            "submit"           => $displayType, // this parameter is set automatically by function 'generateURL()' for the export formats 'SRW_DC XML' & 'SRW_MODS XML'
+		                              "showLinks"        => $showLinks,
+		//                            "exportType"       => $exportType, // this parameter is set automatically by function 'generateURL()' if the export format name contains "XML"
+		                              "exportStylesheet" => $exportStylesheet
+		                             );
 
 		// call 'search.php' with the correct query URL in order to display record details:
-		header("Location: search.php?$queryURL");
+		$queryURL = generateURL("search.php", $exportFormat, $queryParametersArray, false, $showRows, $rowOffset); // function 'generateURL()' is defined in 'include.inc.php'
+
+		header("Location: $queryURL");
 	}
 
 	// -------------------------------------------------------------------------------------------------------------------
@@ -336,6 +360,10 @@
 		global $exportContentType;
 		global $contentTypeCharset; // '$contentTypeCharset' is defined in 'ini.inc.php'
 		global $exportStylesheet;
+
+		// use an appropriate default stylesheet:
+		if ($exportStylesheet == "DEFAULT")
+			$exportStylesheet = ""; // TODO: create a stylesheet ('diag2html.xsl') that's appropriate for SRW diagnostics
 
 		// Set the appropriate mimetype & set the character encoding to the one given in '$contentTypeCharset':
 		setHeaderContentType($exportContentType, $contentTypeCharset); // function 'setHeaderContentType()' is defined in 'include.inc.php'
