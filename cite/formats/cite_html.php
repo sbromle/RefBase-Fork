@@ -43,7 +43,7 @@
 
 		// First, initialize some variables that we'll need later on
 		// Calculate the number of all visible columns (which is needed as colspan value inside some TD tags)
-		if ($showLinks == "1" && $citeOrder == "year") // in citation layout, we simply set it to a fixed value (either '1' or '2', depending on the values of '$showLinks' and '$citeOrder')
+		if ($showLinks == "1" && eregi("^(type|type-year|year)$", $citeOrder)) // in citation layout, we simply set it to a fixed value (either '1' or '2', depending on the values of '$showLinks' and '$citeOrder')
 			$NoColumns = 2; // first column: literature citation, second column: 'display details' link
 		else
 			$NoColumns = 1;
@@ -98,7 +98,7 @@
 				// Print any section heading(s):
 				if (eregi("year|type", $citeOrder))
 				{
-					if ($viewType == "Mobile")
+					if (eregi("^Mobile$", $viewType))
 					{
 						$headingPrefix = "\n<div class=\"sect\">";
 
@@ -124,7 +124,7 @@
 				else
 					$rowClass = "odd";
 
-				if ($viewType == "Mobile")
+				if (eregi("^Mobile$", $viewType))
 				{
 					$recordData .= "\n<div class=\"" . $rowClass . "\">"
 					                  . "\n\t<div class=\"citation\">" . $record . "</div>";
@@ -166,7 +166,7 @@
 
 				if ($showLinks == "1") // display links:
 				{
-					if ($viewType == "Mobile")
+					if (eregi("^Mobile$", $viewType))
 						$recordData .= "\n\t<div class=\"links\">";
 					else
 						$recordData .= "\n\t<td class=\"links\" valign=\"top\" width=\"38\">";
@@ -177,13 +177,13 @@
 					// (for links of type DOI/URL/ISBN/XREF, only one link will be printed; order of preference: DOI, URL, ISBN, XREF)
 					$recordData .= printLinks($showLinkTypesInCitationView, $row, $showQuery, $showLinks, $wrapResults, $userID, $viewType, $orderBy); // function 'printLinks()' is defined in 'search.php'
 
-					if ($viewType == "Mobile")
+					if (eregi("^Mobile$", $viewType))
 						$recordData .= "\n\t</div>";
 					else
 						$recordData .= "\n\t</td>";
 				}
 
-				if ($viewType == "Mobile")
+				if (eregi("^Mobile$", $viewType))
 					$recordData .= "\n</div>";
 				else
 					$recordData .= "\n</tr>";
@@ -201,7 +201,7 @@
 			$htmlData .= $BrowseLinks;
 		}
 
-		if ($viewType == "Mobile")
+		if (eregi("^Mobile$", $viewType))
 		{
 			// Extract the original OpenSearch/CQL query that was saved by 'opensearch.php' as a session variable:
 			if (isset($_SESSION['cqlQuery']))
@@ -240,7 +240,7 @@
 		}
 
 		// Output query results:
-		if ($viewType == "Mobile")
+		if (eregi("^Mobile$", $viewType))
 		{
 			$htmlData .= "\n<div id=\"citations\" class=\"results\">"
 			           . $recordData
