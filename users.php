@@ -78,7 +78,7 @@
 	if (isset($_REQUEST['submit']))
 		$displayType = $_REQUEST['submit'];
 	else
-		$displayType = "";
+		$displayType = "List";
 
 	// extract the original value of the '$displayType' variable:
 	// (which was included as a hidden form tag within the 'groupSearch' form of a search results page)
@@ -87,7 +87,7 @@
 	else
 		$originalDisplayType = "";
 
-	// For a given display type, extract the view type requested by the user (either 'Print', 'Web' or ''):
+	// For a given display type, extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
 	if (isset($_REQUEST['viewType']))
 		$viewType = $_REQUEST['viewType'];
@@ -134,11 +134,6 @@
 	else
 		$citeStyle = "";
 
-	if (isset($_REQUEST['oldQuery']))
-		$oldQuery = $_REQUEST['oldQuery']; // get the query URL of the formerly displayed results page so that its's available on the subsequent receipt page that follows any add/edit/delete action!
-	else
-		$oldQuery = "";
-
 	// Extract checkbox variable values from the request:
 	if (isset($_REQUEST['marked']))
 		$recordSerialsArray = $_REQUEST['marked']; // extract the values of all checked checkboxes (i.e., the serials of all selected records)
@@ -159,9 +154,7 @@
 	if ($formType == "sqlSearch") // the admin used a link with an embedded sql query for searching...
 	{
 		$query = eregi_replace(" FROM $tableUsers",", user_id FROM $tableUsers",$sqlQuery); // add 'user_id' column (which is required in order to obtain unique checkbox names as well as for use in the 'getUserID()' function)
-		$query = stripSlashesIfMagicQuotes($query); // function 'stripSlashesIfMagicQuotes()' is defined in 'include.inc.php'
-//		$query = str_replace('\"','"',$query); // replace any \" with "
-//		$query = str_replace('\\\\','\\',$query);
+		$query = stripSlashesIfMagicQuotes($query);
 	}
 
 	// --- 'Search within Results' & 'Display Options' forms within 'users.php': ---------------
@@ -191,10 +184,10 @@
 	// ----------------------------------------------
 
 	// (1) OPEN CONNECTION, (2) SELECT DATABASE
-	connectToMySQLDatabase(""); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
+	connectToMySQLDatabase(); // function 'connectToMySQLDatabase()' is defined in 'include.inc.php'
 
 	// (3) RUN the query on the database through the connection:
-	$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+	$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 	// ----------------------------------------------
 
@@ -279,21 +272,21 @@
 
 	// Then, call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Manage Users", "noindex,nofollow", "Administration page that lists users of the " . encodeHTML($officialDatabaseName) . ", with links for adding, editing or deleting any users", "", true, "", $viewType, array());
-	if ($viewType != "Print") // Note: we omit the visible header in print view! ('viewType=Print')
-		showPageHeader($HeaderString, "");
+	if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the visible header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+		showPageHeader($HeaderString);
 
 	// (4b) DISPLAY results:
-	showUsers($result, $rowsFound, $query, $queryURL, $oldQuery, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $citeStyle, $showMaxRow, $viewType, $displayType); // show all users
+	showUsers($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $citeStyle, $showMaxRow, $viewType, $displayType); // show all users
 
 	// ----------------------------------------------
 
 	// (5) CLOSE the database connection:
-	disconnectFromMySQLDatabase(""); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
+	disconnectFromMySQLDatabase(); // function 'disconnectFromMySQLDatabase()' is defined in 'include.inc.php'
 
 	// --------------------------------------------------------------------
 
 	// Display all users listed within the 'users' table
-	function showUsers($result, $rowsFound, $query, $queryURL, $oldQuery, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $citeStyle, $showMaxRow, $viewType, $displayType)
+	function showUsers($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $citeStyle, $showMaxRow, $viewType, $displayType)
 	{
 		global $connection;
 		global $HeaderString;
@@ -302,6 +295,7 @@
 		global $loginLinks;
 		global $loginEmail;
 		global $adminLoginEmail;
+		global $maximumBrowseLinks;
 
 		if ($rowsFound > 0) // If the query has results ...
 		{
@@ -322,62 +316,87 @@
 			else
 				$NoColumns = (1+$fieldsToDisplay); // add checkbox column
 
-			// Note: we omit the 'Search Within Results' form in print view! ('viewType=Print')
-			if ($viewType != "Print")
+			// Note: we omit the 'Search Within Results' form in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+			if (!eregi("^(Print|Mobile)$", $viewType))
 			{
+				// Specify which colums are available in the popup menus of the results header:
+				$dropDownFieldsArray = array("first_name"            => "first_name",
+				                             "last_name"             => "last_name",
+				                             "title"                 => "title",
+				                             "institution"           => "institution",
+				                             "abbrev_institution"    => "abbrev_institution",
+				                             "corporate_institution" => "corporate_institution",
+				                             "address_line_1"        => "address_line_1",
+				                             "address_line_2"        => "address_line_2",
+				                             "address_line_3"        => "address_line_3",
+				                             "zip_code"              => "zip_code",
+				                             "city"                  => "city",
+				                             "state"                 => "state",
+				                             "country"               => "country",
+				                             "phone"                 => "phone",
+				                             "email"                 => "email",
+				                             "url"                   => "url",
+				                             "language"              => "language",
+				                             "keywords"              => "keywords",
+				                             "notes"                 => "notes",
+				                             "marked"                => "marked",
+				                             "last_login"            => "last_login",
+				                             "logins"                => "logins",
+				                             "user_id"               => "user_id",
+				                             "user_groups"           => "user_groups",
+				                             "created_date"          => "created_date",
+				                             "created_time"          => "created_time",
+				                             "created_by"            => "created_by",
+				                             "modified_date"         => "modified_date",
+				                             "modified_time"         => "modified_time",
+				                             "modified_by"           => "modified_by"
+				                            );
+
+				$selectedField = "last_name"; // this column will be selected by default
+
 				// Build a TABLE with forms containing options to show the user groups, refine the search results or change the displayed columns:
 
 				//    - Build a FORM with a popup containing the user groups:
 				$formElementsGroup = buildGroupSearchElements("users.php", $queryURL, $query, $showQuery, $showLinks, $showRows, $displayType); // function 'buildGroupSearchElements()' is defined in 'include.inc.php'
 
 				//    - Build a FORM containing options to refine the search results:
-				//      First, specify which colums should be available in the popup menu (column items must be separated by a comma or comma+space!):
-				//      Since 'users.php' can be only called by the admin we simply specify all fields within the first variable...
-				$refineSearchSelectorElements1 = "first_name, last_name, title, institution, abbrev_institution, corporate_institution, address_line_1, address_line_2, address_line_3, zip_code, city, state, country, phone, email, url, language, keywords, notes, marked, last_login, logins, user_id, user_groups, created_date, created_time, created_by, modified_date, modified_time, modified_by";
-				$refineSearchSelectorElements2 = ""; // ... and keep the second one blank (compare with 'search.php')
-				$refineSearchSelectorElementSelected = "last_name"; // this column will be selected by default
 				//      Call the 'buildRefineSearchElements()' function (defined in 'include.inc.php') which does the actual work:
-				$formElementsRefine = buildRefineSearchElements("users.php", $queryURL, $showQuery, $showLinks, $showRows, $refineSearchSelectorElements1, $refineSearchSelectorElements2, $refineSearchSelectorElementSelected, $displayType);
+				$formElementsRefine = buildRefineSearchElements("users.php", $queryURL, $showQuery, $showLinks, $showRows, $dropDownFieldsArray, $selectedField, $displayType);
 
 				//    - Build a FORM containing display options (show/hide columns or change the number of records displayed per page):
-				//      Again, specify which colums should be available in the popup menu (column items must be separated by a comma or comma+space!):
-				$displayOptionsSelectorElements1 = "first_name, last_name, title, institution, abbrev_institution, corporate_institution, address_line_1, address_line_2, address_line_3, zip_code, city, state, country, phone, email, url, language, keywords, notes, marked, last_login, logins, user_id, user_groups, created_date, created_time, created_by, modified_date, modified_time, modified_by";
-				$displayOptionsSelectorElements2 = ""; // again we'll keep the second one blank (compare with 'search.php')
-				$displayOptionsSelectorElementSelected = "last_name"; // this column will be selected by default
 				//      Call the 'buildDisplayOptionsElements()' function (defined in 'include.inc.php') which does the actual work:
-				$formElementsDisplayOptions = buildDisplayOptionsElements("users.php", $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $displayOptionsSelectorElements1, $displayOptionsSelectorElements2, $displayOptionsSelectorElementSelected, $fieldsToDisplay, $displayType);
+				$formElementsDisplayOptions = buildDisplayOptionsElements("users.php", $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $dropDownFieldsArray, $selectedField, $fieldsToDisplay, $displayType);
 
 				echo displayResultsHeader("users.php", $formElementsGroup, $formElementsRefine, $formElementsDisplayOptions); // function 'displayResultsHeader()' is defined in 'results_header.inc.php'
 			}
 
 
 			// and insert a divider line (which separates the 'Search Within Results' form from the browse links & results data below):
-			if ($viewType != "Print") // Note: we omit the divider line in print view! ('viewType=Print')
-				echo "\n<hr align=\"center\" width=\"93%\">";
+			if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the divider line in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+				echo "\n<hr class=\"resultsheader\" align=\"center\" width=\"93%\">";
 
 			// Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
 			// call the 'buildBrowseLinks()' function (defined in 'include.inc.php'):
-			$BrowseLinks = buildBrowseLinks("users.php", $query, $oldQuery, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, "25", "sqlSearch", "", "", "", "", "", $viewType); // Note: we set the last 3 fields ('$citeOrder', '$orderBy' & $headerMsg') to "" since they aren't (yet) required here
+			$BrowseLinks = buildBrowseLinks("users.php", $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $maximumBrowseLinks, "sqlSearch", $displayType, "", "", "", "", $viewType); // Note: we set the last 3 fields ('$citeOrder', '$orderBy' & $headerMsg') to "" since they aren't (yet) required here
 			echo $BrowseLinks;
 
 
 			// Start a FORM
-			echo "\n<form action=\"users.php\" method=\"POST\" name=\"queryResults\">"
+			echo "\n<form action=\"users.php\" method=\"GET\" name=\"queryResults\">"
 					. "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
 					. "\n<input type=\"hidden\" name=\"submit\" value=\"Add\">" // provide a default value for the 'submit' form tag (then, hitting <enter> within the 'ShowRows' text entry field will act as if the user clicked the 'Add' button)
 					. "\n<input type=\"hidden\" name=\"showRows\" value=\"$showRows\">" // embed the current values of '$showRows', '$rowOffset' and the current sqlQuery so that they can be re-applied after the user pressed the 'Add' or 'Remove' button within the 'queryResults' form
 					. "\n<input type=\"hidden\" name=\"rowOffset\" value=\"$rowOffset\">"
-					. "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"$queryURL\">"
-					. "\n<input type=\"hidden\" name=\"oldQuery\" value=\"" . rawurlencode($oldQuery) . "\">"; // embed the current value of '$oldQuery' so that it's available later on
+					. "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"$queryURL\">";
 
 			// And start a TABLE
-			echo "\n<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\" summary=\"This table displays users of this database\">";
+			echo "\n<table id=\"columns\" class=\"results\" align=\"center\" border=\"0\" cellpadding=\"5\" cellspacing=\"0\" width=\"95%\" summary=\"This table displays users of this database\">";
 
 			// For the column headers, start another TABLE ROW ...
 			echo "\n<tr>";
 
 			// ... print a marker ('x') column (which will hold the checkboxes within the results part)
-			if ($viewType != "Print") // Note: we omit the marker column in print view! ('viewType=Print')
+			if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the marker column in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 				echo "\n\t<th align=\"left\" valign=\"top\">&nbsp;</th>";
 
 			// for each of the attributes in the result set...
@@ -389,7 +408,7 @@
 				$HTMLafterLink = "</th>"; // close the table header tag
 				// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
 				// as well as the URL encoded query with the appropriate ORDER clause:
-				$tableHeaderLink = buildFieldNameLinks("users.php", $query, $oldQuery, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "", "", "", $viewType);
+				$tableHeaderLink = buildFieldNameLinks("users.php", $query, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "", "", "", $viewType);
 				echo $tableHeaderLink; // print the attribute name as link
 			 }
 
@@ -401,7 +420,7 @@
 					$HTMLafterLink = "</th>"; // close the table header tag
 					// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
 					// as well as the URL encoded query with the appropriate ORDER clause:
-					$tableHeaderLink = buildFieldNameLinks("users.php", $query, $oldQuery, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "", "Links", "user_id", $viewType);
+					$tableHeaderLink = buildFieldNameLinks("users.php", $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "", "Links", "user_id", $viewType);
 					echo $tableHeaderLink; // print the attribute name as link
 				}
 
@@ -412,20 +431,24 @@
 			// BEGIN RESULTS DATA COLUMNS --------------
 			for ($rowCounter=0; (($rowCounter < $showRows) && ($row = @ mysql_fetch_array($result))); $rowCounter++)
 			{
+				if (is_integer($rowCounter / 2)) // if we currently are at an even number of rows
+					$rowClass = "even";
+				else
+					$rowClass = "odd";
+
 				// ... start a TABLE ROW ...
-				echo "\n<tr>";
+				echo "\n<tr class=\"" . $rowClass . "\">";
 
 				// ... print a column with a checkbox
-				if ($viewType != "Print") // Note: we omit the marker column in print view! ('viewType=Print')
+				if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the marker column in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 					echo "\n\t<td align=\"left\" valign=\"top\" width=\"10\"><input type=\"checkbox\" name=\"marked[]\" value=\"" . $row["user_id"] . "\"></td>";
 
 				// ... and print out each of the attributes
 				// in that row as a separate TD (Table Data)
 				for ($i=0; $i<$fieldsToDisplay; $i++)
 				{
-					// the following two lines will fetch the current attribute name:
-					$info = mysql_fetch_field($result, $i); // get the meta-data for the attribute
-					$orig_fieldname = $info->name; // get the attribute name
+					// fetch the current attribute name:
+					$orig_fieldname = getMySQLFieldInfo($result, $i, "name"); // function 'getMySQLFieldInfo()' is defined in 'include.inc.php'
 
 					if (ereg("^email$", $orig_fieldname))
 						echo "\n\t<td valign=\"top\"><a href=\"mailto:" . $row["email"] . "\">" . $row["email"] . "</a></td>";
@@ -464,18 +487,18 @@
 			// END RESULTS DATA COLUMNS ----------------
 
 			// BEGIN RESULTS FOOTER --------------------
-			// Note: we omit the results footer in print view! ('viewType=Print')
-			if ($viewType != "Print")
+			// Note: we omit the results footer in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+			if (!eregi("^(Print|Mobile)$", $viewType))
 			{
 				// Again, insert the (already constructed) BROWSE LINKS
 				// (i.e., a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages)
 				echo $BrowseLinks;
 
 				// Insert a divider line (which separates the results data from the results footer):
-				echo "\n<hr align=\"center\" width=\"93%\">";
+				echo "\n<hr class=\"resultsfooter\" align=\"center\" width=\"93%\">";
 
 				// Build a TABLE containing rows with buttons which will trigger actions that act on the selected users
-				// Call the 'buildResultsFooter()' function (which does the actual work):
+				// Call the 'buildUserResultsFooter()' function (which does the actual work):
 				$userResultsFooter = buildUserResultsFooter($NoColumns);
 				echo $userResultsFooter;
 			}
@@ -487,7 +510,7 @@
 		else
 		{
 			// Report that nothing was found:
-			echo "\n<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\" summary=\"This table displays users of this database\">"
+			echo "\n<table id=\"error\" class=\"results\" align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\" summary=\"This table displays users of this database\">"
 					. "\n<tr>"
 					. "\n\t<td valign=\"top\">Sorry, but your query didn't produce any results!&nbsp;&nbsp;<a href=\"javascript:history.back()\">Go Back</a></td>"
 					. "\n</tr>"
@@ -502,7 +525,7 @@
 	function buildUserResultsFooter($NoColumns)
 	{
 		// Start a TABLE
-		$userResultsFooterRow = "\n<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"90%\" summary=\"This table holds the results footer which offers a form to assign selected users to a group and set their permissions\">";
+		$userResultsFooterRow = "\n<table class=\"resultsfooter\" align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"90%\" summary=\"This table holds the results footer which offers a form to assign selected users to a group and set their permissions\">";
 
 		$userResultsFooterRow .= "\n<tr>"
 
@@ -603,16 +626,19 @@
 
 		if (!empty($sqlQuery)) // if there's a previous SQL query available
 		{
-			$query = preg_replace("/(SELECT .+?) FROM $tableUsers.+/i", "\\1", $sqlQuery); // use the custom set of colums chosen by the user
-			$queryOrderBy = preg_replace("/.+( ORDER BY .+?)(?=LIMIT.*|GROUP BY.*|HAVING.*|PROCEDURE.*|FOR UPDATE.*|LOCK IN.*|$)/i", "\\1", $sqlQuery); // use the custom ORDER BY clause chosen by the user
+			// use the custom set of colums chosen by the user:
+			$query = "SELECT " . extractSELECTclause($sqlQuery); // function 'extractSELECTclause()' is defined in 'include.inc.php'
+
+			// user the custom ORDER BY clause chosen by the user:
+			$queryOrderBy = extractORDERBYclause($sqlQuery); // function 'extractORDERBYclause()' is defined in 'include.inc.php'
 		}
 		else
 		{
-			$query = "SELECT author, title, year, publication, volume, pages, user_groups"; // use the default SELECT statement
-			$queryOrderBy = " ORDER BY author, year DESC, publication"; // add the default ORDER BY clause
+			$query = "SELECT first_name, last_name, abbrev_institution, email, last_login, logins, user_id"; // use the default SELECT statement
+			$queryOrderBy = "last_login DESC, last_name, first_name"; // add the default ORDER BY clause
 		}
 
-		$groupSearchSelector = $_POST['groupSearchSelector']; // extract the user group chosen by the user
+		$groupSearchSelector = $_REQUEST['groupSearchSelector']; // extract the user group chosen by the user
 
 		$query .= ", user_id"; // add 'user_id' column (although it won't be visible the 'user_id' column gets included in every search query)
 								// (which is required in order to obtain unique checkbox names as well as for use in the 'getUserID()' function)
@@ -621,7 +647,7 @@
 
 		$query .= " WHERE user_groups RLIKE " . quote_smart("(^|.*;) *" . $groupSearchSelector . " *(;.*|$)"); // add WHERE clause
 
-		$query .= $queryOrderBy; // add ORDER BY clause
+		$query .= " ORDER BY " . $queryOrderBy; // add ORDER BY clause
 
 
 		return $query;
@@ -634,29 +660,29 @@
 	{
 		global $tableUsers; // defined in 'db.inc.php'
 
-		$userGroupActionRadio = $_POST['userGroupActionRadio']; // extract user option whether we're supposed to process an existing group name or any custom/new group name that was specified by the user
+		$userGroupActionRadio = $_REQUEST['userGroupActionRadio']; // extract user option whether we're supposed to process an existing group name or any custom/new group name that was specified by the user
 
 		// Extract the chosen user group from the request:
 		// first, we need to check whether the user did choose an existing group name from the popup menu
 		// -OR- if he/she did enter a custom group name in the text entry field:
 		if ($userGroupActionRadio == "1") // if the user checked the radio button next to the group popup menu ('userGroupSelector') [this is the default]
 		{
-			if (isset($_POST['userGroupSelector']))
-				$userGroup = $_POST['userGroupSelector']; // extract the value of the 'userGroupSelector' popup menu
+			if (isset($_REQUEST['userGroupSelector']))
+				$userGroup = $_REQUEST['userGroupSelector']; // extract the value of the 'userGroupSelector' popup menu
 			else
 				$userGroup = "";
 		}
 		else // $userGroupActionRadio == "0" // if the user checked the radio button next to the group text entry field ('userGroupName')
 		{
-			if (isset($_POST['userGroupName']))
-				$userGroup = $_POST['userGroupName']; // extract the value of the 'userGroupName' text entry field
+			if (isset($_REQUEST['userGroupName']))
+				$userGroup = $_REQUEST['userGroupName']; // extract the value of the 'userGroupName' text entry field
 			else
 				$userGroup = "";
 		}
 
 		// extract the specified permission setting:
-		if (isset($_POST['userPermissionSelector']))
-			$userPermission = $_POST['userPermissionSelector']; // extract the value of the 'userPermissionSelector' popup menu
+		if (isset($_REQUEST['userPermissionSelector']))
+			$userPermission = $_REQUEST['userPermissionSelector']; // extract the value of the 'userPermissionSelector' popup menu
 		else
 			$userPermission = "";
 
@@ -702,8 +728,8 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	if ($viewType != "Print") // Note: we omit the visible footer in print view! ('viewType=Print')
-		showPageFooter($HeaderString, "");
+	if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the visible footer in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+		showPageFooter($HeaderString);
 
 	displayHTMLfoot();
 
