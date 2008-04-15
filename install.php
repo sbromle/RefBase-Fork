@@ -145,7 +145,7 @@
 			deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 		}
 
-		// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+		// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 		// ('' will produce the default 'Web' output style)
 		if (isset($_REQUEST['viewType']))
 			$viewType = $_REQUEST['viewType'];
@@ -170,7 +170,7 @@
 		// DISPLAY header:
 		// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Installation", "index,follow", "Installation form for the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-		showPageHeader($HeaderString, "");
+		showPageHeader($HeaderString);
 
 		// Start <form> and <table> holding the form elements:
 ?>
@@ -260,7 +260,7 @@
 
 		// DISPLAY THE HTML FOOTER:
 		// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-		showPageFooter($HeaderString, "");
+		showPageFooter($HeaderString);
 
 		displayHTMLfoot();
 
@@ -485,7 +485,7 @@
 			deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 		}
 
-		// Extract the view type requested by the user (either 'Print', 'Web' or ''):
+		// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 		// ('' will produce the default 'Web' output style)
 		if (isset($_REQUEST['viewType']))
 			$viewType = $_REQUEST['viewType'];
@@ -498,7 +498,7 @@
 		// DISPLAY header:
 		// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Installation Feedback", "index,follow", "Installation feedback for the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
-		showPageHeader($HeaderString, "");
+		showPageHeader($HeaderString);
 
 		// Start a <table>:
 ?>
@@ -570,7 +570,7 @@
 
 		// DISPLAY THE HTML FOOTER:
 		// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-		showPageFooter($HeaderString, "");
+		showPageFooter($HeaderString);
 
 		displayHTMLfoot();
 

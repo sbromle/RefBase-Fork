@@ -102,13 +102,13 @@
 		if ($userID != "") // note that 'if (!empty($userID))' doesn't work here since '$userID = 0' would incorrectly be treated as 'empty'
 			$query .= " AND user_id = " . $userID;
 
-		$result = queryMySQLDatabase($query, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 	
 		$rowsFound = @ mysql_num_rows($result);
 		if ($rowsFound == 0)
 		{
 			$query = "INSERT INTO " . $table . " VALUES " . $values;
-			$result = queryMySQLDatabase($query, "");
+			$result = queryMySQLDatabase($query);
 
 			return "true";
 		}
@@ -131,7 +131,7 @@
 		$present = false;
 
 		$queryFields = "SHOW FIELDS FROM " . $table;
-		$result = queryMySQLDatabase($queryFields, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($queryFields); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		while ($row = @ mysql_fetch_array($result)) // for all fields found, check if any of their names matches the field name that we want to add
 			if ($row["Field"] == $column)
@@ -140,7 +140,7 @@
 		if (!$present)
 		{
 			$query = "ALTER TABLE " . $table . " ADD COLUMN " . $column . " " . $properties;
-			$result = queryMySQLDatabase($query, "");
+			$result = queryMySQLDatabase($query);
 
 			return "true";
 		}
@@ -163,7 +163,7 @@
 		$present = false;
 
 		$queryFields = "SHOW TABLES";
-		$result = queryMySQLDatabase($queryFields, ""); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($queryFields); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 		while ($row = @ mysql_fetch_array($result)) // for all tables found, check if any of their names matches the table name that we want to add
 			if ($row[0] == $table)
@@ -172,7 +172,7 @@
 		if (!$present)
 		{
 			$query = "CREATE TABLE " . $table . " " . $properties;
-			$result = queryMySQLDatabase($query, "");
+			$result = queryMySQLDatabase($query);
 
 			return "true";
 		}
