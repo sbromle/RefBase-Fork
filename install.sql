@@ -470,7 +470,7 @@ CREATE TABLE `user_formats` (
 #
 
 INSERT INTO `user_formats` VALUES (1, 1, 0, 'false'),
-(2, 2, 0, 'false'),
+(2, 2, 0, 'true'),
 (3, 3, 0, 'false'),
 (4, 4, 0, 'false'),
 (5, 5, 0, 'true'),
@@ -485,15 +485,15 @@ INSERT INTO `user_formats` VALUES (1, 1, 0, 'false'),
 (14, 14, 0, 'true'),
 (15, 15, 0, 'false'),
 (16, 16, 0, 'false'),
-(17, 18, 0, 'false'),
-(18, 19, 0, 'false'),
+(17, 18, 0, 'true'),
+(18, 19, 0, 'true'),
 (19, 20, 0, 'true'),
 (20, 21, 0, 'true'),
 (21, 22, 0, 'true'),
 (22, 23, 0, 'true'),
 (23, 26, 0, 'false'),
 (24, 27, 0, 'false'),
-(25, 28, 0, 'false'),
+(25, 28, 0, 'true'),
 (26, 30, 0, 'false'),
 (27, 31, 0, 'false'),
 (28, 1, 1, 'true'),
@@ -597,7 +597,7 @@ CREATE TABLE `user_permissions` (
 # data for table `user_permissions`
 #
 
-INSERT INTO `user_permissions` VALUES (1, 0, 'no', 'no', 'no', 'no', 'no', 'yes', 'yes', 'yes', 'no', 'yes', 'no', 'no', 'no', 'no', 'no', 'no', 'yes', 'no', 'no', 'no'),
+INSERT INTO `user_permissions` VALUES (1, 0, 'no', 'no', 'no', 'no', 'no', 'yes', 'yes', 'yes', 'no', 'yes', 'no', 'no', 'yes', 'yes', 'no', 'no', 'yes', 'no', 'no', 'no'),
 (2, 1, 'yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'no', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'no');
 
 # --------------------------------------------------------
