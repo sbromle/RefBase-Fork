@@ -348,7 +348,7 @@
 	if (isset($_SESSION['oldQuery']))
 		$oldQuery = $_SESSION['oldQuery']; // get the query URL of the formerly displayed results page
 	else
-		$oldQuery = "";
+		$oldQuery = array();
 
 	// Extract checkbox variable values from the request:
 	if (isset($_REQUEST['marked']))
@@ -920,7 +920,7 @@
 
 
 				// 5) And start a TABLE, with column headers
-				echo "\n<table id=\"columns\" class=\"results\" align=\"center\" border=\"0\" cellpadding=\"9\" cellspacing=\"0\" width=\"95%\" summary=\"This table holds the database results for your query\">";
+				echo "\n<table id=\"columns\" class=\"results\" align=\"center\" border=\"0\" cellpadding=\"7\" cellspacing=\"0\" width=\"95%\" summary=\"This table holds the database results for your query\">";
 
 				//    for the column headers, start a TABLE ROW ...
 				echo "\n<tr>";
@@ -1944,7 +1944,7 @@
 					$groupSearchDisabled = " disabled"; // disable the (part of the) 'Add to/Remove from group' form elements if the session variable holding the user's groups isnt't available
 					$groupSearchPopupMenuChecked = "";
 					$groupSearchTextInputChecked = " checked";
-					$groupSearchSelectorTitle = "(to setup a new group with all chosen records, enter a group name to the right, then click the 'Add' button)";
+					$groupSearchSelectorTitle = "(to setup a new group with all chosen records, enter a group name & click the 'Add' button)";
 					$groupSearchTextInputTitle = "specify a new group name here, then click the 'Add' button";
 				}
 				else
