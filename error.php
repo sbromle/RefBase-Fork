@@ -65,7 +65,7 @@
 	if (isset($_SESSION['oldQuery']))
 		$oldQuery = $_SESSION['oldQuery']; // get the query URL of the formerly displayed results page
 	else
-		$oldQuery = "";
+		$oldQuery = array();
 
 	if (isset($_SERVER['HTTP_REFERER']))
 		$referer = $_SERVER['HTTP_REFERER'];
@@ -87,7 +87,8 @@
 
 
 	// Generate a 'search.php' URL that points to the formerly displayed results page:
-	$oldQueryURL = generateURL("search.php", "html", $oldQuery, true); // function 'generateURL()' is defined in 'include.inc.php'
+	if (!empty($oldQuery))
+		$oldQueryURL = generateURL("search.php", "html", $oldQuery, true); // function 'generateURL()' is defined in 'include.inc.php'
 
 	// Build appropriate links:
 	$links = "\n<tr>"

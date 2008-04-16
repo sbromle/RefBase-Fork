@@ -183,7 +183,7 @@
 	if (isset($_SESSION['oldQuery']))
 		$oldQuery = $_SESSION['oldQuery'];
 	else
-		$oldQuery = "";
+		$oldQuery = array();
 
 	// Get the query URL of the last multi-record query:
 	if (isset($_SESSION['oldMultiRecordQuery']))
