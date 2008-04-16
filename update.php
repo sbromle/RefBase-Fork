@@ -250,7 +250,7 @@
 		// TODO: create a new function 'changeColumn()' that only modifies the column spec if the new column spec is different from the old one
 		$query = "ALTER table " . $tableDeleted . " MODIFY edition varchar(50) default NULL";
 		$result = queryMySQLDatabase($query);
-		$resultArray["Table 'deleted': altered table specification. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+		$resultArray["Table 'deleted': altered table specification. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
 
 		$query = "ALTER table " . $tableDeleted . " MODIFY thesis enum('Bachelor''s thesis','Honours thesis','Master''s thesis','Ph.D. thesis','Diploma thesis','Doctoral thesis','Habilitation thesis') default NULL";
 		$result = queryMySQLDatabase($query);
@@ -353,7 +353,12 @@
 		// Disable the Browse view feature (which isn't done yet) for all users
 		$query= "UPDATE " . $tableUserPermissions . " SET allow_browse_view = 'no'";
 		$result = queryMySQLDatabase($query);
-		$resultArray["Table 'user_permissions': disabled the Browse view feature (which isn't done yet). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
+		$resultArray["Table 'user_permissions': disabled the Browse view feature (which isn't done yet). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
+
+		// Enable the Export feature for anyone who's not logged in ('$userID = 0'):
+		$query= "UPDATE " . $tableUserPermissions . " SET allow_export = 'yes', allow_batch_export = 'yes' WHERE user_id = 0";
+		$result = queryMySQLDatabase($query);
+		$resultArray["Table 'user_permissions': enabled the export feature for anyone who's not logged in. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
 		// Update table 'styles'
 		$query = "UPDATE " . $tableStyles . " SET style_spec = REPLACE(style_spec,'cite_','styles/cite_') WHERE style_spec RLIKE '^cite_'";

@@ -227,3 +227,5 @@ ALTER TABLE `user_permissions` ADD COLUMN `allow_list_view` ENUM('yes', 'no') NO
 
 UPDATE `user_permissions` SET `allow_browse_view` = 'no';
 
+UPDATE `user_permissions` SET `allow_export` = 'yes', `allow_batch_export` = 'yes' WHERE `user_id` = 0;
+
