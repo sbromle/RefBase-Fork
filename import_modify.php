@@ -219,20 +219,27 @@
 			{
 				case 0: // no error; possible file attack!
 					$errors["uploadFile"] = "There was a problem with your upload.";
+					break;
 				case 1: // uploaded file exceeds the 'upload_max_filesize' directive in 'php.ini'
 					$maxFileSize = ini_get("upload_max_filesize");
 					$fileError = "File size must not be greater than " . $maxFileSize . ":";
 					$errors["uploadFile"] = $fileError;
+					break;
 				case 2: // uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the html form (Note: refbase doesn't currently specify MAX_FILE_SIZE but anyhow...)
 					$errors["uploadFile"] = "The file you are trying to upload is too big.";
+					break;
 				case 3: // uploaded file was only partially uploaded
 					$errors["uploadFile"] = "The file you are trying to upload was only partially uploaded.";
+					break;
 				case 4: // no file was uploaded
 					$errors["uploadFile"] = "You must select a file for upload.";
+					break;
 				case 6:
 					$errors["uploadFile"] = "Missing a temporary folder.";
+					break;
 				default: // a default error, just in case!  :)
 					$errors["uploadFile"] = "There was a problem with your upload.";
+					break;
 			}
 		}
 	}
