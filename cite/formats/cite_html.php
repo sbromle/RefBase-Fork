@@ -27,8 +27,13 @@
 
 	function citeRecords($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType)
 	{
-		global $searchReplaceActionsArray; // defined in 'ini.inc.php'
+		global $searchReplaceActionsArray; // these variables are defined in 'ini.inc.php'
 		global $databaseBaseURL;
+		global $defaultDropDownFieldsEveryone;
+		global $defaultDropDownFieldsLogin;
+		global $defaultCiteStyle;
+		global $showMoreInfoCitationView;
+		global $displayResultsHeaderDefault;
 		global $displayResultsFooterDefault;
 		global $showLinkTypesInCitationView;
 		global $maximumBrowseLinks;
@@ -47,6 +52,10 @@
 			$NoColumns = 2; // first column: literature citation, second column: 'display details' link
 		else
 			$NoColumns = 1;
+
+		 // If the results footer is displayed, we increase the colspan value by 1 to account for the checkbox column:
+		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+			$NoColumns++;
 
 		// Initialize array variables:
 		$yearsArray = array();
@@ -127,15 +136,15 @@
 				if (eregi("^Mobile$", $viewType))
 				{
 					$recordData .= "\n<div class=\"" . $rowClass . "\">"
-					                  . "\n\t<div class=\"citation\">" . $record . "</div>";
+					             . "\n\t<div class=\"citation\">" . $record . "</div>";
 				}
 				else
 				{
 					$recordData .= "\n<tr class=\"" . $rowClass . "\">";
 
 					// Print a column with a checkbox:
-					// Note: we omit the results footer in print/mobile view ('viewType=Print' or 'viewType=Mobile') and for include mechanisms!
-					if ((!eregi("^Print$", $viewType)) AND (!eregi("^inc", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+					// Note: we omit the results footer in print/mobile view ('viewType=Print' or 'viewType=Mobile') and when outputting only a partial document structure ('wrapResults=0')!
+					if ((!eregi("^Print$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 					{
 						$recordData .= "\n\t<td align=\"center\" valign=\"top\" width=\"10\">";
 
@@ -161,7 +170,21 @@
 					}
 
 					// Print record data as a citation:
-					$recordData .= "\n\t<td class=\"citation\" valign=\"top\">" . $record . "</td>";
+					$recordData .= "\n\t<td id=\"ref" . $row["serial"] . "\" class=\"citation\" valign=\"top\">"
+					             . "\n\t\t" . $record;
+
+					if ($showMoreInfoCitationView == "yes") // display a triangle widget to show more info (keywords, abstract, etc) under each citation:
+						$recordData .= "\n\t\t<div class=\"showhide\">"
+						             . "\n\t\t\t<a href=\"#ref" . $row["serial"] . "\" onclick=\"toggleVisibility('moreinfo" . $row["serial"] . "','toggleimg" . $row["serial"] . "','toggletxt" . $row["serial"] . "','more info')\" title=\"toggle visibility\">"
+						             . "<img id=\"toggleimg" . $row["serial"] . "\" class=\"toggleimg\" src=\"img/closed.gif\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
+						             . "</a>"
+						             . "\n\t\t</div>"
+						             . "\n\t\t<div id=\"moreinfo" . $row["serial"] . "\" class=\"moreinfo\" style=\"display: none;\">"
+						             . "\n\t\t\t<div class=\"keywords\"><strong>" . $loc["Keywords"] . ":</strong> " . $row["keywords"] . "</div>"
+						             . "\n\t\t\t<div class=\"abstract\"><strong>" . $loc["Abstract"] . ":</strong> " . $row["abstract"] . "</div>"
+						             . "\n\t\t</div>";
+
+					$recordData .= "\n\t</td>";
 				}
 
 				if ($showLinks == "1") // display links:
@@ -195,6 +218,61 @@
 
 		if ($wrapResults != "0")
 		{
+			// Note: we omit the results header in print/mobile view! ('viewType=Print' or 'viewType=Mobile') and when outputting only a partial document structure ('wrapResults=0')!
+			if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
+			{
+				$selectedField = "author"; // in the 'Search within Results" form, we'll always select the 'author' field by default
+
+				// Map MySQL field names to localized column names:
+				$fieldNamesArray = mapFieldNames(true); // function 'mapFieldNames()' is defined in 'include.inc.php'
+				$localizedDropDownFieldsArray = array();
+
+				if (isset($_SESSION['loginEmail']) AND !empty($defaultDropDownFieldsLogin)) // if a user is logged in -AND- there were any additional fields specified...
+					$dropDownFieldsArray = array_merge($defaultDropDownFieldsEveryone, $defaultDropDownFieldsLogin); // ...add these additional fields to the list of fields visible in the dropdown menus of the results header
+				else
+					$dropDownFieldsArray = $defaultDropDownFieldsEveryone;
+
+				foreach ($dropDownFieldsArray as $field)
+				{
+					if (isset($fieldNamesArray[$field]))
+						$localizedDropDownFieldsArray[$field] = $fieldNamesArray[$field];
+					else // no localized field name exists, so we use the original field name
+						$localizedDropDownFieldsArray[$field] = $field;
+				}
+
+				// Get all citation styles for the current user:
+				if (!isset($_SESSION['user_styles']))
+					$citationStylesArray = array($defaultCiteStyle);
+				else
+				{
+					$citationStylesArray = array();
+
+					$citationStylesTempArray = split(" *; *", $_SESSION['user_styles']); // get the user's list of citation styles
+
+					foreach ($citationStylesTempArray as $citationStyle)
+						$citationStylesArray[$citationStyle] = $citationStyle;
+				}
+
+				// 2) Build forms containing options to show the user's groups, refine the search results or change the displayed columns:
+				//    TODO for 2b+2c: should we allow users to choose via the web interface which columns are included in the popup menus?
+
+				//    2a) Build a FORM with a popup containing the user's groups:
+				$formElementsGroup = buildGroupSearchElements("search.php", $queryURL, $query, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType); // function 'buildGroupSearchElements()' is defined in 'include.inc.php'
+
+				//    2b) Build a FORM containing options to refine the search results:
+				//        Call the 'buildRefineSearchElements()' function (defined in 'include.inc.php') which does the actual work:
+				$formElementsRefine = buildRefineSearchElements("search.php", $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $localizedDropDownFieldsArray, $selectedField, $displayType);
+
+				//    2c) Build a FORM containing display options (change citation style & sort order, or change the number of records displayed per page):
+				//        Call the 'buildDisplayOptionsElements()' function (defined in 'include.inc.php') which does the actual work:
+				$formElementsDisplayOptions = buildDisplayOptionsElements("search.php", $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $citeOrder, $citationStylesArray, $citeStyle, 2, $displayType, $headerMsg);
+
+				$htmlData .= displayResultsHeader("search.php", $formElementsGroup, $formElementsRefine, $formElementsDisplayOptions, $displayType); // function 'displayResultsHeader()' is defined in 'results_header.inc.php'
+
+				//    and insert a divider line (which separates the results header from the browse links & results data below):
+				$htmlData .= "\n<hr class=\"resultsheader\" align=\"center\" width=\"93%\">";
+			}
+
 			// Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
 			// call the 'buildBrowseLinks()' function (defined in 'include.inc.php'):
 			$BrowseLinks = buildBrowseLinks("search.php", $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $maximumBrowseLinks, "sqlSearch", "Cite", $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType);
@@ -223,7 +301,7 @@
 			           . "\n\t</form>"
 			           . "\n</div>";
 		}
-		elseif ((!eregi("^Print$", $viewType)) AND (!eregi("^inc", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+		elseif ((!eregi("^Print$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 		{
 			// Include the 'queryResults' form:
 			$htmlData .= "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
@@ -254,8 +332,8 @@
 		}
 
 		// Append the footer:
-		// Note: we omit the results footer in print/mobile view ('viewType=Print' or 'viewType=Mobile') and for include mechanisms!
-		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^inc", $client)) AND ($wrapResults != "0"))
+		// Note: we omit the results footer in print/mobile view ('viewType=Print' or 'viewType=Mobile') and when outputting only a partial document structure ('wrapResults=0')!
+		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0"))
 		{
 			// Again, insert the (already constructed) BROWSE LINKS
 			// (i.e., a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages)
@@ -269,11 +347,11 @@
 					$htmlData .= "\n<hr class=\"resultsfooter\" align=\"center\">";
 
 				// Call the 'buildResultsFooter()' function (which does the actual work):
-				$htmlData .= buildResultsFooter($NoColumns, $showRows, $citeStyle, $displayType);
+				$htmlData .= buildResultsFooter($showRows, $citeStyle, $citeOrder, $displayType, $headerMsg);
 			}
 		}
 
-		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^inc", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 		{
 			// Finish the form:
 			$htmlData .= "\n</form>";
