@@ -260,20 +260,20 @@
 		showPageHeader($HeaderString);
 
 		// Start main table:
-		echo "\n<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\" summary=\"This table displays user account details and options\">";
+		echo "\n<table id=\"accountinfo\" align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"95%\" summary=\"This table displays user account details and options\">";
 
 			echo "\n<tr>"
 			   . "\n\t<td valign=\"top\" width=\"28%\">";
 
 			// Start left sub-table:
-			echo "\n\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"10\" summary=\"User account details\">";
+			echo "\n\t\t<table id=\"accountdetails\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" summary=\"User account details\">";
 
-			echo "\n\t\t<tr>\n\t\t\t<th align=\"left\" class=\"smaller\">Account Details:</th>";
+			echo "\n\t\t<tr>\n\t\t\t<td align=\"left\"><b>Account Details:</b></td>";
 
 			if (mysql_num_rows($result) == 1) // If there's a user associated with this user ID
 			{
 				// Add edit/delete button:
-				echo "\n\t\t\t<th align=\"left\" class=\"smaller\">";
+				echo "\n\t\t\t<td align=\"left\">";
 
 				// If the admin is logged in, allow the display of a button that will delete the currently shown user:
 				if (isset($_SESSION['loginEmail']) && ($loginEmail == $adminLoginEmail)) // ('$adminLoginEmail' is specified in 'ini.inc.php')
@@ -285,7 +285,7 @@
 				if ($userAction != "Delete")
 					echo "<a href=\"user_details.php?userID=" . $userID . "\"><img src=\"img/edit.gif\" alt=\"edit\" title=\"edit details\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
-				echo "</th>\n\t\t</tr>";
+				echo "</td>\n\t\t</tr>";
 
 				// Display a password reminder:
 				// (but only if a normal user is logged in -OR- the admin is logged in AND the updated user data are his own!)
@@ -357,7 +357,7 @@
 			}
 			else // no user exists with this user ID
 			{
-				echo "\n\t\t\t<th align=\"right\" class=\"smaller\"></th>\n\t\t</tr>";
+				echo "\n\t\t\t<td align=\"right\"></td>\n\t\t</tr>";
 				echo "\n\t\t<tr>\n\t\t\t<td colspan=\"2\">(none)</td>\n\t\t</tr>";
 			}
 
@@ -375,24 +375,24 @@
 				echo "\n\t<td valign=\"top\">";
 
 				// Start middle sub-table:
-				echo "\n\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"10\" summary=\"User account options\">";
+				echo "\n\t\t<table id=\"accountopt\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" summary=\"User account options\">";
 
-				echo "\n\t\t<tr>\n\t\t\t<th align=\"left\" class=\"smaller\">Display Options:</th>"
-				   . "\n\t\t\t<th align=\"right\" class=\"smaller\">";
+				echo "\n\t\t<tr>\n\t\t\t<td align=\"left\"><b>Display Options:</b></td>"
+				   . "\n\t\t\t<td align=\"right\">";
 
 				if ((mysql_num_rows($result) == 1) OR ($userID == 0)) // If there's a user associated with this user ID (or if we're supposed to display options/permissions for anyone who isn't logged in)
 					echo "<a href=\"user_options.php?userID=" . $userID . "\"><img src=\"img/options.gif\" alt=\"options\" title=\"edit options\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
-				echo "</th>\n\t\t</tr>";
+				echo "</td>\n\t\t</tr>";
 
 				// Show the user's selected interface language:
 				echo "\n\t\t<tr valign=\"top\">"
 				   . "\n\t\t\t<td>Use language:</td>";
 
 				if (mysql_num_rows($result) == 1) // If there's a user associated with this user ID
-					echo "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>" . $row["language"] . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>";
+					echo "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>" . $row["language"] . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>";
 				else // no user exists with this user ID
-					echo "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>" . $defaultLanguage . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>";
+					echo "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>" . $defaultLanguage . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>";
 
 				echo "\n\t\t</tr>";
 
@@ -402,7 +402,7 @@
 				// show the user's default number of records per page:
 				echo "\n\t\t<tr valign=\"top\">"
 				   . "\n\t\t\t<td>Show records per page:</td>"
-				   . "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>" . $recordsPerPage . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
+				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>" . $recordsPerPage . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
 				   . "\n\t\t</tr>";
 
 				if ($loginEmail == $adminLoginEmail) // if the admin is logged in
@@ -442,7 +442,7 @@
 				// list types:
 				echo "\n\t\t<tr valign=\"top\">"
 				   . "\n\t\t\t<td>" . $ShowEnabledDescriptor . " reference types:</td>"
-				   . "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>";
+				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>";
 
 				if (empty($userTypesArray))
 					echo "(none)";
@@ -455,7 +455,7 @@
 				// list styles:
 				echo "\n\t\t<tr valign=\"top\">"
 				   . "\n\t\t\t<td>" . $ShowEnabledDescriptor . " citation styles:</td>"
-				   . "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>";
+				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>";
 
 				if (empty($citationStylesArray))
 					echo "(none)";
@@ -468,7 +468,7 @@
 				// list cite formats:
 				echo "\n\t\t<tr valign=\"top\">"
 				   . "\n\t\t\t<td>" . $ShowEnabledDescriptor . " citation formats:</td>"
-				   . "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>";
+				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>";
 
 				if (empty($citationFormatsArray))
 					echo "(none)";
@@ -481,7 +481,7 @@
 				// list export formats:
 				echo "\n\t\t<tr valign=\"top\">"
 				   . "\n\t\t\t<td>" . $ShowEnabledDescriptor . " export formats:</td>"
-				   . "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>";
+				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>";
 
 				if (empty($exportFormatsArray))
 					echo "(none)";
@@ -497,7 +497,7 @@
 				// list all fields that were selected by the current user as "main fields":
 				echo "\n\t\t<tr valign=\"top\">"
 				   . "\n\t\t\t<td>\"Main fields\" searches:</td>"
-				   . "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>";
+				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>";
 
 				if (empty($mainFieldsArray))
 					echo "(none)";
@@ -519,7 +519,7 @@
 				echo "\n\t<td valign=\"top\">";
 
 				// Start right sub-table:
-				echo "\n\t\t<table border=\"0\" cellpadding=\"0\" cellspacing=\"10\" summary=\"User account permissions\">";
+				echo "\n\t\t<table id=\"accountperm\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" summary=\"User account permissions\">";
 
 				if ($loginEmail == $adminLoginEmail) // if the admin is logged in
 				{
@@ -566,22 +566,22 @@
 					if (empty($disabledUserActionsArray))
 						$disabledUserActionsArray[] = "(none)";
 
-					echo "\n\t\t<tr>\n\t\t\t<th align=\"left\" class=\"smaller\">User Permissions:</th>"
-					   . "\n\t\t\t<th align=\"right\" class=\"smaller\">";
+					echo "\n\t\t<tr>\n\t\t\t<td align=\"left\"><b>User Permissions:</b></td>"
+					   . "\n\t\t\t<td align=\"right\">";
 
 					if ((mysql_num_rows($result) == 1) OR ($userID == 0)) // If there's a user associated with this user ID (or if we're supposed to display options/permissions for anyone who isn't logged in)
 						echo "<a href=\"user_options.php?userID=" . $userID . "#permissions\"><img src=\"img/options.gif\" alt=\"permissions\" title=\"edit permissions\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
-					echo "</th>\n\t\t</tr>";
+					echo "</td>\n\t\t</tr>";
 
 					echo "\n\t\t<tr valign=\"top\">"
 					   . "\n\t\t\t<td>Enabled features:</td>"
-					   . "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>" . implode("</li>\n\t\t\t\t\t<li>", $enabledUserActionsArray) . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
+					   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>" . implode("</li>\n\t\t\t\t\t<li>", $enabledUserActionsArray) . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
 					   . "\n\t\t</tr>";
 
 					echo "\n\t\t<tr valign=\"top\">"
 					   . "\n\t\t\t<td>Disabled features:</td>"
-					   . "\n\t\t\t<td>\n\t\t\t\t<ul type=\"none\" class=\"smallup\">\n\t\t\t\t\t<li>" . implode("</li>\n\t\t\t\t\t<li>", $disabledUserActionsArray) . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
+					   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>" . implode("</li>\n\t\t\t\t\t<li>", $disabledUserActionsArray) . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
 					   . "\n\t\t</tr>";
 				}
 
