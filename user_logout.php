@@ -66,6 +66,9 @@
 		if (isset($_SESSION['userGroups']))
 			deleteSessionVariable("userGroups"); // clear the user's user groups (if any)
 
+		if (isset($_SESSION['adminUserGroups']))
+			deleteSessionVariable("adminUserGroups"); // clear the admin's user groups (if any)
+
 		if (isset($_SESSION['userQueries']))
 			deleteSessionVariable("userQueries"); // clear the user's saved queries (if any)
 
@@ -99,8 +102,8 @@
 		if (isset($_SESSION['lastListViewQuery']))
 			deleteSessionVariable("lastListViewQuery"); // clear any SQL query generated for the last List view
 
-//		if (isset($_SESSION['lastDetailsViewQuery']))
-//			deleteSessionVariable("lastDetailsViewQuery"); // clear any SQL query generated for the last Details view
+		if (isset($_SESSION['lastDetailsViewQuery']))
+			deleteSessionVariable("lastDetailsViewQuery"); // clear any SQL query generated for the last Details view
 
 //		if (isset($_SESSION['lastCitationViewQuery']))
 //			deleteSessionVariable("lastCitationViewQuery"); // clear any SQL query generated for the last Citation view
