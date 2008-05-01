@@ -126,11 +126,11 @@
 		<td width="182" valign="bottom"><?php
 if (!isset($_SESSION['loginEmail']))
 	{
-?><div class="header"><b><?php echo $loc["Login"]; ?>:</b></div><?php
+?><h5><?php echo $loc["Login"]; ?>:</h5><?php
 	}
 else
 	{
-?><div class="header"><b><?php echo $loc["ShowMyRefs"]; ?>:</b></div><?php
+?><h5><?php echo $loc["ShowMyRefs"]; ?>:</h5><?php
 	}
 ?></td>
 	</tr>
@@ -234,7 +234,7 @@ else
 	</tr>
 	<tr>
 		<td colspan="2"><h3><?php echo $loc["Search"]; ?></h3></td>
-		<td width="182" valign="bottom"><div class="header"><b><?php echo $loc["QuickSearch"]; ?>:</b></div></td>
+		<td width="182" valign="bottom"><h5><?php echo $loc["QuickSearch"]; ?>:</h5></td>
 	</tr>
 	<tr>
 		<td width="15">&nbsp;</td>
@@ -297,7 +297,7 @@ if (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION
 if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions'])))
 	{
 ?>
-			<div class="header"><b><?php echo $loc["BrowseMyRefs"]; ?>:</b></div><?php
+			<h5><?php echo $loc["BrowseMyRefs"]; ?>:</h5><?php
 	}
 else
 	{
@@ -360,7 +360,7 @@ else
 if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions'])))
 	{
 ?>
-			<div class="header"><b><?php echo $loc["ShowMyGroup"]; ?>:</b></div><?php
+			<h5><?php echo $loc["ShowMyGroup"]; ?>:</h5><?php
 	}
 else
 	{
@@ -470,7 +470,7 @@ else
 if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_queries", $_SESSION['user_permissions'])))
 	{
 ?>
-			<div class="header"><b><?php echo $loc["RecallMyQuery"]; ?>:</b></div><?php
+			<h5><?php echo $loc["RecallMyQuery"]; ?>:</h5><?php
 	}
 else
 	{
