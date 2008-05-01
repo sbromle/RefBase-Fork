@@ -59,7 +59,7 @@
 		                             "single-quote"     => "'",
 		                             "less-than"        => "<",
 		                             "greater-than"     => ">",
-		                             "newline"          => "\n{\f1\fs24 \par}\n"
+		                             "newline"          => "\n{\\f1\\fs24 \par}\n"
 		                            );
 
 		// Defines search & replace 'actions' that will be applied upon RTF output to all those refbase fields that are listed
@@ -89,7 +89,15 @@
 
 		// Header:
 		if (!empty($headerMsg))
+		{
+			// Remove any colon (":") from end of header message:
+			$headerMsg = trimTextPattern($headerMsg, ":", false, true); // function 'trimTextPattern()' is defined in 'include.inc.php'
+
+			// Convert refbase markup in the header message into appropriate RTF markup & entities:
+			$headerMsg = searchReplaceText($transtab_refbase_rtf, $headerMsg, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+
 			$rtfData .= "{\header\pard\qc $headerMsg\par}\n";
+		}
 
 		$rtfData .= $rtf->justify("full", 0.5, 0, -0.5); // by default, we'll justify text and set a hanging indent (left indent: 0.5, right indent: 0, first-line indent: -0.5)
 
@@ -124,7 +132,7 @@
 					if ($citeOrder == "type") // for 'citeOrder=type' we'll always print an empty paragraph after the heading
 						$headingSuffix .= $rtf->paragraph(0, 12); // create empty paragraph using "Arial" (font block 0) and a font size of 12pt
 
-					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, $headingPrefix, $headingSuffix, "{\f0\fs28 {\b ", "}\par}\n", "{\f0\fs24 {\b ", "}\par}\n"); // function 'generateSectionHeading()' is defined in 'cite.inc.php'
+					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, $headingPrefix, $headingSuffix, "{\\f0\\fs28 {\b ", "}\par}\n", "{\\f0\\fs24 {\b ", "}\par}\n"); // function 'generateSectionHeading()' is defined in 'cite.inc.php'
 
 					// Note that we pass raw RTF commands to the above function instead of using the 'textBlock()' function from 'MINIMALRTF.php'. This is due to a current limitation of the 'generateSectionHeading()' function.
 					// For 'citeOrder=year', the appropriate call to the 'textBlock()' function would look like this:
