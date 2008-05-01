@@ -570,6 +570,19 @@
 	$defaultView = "List"; // possible values: "List", "Cite", "Display", "Browse"
 
 
+	// Specify whether more info (keywords, abstract, etc) is made available in Citation view:
+	// (this additional info is hidden by default and can be displayed by toggling the little
+	//  triangle widget that's printed below each citation)
+	$showMoreInfoCitationView = "yes"; // possible values: "yes", "no"
+
+
+	// Specify whether additional fields shall be displayed in Details view by default:
+	// In Details view, these "additional fields" will get displayed between the 'abstract'
+	// and 'call_number' fields, and they constitute fields that are usually less important
+	// (such as publisher or series info)
+	$showAdditionalFieldsDetailsViewDefault = "yes"; // possible values: "yes", "no"
+
+
 	// Specify whether the results header & footer should be displayed open or closed by default,
 	// or whether they should be entirely hidden from the interface:
 	// (display defaults are specified for each of the supported view types individually;
@@ -586,7 +599,7 @@
 
 	// - Results footer:
 	//                                   "view type" => "display value"
-	$displayResultsFooterDefault = array("List"      => "open",
+	$displayResultsFooterDefault = array("List"      => "closed",
 	                                     "Cite"      => "closed",
 	                                     "Display"   => "closed",
 	                                     "Browse"    => "hidden");
