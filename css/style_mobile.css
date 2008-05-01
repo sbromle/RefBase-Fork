@@ -30,50 +30,23 @@ pre, code {
 	font-size: 7pt;
 }
 
-.spacer {
-	padding-top: 0.5em;
-}
-
-.spacer2 {
-	padding-bottom: 0.3em;
-}
-
-.tiny {
-	font-size: x-small;
-}
-
 .smaller {
-	font-size: smaller;
+	font-size: 0.7em;
 }
 
 .small {
-	font-size: small;
+	font-size: 0.7em;
 }
 
 .smallup {
-	font-size: small;
+	font-size: 0.85em;
 	position: relative;
 	top: -10px;
-}
-
-.smallsans {
-	font-family: helvetica,arial,sans-serif;
-	font-size: x-small;
 }
 
 .moveup {
 	position: relative;
 	top: -8px;
-}
-
-.header {
-	font-family: helvetica,arial,sans-serif;
-}
-
-.footer {
-	font-family: helvetica,arial,sans-serif;
-	font-size: x-small;
-	color: #999999;
 }
 
 .unapi {
@@ -94,8 +67,8 @@ pre, code {
 
 .warning2 {
 	color: red;
-	font-family: helvetica,arial,sans-serif;
-	font-size: small;
+	font-family: "lucida grande",helvetica,arial,sans-serif;
+	font-size: 0.75em;
 }
 
 .mainfieldsbg {
@@ -110,31 +83,19 @@ pre, code {
 	background-color: #FFFFFF;
 }
 
-.outline {
-	list-style-type: none;
-	font-size: small;
-	position: relative;
-	left: -15px;
-}
-
-.category {
-	font-family: helvetica,arial,sans-serif;
-	font-weight: bold;
-}
-
 th {
-	font-family: helvetica,arial,sans-serif;
-	font-size: small;
+	font-family: "lucida grande",helvetica,arial,sans-serif;
+	font-size: 0.9em;
 }
 
 td, div {
-	font-family: "times new roman",garamond,times,serif;
-	font-size: small;
+	font-family: "lucida grande",helvetica,arial,sans-serif;
+	font-size: 0.8em;
 }
 
 p {
-	font-family: "times new roman",garamond,times,serif;
-	font-size: small;
+	font-family: "lucida grande",helvetica,arial,sans-serif;
+	font-size: 0.8em;
 }
 
 div.items {
@@ -173,16 +134,37 @@ a:hover {
 }
 
 h1, h2, h3, h4 {
-	font-family: helvetica,arial,sans-serif;
+	font-family: "lucida grande",helvetica,arial,sans-serif;
 }
 
 h5, h6 {
-	font-family: helvetica,arial,sans-serif;
+	font-family: "lucida grande",helvetica,arial,sans-serif;
 }
 
 h2, h3 {
 	margin-top: 1em;
 	margin-bottom: 0.5em;
+}
+
+h2 {
+	font-size: 1.8em;
+}
+
+h3 {
+	font-size: 1.35em;
+}
+
+h4, h5 {
+	margin-top: 0em;
+	margin-bottom: 0em;
+}
+
+h4 {
+	font-size: 1.25em;
+}
+
+h5 {
+	font-size: 1.1em;
 }
 
 div.pageheader img {
@@ -206,10 +188,6 @@ input {
 	
 }
 
-#queryform input[name=query] {
-	width: 15em;
-}
-
 .pageheader {
 	
 }
@@ -223,29 +201,25 @@ input {
 }
 
 .resultsheader {
-	
+	font-size: 1em;
 }
 
 .resultsfooter {
-	margin-left: 2.5em;
-	margin-right: 2.5em;
+	margin-left: 3.3em;
+	margin-right: 3.3em;
 }
 
 div.resultsfooter {
-	margin-top: 0.75em;
+	margin-top: 1.2em;
 	margin-bottom: 0.9em;
 }
 
-#refgroups {
+.showhide {
 	
 }
 
-#refineresults {
-	
-}
-
-#displayopt {
-	
+#resultoptions {
+	display: none;
 }
 
 .resultnav {
@@ -272,6 +246,7 @@ div.resultsfooter {
 	margin-right: 0.5em;
 	position: absolute;
 	right: 8px;
+	font-size: 0.75em;
 }
 
 #columns {
@@ -283,7 +258,7 @@ div.resultsfooter {
 }
 
 #citations {
-	
+	font-size: 0.85em;
 }
 
 .citation {
@@ -291,6 +266,7 @@ div.resultsfooter {
 	min-height: 38px;
 	margin: 0.5em;
 	padding-right: 45px;
+	font-size: 1em;
 }
 
 #error {
@@ -298,7 +274,7 @@ div.resultsfooter {
 }
 
 .examples {
-	
+	font-size: 1em;
 }
 
 .links {
@@ -311,6 +287,7 @@ div.resultsfooter {
 
 .sect {
 	padding-top: 2px;
+	font-size: 1em;
 }
 
 .even {
@@ -326,8 +303,9 @@ div.resultsfooter {
 	text-align: center;
 }
 
-.showhide {
-	
+#queryform input[name=query] {
+	width: 15em;
+	margin-bottom: 0.9em;
 }
 
 #resultactions {
@@ -362,30 +340,71 @@ div.resultsfooter {
 .toggletxt {
 	display: inline;
 	margin-left: 5px;
-	font-size: small;
+	font-size: 1em;
+}
+
+a:link .toggletxt {
+	color: #000000;
+}
+
+a:visited .toggletxt {
+	color: #000000;
+}
+
+a:hover .toggletxt {
+	color: #3366FF;
 }
 
 .resultviews {
 	display: inline;
+	font-size: 0.85em;
 }
 
 .activeview {
 	display: inline;
+	font-size: 1em;
 }
 
 .leftview {
 	display: inline;
+	font-size: 1em;
 }
 
 .middleview {
 	display: inline;
+	font-size: 1em;
 }
 
 .rightview {
 	display: inline;
+	font-size: 1em;
 }
 
 .toggleprint {
 	position: relative;
 	top: 3px;
+}
+
+#accountinfo {
+	font-size: 1.25em;
+}
+
+#accountdetails {
+	font-size: 1em;
+}
+
+#accountopt {
+	font-size: 1em;
+}
+
+#accountperm {
+	font-size: 1em;
+}
+
+#accountdetails ul, #accountopt ul, #accountperm ul {
+	position: relative;
+	top: -0.8em;
+	list-style-type: none;
+	font-size: 0.85em;
+	line-height: 1.3em;
 }
