@@ -539,7 +539,10 @@
 				$additionalFields = escapeSQL($recordIDSelector); // display the appropriate column
 		}
 
-		$query = buildSELECTclause($displayType, $showLinks, $additionalFields, false, false, "", $browseByField); // function 'buildSELECTclause()' is defined in 'include.inc.php'
+		if ((eregi("^Display$", $displayType)) AND (isset($_SESSION['lastDetailsViewQuery']))) // get SELECT clause from any previous Details view query:
+			$query = "SELECT " . extractSELECTclause($_SESSION['lastDetailsViewQuery']); // function 'extractSELECTclause()' is defined in 'include.inc.php'
+		else // generate new SELECT clause:
+			$query = buildSELECTclause($displayType, $showLinks, $additionalFields, false, false, "", $browseByField); // function 'buildSELECTclause()' is defined in 'include.inc.php'
 
 		// Build FROM clause:
 		// We'll explicitly add the 'LEFT JOIN...' part to the 'FROM' clause of the SQL query if '$userID' isn't empty. This is done since the 'verifySQLQuery()' function
