@@ -39,7 +39,12 @@
 
 		// Header:
 		if (!empty($headerMsg))
+		{
+			// Convert refbase markup in the header message into plain text:
+			$headerMsg = searchReplaceText($transtab_refbase_ascii, $headerMsg, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+
 			$plainTextData .= "$headerMsg\n\n"; // prefix any passed header message
+		}
 
 		// Initialize array variables:
 		$yearsArray = array();

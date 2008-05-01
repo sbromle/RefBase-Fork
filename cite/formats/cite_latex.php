@@ -93,8 +93,22 @@
 
 		// Header:
 		if (!empty($headerMsg))
+		{
+			// Remove any colon (":") from end of header message:
+			$headerMsg = trimTextPattern($headerMsg, ":", false, true); // function 'trimTextPattern()' is defined in 'include.inc.php'
+
+			// Convert refbase markup in the header message into appropriate LaTeX markup & entities:
+			$headerMsg = searchReplaceText($transtab_refbase_latex, $headerMsg, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+
+			// Attempt to convert higher ASCII chars (i.e., characters with an ASCII value of >= 128) in the header message to their corresponding LaTeX entities:
+			if ($contentTypeCharset == "UTF-8")
+				$headerMsg = searchReplaceText($transtab_unicode_latex, $headerMsg, false);
+			else
+				$headerMsg = searchReplaceText($transtab_latin1_latex, $headerMsg, false);
+
 			$latexData .= "\\title{" . $headerMsg . "}\n\n"
 			            . "\\maketitle\n\n";
+		}
 
 		if (!eregi("type|year", $citeOrder))
 			$latexData .= "\\begin{thebibliography}{" . $showMaxRows . "}\n\n";

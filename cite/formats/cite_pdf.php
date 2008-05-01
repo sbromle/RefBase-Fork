@@ -138,6 +138,12 @@
 		// - print header line and header message at the specified x/y position:
 		if (!empty($headerMsg)) // if a custom header message was given
 		{
+			// Remove any colon (":") from end of header message:
+			$headerMsg = trimTextPattern($headerMsg, ":", false, true); // function 'trimTextPattern()' is defined in 'include.inc.php'
+
+			// Convert refbase markup in the header message into appropriate PDF markup & entities:
+			$headerMsg = searchReplaceText($transtab_refbase_pdf, $headerMsg, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+
 			if ($pdfPageSize == 'a4') // page dimensions 'a4': 595.28 x 841.89 pt.
 			{
 				$pdf->line(20, 800, 575, 800);

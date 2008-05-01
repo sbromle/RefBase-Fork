@@ -37,7 +37,12 @@
 
 		// Header:
 		if (!empty($headerMsg))
+		{
+			// Convert refbase markup in the header message into appropriate Markdown markup & entities:
+			$headerMsg = searchReplaceText($transtab_refbase_markdown, $headerMsg, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+
 			$markdownData .= "# $headerMsg #\n\n";
+		}
 
 		// Initialize array variables:
 		$yearsArray = array();
