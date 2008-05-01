@@ -139,6 +139,8 @@
 	$displayType = $defaultView; // defined in 'ini.inc.php'
 	$showLinks = "1";
 	$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
+	$citeStyle = $defaultCiteStyle; // defined in 'ini.inc.php'
+	$citeOrder = "";
 
 	// b) The default query and options are overwritten if the script was called with parameters or if there were some errors on submit:
 
@@ -185,6 +187,12 @@
 
 		if (isset($_REQUEST['showRows']))
 			$showRows = $_REQUEST['showRows'];
+
+		if (isset($_REQUEST['citeStyle']))
+			$citeStyle = $_REQUEST['citeStyle'];
+
+		if (isset($_REQUEST['citeOrder']))
+			$citeOrder = $_REQUEST['citeOrder'];
 	}
 
 	elseif (!empty($errors)) // there were some errors on submit
@@ -225,6 +233,12 @@
 
 		if (isset($formVars['showRows']))
 			$showRows = $formVars['showRows'];
+
+		if (isset($formVars['citeStyle']))
+			$citeStyle = $formVars['citeStyle'];
+
+		if (isset($formVars['citeOrder']))
+			$citeOrder = $formVars['citeOrder'];
 	}
 
 
@@ -340,6 +354,8 @@
 <input type="hidden" name="formType" value="duplicateSearch">
 <input type="hidden" name="originalDisplayType" value="<?php echo $displayType; ?>">
 <input type="hidden" name="submit" value="Find Duplicates">
+<input type="hidden" name="citeStyle" value="<?php echo rawurlencode($citeStyle); ?>">
+<input type="hidden" name="citeOrder" value="<?php echo $citeOrder; ?>">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds a form that lets you search for duplicate records">
 	<tr>
 		<td width="58" valign="top"><b>Match Fields:</b></td>
