@@ -128,12 +128,6 @@
 	else
 		$rowOffset = "";
 
-	// In order to generalize routines we have to query further variables here:
-	if (isset($_REQUEST['citeStyleSelector']))
-		$citeStyle = $_REQUEST['citeStyleSelector']; // get the cite style chosen by the user (only occurs in 'extract.php' form  and in query result lists)
-	else
-		$citeStyle = "";
-
 	// Extract checkbox variable values from the request:
 	if (isset($_REQUEST['marked']))
 		$recordSerialsArray = $_REQUEST['marked']; // extract the values of all checked checkboxes (i.e., the serials of all selected records)
@@ -160,7 +154,7 @@
 	// --- 'Search within Results' & 'Display Options' forms within 'users.php': ---------------
 	elseif ($formType == "refineSearch" OR $formType == "displayOptions") // the user used the "Search within Results" (or "Display Options") form above the query results list (that was produced by 'users.php')
 	{
-		list($query, $displayType) = extractFormElementsRefineDisplay($tableUsers, $displayType, $originalDisplayType, $sqlQuery, $showLinks, ""); // function 'extractFormElementsRefineDisplay()' is defined in 'include.inc.php' since it's also used by 'users.php'
+		list($query, $displayType) = extractFormElementsRefineDisplay($tableUsers, $displayType, $originalDisplayType, $sqlQuery, $showLinks, "", ""); // function 'extractFormElementsRefineDisplay()' is defined in 'include.inc.php' since it's also used by 'users.php'
 	}
 
 	// --- 'Show User Group' form within 'users.php': ---------------------
@@ -276,7 +270,7 @@
 		showPageHeader($HeaderString);
 
 	// (4b) DISPLAY results:
-	showUsers($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $citeStyle, $showMaxRow, $viewType, $displayType); // show all users
+	showUsers($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $showMaxRow, $viewType, $displayType); // show all users
 
 	// ----------------------------------------------
 
@@ -286,7 +280,7 @@
 	// --------------------------------------------------------------------
 
 	// Display all users listed within the 'users' table
-	function showUsers($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $citeStyle, $showMaxRow, $viewType, $displayType)
+	function showUsers($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $showMaxRow, $viewType, $displayType)
 	{
 		global $connection;
 		global $HeaderString;
@@ -295,6 +289,7 @@
 		global $loginLinks;
 		global $loginEmail;
 		global $adminLoginEmail;
+		global $defaultCiteStyle;
 		global $maximumBrowseLinks;
 
 		if ($rowsFound > 0) // If the query has results ...
@@ -316,7 +311,7 @@
 			else
 				$NoColumns = (1+$fieldsToDisplay); // add checkbox column
 
-			// Note: we omit the 'Search Within Results' form in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+			// Note: we omit the results header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 			if (!eregi("^(Print|Mobile)$", $viewType))
 			{
 				// Specify which colums are available in the popup menus of the results header:
@@ -357,27 +352,27 @@
 				// Build a TABLE with forms containing options to show the user groups, refine the search results or change the displayed columns:
 
 				//    - Build a FORM with a popup containing the user groups:
-				$formElementsGroup = buildGroupSearchElements("users.php", $queryURL, $query, $showQuery, $showLinks, $showRows, $displayType); // function 'buildGroupSearchElements()' is defined in 'include.inc.php'
+				$formElementsGroup = buildGroupSearchElements("users.php", $queryURL, $query, $showQuery, $showLinks, $showRows, $defaultCiteStyle, "", $displayType); // function 'buildGroupSearchElements()' is defined in 'include.inc.php'
 
 				//    - Build a FORM containing options to refine the search results:
 				//      Call the 'buildRefineSearchElements()' function (defined in 'include.inc.php') which does the actual work:
-				$formElementsRefine = buildRefineSearchElements("users.php", $queryURL, $showQuery, $showLinks, $showRows, $dropDownFieldsArray, $selectedField, $displayType);
+				$formElementsRefine = buildRefineSearchElements("users.php", $queryURL, $showQuery, $showLinks, $showRows, $defaultCiteStyle, "", $dropDownFieldsArray, $selectedField, $displayType);
 
 				//    - Build a FORM containing display options (show/hide columns or change the number of records displayed per page):
 				//      Call the 'buildDisplayOptionsElements()' function (defined in 'include.inc.php') which does the actual work:
-				$formElementsDisplayOptions = buildDisplayOptionsElements("users.php", $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $dropDownFieldsArray, $selectedField, $fieldsToDisplay, $displayType);
+				$formElementsDisplayOptions = buildDisplayOptionsElements("users.php", $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $defaultCiteStyle, "", $dropDownFieldsArray, $selectedField, $fieldsToDisplay, $displayType, "");
 
-				echo displayResultsHeader("users.php", $formElementsGroup, $formElementsRefine, $formElementsDisplayOptions); // function 'displayResultsHeader()' is defined in 'results_header.inc.php'
+				echo displayResultsHeader("users.php", $formElementsGroup, $formElementsRefine, $formElementsDisplayOptions, $displayType); // function 'displayResultsHeader()' is defined in 'results_header.inc.php'
 			}
 
 
-			// and insert a divider line (which separates the 'Search Within Results' form from the browse links & results data below):
+			// and insert a divider line (which separates the results header from the browse links & results data below):
 			if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the divider line in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 				echo "\n<hr class=\"resultsheader\" align=\"center\" width=\"93%\">";
 
 			// Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
 			// call the 'buildBrowseLinks()' function (defined in 'include.inc.php'):
-			$BrowseLinks = buildBrowseLinks("users.php", $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $maximumBrowseLinks, "sqlSearch", $displayType, "", "", "", "", $viewType); // Note: we set the last 3 fields ('$citeOrder', '$orderBy' & $headerMsg') to "" since they aren't (yet) required here
+			$BrowseLinks = buildBrowseLinks("users.php", $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $maximumBrowseLinks, "sqlSearch", $displayType, $defaultCiteStyle, "", "", "", $viewType); // Note: we set the last 3 fields ('$citeOrder', '$orderBy' & $headerMsg') to "" since they aren't (yet) required here
 			echo $BrowseLinks;
 
 
@@ -408,7 +403,7 @@
 				$HTMLafterLink = "</th>"; // close the table header tag
 				// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
 				// as well as the URL encoded query with the appropriate ORDER clause:
-				$tableHeaderLink = buildFieldNameLinks("users.php", $query, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "", "", "", $viewType);
+				$tableHeaderLink = buildFieldNameLinks("users.php", $query, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $defaultCiteStyle, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", $displayType, "", "", "", $viewType);
 				echo $tableHeaderLink; // print the attribute name as link
 			 }
 
@@ -420,7 +415,7 @@
 					$HTMLafterLink = "</th>"; // close the table header tag
 					// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
 					// as well as the URL encoded query with the appropriate ORDER clause:
-					$tableHeaderLink = buildFieldNameLinks("users.php", $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "", "Links", "user_id", $viewType);
+					$tableHeaderLink = buildFieldNameLinks("users.php", $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $defaultCiteStyle, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", $displayType, "Links", "user_id", "", $viewType);
 					echo $tableHeaderLink; // print the attribute name as link
 				}
 
