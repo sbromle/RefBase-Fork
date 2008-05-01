@@ -338,12 +338,17 @@
 		$orderBy = "author, year DESC, publication"; // ...use the default ORDER BY clause
 
 	if (isset($_REQUEST['headerMsg']))
-		$headerMsg = stripTags($_REQUEST['headerMsg']); // get any custom header message but strip HTML tags from the custom header message to prevent cross-site scripting (XSS) attacks (function 'stripTags()' is defined in 'include.inc.php')
+		$headerMsg = $_REQUEST['headerMsg']; // get any custom header message (we strip any HTML tags from the custom header message below)
 						// Note: this feature is provided in 'search.php' so that it's possible to include an information string within a link. This info string could
 						//       e.g. describe who's publications are being displayed (e.g.: "Publications of Matthias Steffens:"). I.e., a link pointing to a persons own
 						//       publications can include the appropriate owner information (it will show up as header message)
 	else
 		$headerMsg = "";
+	if (ereg("%20", $headerMsg)) // if '$headerMsg' still contains URL encoded data... ('%20' is the URL encoded form of a space, see notes above!)
+		$headerMsg = rawurldecode($headerMsg); // ...URL decode 'headerMsg' statement (it was URL encoded before incorporation into a hidden tag of the 'displayOptions' form to avoid any HTML syntax errors)
+
+	if (!empty($headerMsg))
+		$headerMsg = stripTags($headerMsg); // strip any HTML tags from the custom header message to prevent cross-site scripting (XSS) attacks (function 'stripTags()' is defined in 'include.inc.php')
 
 	if (isset($_SESSION['oldQuery']))
 		$oldQuery = $_SESSION['oldQuery']; // get the query URL of the formerly displayed results page
@@ -489,7 +494,7 @@
 	// --- Form within 'search.php': ---------------
 	elseif ($formType == "refineSearch" OR $formType == "displayOptions") // the user used the "Search within Results" (or "Display Options") form above the query results list (that was produced by 'search.php')
 		{
-			list($query, $displayType) = extractFormElementsRefineDisplay($tableRefs, $displayType, $originalDisplayType, $sqlQuery, $showLinks, $userID); // function 'extractFormElementsRefineDisplay()' is defined in 'include.inc.php' since it's also used by 'users.php'
+			list($query, $displayType) = extractFormElementsRefineDisplay($tableRefs, $displayType, $originalDisplayType, $sqlQuery, $showLinks, $citeOrder, $userID); // function 'extractFormElementsRefineDisplay()' is defined in 'include.inc.php' since it's also used by 'users.php'
 		}
 
 	// --- Form within 'search.php': ---------------
@@ -534,7 +539,7 @@
 	if (eregi("^SELECT", $query) AND ($displayType != "Browse") AND !empty($fileVisibilityException) AND !preg_match("/SELECT.+$fileVisibilityException[0].+FROM/i", $query)) // restrict adding of columns to SELECT queries (so that 'DELETE FROM refs ...' statements won't get modified as well);
 	{
 		$query = eregi_replace("(, orig_record)?(, serial)?(, file, url, doi, isbn, type)? FROM $tableRefs", ", $fileVisibilityException[0]\\1\\2\\3 FROM $tableRefs",$query); // add column that's given in '$fileVisibilityException'
-		$addCounterMax = 1; // this will ensure that the added column won't get displayed within the 'displayColumns()' function
+		$addCounterMax = 1; // this will ensure that the added column won't get displayed within the 'displayColumns()' and 'displayDetails()' functions
 	}
 	else
 		$addCounterMax = 0;
@@ -722,6 +727,8 @@
 					               . "&amp;showLinks=" . $showLinks
 					               . "&amp;showRows=" . $showRows
 					               . "&amp;originalDisplayType=" . $displayType
+					               . "&amp;citeStyle=" . rawurlencode($citeStyle)
+					               . "&amp;citeOrder=" . $citeOrder
 					               . "\" title=\"find duplicates that match your current query\">dups</a>";
 
 				if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_user_queries|allow_rss_feeds)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable contains 'allow_rss_feeds' -OR- if logged in, aditionally: 'allow_user_queries':
@@ -784,13 +791,13 @@
 
 
 	// (4b) DISPLAY results:
-	if ($displayType == "Display") // display details for each of the selected records
-		displayDetails($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $nothingChecked, $citeStyle, $citeOrder, $orderBy, $showMaxRow, $headerMsg, $userID, $displayType, $viewType, $formType);
+	if ($displayType == "Display") // display full record details (Details view)
+		displayDetails($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $nothingChecked, $citeStyle, $citeOrder, $orderBy, $showMaxRow, $headerMsg, $userID, $displayType, $viewType, $addCounterMax, $formType);
 
-	elseif ($displayType == "Cite") // build a proper citation for each of the selected records
+	elseif ($displayType == "Cite") // return found records as citations (Citation view)
 		generateCitations($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $nothingChecked, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType);
 
-	else // show all records in columnar style
+	else // produce the columnar output style (List view or Browse view)
 		displayColumns($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $nothingChecked, $citeStyle, $citeOrder, $headerMsg, $userID, $displayType, $viewType, $addCounterMax, $formType);
 
 	// --------------------------------------------------------------------
@@ -807,6 +814,7 @@
 		global $databaseBaseURL;
 		global $defaultDropDownFieldsEveryone;
 		global $defaultDropDownFieldsLogin;
+		global $displayResultsHeaderDefault;
 		global $displayResultsFooterDefault;
 		global $showLinkTypesInListView;
 		global $maximumBrowseLinks;
@@ -852,8 +860,8 @@
 				saveSessionVariable("lastListViewQuery", $query);
 
 
-				// Note: we omit the 'Search Within Results' form in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
-				if (!eregi("^(Print|Mobile)$", $viewType))
+				// Note: we omit the results header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+				if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
 				{
 					if ($displayType == "Browse")
 						$selectedField = preg_replace("/^SELECT (\w+).*/i","\\1",$query); // extract the field that's currently used in Browse view (so that we can re-select it in the drop-downs of the 'refineSearch' and 'displayOptions' forms)
@@ -877,27 +885,26 @@
 							$localizedDropDownFieldsArray[$field] = $field;
 					}
 
-					// 2) Build a TABLE with forms containing options to show the user's groups, refine the search results or change the displayed columns:
+					// 2) Build forms containing options to show the user's groups, refine the search results or change the displayed columns:
 					//    TODO for 2b+2c: should we allow users to choose via the web interface which columns are included in the popup menus?
 
 					//    2a) Build a FORM with a popup containing the user's groups:
-					$formElementsGroup = buildGroupSearchElements("search.php", $queryURL, $query, $showQuery, $showLinks, $showRows, $displayType); // function 'buildGroupSearchElements()' is defined in 'include.inc.php'
+					$formElementsGroup = buildGroupSearchElements("search.php", $queryURL, $query, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType); // function 'buildGroupSearchElements()' is defined in 'include.inc.php'
 
 					//    2b) Build a FORM containing options to refine the search results:
 					//        Call the 'buildRefineSearchElements()' function (defined in 'include.inc.php') which does the actual work:
-					$formElementsRefine = buildRefineSearchElements("search.php", $queryURL, $showQuery, $showLinks, $showRows, $localizedDropDownFieldsArray, $selectedField, $displayType);
+					$formElementsRefine = buildRefineSearchElements("search.php", $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $localizedDropDownFieldsArray, $selectedField, $displayType);
 
 					//    2c) Build a FORM containing display options (show/hide columns or change the number of records displayed per page):
 					//        Call the 'buildDisplayOptionsElements()' function (defined in 'include.inc.php') which does the actual work:
-					$formElementsDisplayOptions = buildDisplayOptionsElements("search.php", $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $localizedDropDownFieldsArray, $selectedField, $fieldsToDisplay, $displayType);
+					$formElementsDisplayOptions = buildDisplayOptionsElements("search.php", $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $citeOrder, $localizedDropDownFieldsArray, $selectedField, $fieldsToDisplay, $displayType, $headerMsg);
 
-					echo displayResultsHeader("search.php", $formElementsGroup, $formElementsRefine, $formElementsDisplayOptions); // function 'displayResultsHeader()' is defined in 'results_header.inc.php'
+					echo displayResultsHeader("search.php", $formElementsGroup, $formElementsRefine, $formElementsDisplayOptions, $displayType); // function 'displayResultsHeader()' is defined in 'results_header.inc.php'
+
+					//    and insert a divider line (which separates the results header from the browse links & results data below):
+					echo "\n<hr class=\"resultsheader\" align=\"center\" width=\"93%\">";
 				}
 
-
-				//    and insert a divider line (which separates the 'Search Within Results' form from the browse links & results data below):
-				if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the divider line in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
-					echo "\n<hr class=\"resultsheader\" align=\"center\" width=\"93%\">";
 
 				// 3) Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
 				//    call the 'buildBrowseLinks()' function (defined in 'include.inc.php'):
@@ -938,7 +945,7 @@
 					$HTMLafterLink = "</th>"; // close the table header tag
 					// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
 					// as well as the URL encoded query with the appropriate ORDER clause:
-					$tableHeaderLink = buildFieldNameLinks("search.php", $query, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", $displayType, "", "", $viewType);
+					$tableHeaderLink = buildFieldNameLinks("search.php", $query, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", $displayType, "", "", $headerMsg, $viewType);
 					echo $tableHeaderLink; // print the attribute name as link
 				 }
 
@@ -950,7 +957,7 @@
 					$HTMLafterLink = "</th>"; // close the table header tag
 					// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
 					// as well as the URL encoded query with the appropriate ORDER clause:
-					$tableHeaderLink = buildFieldNameLinks("search.php", $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", $displayType, $loc["Links"], "url", $viewType);
+					$tableHeaderLink = buildFieldNameLinks("search.php", $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", $displayType, $loc["Links"], "url", $headerMsg, $viewType);
 					echo $tableHeaderLink; // print the attribute name as link
 				}
 				elseif (($showLinks == "1") AND ($displayType == "Browse"))
@@ -1120,10 +1127,10 @@
 					{
 						if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_cite|allow_user_groups|allow_export|allow_batch_export)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_cite|allow_export|allow_batch_export", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
 							// ...Insert a divider line (which separates the results data from the forms in the footer):
-							echo "\n<hr class=\"resultsfooter\" align=\"center\">";
+							echo "\n<hr class=\"resultsfooter\" align=\"center\" width=\"93%\">";
 
 						// Call the 'buildResultsFooter()' function (which does the actual work):
-						$ResultsFooter = buildResultsFooter($NoColumns, $showRows, $citeStyle, $displayType);
+						$ResultsFooter = buildResultsFooter($showRows, $citeStyle, $citeOrder, $displayType, $headerMsg);
 						echo $ResultsFooter;
 					}
 				}
@@ -1150,14 +1157,17 @@
 	// --------------------------------------------------------------------
 
 	// SHOW THE RESULTS IN AN HTML <TABLE> (horizontal layout)
-	function displayDetails($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $nothingChecked, $citeStyle, $citeOrder, $orderBy, $showMaxRow, $headerMsg, $userID, $displayType, $viewType, $formType)
+	function displayDetails($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $nothingChecked, $citeStyle, $citeOrder, $orderBy, $showMaxRow, $headerMsg, $userID, $displayType, $viewType, $addCounterMax, $formType)
 	{
 		global $filesBaseURL; // these variables are defined in 'ini.inc.php'
 		global $searchReplaceActionsArray;
 		global $databaseBaseURL;
+		global $defaultDropDownFieldsEveryone;
+		global $defaultDropDownFieldsLogin;
+		global $displayResultsHeaderDefault;
+		global $displayResultsFooterDefault;
 		global $fileVisibility;
 		global $fileVisibilityException;
-		global $displayResultsFooterDefault;
 		global $maximumBrowseLinks;
 		global $openURLResolver;
 		global $isbnURLFormat;
@@ -1182,8 +1192,9 @@
 				// count the number of fields
 				$fieldsFound = mysql_num_fields($result);
 				// hide those last columns that were added by the script and not by the user
-				$fieldsToDisplay = $fieldsFound-(2+$CounterMax); // (2+$CounterMax) -> $CounterMax is increased by 2 in order to hide the 'orig_record' & 'serial' columns (which were added to make checkboxes & dup warning work)
-				// In summary, when displaying a 'Links' column and with a user being logged in, we hide the following fields: 'related, orig_record, serial, file, url, doi, isbn, type' (i.e., truncate the last eight columns)
+				$fieldsToDisplay = $fieldsFound-(2+$CounterMax+$addCounterMax); // (2+$CounterMax) -> $CounterMax is increased by 2 in order to hide the 'orig_record' & 'serial' columns (which were added to make checkboxes & dup warning work)
+																				// $addCounterMax is set to 1 when the field given in '$fileVisibilityException[0]' (defined in 'ini.inc.php') was added to the query, otherwise '$addCounterMax = 0'
+				// In summary, when displaying a 'Links' column AND with a user being logged in AND with '$addCounterMax = 1', we hide the following fields: 'related, (the field given in '$fileVisibilityException[0]'), orig_record, serial, file, url, doi, isbn, type' (i.e., truncate the last nine columns)
 
 				// Calculate the number of all visible columns (which is needed as colspan value inside some TD tags)
 				if ($showLinks == "1") // in 'display details' layout, we simply set it to a fixed no of columns:
@@ -1192,10 +1203,58 @@
 					$NoColumns = 7; // 7 columns: checkbox, field name, field contents
 
 				// Save the current Details view query to a session variable:
-//				saveSessionVariable("lastDetailsViewQuery", $query);
+				saveSessionVariable("lastDetailsViewQuery", $query);
 
 
-				// 2) Note: we omit the 'Search Within Results' form when displaying details! (compare with 'displayColumns()' function)
+				// Note: we omit the results header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+				if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
+				{
+					$selectedField = "author"; // in the 'Search within Results" form, we'll always select the 'author' field by default
+
+					// Map MySQL field names to localized column names:
+					$fieldNamesArray = mapFieldNames(true); // function 'mapFieldNames()' is defined in 'include.inc.php'
+					$localizedDropDownFieldsArray = array();
+
+					if (isset($_SESSION['loginEmail']) AND !empty($defaultDropDownFieldsLogin)) // if a user is logged in -AND- there were any additional fields specified...
+						$dropDownFieldsArray = array_merge($defaultDropDownFieldsEveryone, $defaultDropDownFieldsLogin); // ...add these additional fields to the list of fields visible in the dropdown menus of the results header
+					else
+						$dropDownFieldsArray = $defaultDropDownFieldsEveryone;
+
+					foreach ($dropDownFieldsArray as $field)
+					{
+						if (isset($fieldNamesArray[$field]))
+							$localizedDropDownFieldsArray[$field] = $fieldNamesArray[$field];
+						else // no localized field name exists, so we use the original field name
+							$localizedDropDownFieldsArray[$field] = $field;
+					}
+
+					// Define option values for the display options dropdown menu:
+					$displayOptionsDropDownItemsArray = array("all fields"         => "all fields",
+					                                          "keywords, abstract" => "keywords & abstract",
+					                                          "additional fields"  => "additional fields");
+
+					if (isset($_SESSION['loginEmail'])) // if a user is logged in
+						$displayOptionsDropDownItemsArray["my fields"] = "my fields";
+
+					// 2) Build forms containing options to show the user's groups, refine the search results or change the displayed columns:
+					//    TODO for 2b+2c: should we allow users to choose via the web interface which columns are included in the popup menus?
+
+					//    2a) Build a FORM with a popup containing the user's groups:
+					$formElementsGroup = buildGroupSearchElements("search.php", $queryURL, $query, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType); // function 'buildGroupSearchElements()' is defined in 'include.inc.php'
+
+					//    2b) Build a FORM containing options to refine the search results:
+					//        Call the 'buildRefineSearchElements()' function (defined in 'include.inc.php') which does the actual work:
+					$formElementsRefine = buildRefineSearchElements("search.php", $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $localizedDropDownFieldsArray, $selectedField, $displayType);
+
+					//    2c) Build a FORM containing display options (show/hide columns or change the number of records displayed per page):
+					//        Call the 'buildDisplayOptionsElements()' function (defined in 'include.inc.php') which does the actual work:
+					$formElementsDisplayOptions = buildDisplayOptionsElements("search.php", $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $citeOrder, $displayOptionsDropDownItemsArray, "", $fieldsToDisplay, $displayType, $headerMsg);
+
+					echo displayResultsHeader("search.php", $formElementsGroup, $formElementsRefine, $formElementsDisplayOptions, $displayType); // function 'displayResultsHeader()' is defined in 'results_header.inc.php'
+
+					//    and insert a divider line (which separates the results header from the browse links & results data below):
+					echo "\n<hr class=\"resultsheader\" align=\"center\" width=\"93%\">";
+				}
 
 
 				// 3) Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
@@ -1244,7 +1303,7 @@
 						$HTMLafterLink = "</th>"; // close the table header tag
 						// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
 						// as well as the URL encoded query with the appropriate ORDER clause:
-						$tableHeaderLink = buildFieldNameLinks("search.php", $query, $newORDER, $result, "", $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "Display", $loc["Links"], "url", $viewType);
+						$tableHeaderLink = buildFieldNameLinks("search.php", $query, $newORDER, $result, "", $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "Display", $loc["Links"], "url", $headerMsg, $viewType);
 						echo $tableHeaderLink; // print the attribute name as link
 					}
 
@@ -1299,7 +1358,7 @@
 								}
 							// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table data tag holding the current field's name
 							// as well as the URL encoded query with the appropriate ORDER clause:
-							$recordData .= buildFieldNameLinks("search.php", $query, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "Display", "", "", $viewType);
+							$recordData .= buildFieldNameLinks("search.php", $query, "", $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", "Display", "", "", $headerMsg, $viewType);
 
 							// print the ATTRIBUTE DATA:
 							// first, calculate the correct colspan value for all the fields specified:
@@ -1499,8 +1558,12 @@
 					// Build a results footer with form elements to cite, group or export all/selected records:
 					if (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 					{
+						if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_cite|allow_user_groups|allow_export|allow_batch_export)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_cite|allow_export|allow_batch_export", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
+							// ...Insert a divider line (which separates the results data from the forms in the footer):
+							echo "\n<hr class=\"resultsfooter\" align=\"center\" width=\"93%\">";
+
 						// Call the 'buildResultsFooter()' function (which does the actual work):
-						$ResultsFooter = buildResultsFooter($NoColumns, $showRows, $citeStyle, $displayType);
+						$ResultsFooter = buildResultsFooter($showRows, $citeStyle, $citeOrder, $displayType, $headerMsg);
 						echo $ResultsFooter;
 					}
 				}
@@ -1603,10 +1666,19 @@
 				if (eregi("Atom", $exportFormat)) // if the export format name contains 'Atom'
 					$exportFileName = "atom_export.xml";
 
+				elseif (eregi("SRW_DC", $exportFormat)) // if the export format name contains 'SRW_DC'
+					$exportFileName = "srw_dc_export.xml";
+
+				elseif (eregi("SRW_MODS", $exportFormat)) // if the export format name contains 'SRW_MODS'
+					$exportFileName = "srw_mods_export.xml";
+
+				elseif (eregi("SRW", $exportFormat)) // if the export format name contains 'SRW' (fallback)
+					$exportFileName = "srw_export.xml";
+
 				elseif (eregi("^MODS", $exportFormat)) // if the export format name starts with 'MODS' (NOTE: the regex pattern must not match "SRW_MODS XML")
 					$exportFileName = "mods_export.xml";
 
-				elseif (eregi("(OAI_)?DC", $exportFormat)) // if the export format name contains 'OAI_DC' or 'DC'
+				elseif (eregi("^(OAI_)?DC", $exportFormat)) // if the export format starts contains 'OAI_DC' or 'DC' (NOTE: the regex pattern must not match "SRW_DC XML")
 					$exportFileName = "oaidc_export.xml";
 
 				elseif (eregi("ODF|OpenDocument", $exportFormat)) // if the export format name contains 'ODF' or 'OpenDocument'
@@ -1619,9 +1691,6 @@
 						$exportFileName = "content.xml";
 					}
 				}
-
-				elseif (eregi("SRW", $exportFormat)) // if the export format name contains 'SRW'
-					$exportFileName = "srw_export.xml";
 
 				elseif (eregi("Word", $exportFormat)) // if the export format name contains 'Word'
 					$exportFileName = "msword_export.xml";
@@ -1826,7 +1895,7 @@
 	// --------------------------------------------------------------------
 
 	//	BUILD RESULTS FOOTER
-	function buildResultsFooter($NoColumns, $showRows, $citeStyle, $displayType)
+	function buildResultsFooter($showRows, $citeStyle, $citeOrder, $displayType, $headerMsg)
 	{
 		global $allowAnonymousGUIExport; // these variables are defined in 'ini.inc.php'
 		global $displayResultsFooterDefault;
@@ -1875,14 +1944,14 @@
 				$resultsFooterToggleImage = "img/closed.gif";
 				$resultsFooterInitialToggleText = $resultsFooterToggleText;
 			}
-			
+
 			$ResultsFooterRow = "\n<div class=\"resultsfooter\">";
 
 			$ResultsFooterRow .= "\n<div class=\"showhide\">"
 			                   . "\n\t<a href=\"#resultactions\" onclick=\"toggleVisibility('resultactions','resultsFooterToggleimg','resultsFooterToggletxt','" . $resultsFooterToggleText . "')\" title=\"toggle visibility\">"
 			                   . "\n\t\t<img id=\"resultsFooterToggleimg\" class=\"toggleimg\" src=\"" . $resultsFooterToggleImage . "\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
+			                   . "\n\t\t<span id=\"resultsFooterToggletxt\" class=\"toggletxt\">" . $resultsFooterInitialToggleText . "</span>"
 			                   . "\n\t</a>"
-			                   . "\n\t<div id=\"resultsFooterToggletxt\" class=\"toggletxt\">" . $resultsFooterInitialToggleText . "</div>"
 			                   . "\n</div>";
 
 
@@ -1910,6 +1979,9 @@
 					$citeFormatDisabled = "";
 
 				$ResultsFooterRow .= "\n\t<fieldset id=\"citerefs\">"
+				                   . "\n\t\t<input type=\"hidden\" name=\"citeStyle\" value=\"" . rawurlencode($citeStyle) . "\">"
+				                   . "\n\t\t<input type=\"hidden\" name=\"citeOrder\" value=\"$citeOrder\">"
+				                   . "\n\t\t<input type=\"hidden\" name=\"headerMsg\" value=\"" . rawurlencode($headerMsg) . "\">"
 				                   . "\n\t\t<legend>Save Citations:</legend>"
 				                   . "\n\t\t<label for=\"citeType\">Format:</label>"
 				                   . "\n\t\t<select id=\"citeType\" name=\"citeType\" title=\"choose how your reference list shall be returned\"$citeStyleDisabled$citeFormatDisabled>";
@@ -1997,6 +2069,7 @@
 					$exportFormatDisabled = "";
 
 				$ResultsFooterRow .= "\n\t<fieldset id=\"exportrefs\">"
+				                   . "\n\t\t<input type=\"hidden\" name=\"exportType\" value=\"file\">"
 				                   . "\n\t\t<legend>Export Records:</legend>"
 				                   . "\n\t\t<label for=\"exportFormat\">Format:</label>"
 				                   . "\n\t\t<select id=\"exportFormat\" name=\"exportFormat\" title=\"choose the export format for your references\"$exportFormatDisabled>";
@@ -2010,7 +2083,6 @@
 					$ResultsFooterRow .= "\n\t\t\t<option>(no formats available)</option>";
 
 				$ResultsFooterRow .= "\n\t\t</select>"
-				                   . "\n\t\t<input type=\"hidden\" name=\"exportType\" value=\"file\">"
 				                   . "\n\t\t<input type=\"submit\" name=\"submit\" value=\"Export\" title=\"export all chosen records\"$exportFormatDisabled>"
 				                   . "\n\t</fieldset>";
 			}
@@ -5080,15 +5152,20 @@
 
 		if (eregi("^(Cite|Display)$", $displayType))
 		{
-			// generate a SELECT clause that's appropriate for Citation view (or Details view):
-			$query = buildSELECTclause($displayType, $showLinks); // function 'buildSELECTclause()' is defined in 'include.inc.php'
+			if ((eregi("^Display$", $displayType)) AND (isset($_SESSION['lastDetailsViewQuery']))) // get SELECT clause from previous Details view query (if any):
+			{
+				$previousSelectClause = extractSELECTclause($_SESSION['lastDetailsViewQuery']); // function 'extractSELECTclause()' is defined in 'include.inc.php'
+				$query = buildSELECTclause($displayType, $showLinks, "", false, true, $previousSelectClause); // function 'buildSELECTclause()' is defined in 'include.inc.php'
+			}
+			else // generate a new SELECT clause that's appropriate for Citation view (or Details view):
+				$query = buildSELECTclause($displayType, $showLinks);
 		}
 
 		// output found records in List view:
 		elseif (($displayType != "Browse") AND (!empty($sqlQuery))) // if we're not in Browse view and there's a previous SQL query available (as is the case if the group search originated from a search results page - and not from the main page 'index.php')
 		{
 			// use the custom set of colums chosen by the user:
-			$previousSelectClause = extractSELECTclause($sqlQuery); // function 'extractSELECTclause()' is defined in 'include.inc.php'
+			$previousSelectClause = extractSELECTclause($sqlQuery);
 			$query = buildSELECTclause("", $showLinks, "", false, true, $previousSelectClause);
 		}
 		else
@@ -5221,7 +5298,7 @@
 		}
 		else
 			$additionalFields = "";
-			
+
 
 		// construct the SQL query:
 		// TODO: build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
