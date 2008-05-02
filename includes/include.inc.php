@@ -1204,8 +1204,10 @@
 	// BUILD FIELD NAME LINKS
 	// (i.e., build clickable column headers for each available column)
 	// TODO: I18n
-	function buildFieldNameLinks($href, $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $HTMLbeforeLink, $HTMLafterLink, $formType, $submitType, $linkName, $orig_fieldname, $viewType)
+	function buildFieldNameLinks($href, $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $HTMLbeforeLink, $HTMLafterLink, $formType, $submitType, $linkName, $orig_fieldname, $headerMsg, $viewType)
 	{
+		global $client;
+
 		// map MySQL field names to localized column names:
 		$fieldNamesArray = mapFieldNames();
 
@@ -1299,13 +1301,16 @@
 		$tableHeaderLink = $HTMLbeforeLink
 		                   . "<a href=\"" . $href
 		                   . "?sqlQuery=" . $queryURLNewOrder
+		                   . "&amp;submit=" . $submitType
+		                   . "&amp;citeStyle=" . rawurlencode($citeStyle)
+		                   . "&amp;orderBy=" . rawurlencode($orderBy)
+		                   . "&amp;headerMsg=" . rawurlencode($headerMsg)
 		                   . "&amp;showQuery=" . $showQuery
 		                   . "&amp;showLinks=" . $showLinks
 		                   . "&amp;formType=" . $formType
 		                   . "&amp;showRows=" . $showRows
 		                   . "&amp;rowOffset=" . $rowOffset
-		                   . "&amp;submit=" . $submitType
-		                   . "&amp;orderBy=" . rawurlencode($orderBy)
+		                   . "&amp;client=" . rawurlencode($client)
 		                   . "&amp;viewType=" . $viewType
 		                   . "\" title=" . $linkTitle . ">" . $linkName . "</a>";
 
@@ -1325,11 +1330,13 @@
 	// Build SELECT clause:
 	// (if given, '$additionalFields' & '$customSELECTclause' must contain
 	//  a string of comma-separated field names)
+	// TODO: add support for 'users.php' SELECT clauses
 	function buildSELECTclause($displayType, $showLinks, $additionalFields = "", $addUserSpecificFields = true, $addRequiredFields = true, $customSELECTclause = "", $browseByField = "")
 	{
 		global $defaultFieldsListViewMajor; // these variables are specified in 'ini.inc.php'
 		global $defaultFieldsListViewMinor;
 		global $defaultView;
+		global $showAdditionalFieldsDetailsViewDefault;
 
 		if (empty($displayType))
 			$displayType = $defaultView;
@@ -1342,24 +1349,39 @@
 		}
 		else // build a new SELECT clause that's suitable for the given '$displayType':
 		{
-			// Details view, Edit mode & Export:
-			if (eregi("^(Display|Edit|Export)$", $displayType)) // select all fields required to display record details or to export a record:
+			// Details view:
+			if (eregi("^(Display)$", $displayType)) // select all fields required to display record details:
 			{
-				$querySELECTclause .= "author, title, type, year, publication, abbrev_journal, volume, issue, pages, corporate_author, thesis, address, keywords, abstract, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved";
+				if ($showAdditionalFieldsDetailsViewDefault == "no") // omit additional fields:
+				{
+					$querySELECTclause .= "author, title, type, year, publication, abbrev_journal, volume, issue, pages, keywords, abstract";
+				}
+				else // display all fields:
+				{
+					$querySELECTclause .= "author, title, type, year, publication, abbrev_journal, volume, issue, pages, keywords, abstract, address, corporate_author, thesis, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved";
+
+					if (isset($_SESSION['loginEmail']))
+						$querySELECTclause .= ", location"; // we only add the 'location' field if the user is logged in
+				}
+
+				$querySELECTclause .= ", call_number, serial";
+			}
+
+			// Edit mode & Export:
+			elseif (eregi("^(Edit|Export)$", $displayType)) // select all fields required to display record details (in edit mode) or to export a record:
+			{
+				$querySELECTclause .= "author, title, type, year, publication, abbrev_journal, volume, issue, pages, keywords, abstract, address, corporate_author, thesis, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved";
 
 				if (isset($_SESSION['loginEmail']))
 					$querySELECTclause .= ", location"; // we only add the 'location' field if the user is logged in
 
-				if (eregi("^(Edit|Export)$", $displayType)) // for export and edit mode, we add some additional fields:
-					$querySELECTclause .= ", contribution_id, online_publication, online_citation, created_date, created_time, created_by, modified_date, modified_time, modified_by";
-
-				$querySELECTclause .= ", call_number, serial";
+				$querySELECTclause .= ", contribution_id, online_publication, online_citation, created_date, created_time, created_by, modified_date, modified_time, modified_by, call_number, serial";
 			}
 
 			// Citation view & RSS output:
 			elseif (eregi("^(Cite|RSS)$", $displayType)) // select all fields required to build proper record citations:
 			{
-				$querySELECTclause .= "type, author, year, title, publication, abbrev_journal, volume, issue, pages, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, edition, language, author_count, online_publication, online_citation, doi, serial";
+				$querySELECTclause .= "author, title, type, year, publication, abbrev_journal, volume, issue, pages, keywords, abstract, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, edition, language, author_count, online_publication, online_citation, doi, serial";
 
 				if ($displayType == "RSS") // for RSS output, we add some additional fields:
 					$querySELECTclause .= ", created_date, created_time, created_by, modified_date, modified_time, modified_by";
@@ -1490,7 +1512,7 @@
 
 		if (eregi("^Mobile$", $viewType))
 			$BrowseLinks .= "\n\t<div class=\"mainnav\"><a href=\"index.php\" title=\"" . $loc["LinkTitle_Home"] . "\">" . $loc["Home"] . "</a></div>";
-		elseif (eregi("^Print$", $viewType))
+		elseif (eregi("^Print$", $viewType) OR eregi("^cli", $client))
 			$BrowseLinks .= "\n\t<td class=\"mainnav\" align=\"left\" valign=\"bottom\" width=\"225\"><a href=\"index.php\" title=\"" . $loc["LinkTitle_Home"] . "\">" . $loc["Home"] . "</a></td>";
 		elseif (($href == "users.php") OR !isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 		{
@@ -1649,7 +1671,7 @@
 		// Add view links:
 		$viewLinksArray = array();
 
-		if (($href == "search.php") AND $viewType != "Mobile")
+		if (($href == "search.php") AND !eregi("^Mobile$", $viewType))
 		{
 			if (isset($_SESSION['user_permissions']) AND ereg("allow_list_view", $_SESSION['user_permissions']))
 			{
@@ -1718,7 +1740,11 @@
 				if (!eregi("^Display$", $displayType)) // display a link to Details view:
 				{
 					// Replace current SELECT clause with one that's appropriate for Details view:
-					$detailsViewSelectClause = buildSELECTclause("Display", $showLinks, "", false, false); // select all fields required to display record details
+					if (isset($_SESSION['lastDetailsViewQuery']))
+						$detailsViewSelectClause = "SELECT " . extractSELECTclause($_SESSION['lastDetailsViewQuery']); // get SELECT clause from previous Details view query (if any)
+					else
+						$detailsViewSelectClause = buildSELECTclause("Display", $showLinks, "", false, false); // select all fields required to display record details
+
 					$detailsViewQuery = newSELECTclause($detailsViewSelectClause, $query); // replace SELECT clause in current query and URL encode query
 
 					// h) create a 'Details' link that will show the currently displayed result set in Details view:
@@ -1815,36 +1841,30 @@
 	//	BUILD REFINE SEARCH ELEMENTS
 	// (i.e., provide options to refine the search results)
 	// TODO: I18n
-	function buildRefineSearchElements($href, $queryURL, $showQuery, $showLinks, $showRows, $dropDownFieldsArray, $dropDownFieldSelected, $displayType)
+	function buildRefineSearchElements($href, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $dropDownFieldsArray, $dropDownFieldSelected, $displayType)
 	{
-		// adjust button spacing according to the calling script (which is either 'search.php' or 'users.php')
-		if ($href == "users.php")
-			$spaceBeforeButton = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"; // I know this is ugly (it's just a quick workaround which should get fixed in the future...)
-		else // if ($href == "search.php")
-			$spaceBeforeButton = "&nbsp;&nbsp;";
+		$encodedCiteStyle = rawurlencode($citeStyle);
 
 		$refineSearchForm = <<<EOF
 		<form action="$href" method="GET" name="refineSearch">
-			<input type="hidden" name="formType" value="refineSearch">
-			<input type="hidden" name="submit" value="Search">
-			<input type="hidden" name="originalDisplayType" value="$displayType">
-			<input type="hidden" name="sqlQuery" value="$queryURL">
-			<input type="hidden" name="showQuery" value="$showQuery">
-			<input type="hidden" name="showLinks" value="$showLinks">
-			<input type="hidden" name="showRows" value="$showRows">
-			<table id="refineresults" align="center" border="0" cellpadding="0" cellspacing="5" summary="This table holds a search form that enables you to refine the previous search result">
-				<tr>
-					<td valign="top">
-						Search within Results:
-					</td>
-				</tr>
-				<tr>
-					<td valign="top">
-						<select name="refineSearchSelector" title="choose the field you want to search">
+			<fieldset>
+				<input type="hidden" name="formType" value="refineSearch">
+				<input type="hidden" name="submit" value="Search">
+				<input type="hidden" name="originalDisplayType" value="$displayType">
+				<input type="hidden" name="sqlQuery" value="$queryURL">
+				<input type="hidden" name="showQuery" value="$showQuery">
+				<input type="hidden" name="showLinks" value="$showLinks">
+				<input type="hidden" name="showRows" value="$showRows">
+				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
+				<input type="hidden" name="citeOrder" value="$citeOrder">
+				<legend>Search within Results:</legend>
+				<div id="refineField">
+					<label for="refineSearchSelector">Field:</label>
+					<select id="refineSearchSelector" name="refineSearchSelector" title="choose the field you want to search">
 EOF;
 
 		// build correct option tags from the column items provided:
-		$optionTags = buildSelectMenuOptions($dropDownFieldsArray, "", "\t\t\t\t\t\t\t", true);
+		$optionTags = buildSelectMenuOptions($dropDownFieldsArray, "", "\t\t\t\t\t\t", true);
 
 		$optionTags = ereg_replace("<option([^>]*)>($dropDownFieldSelected)</option>", "<option\\1 selected>\\2</option>", $optionTags); // add 'selected' attribute
 
@@ -1852,17 +1872,18 @@ EOF;
 
 		$refineSearchForm .= <<<EOF
 
-						</select>&nbsp;&nbsp;
-						<input type="text" name="refineSearchName" size="11" title="enter your search string here">
-					</td>
-				</tr>
-				<tr>
-					<td valign="top">
-						<input type="checkbox" name="refineSearchExclude" value="1" title="mark this checkbox to exclude all records from the current result set that match the above search criterion">&nbsp;Exclude matches$spaceBeforeButton
-						<input type="submit" name="submit" value="Search" title="search within the current result set">
-					</td>
-				</tr>
-			</table>
+					</select>
+					<label for="refineSearchName">contains:</label>
+					<input type="text" id="refineSearchName" name="refineSearchName" size="11" title="enter your search string here">
+				</div>
+				<div id="refineOpt">
+					<input type="checkbox" id="refineSearchExclude" name="refineSearchExclude" value="1" title="mark this checkbox to exclude all records from the current result set that match the above search criterion">
+					<label for="refineSearchExclude">Exclude matches</label>
+				</div>
+				<div id="refineSubmit">
+					<input type="submit" name="submit" value="Search" title="search within the current result set">
+				</div>
+			</fieldset>
 		</form>
 
 EOF;
@@ -1878,7 +1899,7 @@ EOF;
 	// 		 - if "$href = search.php", it will modify the values of the 'user_groups' field of the 'user_data' table (where a user can assign one or more groups to particular *references*)
 	//       - if "$href = users.php", this function will modify the values of the 'user_groups' field of the 'users' table (where the admin can assign one or more groups to particular *users*)
 	// TODO: I18n
-	function buildGroupSearchElements($href, $queryURL, $query, $showQuery, $showLinks, $showRows, $displayType)
+	function buildGroupSearchElements($href, $queryURL, $query, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType)
 	{
 		if (preg_match("/.+user_groups RLIKE \"[()|^.;* ]+[^;]+?[()|$.;* ]+\"/i", $query)) // if the query does contain a 'WHERE' clause that searches for a particular user group
 			$currentGroup = preg_replace("/.+user_groups RLIKE \"[()|^.;* ]+([^;]+?)[()|$.;* ]+\".*/i", "\\1", $query); // extract the particular group name
@@ -1903,40 +1924,49 @@ EOF;
 				$groupSearchButtonTitle = "(not available since you haven't specified any groups yet)";
 			}
 
-			// adjust the form title according to the calling script (which is either 'search.php' or 'users.php')
+			// adjust the form & dropdown labels according to the calling script (which is either 'search.php' or 'users.php')
 			if ($href == "search.php")
-				$formTitleAddon = " My";
+			{
+				$formLegend = "Show My Group:";
+				$dropdownLabel = "My:";
+			}
 			elseif ($href == "users.php")
-				$formTitleAddon = " User";
-			else
-				$formTitleAddon = ""; // currently, '$href' will be either 'search.php' or 'users.php', but anyhow
+			{
+				$formLegend = "Show User Group:";
+				$dropdownLabel = "Users:";
+			}
+			else // currently, '$href' will be either 'search.php' or 'users.php', but anyhow
+			{
+				$formLegend = "Show Group:";
+				$dropdownLabel = "";
+			}
+
+			$encodedCiteStyle = rawurlencode($citeStyle);
 
 			$groupSearchForm = <<<EOF
 		<form action="$href" method="GET" name="groupSearch">
-			<input type="hidden" name="formType" value="groupSearch">
-			<input type="hidden" name="originalDisplayType" value="$displayType">
-			<input type="hidden" name="sqlQuery" value="$queryURL">
-			<input type="hidden" name="showQuery" value="$showQuery">
-			<input type="hidden" name="showLinks" value="$showLinks">
-			<input type="hidden" name="showRows" value="$showRows">
-			<table id="showgroups" align="left" border="0" cellpadding="0" cellspacing="5" summary="This table holds a search form that gives you access to your groups">
-				<tr>
-					<td valign="top">
-						Show$formTitleAddon Group:
-					</td>
-				</tr>
-				<tr>
-					<td valign="top">
-						<select name="groupSearchSelector" title="$groupSearchSelectorTitle"$groupSearchDisabled>
+			<fieldset>
+				<input type="hidden" name="formType" value="groupSearch">
+				<input type="hidden" name="originalDisplayType" value="$displayType">
+				<input type="hidden" name="sqlQuery" value="$queryURL">
+				<input type="hidden" name="showQuery" value="$showQuery">
+				<input type="hidden" name="showLinks" value="$showLinks">
+				<input type="hidden" name="showRows" value="$showRows">
+				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
+				<input type="hidden" name="citeOrder" value="$citeOrder">
+				<legend>$formLegend</legend>
+				<div id="groupSelect">
+					<label for="groupSearchSelector">$dropdownLabel</label>
+					<select id="groupSearchSelector" name="groupSearchSelector" title="$groupSearchSelectorTitle"$groupSearchDisabled>
 EOF;
 
 			if (($href == "search.php" AND isset($_SESSION['userGroups'])) OR ($href == "users.php" AND isset($_SESSION['adminUserGroups']))) // if the appropriate session variable is set
 			{
 				 // build properly formatted <option> tag elements from the items listed in the appropriate session variable:
 				if ($href == "search.php")
-					$optionTags = buildSelectMenuOptions($_SESSION['userGroups'], " *; *", "\t\t\t\t\t\t\t", false);
+					$optionTags = buildSelectMenuOptions($_SESSION['userGroups'], " *; *", "\t\t\t\t\t\t", false);
 				elseif ($href == "users.php")
-					$optionTags = buildSelectMenuOptions($_SESSION['adminUserGroups'], " *; *", "\t\t\t\t\t\t\t", false);
+					$optionTags = buildSelectMenuOptions($_SESSION['adminUserGroups'], " *; *", "\t\t\t\t\t\t", false);
 
 				if (!empty($currentGroup)) // if the current SQL query contains a 'WHERE' clause that searches for a particular user group
 					$optionTags = ereg_replace("<option>$currentGroup</option>", "<option selected>$currentGroup</option>", $optionTags); // we select that group by adding the 'selected' parameter to the apropriate <option> tag
@@ -1948,21 +1978,18 @@ EOF;
 
 			$groupSearchForm .= <<<EOF
 
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td valign="top">
-						<input type="submit" value="Show" title="$groupSearchButtonTitle"$groupSearchDisabled>
-					</td>
-				</tr>
-			</table>
+					</select>
+				</div>
+				<div id="groupSubmit">
+					<input type="submit" value="Show" title="$groupSearchButtonTitle"$groupSearchDisabled>
+				</div>
+			</fieldset>
 		</form>
 
 EOF;
 		}
 		else
-			$groupSearchForm = "\t\t&nbsp;\n";
+			$groupSearchForm = "";
 
 		return $groupSearchForm;
 	}
@@ -1972,46 +1999,98 @@ EOF;
 	//	BUILD DISPLAY OPTIONS FORM ELEMENTS
 	// (i.e., provide options to show/hide columns or change the number of records displayed per page)
 	// TODO: I18n
-	function buildDisplayOptionsElements($href, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $dropDownFieldsArray, $dropDownFieldSelected, $fieldsToDisplay, $displayType)
+	function buildDisplayOptionsElements($href, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $citeOrder, $dropDownFieldsArray, $dropDownFieldSelected, $fieldsToDisplay, $displayType, $headerMsg)
 	{
 		if ($displayType == "Browse")
 		{
 			$submitValue = "Browse";
+			$submitTitle = "browse the current result set by the specified field";
 			$recordsOrItems = "items";
+			$selectorDivID = "optShowHideField";
+			$selectorID = "displayOptionsSelector";
+			$selectorLabel = "Field:";
+			$selectorTitle = "choose the field you want to browse";
+			$showRowsLabel = "$recordsOrItems per page";
+		}
+		elseif ($displayType == "Cite")
+		{
+			$submitValue = "Show";
+			$submitTitle = "display found records using the specified citation style and sort order";
+			$recordsOrItems = "records";
+			$selectorDivID = "optCiteStyle";
+			$selectorID = "citeStyle";
+			$selectorLabel = "Style:";
+			$selectorTitle = "choose your preferred citation style";
+			$showRowsLabel = "per page";
+		}
+		elseif ($displayType == "Display")
+		{
+			$submitValue = "Show";
+			$submitTitle = "show the specified fields";
+			$recordsOrItems = "records";
+			$selectorDivID = "optShowHideField";
+			$selectorID = "displayOptionsSelector";
+			$selectorLabel = "Fields:";
+			$selectorTitle = "choose the fields you want to show or hide";
+			$showRowsLabel = "$recordsOrItems per page";
 		}
 		else
 		{
 			$submitValue = "Show";
+			$submitTitle = "show the specified field";
 			$recordsOrItems = "records";
+			$selectorDivID = "optShowHideField";
+			$selectorID = "displayOptionsSelector";
+			$selectorLabel = "Field:";
+			$selectorTitle = "choose the field you want to show or hide";
+			$showRowsLabel = "$recordsOrItems per page";
 		}
 
-		$displayOptionsForm = <<<EOF
-		<form action="$href" method="GET" name="displayOptions">
-			<input type="hidden" name="formType" value="displayOptions">
-			<input type="hidden" name="submit" value="$submitValue">
-			<input type="hidden" name="originalDisplayType" value="$displayType">
-			<input type="hidden" name="sqlQuery" value="$queryURL">
-			<input type="hidden" name="showQuery" value="$showQuery">
-			<input type="hidden" name="showLinks" value="$showLinks">
-			<input type="hidden" name="rowOffset" value="$rowOffset">
-			<input type="hidden" name="showRows" value="$showRows">
-			<table id="displayopt" align="right" border="0" cellpadding="0" cellspacing="5" summary="This table holds a form that enables you to modify the display of columns and records">
-				<tr>
-					<td valign="top">
-						Display Options:
-					</td>
-				</tr>
-				<tr>
-					<td valign="top">
-EOF;
-
-		if ($displayType == "Browse")
-			$displayOptionsForm .= "\n\t\t\t\t\t\t<select name=\"displayOptionsSelector\" title=\"choose the field you want to browse\">";
+		if (($displayType != "Cite") AND ($fieldsToDisplay < 2))
+		{
+			$hideButtonDisabled = " disabled"; // disable the 'Hide' button if there's currently only one field being displayed (except the links column)
+			$hideButtonTitle = "(only available with two or more fields being displayed!)";
+		}
 		else
-			$displayOptionsForm .= "\n\t\t\t\t\t\t<select name=\"displayOptionsSelector\" title=\"choose the field you want to show or hide\">";
+		{
+			$hideButtonDisabled = "";
+
+			if ($displayType == "Display")
+				$hideButtonTitle = "hide the specified fields";
+			else
+				$hideButtonTitle = "hide the specified field";
+		}
+
+		if (($displayType == "Cite") AND (!isset($_SESSION['user_styles'])))
+			$citeStyleDisabled = " disabled"; // for Citation view, disable the style popup if the session variable holding the user's styles isn't available
+		else
+			$citeStyleDisabled = "";
+
+		$encodedCiteStyle = rawurlencode($citeStyle);
+		$encodedHeaderMsg = rawurlencode($headerMsg);
 
 		// NOTE: we embed the current value of '$rowOffset' as hidden tag within the 'displayOptions' form. By this, the current row offset can be re-applied after the user pressed the 'Show'/'Hide' button within the 'displayOptions' form.
 		//       To avoid that browse links don't behave as expected, the actual value of '$rowOffset' will be adjusted in function 'seekInMySQLResultsToOffset()' to an exact multiple of '$showRows'!
+		$displayOptionsForm = <<<EOF
+		<form action="$href" method="GET" name="displayOptions">
+			<fieldset>
+				<input type="hidden" name="formType" value="displayOptions">
+				<input type="hidden" name="submit" value="$submitValue">
+				<input type="hidden" name="originalDisplayType" value="$displayType">
+				<input type="hidden" name="sqlQuery" value="$queryURL">
+				<input type="hidden" name="showQuery" value="$showQuery">
+				<input type="hidden" name="showLinks" value="$showLinks">
+				<input type="hidden" name="rowOffset" value="$rowOffset">
+				<input type="hidden" name="showRows" value="$showRows">
+				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
+				<input type="hidden" name="citeOrder" value="$citeOrder">
+				<input type="hidden" name="headerMsg" value="$encodedHeaderMsg">
+				<legend>Display Options:</legend>
+				<div id="optMain">
+					<div id="$selectorDivID">
+						<label for="$selectorID">$selectorLabel</label>
+						<select id="$selectorID" name="$selectorID" title="$selectorTitle"$citeStyleDisabled>
+EOF;
 
 		// build correct option tags from the column items provided:
 		$optionTags = buildSelectMenuOptions($dropDownFieldsArray, "", "\t\t\t\t\t\t\t", true);
@@ -2020,39 +2099,67 @@ EOF;
 
 		$displayOptionsForm .= $optionTags;
 
-		if ($fieldsToDisplay < 2)
-		{
-			$hideButtonDisabled = " disabled"; // disable the 'Hide' button if there's currently only one field being displayed (except the links column)
-			$hideButtonTitle = "(only available with two or more fields being displayed!)";
-		}
-		else
-		{
-			$hideButtonDisabled = "";
-			$hideButtonTitle = "hide the specified field";
-		}
+		$displayOptionsForm .= <<<EOF
 
-			$displayOptionsForm .= "\n\t\t\t\t\t\t</select>&nbsp;";
+						</select>
+					</div>
+EOF;
 
-		if ($displayType == "Browse")
-		{
-			$displayOptionsForm .= "\n\t\t\t\t\t\t<input type=\"submit\" name=\"submit\" value=\"Browse\" title=\"browse the current result set by the specified field\">&nbsp;";
-		}
-		else
-		{
-			$displayOptionsForm .= "\n\t\t\t\t\t\t<input type=\"submit\" name=\"submit\" value=\"Show\" title=\"show the specified field\">&nbsp;";
+		$displayOptionsForm .= <<<EOF
+
+					<div id="optSubmit">
+						<input type="submit" name="submit" value="$submitValue" title="$submitTitle">
+EOF;
+
+		if ($displayType != "Cite")
 			$displayOptionsForm .= "\n\t\t\t\t\t\t<input type=\"submit\" name=\"submit\" value=\"Hide\" title=\"$hideButtonTitle\"$hideButtonDisabled>";
+
+		$displayOptionsForm .= <<<EOF
+
+					</div>
+				</div>
+				<div id="optOther">
+EOF;
+
+		if ($displayType == "Cite")
+		{
+			$displayOptionsForm .= <<<EOF
+
+					<div id="optCiteOrder">
+						<label for="citeOrder">Sort by:</label>
+						<select id="citeOrder" name="citeOrder" title="choose the primary sort order for your citation list">
+EOF;
+
+			// build correct option tags for the "Sort by" ('citeOrder') dropdown menu (and select the currently chosen option):
+			$citeOrderItemsArray = array("author"    => "author",
+			                             "year"      => "year",
+			                             "type"      => "type",
+			                             "type-year" => "type, year");
+
+			$citeOrderOptionTags = buildSelectMenuOptions($citeOrderItemsArray, "", "\t\t\t\t\t\t\t", true);
+
+			if (isset($citeOrderItemsArray[$citeOrder]))
+				$citeOrderOptionTags = ereg_replace("<option([^>]*)>(" . $citeOrderItemsArray[$citeOrder] . ")</option>", "<option\\1 selected>\\2</option>", $citeOrderOptionTags); // add 'selected' attribute to the currently chosen 'citeOrder' option
+			else // add & select a "(custom order)" option (which indicates that the current sort order matches none of the above 'citeOrder' options):
+				$citeOrderOptionTags = "\n\t\t\t\t\t\t\t<option value=\"\" selected>(custom)</option>" . $citeOrderOptionTags;
+
+			$displayOptionsForm .= $citeOrderOptionTags;
+
+			$displayOptionsForm .= <<<EOF
+
+						</select>
+					</div>
+EOF;
 		}
 
 		$displayOptionsForm .= <<<EOF
 
-					</td>
-				</tr>
-				<tr>
-					<td valign="top">
-						<input type="text" name="showRows" value="$showRows" size="4" title="specify how many $recordsOrItems shall be displayed per page">&nbsp;&nbsp;$recordsOrItems per page
-					</td>
-				</tr>
-			</table>
+					<div id="optRecsPerPage">
+						<input type="text" id="showRows" name="showRows" value="$showRows" size="4" title="specify how many $recordsOrItems shall be displayed per page">
+						<label for="showRows">$showRowsLabel</label>
+					</div>
+				</div>
+			</fieldset>
 		</form>
 
 EOF;
@@ -2062,8 +2169,11 @@ EOF;
 
 	// --------------------------------------------------------------------
 
-	// Build the database query from user input provided by the "Search within Results" or "Display Options" forms above the query results list (which, in turn, was returned by 'search.php' or 'users.php', respectively):
-	function extractFormElementsRefineDisplay($queryTable, $displayType, $originalDisplayType, $query, $showLinks, $userID)
+	// Build the database query from user input provided by the "Search within Results" or "Display Options" forms
+	// above the query results list (which, in turn, was returned by 'search.php' or 'users.php', respectively):
+	// TODO: - I18n (i.e. make function logic independent from actual submit button names!)
+	//       - build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
+	function extractFormElementsRefineDisplay($queryTable, $displayType, $originalDisplayType, $query, $showLinks, $citeOrder, $userID)
 	{
 		global $tableRefs, $tableUserData, $tableUsers; // defined in 'db.inc.php'
 
@@ -2082,28 +2192,49 @@ EOF;
 		elseif (ereg("^(Show|Hide|Browse)$", $displayType)) // the user clicked either the 'Browse' or 'Show'/'Hide' buttons of the "Display Options" form
 		// (hitting <enter> within the 'ShowRows' text entry field of the "Display Options" form will act as if the user clicked the 'Browse'/'Show' button)
 		{
-			$fieldSelector = $_REQUEST['displayOptionsSelector']; // extract field name chosen by the user
+			if (isset($_REQUEST['displayOptionsSelector']))
+				$fieldSelector = $_REQUEST['displayOptionsSelector']; // extract field name chosen by the user
+			else
+				$fieldSelector = "";
 		}
 
+		// extract the fields of the SELECT clause from the current SQL query:
+		$previousSelectClause = extractSELECTclause($query);
+
+		// ensure to add any required fields to the SELECT clause:
+		if ($queryTable == $tableRefs) // 'search.php':
+			$addRequiredFields = true;
+		elseif ($queryTable == $tableUsers) // 'users.php':
+			$addRequiredFields = false; // we'll add any required fields to the 'users.php' SELECT clause below
+		                                // TODO: this wouldn't be necessary if function 'buildSELECTclause()' would handle the requirements of 'users.php'
+
+		$additionalFields = "";
 
 		if ($displayType == "Search")
 		{
+			// rebuild the current SELECT clause:
+			$newSelectClause = buildSELECTclause($originalDisplayType, $showLinks, $additionalFields, false, $addRequiredFields, $previousSelectClause);
+
+			// replace current SELECT clause:
+			$query = newSELECTclause($newSelectClause, $query, false);
+
 			if ($refineSearchName != "") // if the user typed a search string into the text entry field...
 			{
 				// Depending on the chosen output action, construct an appropriate SQL query:
 				if ($refineSearchActionCheckbox == "0") // if the user did NOT mark the checkbox next to "Exclude matches"
-					{
-						// for the fields 'marked=no', 'copy=false' and 'selected=no', force NULL values to be matched:
-						if (($fieldSelector == "marked" AND $refineSearchName == "no") OR ($fieldSelector == "copy" AND $refineSearchName == "false") OR ($fieldSelector == "selected" AND $refineSearchName == "no"))
-							$query = eregi_replace("WHERE","WHERE ($fieldSelector RLIKE " . quote_smart($refineSearchName) . " OR $fieldSelector IS NULL) AND",$query); // ...add search field name & value to the sql query
-						else // add default 'WHERE' clause:
-							$query = eregi_replace("WHERE","WHERE $fieldSelector RLIKE " . quote_smart($refineSearchName) . " AND",$query); // ...add search field name & value to the sql query
-					}
+				{
+					// for the fields 'marked=no', 'copy=false' and 'selected=no', force NULL values to be matched:
+					if (($fieldSelector == "marked" AND $refineSearchName == "no") OR ($fieldSelector == "copy" AND $refineSearchName == "false") OR ($fieldSelector == "selected" AND $refineSearchName == "no"))
+						$query = eregi_replace(" WHERE ", " WHERE ($fieldSelector RLIKE " . quote_smart($refineSearchName) . " OR $fieldSelector IS NULL) AND ", $query); // ...add search field name & value to the SQL query
+					else // add default 'WHERE' clause:
+						$query = eregi_replace(" WHERE ", " WHERE $fieldSelector RLIKE " . quote_smart($refineSearchName) . " AND ", $query); // ...add search field name & value to the SQL query
+				}
 				else // $refineSearchActionCheckbox == "1" // if the user marked the checkbox next to "Exclude matches"
-					{
-						$query = eregi_replace("WHERE","WHERE ($fieldSelector NOT RLIKE " . quote_smart($refineSearchName) . " OR $fieldSelector IS NULL) AND",$query); // ...add search field name & value to the sql query
-					}
-				$query = eregi_replace(' AND serial RLIKE "\.\+"','',$query); // remove any 'AND serial RLIKE ".+"' which isn't required anymore
+				{
+					$query = eregi_replace(" WHERE ", " WHERE ($fieldSelector NOT RLIKE " . quote_smart($refineSearchName) . " OR $fieldSelector IS NULL) AND ", $query); // ...add search field name & value to the SQL query
+				}
+
+				$query = eregi_replace(' AND serial RLIKE "\.\+"', '', $query); // remove any 'AND serial RLIKE ".+"' which isn't required anymore
 			}
 			// else, if the user did NOT type a search string into the text entry field, we simply keep the old WHERE clause...
 		}
@@ -2111,34 +2242,140 @@ EOF;
 
 		elseif ($displayType == "Show" OR $displayType == "Hide")
 		{
-			if ($displayType == "Show") // if the user clicked the 'Show' button...
+			if (eregi("^Cite$", $originalDisplayType)) // in case of Citation view, we regenerate the SELECT clause from scratch:
+			{
+				// generate a SELECT clause that's appropriate for Citation view (or Details view):
+				$newSelectClause = buildSELECTclause($originalDisplayType, $showLinks, $additionalFields, false, $addRequiredFields);
+
+				// rebuild the current ORDER clause:
+				if (eregi("^(author|year|type|type-year)$", $citeOrder))
 				{
-					if (!preg_match("/SELECT.*\W$fieldSelector\W.*FROM $queryTable/i", $query)) // ...and the field is *not* already displayed...
-						$query = eregi_replace(" FROM $queryTable",", $fieldSelector FROM $queryTable",$query); // ...then SHOW the field that was used for refining the search results
+					if ($citeOrder == "year") // sort records first by year (descending):
+						$newORDER = "ORDER BY year DESC, first_author, author_count, author, title";
+
+					elseif ($citeOrder == "type") // sort records first by record type and thesis type (descending):
+						$newORDER = "ORDER BY type DESC, thesis DESC, first_author, author_count, author, year, title";
+
+					elseif ($citeOrder == "type-year") // sort records first by record type and thesis type (descending), then by year (descending):
+						$newORDER = "ORDER BY type DESC, thesis DESC, year DESC, first_author, author_count, author, title";
+
+					elseif ($citeOrder == "author") // supply the default ORDER BY pattern (which is suitable for citation in a journal etc.):
+						$newORDER = " ORDER BY first_author, author_count, author, year, title";
+
+					// replace current ORDER clause:
+					$query = newORDERclause($newORDER, $query, false);
 				}
-			elseif ($displayType == "Hide") // if the user clicked the 'Hide' button...
+				// else if any other or no '$citeOrder' parameter is specified, we keep the current ORDER BY clause
+				// NOTE: this behaviour is different from functions 'extractFormElementsQueryResults()' and 'extractFormElementsExtract()'
+				//       where we always use 'ORDER BY first_author, author_count, author, year, title' as default ORDER BY clause
+				//       (to ensure correct sorting for output to bibliographic reference lists)
+			}
+
+			elseif (eregi("^Display$", $originalDisplayType)) // Details view
+			{
+				// NOTE: the below code for displaying & hiding of fields in Details view must be adopted if either layout or field names are changed!
+
+				$fieldsList = "";
+
+				if ($fieldSelector == "all fields")
 				{
-					if (preg_match("/SELECT.*\W$fieldSelector\W.*FROM $queryTable/i", $query)) // ...and the field *is* currently displayed...
+					// generate a SELECT clause that shows all fields in Details view:
+					$newSelectClause = buildSELECTclause($originalDisplayType, $showLinks, $additionalFields, true, $addRequiredFields);
+				}
+				else // add (or remove) the chosen fields from the SELECT clause:
+				{
+					if ($displayType == "Show") // if the user clicked the 'Show' button, add the chosen fields to the SELECT clause:
 					{
-						// for all columns except the first:
-						$query = preg_replace("/(SELECT.+?), $fieldSelector( .*FROM $queryTable)/i","\\1\\2",$query); // ...then HIDE the field that was used for refining the search results
-						// for all columns except the last:
-						$query = preg_replace("/(SELECT.*? )$fieldSelector, (.+FROM $queryTable)/i","\\1\\2",$query); // ...then HIDE the field that was used for refining the search results
+						$matchField = "pages";								
+
+						if ($fieldSelector == "keywords, abstract")
+						{
+							$fieldsList = ", keywords, abstract";
+						}
+						elseif ($fieldSelector == "additional fields")
+						{
+							$fieldsList = ", address, corporate_author, thesis, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved";
+
+							if (isset($_SESSION['loginEmail']))
+								$fieldsList .= ", location"; // we only add the 'location' field if the user is logged in
+
+							if (preg_match("/\babstract\b/i", $previousSelectClause))
+								$matchField = "abstract";
+						}
+						elseif ($fieldSelector == "my fields")
+						{
+							$fieldsList = ", marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key";
+
+							if (preg_match("/\bserial\b/i", $previousSelectClause))
+								$matchField = "serial";
+							elseif (preg_match("/\babstract\b/i", $previousSelectClause))
+								$matchField = "abstract";
+						}
+
+						if ((!empty($fieldsList)) AND (!preg_match("/\b" . $fieldsList . "\b/i", $previousSelectClause))) // if none of the chosen fields are currently displayed...
+							$previousSelectClause = preg_replace("/(?<=\b" . $matchField . "\b)/i", $fieldsList, $previousSelectClause); // ...add the chosen fields to the current SELECT clause:
+					}
+					if ($displayType == "Hide") // if the user clicked the 'Hide' button, remove the chosen fields from the SELECT clause:
+					{
+						if ($fieldSelector == "keywords, abstract")
+							$fieldsList = "\b(keywords|abstract)\b";
+						elseif ($fieldSelector == "additional fields")
+							$fieldsList = "\b(corporate_author|thesis|address|publisher|place|editor|language|summary_language|orig_title|series_editor|series_title|abbrev_series_title|series_volume|series_issue|edition|issn|isbn|medium|area|expedition|conference|notes|approved|location)\b";
+						elseif ($fieldSelector == "my fields")
+							$fieldsList = "\b(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key)\b";
+
+						if ((!empty($fieldsList)) AND (preg_match("/\b" . $fieldsList . "\b/i", $previousSelectClause))) // ...and any of the chosen fields *are* currently displayed...
+						{
+							// ...remove the chosen fields from the fields given in the current SELECT clause:
+							$previousSelectClause = preg_replace("/ *, *" . $fieldsList . " */i", "", $previousSelectClause); // all columns except the first
+
+							$previousSelectClause = preg_replace("/ *" . $fieldsList . " *, */i", "", $previousSelectClause); // all columns except the last
+						}
+					}
+
+					// rebuild the current SELECT clause, but include (or exclude) the chosen fields:
+					$newSelectClause = buildSELECTclause($originalDisplayType, $showLinks, $additionalFields, false, $addRequiredFields, $previousSelectClause);
+				}
+			}
+
+			else // otherwise, i.e. for List view, add (or remove) the chosen field from the SELECT clause:
+			{
+				if ($displayType == "Show") // if the user clicked the 'Show' button...
+				{
+					if (!preg_match("/\b" . $fieldSelector . "\b/i", $previousSelectClause)) // ...and the chosen field is *not* already displayed...
+						$additionalFields = $fieldSelector; // ...add the chosen field to the current SELECT clause
+				}
+				elseif ($displayType == "Hide") // if the user clicked the 'Hide' button...
+				{
+					if (preg_match("/\b" . $fieldSelector . "\b/i", $previousSelectClause)) // ...and the chosen field *is* currently displayed...
+					{
+						// ...remove the chosen field from the fields given in the current SELECT clause:
+						$previousSelectClause = preg_replace("/ *, *" . $fieldSelector . " */i", "", $previousSelectClause); // all columns except the first
+						$previousSelectClause = preg_replace("/ *" . $fieldSelector . " *, */i", "", $previousSelectClause); // all columns except the last
 					}
 				}
+
+				// rebuild the current SELECT clause, but include (or exclude) the chosen field:
+				$newSelectClause = buildSELECTclause("", $showLinks, $additionalFields, false, $addRequiredFields, $previousSelectClause);
+			}
+
+			// replace current SELECT clause:
+			$query = newSELECTclause($newSelectClause, $query, false);
 		}
 
+
+		// TODO: don't manipulate the SQL query in '$query' directly, but instead use functions 'extractSELECTclause()' and 'buildSELECTclause()' (similar as above)
 		elseif ($displayType == "Browse") // if the user clicked the 'Browse' button within the "Display Options" form...
 		{
-			$previousField = preg_replace("/^SELECT (\w+).+/i","\\1",$query); // extract the field that was previously used in Browse view
+			$previousField = preg_replace("/^SELECT (\w+).+/i", "\\1", $query); // extract the field that was previously used in Browse view
 
 			if (!eregi("^" . $fieldSelector . "$", $previousField)) // if the user did choose another field in Browse view...
 			{
 				// ...modify the SQL query to show a summary for the new field that was chosen by the user:
 				// (NOTE: these replace patterns aren't 100% safe and may fail if the user has modified the query using 'sql_search.php'!)
-				$query = preg_replace("/^SELECT $previousField/i","SELECT $fieldSelector",$query); // use the field that was chosen by the user for Browse view
-				$query = preg_replace("/GROUP BY $previousField/i","GROUP BY $fieldSelector",$query); // group data by the field that was chosen by the user
-				$query = preg_replace("/ORDER BY( records( DESC)?,)? $previousField/i","ORDER BY\\1 $fieldSelector",$query); // order data by the field that was chosen by the user
+				$query = preg_replace("/^SELECT $previousField/i", "SELECT $fieldSelector", $query); // use the field that was chosen by the user for Browse view
+				$query = preg_replace("/GROUP BY $previousField/i", "GROUP BY $fieldSelector", $query); // group data by the field that was chosen by the user
+				$query = preg_replace("/ORDER BY( records( DESC)?,)? $previousField/i", "ORDER BY\\1 $fieldSelector", $query); // order data by the field that was chosen by the user
 			}
 		}
 
@@ -2153,25 +2390,14 @@ EOF;
 		if ($queryTable == $tableRefs) // 'search.php':
 		{
 			// if the chosen field is one of the user-specific fields from table 'user_data': 'marked', 'copy', 'selected', 'user_keys', 'user_notes', 'user_file', 'user_groups', 'cite_key' or 'related'
-			if (eregi("^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)$",$fieldSelector))
+			if (eregi("^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related|my fields)$", $fieldSelector)) // 'my fields' is used in Details view as an alias for all user-specific fields
 				if (!eregi("LEFT JOIN $tableUserData", $query)) // ...and if the 'LEFT JOIN...' statement isn't already part of the 'FROM' clause...
-					$query = eregi_replace(" FROM $tableRefs"," FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $userID",$query); // ...add the 'LEFT JOIN...' part to the 'FROM' clause
-
-			if ($displayType != "Browse")
-			{
-				$query = eregi_replace(" FROM $tableRefs",", orig_record FROM $tableRefs",$query); // add 'orig_record' column (although it won't be visible the 'orig_record' column gets included in every search query)
-				                                                                                   // (which is required in order to present visual feedback on duplicate records)
-
-				$query = eregi_replace(" FROM $tableRefs",", serial FROM $tableRefs",$query); // add 'serial' column (although it won't be visible the 'serial' column gets included in every search query)
-				                                                                              // (which is required in order to obtain unique checkbox names)
-
-				if ($showLinks == "1")
-					$query = eregi_replace(" FROM $tableRefs",", file, url, doi, isbn, type FROM $tableRefs",$query); // add 'file', 'url', 'doi', 'isbn' & 'type' columns
-			}
+					$query = eregi_replace(" FROM $tableRefs", " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $userID", $query); // ...add the 'LEFT JOIN...' part to the 'FROM' clause
 		}
 		elseif ($queryTable == $tableUsers) // 'users.php':
 		{
-			$query = eregi_replace(" FROM $tableUsers",", user_id FROM $tableUsers",$query); // add 'user_id' column (although it won't be visible the 'user_id' column gets included in every search query)
+			// TODO: this wouldn't be necessary if function 'buildSELECTclause()' would handle the requirements of 'users.php' (see also above)
+			$query = eregi_replace(" FROM $tableUsers", ", user_id FROM $tableUsers", $query); // add 'user_id' column (although it won't be visible the 'user_id' column gets included in every search query)
 			                                                                                 // (which is required in order to obtain unique checkbox names as well as for use in the 'getUserID()' function)
 		}
 
@@ -3174,7 +3400,7 @@ EOF;
 			while ($row = @ mysql_fetch_array($result)) // for all rows found
 			{
 				// remove any meaningless delimiter(s) from the beginning or end of a field string:
-				$rowUserGroupsString = trimTextPattern($row["user_groups"], "( *; *)+", true, true); // function 'trimTextPattern()' is defined in 'include.inc.php'
+				$rowUserGroupsString = trimTextPattern($row["user_groups"], "( *; *)+", true, true);
 
 				// split the contents of the 'user_groups' field on the specified delimiter (which is interpreted as regular expression!):
 				$rowUserGroupsArray = split(" *; *", $rowUserGroupsString);
@@ -3311,7 +3537,7 @@ EOF;
 
 	// --------------------------------------------------------------------
 
-	// Get all user formats/styles/types that are available and enabled for the current user (by admins choice) AND which this user has choosen to be visible:
+	// Get all user formats/styles/types that are available and enabled for the current user (by admins choice) AND which this user has chosen to be visible:
 	// and (if some formats/styles/types were found) save them each as semicolon-delimited string to the session variables 'user_export_formats', 'user_cite_formats', 'user_styles' or 'user_types', respectively:
 	function getVisibleUserFormatsStylesTypes($userID, $dataType, $formatType) // '$dataType' must be one of the following: 'format', 'style', 'type'; '$formatType' must be either '', 'export', 'import' or 'cite'
 	{
@@ -3392,7 +3618,7 @@ EOF;
 	//   - if the admin is logged in, it will return all *available* formats/styles/types as <option> tags
 	//     (with those items being selected which were _enabled_ by the admin for the current user)
 	//   - if a normal user is logged in, this function will return all formats/styles/types as <option> tags which were *enabled* by the admin for the current user
-	//     (with those items being selected which were choosen to be _visible_ by the current user)
+	//     (with those items being selected which were chosen to be _visible_ by the current user)
 	function returnFormatsStylesTypesAsOptionTags($userID, $dataType, $formatType) // '$dataType' must be one of the following: 'format', 'style', 'type'; '$formatType' must be either '', 'export', 'import' or 'cite'
 	{
 		global $loginEmail;
@@ -3413,7 +3639,7 @@ EOF;
 		{
 			$optionTags = buildSelectMenuOptions($enabledFormatsStylesTypesArray, " *; *", "\t\t\t", true); // build properly formatted <option> tag elements from the items listed in '$enabledFormatsStylesTypesArray'
 
-			$selectedFormatsStylesTypesArray = getVisibleUserFormatsStylesTypes($userID, $dataType, $formatType); // get all formats/styles/types that were choosen to be visible for the current user
+			$selectedFormatsStylesTypesArray = getVisibleUserFormatsStylesTypes($userID, $dataType, $formatType); // get all formats/styles/types that were chosen to be visible for the current user
 		}
 
 		foreach($selectedFormatsStylesTypesArray as $itemKey => $itemValue) // escape possible meta characters within names of formats/styles/types that shall be selected (otherwise the grep pattern below would fail)
@@ -3817,7 +4043,7 @@ EOF;
 							$citeKeyFormat = $defaultCiteKeyFormat;
 
 						// auto-generate a cite key according to the given naming scheme:
-						$citeKey = parsePlaceholderString($formVars, $citeKeyFormat, "<:authors:><:year:>"); // function 'parsePlaceholderString()' is defined in 'include.inc.php'
+						$citeKey = parsePlaceholderString($formVars, $citeKeyFormat, "<:authors:><:year:>");
 					}
 				}
 			}
@@ -4135,7 +4361,7 @@ EOF;
 		}
 
 		// Run the distinctQuery on the database through the connection:
-		$resultId = queryMySQLDatabase($distinctQuery); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$resultId = queryMySQLDatabase($distinctQuery);
 
 		// Retrieve all distinct values:
 		$i = 0;
@@ -4625,6 +4851,7 @@ EOF;
 		global $loginUserID;
 		global $fileVisibility; // these variables are specified in 'ini.inc.php'
 		global $librarySearchPattern;
+		global $showAdditionalFieldsDetailsViewDefault;
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
 		global $loc; // '$loc' is made globally available in 'core.php'
@@ -4718,8 +4945,10 @@ EOF;
 				$sqlQuery = eregi_replace(", call_number, serial FROM $tableRefs",", call_number, serial, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related FROM $tableRefs",$sqlQuery); // ...add all user-specific fields to the 'SELECT' clause
 
 			// in 'Display Details' view, the 'location' field should occur within the SELECT statement before the 'call_number' and 'serial' fields:
-			if ((eregi("^(Display|Export)$",$displayType)) AND (preg_match("/(?<!location,) call_number, serial(?=(, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related)? FROM $tableRefs)/i",$sqlQuery))) // if the 'location' field is missing from the SELECT statement...
-				$sqlQuery = preg_replace("/(?<!location), call_number, serial(?=(, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related)? FROM $tableRefs)/i",", location, call_number, serial",$sqlQuery); // ...add the 'location' field to the 'SELECT' clause
+//			if (((eregi("^Display$",$displayType) AND ($showAdditionalFieldsDetailsViewDefault == "yes")) OR (eregi("^Export$",$displayType))) AND (preg_match("/(?<!location,) call_number, serial(?=(, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related)? FROM $tableRefs)/i",$sqlQuery))) // if the 'location' field is missing from the SELECT statement...
+//				$sqlQuery = preg_replace("/(?<!location), call_number, serial(?=(, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related)? FROM $tableRefs)/i",", location, call_number, serial",$sqlQuery); // ...add the 'location' field to the 'SELECT' clause
+			// NOTE: I've commented the above code block for now, since, for '$showAdditionalFieldsDetailsViewDefault=yes' with additional fields being hidden, it causes the 'location' field to appear when clicking any of the sort/browse/view links
+			//       The drawback is that the 'location' field isn't added to the SQL query now when a record in Details view is reloaded after an anonymous user did view the record in Details view and then decided to log in
 
 			if ((eregi("^(Display|Export|RSS)$",$displayType)) AND (!eregi("LEFT JOIN $tableUserData",$sqlQuery))) // if the 'LEFT JOIN...' statement isn't already part of the 'FROM' clause...
 				$sqlQuery = eregi_replace(" FROM $tableRefs"," FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $loginUserID",$sqlQuery); // ...add the 'LEFT JOIN...' part to the 'FROM' clause
@@ -5051,26 +5280,26 @@ EOF;
 			if (eregi("^(BibTeX|Endnote|RIS|ISI|Atom XML|MODS XML|OAI_DC XML|ODF XML|SRW_DC XML|SRW_MODS XML|Word XML)$", $urlType))
 			{
 				$queryParametersArray["submit"] = "Export";
-	
+
 				$queryParametersArray["exportFormat"] = $urlType;
-	
+
 				if (eregi("XML", $urlType))
 					$queryParametersArray["exportType"] = "xml";
 				else
 					$queryParametersArray["exportType"] = "file";
 			}
-	
+
 			// - citation formats:
 			elseif (eregi("^(RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $urlType))
 			{
 				$queryParametersArray["submit"] = "Cite";
-	
+
 				if (!empty($citeStyle))
 					$queryParametersArray["citeStyle"] = $citeStyle;
-	
+
 				if (!empty($citeOrder))
 					$queryParametersArray["citeOrder"] = $citeOrder;
-	
+
 				$queryParametersArray["citeType"] = $urlType;
 			}
 		}
@@ -5166,7 +5395,7 @@ EOF;
 
 			// Perform search & replace actions on the text of the 'title' field:
 			// (the array '$transtab_refbase_html' in 'transtab_refbase_html.inc.php' defines which search & replace actions will be employed)
-			$row['title'] = searchReplaceText($transtab_refbase_html, $row['title'], true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+			$row['title'] = searchReplaceText($transtab_refbase_html, $row['title'], true);
 			// this will provide for correct rendering of italic, super/sub-script and greek letters in item descriptions (which are enclosed by '<![CDATA[...]]>' to ensure well-formed XML);
 			// item titles are still served in raw format, though, since the use of HTML in item titles breaks many news readers
 
@@ -5237,7 +5466,7 @@ EOF;
 			$userIDTableSpec = "";
 		}
 
-		$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+		$result = queryMySQLDatabase($query);
 
 		$fieldValuesArray = array(); // initialize array variable which will hold the splitted sub-items
 
@@ -5286,7 +5515,7 @@ EOF;
 
 		// RUN the queries on the database through the connection:
 		foreach($queryArray as $query)
-			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
+			$result = queryMySQLDatabase($query);
 
 		return $tableName;
 	}
