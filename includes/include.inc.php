@@ -514,13 +514,13 @@
 				}
 				else // if a normal user is logged in, we add the 'My Refs' and 'Options' links instead:
 				{
-					$loginLinks .= "<a href=\"search.php?formType=myRefsSearch&amp;showQuery=0&amp;showLinks=1&amp;myRefsRadio=1\" title=\"display all of your records\">My Refs</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
+					$loginLinks .= "<a href=\"search.php?formType=myRefsSearch&amp;showQuery=0&amp;showLinks=1&amp;myRefsRadio=1\"" . addAccessKey("attribute", "my_refs") . " title=\"display all of your records" . addAccessKey("title", "my_refs") . "\">My Refs</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
 
 					if (isset($_SESSION['user_permissions']) AND ereg("allow_modify_options", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_modify_options'...
 						// ... include a link to 'user_receipt.php':
-						$loginLinks .= "<a href=\"user_receipt.php?userID=" . $loginUserID . "\" title=\"view and modify your account details and options\">Options</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
+						$loginLinks .= "<a href=\"user_receipt.php?userID=" . $loginUserID . "\"" . addAccessKey("attribute", "my_opt") . " title=\"view and modify your account details and options" . addAccessKey("title", "my_opt") . "\">Options</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
 				}
-				$loginLinks .= "<a href=\"user_logout.php?referer=" . rawurlencode($referer) . "\" title=\"logout from the database\">Logout</a>";
+				$loginLinks .= "<a href=\"user_logout.php?referer=" . rawurlencode($referer) . "\"" . addAccessKey("attribute", "login") . " title=\"logout from the database" . addAccessKey("title", "login") . "\">Logout</a>";
 			}
 		else
 			{
@@ -531,7 +531,7 @@
 				else
 					$loginStatus = "";
 
-				$loginLinks = "<a href=\"user_login.php?referer=" . rawurlencode($referer) . "\" title=\"login to the database\">Login</a>";
+				$loginLinks = "<a href=\"user_login.php?referer=" . rawurlencode($referer) . "\"" . addAccessKey("attribute", "login") . " title=\"login to the database" . addAccessKey("title", "login") . "\">Login</a>";
 			}
 
 		// Write back session variables:
@@ -542,6 +542,29 @@
 		// Although the '$referer' variable gets included as GET parameter above, we'll also save the variable as session variable:
 		// (this should help re-directing to the correct page if a user called 'user_login/logout.php' manually, i.e., without parameters)
 		saveSessionVariable("referer", $referer);
+	}
+
+	// --------------------------------------------------------------------
+
+	// Enable 'accesskey' attribute for the specified link/form element:
+	// '$type' must be either "attribute" or "title", and '$key' must be the
+	// name of an array key from variable '$accessKeys' (in 'ini.inc.php')
+	function addAccessKey($type, $key)
+	{
+		global $accessKeys; // defined in 'ini.inc.php'
+
+		$accessKeyString = "";
+
+		if (isset($accessKeys) AND (!empty($accessKeys[$key]) OR ($accessKeys[$key] == "0")))
+		{
+			if ($type == "attribute") // add 'accesskey' attribute (like ' accesskey="h"') to the specified link or form element
+				$accessKeyString = " accesskey=\"" . $accessKeys[$key] . "\"";
+
+			elseif ($type == "title") // add access key hint (like ' [ctrl-h]') to the title attribute value of the specified link or form element
+				$accessKeyString = " [ctrl-" . $accessKeys[$key] . "]";
+		}
+
+		return $accessKeyString;
 	}
 
 	// --------------------------------------------------------------------
@@ -1337,6 +1360,7 @@
 		global $defaultFieldsListViewMinor;
 		global $defaultView;
 		global $showAdditionalFieldsDetailsViewDefault;
+		global $showUserSpecificFieldsDetailsViewDefault;
 
 		if (empty($displayType))
 			$displayType = $defaultView;
@@ -1365,6 +1389,9 @@
 				}
 
 				$querySELECTclause .= ", call_number, serial";
+
+				if ($showUserSpecificFieldsDetailsViewDefault == "no")
+					$addUserSpecificFields = false;
 			}
 
 			// Edit mode & Export:
@@ -1410,6 +1437,9 @@
 
 				$querySELECTclause .= $additionalFields;
 			}
+
+			// NOTE: Functions 'displayColumns()' and 'displayDetails()' (in 'search.php') apply some logic that prevents some or all of the
+			//       below fields from getting displayed. This means that you must adopt these functions if you add or remove fields below.
 
 			if ($addUserSpecificFields)
 			{
@@ -1511,9 +1541,9 @@
 		}
 
 		if (eregi("^Mobile$", $viewType))
-			$BrowseLinks .= "\n\t<div class=\"mainnav\"><a href=\"index.php\" title=\"" . $loc["LinkTitle_Home"] . "\">" . $loc["Home"] . "</a></div>";
+			$BrowseLinks .= "\n\t<div class=\"mainnav\"><a href=\"index.php\"" . addAccessKey("attribute", "home") . " title=\"" . $loc["LinkTitle_Home"] . addAccessKey("title", "home") . "\">" . $loc["Home"] . "</a></div>";
 		elseif (eregi("^Print$", $viewType) OR eregi("^cli", $client))
-			$BrowseLinks .= "\n\t<td class=\"mainnav\" align=\"left\" valign=\"bottom\" width=\"225\"><a href=\"index.php\" title=\"" . $loc["LinkTitle_Home"] . "\">" . $loc["Home"] . "</a></td>";
+			$BrowseLinks .= "\n\t<td class=\"mainnav\" align=\"left\" valign=\"bottom\" width=\"225\"><a href=\"index.php\"" . addAccessKey("attribute", "home") . " title=\"" . $loc["LinkTitle_Home"] . addAccessKey("title", "home") . "\">" . $loc["Home"] . "</a></td>";
 		elseif (($href == "users.php") OR !isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 		{
 			$BrowseLinks .= "\n\t<td class=\"small\" align=\"left\" valign=\"bottom\" width=\"225\">"
@@ -1574,7 +1604,7 @@
 			              . "&amp;rowOffset=" . $previousOffset
 			              . "&amp;client=" . rawurlencode($client)
 			              . "&amp;viewType=" . $viewType
-			              . "\" title=\"display previous results page\">&lt;&lt;</a>";
+			              . "\"" . addAccessKey("attribute", "previous") . " title=\"display previous results page" . addAccessKey("title", "previous") . "\">&lt;&lt;</a>";
 		else
 			// No, there is no previous page so don't print a link
 			$BrowseLinks .= "\n\t\t&lt;&lt;";
@@ -1626,7 +1656,7 @@
 			              . "&amp;rowOffset=" . $nextOffset
 			              . "&amp;client=" . rawurlencode($client)
 			              . "&amp;viewType=" . $viewType
-			              . "\" title=\"display next results page\">&gt;&gt;</a>";
+			              . "\"" . addAccessKey("attribute", "next") . " title=\"display next results page" . addAccessKey("title", "next") . "\">&gt;&gt;</a>";
 		else
 			// No,	there is no next page so don't print a link
 			$BrowseLinks .= "\n\t\t&gt;&gt;";
@@ -1700,7 +1730,7 @@
 					                  . "&amp;rowOffset=" . $rowOffset
 					                  . "&amp;client=" . rawurlencode($client)
 					                  . "&amp;viewType=" . $viewType
-					                  . "\" title=\"display all found records in list view\">List View</a></div>";
+					                  . "\"" . addAccessKey("attribute", "list") . " title=\"display all found records in list view" . addAccessKey("title", "list") . "\">List View</a></div>";
 				}
 				else
 					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"leftview\">List View</div></div>";
@@ -1729,7 +1759,7 @@
 					                  . "&amp;rowOffset=" . $rowOffset
 					                  . "&amp;client=" . rawurlencode($client)
 					                  . "&amp;viewType=" . $viewType
-					                  . "\" title=\"display all found records as citations\">Citations</a></div>";
+					                  . "\"" . addAccessKey("attribute", "cite") . " title=\"display all found records as citations" . addAccessKey("title", "cite") . "\">Citations</a></div>";
 				}
 				else
 					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"middleview\">Citations</div></div>";
@@ -1762,7 +1792,7 @@
 					                  . "&amp;rowOffset=" . $rowOffset
 					                  . "&amp;client=" . rawurlencode($client)
 					                  . "&amp;viewType=" . $viewType
-					                  . "\" title=\"display details for all found records\">Details</a></div>";
+					                  . "\"" . addAccessKey("attribute", "details") . " title=\"display details for all found records" . addAccessKey("title", "details") . "\">Details</a></div>";
 				}
 				else
 					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"rightview\">Details</div></div>";
@@ -1798,7 +1828,7 @@
 				              . "&amp;showRows=" . $showRows
 				              . "&amp;rowOffset=" . $rowOffset
 				              . "&amp;viewType=Web"
-				              . "\"><img src=\"img/web.gif\" alt=\"web\" title=\"back to web view\" width=\"16\" height=\"16\" hspace=\"0\" border=\"0\"></a>";
+				              . "\"" . addAccessKey("attribute", "print") . "><img src=\"img/web.gif\" alt=\"web\" title=\"back to web view" . addAccessKey("title", "print") . "\" width=\"16\" height=\"16\" hspace=\"0\" border=\"0\"></a>";
 			}
 			else
 			{
@@ -1817,7 +1847,7 @@
 					              . "&amp;showRows=" . $showRows
 					              . "&amp;rowOffset=" . $rowOffset
 					              . "&amp;viewType=Print"
-					              . "\"><img src=\"img/print.gif\" alt=\"print\" title=\"display print view\" width=\"17\" height=\"18\" hspace=\"0\" border=\"0\"></a>";
+					              . "\"" . addAccessKey("attribute", "print") . "><img src=\"img/print.gif\" alt=\"print\" title=\"display print view" . addAccessKey("title", "print") . "\" width=\"17\" height=\"18\" hspace=\"0\" border=\"0\"></a>";
 			}
 		}
 
@@ -1844,6 +1874,9 @@
 	function buildRefineSearchElements($href, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $dropDownFieldsArray, $dropDownFieldSelected, $displayType)
 	{
 		$encodedCiteStyle = rawurlencode($citeStyle);
+
+		$accessKeyAttribute = addAccessKey("attribute", "refine");
+		$accessKeyTitle = addAccessKey("title", "refine");
 
 		$refineSearchForm = <<<EOF
 		<form action="$href" method="GET" name="refineSearch">
@@ -1874,7 +1907,7 @@ EOF;
 
 					</select>
 					<label for="refineSearchName">contains:</label>
-					<input type="text" id="refineSearchName" name="refineSearchName" size="11" title="enter your search string here">
+					<input type="text" id="refineSearchName" name="refineSearchName" size="11"$accessKeyAttribute title="enter your search string here$accessKeyTitle">
 				</div>
 				<div id="refineOpt">
 					<input type="checkbox" id="refineSearchExclude" name="refineSearchExclude" value="1" title="mark this checkbox to exclude all records from the current result set that match the above search criterion">
@@ -2069,6 +2102,9 @@ EOF;
 		$encodedCiteStyle = rawurlencode($citeStyle);
 		$encodedHeaderMsg = rawurlencode($headerMsg);
 
+		$accessKeyAttribute = addAccessKey("attribute", "max_rows");
+		$accessKeyTitle = addAccessKey("title", "max_rows");
+
 		// NOTE: we embed the current value of '$rowOffset' as hidden tag within the 'displayOptions' form. By this, the current row offset can be re-applied after the user pressed the 'Show'/'Hide' button within the 'displayOptions' form.
 		//       To avoid that browse links don't behave as expected, the actual value of '$rowOffset' will be adjusted in function 'seekInMySQLResultsToOffset()' to an exact multiple of '$showRows'!
 		$displayOptionsForm = <<<EOF
@@ -2155,7 +2191,7 @@ EOF;
 		$displayOptionsForm .= <<<EOF
 
 					<div id="optRecsPerPage">
-						<input type="text" id="showRows" name="showRows" value="$showRows" size="4" title="specify how many $recordsOrItems shall be displayed per page">
+						<input type="text" id="showRows" name="showRows" value="$showRows" size="4"$accessKeyAttribute title="specify how many $recordsOrItems shall be displayed per page$accessKeyTitle">
 						<label for="showRows">$showRowsLabel</label>
 					</div>
 				</div>
@@ -4852,6 +4888,7 @@ EOF;
 		global $fileVisibility; // these variables are specified in 'ini.inc.php'
 		global $librarySearchPattern;
 		global $showAdditionalFieldsDetailsViewDefault;
+		global $showUserSpecificFieldsDetailsViewDefault;
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
 		global $loc; // '$loc' is made globally available in 'core.php'
@@ -4934,14 +4971,14 @@ EOF;
 				{
 					$sqlQuery = eregi_replace("user_id *= *[0-9]+","user_id = $loginUserID",$sqlQuery); // ...replace any other user ID with the ID of the currently logged in user
 
-					if (!(eregi("^location$",$librarySearchPattern[0]) AND preg_match("/location RLIKE " . quote_smart($librarySearchPattern[1]) . "/i",$sqlQuery))) // don't replace the 'location' part of the WHERE clause if it stems from variable '$librarySearchPattern' in 'ini.inc.php' (NOTE: this is quite hacky! :-/)
+					if (!empty($librarySearchPattern) AND !(eregi("^location$",$librarySearchPattern[0]) AND preg_match("/location RLIKE " . quote_smart($librarySearchPattern[1]) . "/i",$sqlQuery))) // don't replace the 'location' part of the WHERE clause if it stems from variable '$librarySearchPattern' in 'ini.inc.php' (NOTE: this is quite hacky! :-/)
 						$sqlQuery = preg_replace("/location RLIKE .+?(?= (AND|OR)\b| ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i","location RLIKE " . quote_smart($loginEmail),$sqlQuery); // ...replace any other user email address with the login email address of the currently logged in user
 				}
 			}
 
 			// if we're going to display record details for a logged in user, we have to ensure the display of the 'location' field as well as the user-specific fields (which may have been deleted from a query due to a previous logout action);
 			// in 'Display Details' view, the 'call_number' and 'serial' fields are the last generic fields before any user-specific fields:
-			if ((eregi("^(Display|Export)$",$displayType)) AND (eregi(", call_number, serial FROM $tableRefs",$sqlQuery))) // if the user-specific fields are missing from the SELECT statement...
+			if (((eregi("^Display$",$displayType) AND ($showUserSpecificFieldsDetailsViewDefault == "yes")) OR (eregi("^Export$",$displayType))) AND (eregi(", call_number, serial FROM $tableRefs",$sqlQuery))) // if the user-specific fields are missing from the SELECT statement...
 				$sqlQuery = eregi_replace(", call_number, serial FROM $tableRefs",", call_number, serial, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related FROM $tableRefs",$sqlQuery); // ...add all user-specific fields to the 'SELECT' clause
 
 			// in 'Display Details' view, the 'location' field should occur within the SELECT statement before the 'call_number' and 'serial' fields:
