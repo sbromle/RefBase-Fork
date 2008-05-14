@@ -33,7 +33,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=<?php echo $contentTypeCharset; ?>">
 	<meta http-equiv="Content-Style-Type" content="text/css"><?php
 
-		if ($viewType == "Print")
+		if (eregi("^Print$", $viewType))
 		{
 ?>
 
