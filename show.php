@@ -533,7 +533,7 @@
 			if (!empty($userID)) // if the 'userID' parameter was specified...
 				$additionalFields = "cite_key"; // add user-specific fields which are required in Citation view
 		}
-		else // produce the default columnar output style:
+		elseif (!eregi("^Display$", $displayType)) // List view or Browse view
 		{
 			if (!empty($recordIDSelector)) // if a record identifier (either 'serial', 'call_number' or 'cite_key') was entered via the 'show.php' web form
 				$additionalFields = escapeSQL($recordIDSelector); // display the appropriate column
