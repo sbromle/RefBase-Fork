@@ -175,7 +175,7 @@
 
 					if ($showMoreInfoCitationView == "yes") // display a triangle widget to show more info (keywords, abstract, etc) under each citation:
 						$recordData .= "\n\t\t<div class=\"showhide\">"
-						             . "\n\t\t\t<a href=\"#ref" . $row["serial"] . "\" onclick=\"toggleVisibility('moreinfo" . $row["serial"] . "','toggleimg" . $row["serial"] . "','toggletxt" . $row["serial"] . "','more info')\" title=\"toggle visibility\">"
+						             . "\n\t\t\t<a href=\"#ref" . $row["serial"] . "\" onclick=\"toggleVisibility('moreinfo" . $row["serial"] . "','toggleimg" . $row["serial"] . "','toggletxt" . $row["serial"] . "','more info')\" title=\"" . $loc["LinkTitle_ToggleVisibility"] . "\">"
 						             . "<img id=\"toggleimg" . $row["serial"] . "\" class=\"toggleimg\" src=\"img/closed.gif\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
 						             . "</a>"
 						             . "\n\t\t</div>"
