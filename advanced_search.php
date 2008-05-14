@@ -174,9 +174,12 @@
 	$dropDownItems3 = buildSelectMenuOptions(array_merge($dropDownFieldNames1Array,$dropDownFieldNames2Array), "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 	// (2b) Start <form> and <table> holding the form elements:
+
+	// NOTE: Internet Explorer (at least XP IE v7.0.5730.11) chokes on the length of the GET request,
+	//       so (unless we apply some browser agent sniffing) the request method should remain POST 
 ?>
 
-<form action="search.php" method="GET" name="queryForm">
+<form action="search.php" method="POST" name="queryForm">
 <input type="hidden" name="formType" value="advancedSearch">
 <input type="hidden" name="showQuery" value="0">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds the search form">
