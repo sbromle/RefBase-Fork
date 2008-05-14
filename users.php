@@ -85,7 +85,7 @@
 	if (isset($_REQUEST['originalDisplayType']))
 		$originalDisplayType = $_REQUEST['originalDisplayType'];
 	else
-		$originalDisplayType = "";
+		$originalDisplayType = "List";
 
 	// For a given display type, extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
 	// ('' will produce the default 'Web' output style)
@@ -166,7 +166,7 @@
 	// --- Query results form within 'users.php': ---------------
 	elseif ($formType == "queryResults") // the user clicked one of the buttons under the query results list (that was produced by 'users.php')
 	{
-		$query = extractFormElementsQueryResults($displayType, $sqlQuery, $recordSerialsArray);
+		list($query, $displayType) = extractFormElementsQueryResults($displayType, $originalDisplayType, $sqlQuery, $recordSerialsArray);
 	}
 
 	else // build the default query:
@@ -651,7 +651,7 @@
 	// --------------------------------------------------------------------
 
 	// Build the database query from records selected by the user within the query results list (which, in turn, was returned by 'users.php'):
-	function extractFormElementsQueryResults($displayType, $sqlQuery, $recordSerialsArray)
+	function extractFormElementsQueryResults($displayType, $originalDisplayType, $sqlQuery, $recordSerialsArray)
 	{
 		global $tableUsers; // defined in 'db.inc.php'
 
@@ -713,10 +713,13 @@
 		}
 
 
+		// re-assign the correct display type if the user clicked the 'Add', 'Remove', 'Allow' or 'Disallow' button of the 'queryResults' form:
+		$displayType = $originalDisplayType;
+
 		// re-apply the current sqlQuery:
 		$query = eregi_replace(" FROM $tableUsers",", user_id FROM $tableUsers",$sqlQuery); // add 'user_id' column (which is required in order to obtain unique checkbox names)
 
-		return $query;
+		return array($query, $displayType);
 	}
 
 	// --------------------------------------------------------------------
