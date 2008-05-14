@@ -54,7 +54,7 @@
 <hr class="pagefooter" align="center" width="95%">
 <table class="pagefooter" align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds the footer">
 <tr>
-	<td class="small" width="105"><a href="index.php" title="<?php echo $loc["LinkTitle_Home"]; ?>"><?php echo $loc["Home"]; ?></a></td>
+	<td class="small" width="105"><a href="index.php"<?php echo addAccessKey("attribute", "home"); ?> title="<?php echo $loc["LinkTitle_Home"] . addAccessKey("title", "home"); ?>"><?php echo $loc["Home"]; ?></a></td>
 	<td class="small" align="center"><?php
 
 		// -------------------------------------------------------
@@ -63,7 +63,7 @@
 		// ... include a link to 'sql_search.php':
 ?>
 
-		<a href="sql_search.php" title="<?php echo $loc["LinkTitle_SQLSearch"]; ?>"><?php echo $loc["SQLSearch"]; ?></a>
+		<a href="sql_search.php"<?php echo addAccessKey("attribute", "sql_search"); ?> title="<?php echo $loc["LinkTitle_SQLSearch"] . addAccessKey("title", "sql_search"); ?>"><?php echo $loc["SQLSearch"]; ?></a>
 		&nbsp;|&nbsp;<?php
 		}
 
@@ -73,7 +73,7 @@
 		// ... include a link to 'library_search.php':
 ?>
 
-		<a href="library_search.php" title="<?php echo $loc["LinkTitle_LibrarySearch_Prefix"] . encodeHTML($hostInstitutionName) . $loc["LinkTitle_LibrarySearch_Suffix"]; ?>"><?php echo $loc["LibrarySearch"]; ?></a>
+		<a href="library_search.php"<?php echo addAccessKey("attribute", "lib_search"); ?> title="<?php echo $loc["LinkTitle_LibrarySearch_Prefix"] . encodeHTML($hostInstitutionName) . $loc["LinkTitle_LibrarySearch_Suffix"] . addAccessKey("title", "lib_search"); ?>"><?php echo $loc["LibrarySearch"]; ?></a>
 		&nbsp;|&nbsp;<?php
 		}
 
@@ -83,7 +83,7 @@
 		// ... include a link to 'show.php':
 ?>
 
-		<a href="show.php" title="<?php echo $loc["LinkTitle_ShowRecord"]; ?>"><?php echo $loc["ShowRecord"]; ?></a>
+		<a href="show.php"<?php echo addAccessKey("attribute", "show_rec"); ?> title="<?php echo $loc["LinkTitle_ShowRecord"] . addAccessKey("title", "show_rec"); ?>"><?php echo $loc["ShowRecord"]; ?></a>
 		&nbsp;|&nbsp;<?php
 		}
 
@@ -93,7 +93,7 @@
 		// ... include a link to 'extract.php':
 ?>
 
-		<a href="extract.php" title="<?php echo $loc["LinkTitle_ExtractCitations"]; ?>"><?php echo $loc["ExtractCitations"]; ?></a><?php
+		<a href="extract.php"<?php echo addAccessKey("attribute", "extract"); ?> title="<?php echo $loc["LinkTitle_ExtractCitations"] . addAccessKey("title", "extract"); ?>"><?php echo $loc["ExtractCitations"]; ?></a><?php
 		}
 
 		// -------------------------------------------------------

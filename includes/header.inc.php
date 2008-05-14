@@ -170,10 +170,10 @@
 	<td>
 		<h2><?php echo encodeHTML($officialDatabaseName); ?></h2>
 		<span class="smallup">
-			<a href="index.php" title="<?php echo $loc["LinkTitle_Home"]; ?>"><?php echo $loc["Home"]; ?></a>&nbsp;|&nbsp;
-			<a href="show.php?records=all" title="<?php echo $loc["LinkTitle_ShowAll"]; ?>"><?php echo $loc["ShowAll"]; ?></a>&nbsp;|&nbsp;
-			<a href="simple_search.php" title="<?php echo $loc["LinkTitle_SimpleSearch"]; ?>"><?php echo $loc["SimpleSearch"]; ?></a>&nbsp;|&nbsp;
-			<a href="advanced_search.php" title="<?php echo $loc["LinkTitle_AdvancedSearch"]; ?>"><?php echo $loc["AdvancedSearch"]; ?></a><?php
+			<a href="index.php"<?php echo addAccessKey("attribute", "home"); ?> title="<?php echo $loc["LinkTitle_Home"] . addAccessKey("title", "home"); ?>"><?php echo $loc["Home"]; ?></a>&nbsp;|&nbsp;
+			<a href="show.php?records=all"<?php echo addAccessKey("attribute", "show_all"); ?> title="<?php echo $loc["LinkTitle_ShowAll"] . addAccessKey("title", "show_all"); ?>"><?php echo $loc["ShowAll"]; ?></a>&nbsp;|&nbsp;
+			<a href="simple_search.php"<?php echo addAccessKey("attribute", "search"); ?> title="<?php echo $loc["LinkTitle_SimpleSearch"] . addAccessKey("title", "search"); ?>"><?php echo $loc["SimpleSearch"]; ?></a>&nbsp;|&nbsp;
+			<a href="advanced_search.php"<?php echo addAccessKey("attribute", "adv_search"); ?> title="<?php echo $loc["LinkTitle_AdvancedSearch"] . addAccessKey("title", "adv_search"); ?>"><?php echo $loc["AdvancedSearch"]; ?></a><?php
 
 		// -------------------------------------------------------
 		if (isset($_SESSION['user_permissions']) AND ereg("allow_add", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
@@ -181,7 +181,7 @@
 		// ... include a link to 'record.php?recordAction=add...':
 ?>
 
-			&nbsp;|&nbsp;<a href="record.php?recordAction=add" title="<?php echo $loc["LinkTitle_AddRecord"]; ?>"><?php echo $loc["AddRecord"]; ?></a><?php
+			&nbsp;|&nbsp;<a href="record.php?recordAction=add"<?php echo addAccessKey("attribute", "add"); ?> title="<?php echo $loc["LinkTitle_AddRecord"] . addAccessKey("title", "add"); ?>"><?php echo $loc["AddRecord"]; ?></a><?php
 		}
 
 		// -------------------------------------------------------
@@ -190,7 +190,7 @@
 		// ... include a link to 'import.php':
 ?>
 
-			&nbsp;|&nbsp;<a href="import.php" title="<?php echo $loc["LinkTitle_Import"]; ?>"><?php echo $loc["Import"]; ?></a><?php
+			&nbsp;|&nbsp;<a href="import.php"<?php echo addAccessKey("attribute", "import"); ?> title="<?php echo $loc["LinkTitle_Import"] . addAccessKey("title", "import"); ?>"><?php echo $loc["Import"]; ?></a><?php
 		}
 
 		// -------------------------------------------------------
