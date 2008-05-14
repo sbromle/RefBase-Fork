@@ -355,6 +355,11 @@
 	else
 		$oldQuery = array();
 
+	if (isset($_SESSION['queryHistory']))
+		$queryHistory = $_SESSION['queryHistory']; // get any saved links to previous search results
+	else
+		$queryHistory = array();
+
 	// Extract checkbox variable values from the request:
 	if (isset($_REQUEST['marked']))
 		$recordSerialsArray = $_REQUEST['marked']; // extract the values of all checked checkboxes (i.e., the serials of all selected records)
@@ -590,27 +595,53 @@
 	if (!eregi("^SELECT", $query)) // for queries other than SELECT queries (e.g. UPDATE, DELETE or INSERT queries that were executed by the admin via use of 'sql_search.php')
 		$affectedRows = ($result ? mysql_affected_rows ($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
 
-	// Second, save the generated query URL to a session variable:
-	$queryParametersArray = array("sqlQuery"         => $query,
-	                              "client"           => $client,
-	                              "formType"         => "sqlSearch",
-	                              "submit"           => $displayType,
-	                              "viewType"         => $viewType,
-	                              "showQuery"        => $showQuery,
-	                              "showLinks"        => $showLinks,
-	                              "showRows"         => $showRows,
-	                              "rowOffset"        => $rowOffset,
-	                              "wrapResults"      => $wrapResults,
-	                              "citeOrder"        => $citeOrder,
-	                              "citeStyle"        => $citeStyle,
-	                              "exportFormat"     => $exportFormat,
-	                              "exportType"       => $exportType,
-	                              "exportStylesheet" => $exportStylesheet,
-	                              "citeType"         => $citeType,
-	                              "headerMsg"        => $headerMsg
-	                             );
+	// If the previous query (which is stored in the 'oldQuery' session variable) is different
+	// from the current query, we append it to the 'queryHistory' session variable:
+	if (!empty($oldQuery))
+	{
+		// Extract the 'WHERE' clause from the current & the previous SQL query:
+		$queryWhereClause = extractWHEREclause($query); // function 'extractWHEREclause()' is defined in 'include.inc.php'
+		$oldQueryWhereClause = extractWHEREclause($oldQuery["sqlQuery"]);
 
-	saveSessionVariable("oldQuery", $queryParametersArray);
+		if ($queryWhereClause != $oldQueryWhereClause)
+		{
+			$oldQueryURL = generateURL("search.php", "html", $oldQuery, true); // function 'generateURL()' is defined in 'include.inc.php'
+			$oldQueryTitle = encodeHTML(explainSQLQuery($oldQueryWhereClause)); // functions 'encodeHTML()' and 'explainSQLQuery()' are defined in 'include.inc.php'
+			$queryHistory[] = "<a href=\"" . $oldQueryURL . "\">" . $oldQueryTitle . "</a>";
+
+			if (count($queryHistory) > 30) // we only keep the 30 most recent queries
+				array_shift($queryHistory); // remove the first array element (i.e. remove the oldest query) if there are more than 30 saved queries
+
+			saveSessionVariable("queryHistory", $queryHistory);
+		}
+	}
+
+	// Second, save the generated query to a session variable:
+	// NOTE: we exclude queries for export formats & citation formats other than HTML
+	//       (otherwise the history list would contain links to non-HTML content such as RTF or BibTeX files)
+	if (($displayType != "Export") AND eregi("^html$", $citeType))
+	{
+		$queryParametersArray = array("sqlQuery"         => $query,
+		                              "client"           => $client,
+		                              "formType"         => "sqlSearch",
+		                              "submit"           => $displayType,
+		                              "viewType"         => $viewType,
+		                              "showQuery"        => $showQuery,
+		                              "showLinks"        => $showLinks,
+		                              "showRows"         => $showRows,
+		                              "rowOffset"        => $rowOffset,
+		                              "wrapResults"      => $wrapResults,
+		                              "citeOrder"        => $citeOrder,
+		                              "citeStyle"        => $citeStyle,
+		                              "exportFormat"     => $exportFormat,
+		                              "exportType"       => $exportType,
+		                              "exportStylesheet" => $exportStylesheet,
+		                              "citeType"         => $citeType,
+		                              "headerMsg"        => $headerMsg
+		                             );
+
+		saveSessionVariable("oldQuery", $queryParametersArray);
+	}
 
 	// Third, find out how many rows are available and (if there were rows found) seek to the current offset:
 	// Note that the 'seekInMySQLResultsToOffset()' function will also (re-)assign values to the variables
@@ -620,7 +651,7 @@
 	// If the current result set contains multiple records, we save the generated query URL to yet another session variable:
 	// (after a record has been successfully added/edited/deleted, this query will be included as a link ["Display previous search results"] in the feedback header message
 	//  if the SQL query in 'oldQuery' is different from that one stored in 'oldMultiRecordQuery', i.e. if 'oldQuery' points to a single record)
-	if ($rowsFound > 1)
+	if (($rowsFound > 1) AND ($displayType != "Export") AND eregi("^html$", $citeType)) // as above, we exclude queries for export formats & citation formats other than HTML
 		saveSessionVariable("oldMultiRecordQuery", $queryParametersArray);
 
 	// Fourth, setup an array of arrays holding URL and title information for all RSS/Atom feeds available on this page:
@@ -686,53 +717,56 @@
 					              . "&amp;submit=" . $displayType
 					              . "&amp;citeStyle=" . rawurlencode($citeStyle)
 					              . "&amp;citeOrder=" . $citeOrder
-					              . "\" title=\"modify your current query\">your query</a>";
+					              . "\"" . addAccessKey("attribute", "sql_query") . " title=\"modify your current query" . addAccessKey("title", "sql_query") . "\">your query</a>"; // function 'addAccessKey()' is defined in 'include.inc.php'
 				else // use of 'sql_search.php' isn't allowed for this user
 					$HeaderString = $HeaderStringPart . "your query"; // so we omit the link
 
-				if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_user_queries|allow_rss_feeds)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable contains 'allow_rss_feeds' -OR- if logged in, aditionally: 'allow_user_queries':
-					$HeaderString .= " (";
+				// add query links:
+				$queryLinksArray = array();
 
 				if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_queries", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_queries'...
 				{
 					// ...we'll show a link to save the current query:
-					$HeaderString .= "<a href=\"query_manager.php?customQuery=1"
-					               . "&amp;sqlQuery=" . $queryURL
-					               . "&amp;showQuery=" . $showQuery
-					               . "&amp;showLinks=" . $showLinks
-					               . "&amp;showRows=" . $showRows
-					               . "&amp;displayType=" . $displayType
-					               . "&amp;citeStyle=" . rawurlencode($citeStyle)
-					               . "&amp;citeOrder=" . $citeOrder
-					               . "&amp;viewType=" . $viewType
-					               . "\" title=\"save your current query\">save</a>";
-
-					if (isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds', we'll insert a pipe between the 'save' and 'RSS' links...
-						$HeaderString .= " | ";
+					$queryLinksArray[] = "<a href=\"query_manager.php?customQuery=1"
+					                   . "&amp;sqlQuery=" . $queryURL
+					                   . "&amp;showQuery=" . $showQuery
+					                   . "&amp;showLinks=" . $showLinks
+					                   . "&amp;showRows=" . $showRows
+					                   . "&amp;displayType=" . $displayType
+					                   . "&amp;citeStyle=" . rawurlencode($citeStyle)
+					                   . "&amp;citeOrder=" . $citeOrder
+					                   . "&amp;viewType=" . $viewType
+					                   . "\"" . addAccessKey("attribute", "save_query") . " title=\"save your current query" . addAccessKey("title", "save_query") . "\">save</a>";
 				}
 
 				if (isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
 				{
 					// ...we'll display a link that will generate a dynamic RSS feed for the current query:
-					$HeaderString .= "<a href=\"" . $rssURL . "\" title=\"track newly added records matching your current query by subscribing to this RSS feed\">RSS</a>";
-
-					if (isset($_SESSION['loginEmail'])) // if a user is logged in, we'll insert a pipe between the 'RSS' and 'dups' links...
-						$HeaderString .= " | ";
+					$queryLinksArray[] = "<a href=\"" . $rssURL . "\" title=\"track newly added records matching your current query by subscribing to this RSS feed\">RSS</a>";
 				}
 
 				if (isset($_SESSION['loginEmail'])) // if a user is logged in...
+				{
 					// ...we'll show a link to find any duplicates within the current query results:
-					$HeaderString .= "<a href=\"duplicate_search.php?customQuery=1"
-					               . "&amp;sqlQuery=" . $queryURL
-					               . "&amp;showLinks=" . $showLinks
-					               . "&amp;showRows=" . $showRows
-					               . "&amp;originalDisplayType=" . $displayType
-					               . "&amp;citeStyle=" . rawurlencode($citeStyle)
-					               . "&amp;citeOrder=" . $citeOrder
-					               . "\" title=\"find duplicates that match your current query\">dups</a>";
+					$queryLinksArray[] = "<a href=\"duplicate_search.php?customQuery=1"
+					                   . "&amp;sqlQuery=" . $queryURL
+					                   . "&amp;showLinks=" . $showLinks
+					                   . "&amp;showRows=" . $showRows
+					                   . "&amp;originalDisplayType=" . $displayType
+					                   . "&amp;citeStyle=" . rawurlencode($citeStyle)
+					                   . "&amp;citeOrder=" . $citeOrder
+					                   . "\"" . addAccessKey("attribute", "dups") . " title=\"find duplicates that match your current query" . addAccessKey("title", "dups") . "\">dups</a>";
+				}
 
-				if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_user_queries|allow_rss_feeds)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable contains 'allow_rss_feeds' -OR- if logged in, aditionally: 'allow_user_queries':
-					$HeaderString .= ")";
+				if (isset($_SESSION['queryHistory']))
+				{
+					// ...include a link to display the query history (if any) for the user's current session:
+					$queryLinksArray[] = "<a href=\"query_history.php"
+					                   . "\"" . addAccessKey("attribute", "history") . " title=\"recall a previous query from your current session" . addAccessKey("title", "history") . "\">history</a>";
+				}
+
+				if (!empty($queryLinksArray))
+					$HeaderString .= " (" . implode("&nbsp;|&nbsp;", $queryLinksArray) . ")";
 
 				if ($showQuery == "1")
 					$HeaderString .= ":\n<br>\n<br>\n<code>" . encodeHTML($query) . "</code>"; // function 'encodeHTML()' is defined in 'include.inc.php'
@@ -1186,7 +1220,7 @@
 				else
 					$CounterMax = 0; // Otherwise don't hide any columns
 
-				if (isset($_SESSION['loginEmail'])) // if a user is logged in...
+				if (isset($_SESSION['loginEmail']) AND (preg_match("/SELECT .*?\brelated\b.*? FROM /i", $query))) // if a user is logged in, and the 'related' field is part of the SQL SELECT clause...
 					$CounterMax = ($CounterMax + 1); // ...we'll also need to hide the 'related' column (which isn't displayed in Details view but is only used to generate a link to related records)
 
 				// count the number of fields
@@ -1948,7 +1982,7 @@
 			$ResultsFooterRow = "\n<div class=\"resultsfooter\">";
 
 			$ResultsFooterRow .= "\n<div class=\"showhide\">"
-			                   . "\n\t<a href=\"#resultactions\" onclick=\"toggleVisibility('resultactions','resultsFooterToggleimg','resultsFooterToggletxt','" . $resultsFooterToggleText . "')\" title=\"toggle visibility\">"
+			                   . "\n\t<a href=\"#resultactions\" onclick=\"toggleVisibility('resultactions','resultsFooterToggleimg','resultsFooterToggletxt','" . $resultsFooterToggleText . "')\"" . addAccessKey("attribute", "footer") . " title=\"" . $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "footer") . "\">"
 			                   . "\n\t\t<img id=\"resultsFooterToggleimg\" class=\"toggleimg\" src=\"" . $resultsFooterToggleImage . "\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
 			                   . "\n\t\t<span id=\"resultsFooterToggletxt\" class=\"toggletxt\">" . $resultsFooterInitialToggleText . "</span>"
 			                   . "\n\t</a>"
@@ -1995,7 +2029,7 @@
 					$ResultsFooterRow .= "\n\t\t\t<option>(no formats available)</option>";
 
 				$ResultsFooterRow .= "\n\t\t</select>"
-				                   . "\n\t\t<input type=\"submit\" name=\"submit\" value=\"Cite\" title=\"build a list of references for all chosen records\"$citeStyleDisabled>"
+				                   . "\n\t\t<input type=\"submit\" name=\"submit\" value=\"Cite\"" . addAccessKey("attribute", "biblio") . " title=\"build a list of references for all chosen records" . addAccessKey("title", "biblio") . "\"$citeStyleDisabled>"
 				                   . "\n\t</fieldset>";
 
 				// Assign the 'selected' param to one of the main non-HTML citation output options (RTF, PDF, LaTeX):
@@ -2016,7 +2050,7 @@
 					$groupSearchDisabled = " disabled"; // disable the (part of the) 'Add to/Remove from group' form elements if the session variable holding the user's groups isnt't available
 					$groupSearchPopupMenuChecked = "";
 					$groupSearchTextInputChecked = " checked";
-					$groupSearchSelectorTitle = "(to setup a new group with all chosen records, enter a group name & click the 'Add' button)";
+					$groupSearchSelectorTitle = "(to setup a new group with all chosen records, enter a group name &amp; click the 'Add' button)";
 					$groupSearchTextInputTitle = "specify a new group name here, then click the 'Add' button";
 				}
 				else
@@ -2083,7 +2117,7 @@
 					$ResultsFooterRow .= "\n\t\t\t<option>(no formats available)</option>";
 
 				$ResultsFooterRow .= "\n\t\t</select>"
-				                   . "\n\t\t<input type=\"submit\" name=\"submit\" value=\"Export\" title=\"export all chosen records\"$exportFormatDisabled>"
+				                   . "\n\t\t<input type=\"submit\" name=\"submit\" value=\"Export\"" . addAccessKey("attribute", "export") . " title=\"export all chosen records" . addAccessKey("title", "export") . "\"$exportFormatDisabled>"
 				                   . "\n\t</fieldset>";
 			}
 
