@@ -48,7 +48,7 @@
 
 <div class="resultsheader">
 <div class="showhide">
-	<a href="#" onclick="toggleVisibility('resultoptions','resultsHeaderToggleimg','resultsHeaderToggletxt','<?php echo $resultsHeaderToggleText; ?>')" title="toggle visibility">
+	<a href="#" onclick="toggleVisibility('resultoptions','resultsHeaderToggleimg','resultsHeaderToggletxt','<?php echo $resultsHeaderToggleText; ?>')"<?php echo addAccessKey("attribute", "header"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "header"); ?>">
 		<img id="resultsHeaderToggleimg" class="toggleimg" src="<?php echo $resultsHeaderToggleImage; ?>" alt="<?php echo $loc["LinkTitle_ToggleVisibility"]; ?>" width="9" height="9" hspace="0" border="0">
 		<span id="resultsHeaderToggletxt" class="toggletxt"><?php echo $resultsHeaderInitialToggleText; ?></span>
 	</a>
