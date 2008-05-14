@@ -197,45 +197,175 @@
 
 
 	// Extract all form values provided by 'record.php':
-	$authorName = $formVars['authorName'];
+	if (isset($formVars['authorName']))
+		$authorName = $formVars['authorName'];
+	else
+		$authorName = "";
 
 	if (isset($formVars['isEditorCheckBox']))
 		$isEditorCheckBox = $formVars['isEditorCheckBox'];
 	else
 		$isEditorCheckBox = "";
 
-	$titleName = $formVars['titleName'];
-	$yearNo = $formVars['yearNo'];
-	$publicationName = $formVars['publicationName'];
-	$abbrevJournalName = $formVars['abbrevJournalName'];
-	$volumeNo = $formVars['volumeNo'];
-	$issueNo = $formVars['issueNo'];
-	$pagesNo = $formVars['pagesNo'];
-	$addressName = $formVars['addressName'];
-	$corporateAuthorName = $formVars['corporateAuthorName'];
-	$keywordsName = $formVars['keywordsName'];
-	$abstractName = $formVars['abstractName'];
-	$publisherName = $formVars['publisherName'];
-	$placeName = $formVars['placeName'];
-	$editorName = $formVars['editorName'];
-	$languageName = $formVars['languageName'];
-	$summaryLanguageName = $formVars['summaryLanguageName'];
-	$origTitleName = $formVars['origTitleName'];
-	$seriesEditorName = $formVars['seriesEditorName'];
-	$seriesTitleName = $formVars['seriesTitleName'];
-	$abbrevSeriesTitleName = $formVars['abbrevSeriesTitleName'];
-	$seriesVolumeNo = $formVars['seriesVolumeNo'];
-	$seriesIssueNo = $formVars['seriesIssueNo'];
-	$editionNo = $formVars['editionNo'];
-	$issnName = $formVars['issnName'];
-	$isbnName = $formVars['isbnName'];
-	$mediumName = $formVars['mediumName'];
-	$areaName = $formVars['areaName'];
-	$expeditionName = $formVars['expeditionName'];
-	$conferenceName = $formVars['conferenceName'];
-	$notesName = $formVars['notesName'];
-	$approvedRadio = $formVars['approvedRadio'];
-	$locationName = $formVars['locationName'];
+	if (isset($formVars['titleName']))
+		$titleName = $formVars['titleName'];
+	else
+		$titleName = "";
+
+	if (isset($formVars['yearNo']))
+		$yearNo = $formVars['yearNo'];
+	else
+		$yearNo = "";
+
+	if (isset($formVars['publicationName']))
+		$publicationName = $formVars['publicationName'];
+	else
+		$publicationName = "";
+
+	if (isset($formVars['abbrevJournalName']))
+		$abbrevJournalName = $formVars['abbrevJournalName'];
+	else
+		$abbrevJournalName = "";
+
+	if (isset($formVars['volumeNo']))
+		$volumeNo = $formVars['volumeNo'];
+	else
+		$volumeNo = "";
+
+	if (isset($formVars['issueNo']))
+		$issueNo = $formVars['issueNo'];
+	else
+		$issueNo = "";
+
+	if (isset($formVars['pagesNo']))
+		$pagesNo = $formVars['pagesNo'];
+	else
+		$pagesNo = "";
+
+	if (isset($formVars['addressName']))
+		$addressName = $formVars['addressName'];
+	else
+		$addressName = "";
+
+	if (isset($formVars['corporateAuthorName']))
+		$corporateAuthorName = $formVars['corporateAuthorName'];
+	else
+		$corporateAuthorName = "";
+
+	if (isset($formVars['keywordsName']))
+		$keywordsName = $formVars['keywordsName'];
+	else
+		$keywordsName = "";
+
+	if (isset($formVars['abstractName']))
+		$abstractName = $formVars['abstractName'];
+	else
+		$abstractName = "";
+
+	if (isset($formVars['publisherName']))
+		$publisherName = $formVars['publisherName'];
+	else
+		$publisherName = "";
+
+	if (isset($formVars['placeName']))
+		$placeName = $formVars['placeName'];
+	else
+		$placeName = "";
+
+	if (isset($formVars['editorName']))
+		$editorName = $formVars['editorName'];
+	else
+		$editorName = "";
+
+	if (isset($formVars['languageName']))
+		$languageName = $formVars['languageName'];
+	else
+		$languageName = "";
+
+	if (isset($formVars['summaryLanguageName']))
+		$summaryLanguageName = $formVars['summaryLanguageName'];
+	else
+		$summaryLanguageName = "";
+
+	if (isset($formVars['origTitleName']))
+		$origTitleName = $formVars['origTitleName'];
+	else
+		$origTitleName = "";
+
+	if (isset($formVars['seriesEditorName']))
+		$seriesEditorName = $formVars['seriesEditorName'];
+	else
+		$seriesEditorName = "";
+
+	if (isset($formVars['seriesTitleName']))
+		$seriesTitleName = $formVars['seriesTitleName'];
+	else
+		$seriesTitleName = "";
+
+	if (isset($formVars['abbrevSeriesTitleName']))
+		$abbrevSeriesTitleName = $formVars['abbrevSeriesTitleName'];
+	else
+		$abbrevSeriesTitleName = "";
+
+	if (isset($formVars['seriesVolumeNo']))
+		$seriesVolumeNo = $formVars['seriesVolumeNo'];
+	else
+		$seriesVolumeNo = "";
+
+	if (isset($formVars['seriesIssueNo']))
+		$seriesIssueNo = $formVars['seriesIssueNo'];
+	else
+		$seriesIssueNo = "";
+
+	if (isset($formVars['editionNo']))
+		$editionNo = $formVars['editionNo'];
+	else
+		$editionNo = "";
+
+	if (isset($formVars['issnName']))
+		$issnName = $formVars['issnName'];
+	else
+		$issnName = "";
+
+	if (isset($formVars['isbnName']))
+		$isbnName = $formVars['isbnName'];
+	else
+		$isbnName = "";
+
+	if (isset($formVars['mediumName']))
+		$mediumName = $formVars['mediumName'];
+	else
+		$mediumName = "";
+
+	if (isset($formVars['areaName']))
+		$areaName = $formVars['areaName'];
+	else
+		$areaName = "";
+
+	if (isset($formVars['expeditionName']))
+		$expeditionName = $formVars['expeditionName'];
+	else
+		$expeditionName = "";
+
+	if (isset($formVars['conferenceName']))
+		$conferenceName = $formVars['conferenceName'];
+	else
+		$conferenceName = "";
+
+	if (isset($formVars['notesName']))
+		$notesName = $formVars['notesName'];
+	else
+		$notesName = "";
+
+	if (isset($formVars['approvedRadio']))
+		$approvedRadio = $formVars['approvedRadio'];
+	else
+		$approvedRadio = "";
+
+	if (isset($formVars['locationName']))
+		$locationName = $formVars['locationName'];
+	else
+		$locationName = "";
 
 	$callNumberName = $formVars['callNumberName'];
 	if (ereg("%40|%20", $callNumberName)) // if '$callNumberName' still contains URL encoded data... ('%40' is the URL encoded form of the character '@', '%20' a space, see note below!)
@@ -248,18 +378,65 @@
 	else
 		$callNumberNameUserOnly = "";
 
-	$serialNo = $formVars['serialNo'];
-	$typeName = $formVars['typeName'];
-	$thesisName = $formVars['thesisName'];
-	$markedRadio = $formVars['markedRadio'];
-	$copyName = $formVars['copyName'];
-	$selectedRadio = $formVars['selectedRadio'];
-	$userKeysName = $formVars['userKeysName'];
-	$userNotesName = $formVars['userNotesName'];
-	$userFileName = $formVars['userFileName'];
-	$userGroupsName = $formVars['userGroupsName'];
-	$citeKeyName = $formVars['citeKeyName'];
-	$relatedName = $formVars['relatedName'];
+	if (isset($formVars['serialNo']))
+		$serialNo = $formVars['serialNo'];
+	else
+		$serialNo = "";
+
+	if (isset($formVars['typeName']))
+		$typeName = $formVars['typeName'];
+	else
+		$typeName = "";
+
+	if (isset($formVars['thesisName']))
+		$thesisName = $formVars['thesisName'];
+	else
+		$thesisName = "";
+
+	if (isset($formVars['markedRadio']))
+		$markedRadio = $formVars['markedRadio'];
+	else
+		$markedRadio = "";
+
+	if (isset($formVars['copyName']))
+		$copyName = $formVars['copyName'];
+	else
+		$copyName = "";
+
+	if (isset($formVars['selectedRadio']))
+		$selectedRadio = $formVars['selectedRadio'];
+	else
+		$selectedRadio = "";
+
+	if (isset($formVars['userKeysName']))
+		$userKeysName = $formVars['userKeysName'];
+	else
+		$userKeysName = "";
+
+	if (isset($formVars['userNotesName']))
+		$userNotesName = $formVars['userNotesName'];
+	else
+		$userNotesName = "";
+
+	if (isset($formVars['userFileName']))
+		$userFileName = $formVars['userFileName'];
+	else
+		$userFileName = "";
+
+	if (isset($formVars['userGroupsName']))
+		$userGroupsName = $formVars['userGroupsName'];
+	else
+		$userGroupsName = "";
+
+	if (isset($formVars['citeKeyName']))
+		$citeKeyName = $formVars['citeKeyName'];
+	else
+		$citeKeyName = "";
+
+	if (isset($formVars['relatedName']))
+		$relatedName = $formVars['relatedName'];
+	else
+		$relatedName = "";
 
 	// if the current user has no permission to download (and hence view) any files, 'record.php' does only show an empty string
 	// in the 'file' field (no matter if a file exists for the given record or not). Thus, we need to make sure that the empty
@@ -281,9 +458,21 @@
 	else // user has permission to download (and view) any files
 		$fileName = $formVars['fileName'];
 
-	$urlName = $formVars['urlName'];
-	$doiName = $formVars['doiName'];
-	$contributionID = $formVars['contributionIDName'];
+	if (isset($formVars['urlName']))
+		$urlName = $formVars['urlName'];
+	else
+		$urlName = "";
+
+	if (isset($formVars['doiName']))
+		$doiName = $formVars['doiName'];
+	else
+		$doiName = "";
+
+	if (isset($formVars['contributionIDName']))
+		$contributionID = $formVars['contributionIDName'];
+	else
+		$contributionID = "";
+
 	$contributionID = rawurldecode($contributionID); // URL decode 'contributionID' variable contents (it was URL encoded before incorporation into a hidden tag of the 'record' form to avoid any HTML syntax errors) [see above!]
 
 	if (isset($formVars['contributionIDCheckBox']))
@@ -301,7 +490,10 @@
 	else
 		$onlinePublicationCheckBox = "";
 
-	$onlineCitationName = $formVars['onlineCitationName'];
+	if (isset($formVars['onlineCitationName']))
+		$onlineCitationName = $formVars['onlineCitationName'];
+	else
+		$onlineCitationName = "";
 
 	if (isset($formVars['createdDate']))
 		$createdDate = $formVars['createdDate'];
@@ -333,7 +525,10 @@
 	else
 		$modifiedBy = "";
 
-	$origRecord = $formVars['origRecord'];
+	if (isset($formVars['origRecord']))
+		$origRecord = $formVars['origRecord'];
+	else
+		$origRecord = "";
 
 	// check if a file was uploaded:
 	// (note that to have file uploads work, HTTP file uploads must be allowed within your 'php.ini' configuration file
