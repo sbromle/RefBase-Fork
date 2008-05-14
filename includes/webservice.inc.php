@@ -256,7 +256,7 @@
 	// would add '<dc:title lang="en">this is a title</dc:title>' as a new branch to the given '$object'.
 	// 
 	// TODO: expand function so that it can be also used for formats other than XML (e.g. HTML)
-	function addMetaElement($object, $namespace, $elementName, $elementAttributeArray, $elementContent, $elementType = "", $format = "xml")
+	function addMetaElement(&$object, $namespace, $elementName, $elementAttributeArray, $elementContent, $elementType = "", $format = "xml")
 	{
 		$addStatus = false;
 
@@ -399,8 +399,8 @@
 			}
 			else // add string in '$elementContent' as a new element:
 				addNewBranch($object, $elementName, $elementAttributeArray, $elementContent);
-	
-	
+
+
 			$addStatus = true;
 		}
 
