@@ -273,6 +273,24 @@ div.resultsfooter {
 	
 }
 
+#queryhistory {
+	margin-left: 2.6em;
+	margin-right: 2.6em;
+	margin-bottom: 1.75em;
+}
+
+#currentquery, #previousqueries {
+	margin-top: 1.2em;
+	font-size: 1em;
+}
+
+#queryhistory .even, #queryhistory .odd {
+	margin-top: 0.25em;
+	margin-left: 1.2em;
+	margin-right: 1.2em;
+	font-size: 1em;
+}
+
 .examples {
 	font-size: 1em;
 }
