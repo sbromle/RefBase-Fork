@@ -891,7 +891,7 @@
 	// 
 	// Specs: <http://www.atomenabled.org/developers/syndication/#link>
 	//        <http://www.atomenabled.org/developers/syndication/atom-format-spec.php#element.link>
-	function atomLink($atom, $url, $linkRelation = "", $linkFormat = "", $linkTitle = "")
+	function atomLink(&$atom, $url, $linkRelation = "", $linkFormat = "", $linkTitle = "")
 	{
 		$linkType = "";
 		$elementAttributeArray = array();
