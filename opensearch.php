@@ -555,10 +555,10 @@
 <table class="showhide" align="center" border="0" cellpadding="0" cellspacing="10" width="95%">
 <tr>
 	<td class="small" width="120" valign="top">
-		<a href="#" onclick="toggleVisibility('searchopt','optToggleimg','optToggletxt','<?php echo $loc["SearchOptions"]; ?>')" title="<?php echo $loc["LinkTitle_ToggleVisibility"]; ?>">
+		<a href="#" onclick="toggleVisibility('searchopt','optToggleimg','optToggletxt','<?php echo $loc["SearchOptions"]; ?>')"<?php echo addAccessKey("attribute", "search_opt"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "search_opt"); ?>">
 			<img id="optToggleimg" class="toggleimg" src="img/closed.gif" alt="<?php echo $loc["LinkTitle_ToggleVisibility"]; ?>" width="9" height="9" hspace="0" border="0">
+			<span id="optToggletxt" class="toggletxt"><?php echo $loc["SearchOptions"]; ?></span>
 		</a>
-		<div id="optToggletxt" class="toggletxt"><?php echo $loc["SearchOptions"]; ?></div>
 	</td>
 </tr>
 </table>
@@ -590,10 +590,10 @@
 <table class="showhide" align="center" border="0" cellpadding="0" cellspacing="10" width="95%">
 <tr>
 	<td class="small" width="120" valign="top">
-		<a href="#" onclick="toggleVisibility('helptxt','helpToggleimg','helpToggletxt','<?php echo $loc["HelpAndExamples"]; ?>')" title="<?php echo $loc["LinkTitle_ToggleVisibility"]; ?>">
+		<a href="#" onclick="toggleVisibility('helptxt','helpToggleimg','helpToggletxt','<?php echo $loc["HelpAndExamples"]; ?>')"<?php echo addAccessKey("attribute", "search_help"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "search_help"); ?>">
 			<img id="helpToggleimg" class="toggleimg" src="img/closed.gif" alt="<?php echo $loc["LinkTitle_ToggleVisibility"]; ?>" width="9" height="9" hspace="0" border="0">
+			<span id="helpToggletxt" class="toggletxt"><?php echo $loc["HelpAndExamples"]; ?></span>
 		</a>
-		<div id="helpToggletxt" class="toggletxt"><?php echo $loc["HelpAndExamples"]; ?></div>
 	</td>
 </tr>
 </table>
