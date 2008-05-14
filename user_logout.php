@@ -107,6 +107,9 @@
 
 //		if (isset($_SESSION['lastCitationViewQuery']))
 //			deleteSessionVariable("lastCitationViewQuery"); // clear any SQL query generated for the last Citation view
+
+		if (isset($_SESSION['queryHistory']))
+			deleteSessionVariable("queryHistory"); // clear any links to previous search results
 	}
 	else
 	{
@@ -117,7 +120,7 @@
 		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	if (!preg_match("/.*user(_details|_options|_receipt|s)\.php.*|.*(error|install|query_manager)\.php.*/", $referer))
+	if (!preg_match("/.*user(_details|_options|_receipt|s)\.php.*|.*(error|install|query_manager|query_history)\.php.*/", $referer))
 		header("Location: $referer"); // redirect the user to the calling page
 	else
 		header("Location: index.php"); // back to main page
