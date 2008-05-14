@@ -341,7 +341,7 @@
 		$query .= ", modified_date = " . quote_smart($currentDate)
 				. ", modified_time = " . quote_smart($currentTime);
 
-		$query .= ", language = \"en\"" // initially, english will be used as default language (the language setting can be changed by the user in 'user_options.php')
+		$query .= ", language = \"" . $defaultLanguage . "\"" // '$defaultLanguage' is defined in 'ini.inc.php' (the language setting can be changed by the user in 'user_options.php')
 				. ", last_login = NOW()" // set 'last_login' field to the current date & time in 'DATETIME' format (which is 'YYYY-MM-DD HH:MM:SS', e.g.: '2003-12-31 23:45:59')
 				. ", logins = 1 "; // set the number of logins to 1 (so that any subsequent login attempt can be counted correctly)
 	}
@@ -562,9 +562,9 @@
 	// If an authorized user uses 'user_details.php' to add a new user (-> 'userID' is empty!):
 	if ((!isset($_SESSION['loginEmail']) && ($addNewUsers == "everyone") && ($_REQUEST['userID'] == "")) | (isset($_SESSION['loginEmail']) && ($loginEmail == $adminLoginEmail) && ($_REQUEST['userID'] == "")))
 	{
-		saveSessionVariable("userLanguage", "en");
-		saveSessionVariable("userRecordsPerPage", $defaultNumberOfRecords); // '$defaultNumberOfRecords' is defined in 'ini.inc.php' (TODO: it would be more correct to use $defaultUserOptions['records_per_page'])
-		saveSessionVariable("userMainFields", $defaultMainFields); // '$defaultMainFields' is defined in 'ini.inc.php' (TODO: it would be more correct to use $defaultUserOptions['main_fields'])
+		saveSessionVariable("userLanguage", $defaultLanguage); // '$defaultLanguage' is defined in 'ini.inc.php'
+		saveSessionVariable("userRecordsPerPage", $defaultUserOptions['records_per_page']); // '$defaultUserOptions' is defined in 'ini.inc.php'
+		saveSessionVariable("userMainFields", $defaultUserOptions['main_fields']);
 	}
 
 	// Get all user groups specified by the current user
