@@ -135,6 +135,25 @@
 			document.getElementById(id1).checked = !(val);
 			document.getElementById(id2).checked = val;
 		}
+		function updateAllRecs() {
+			var val=!eval("document.getElementById('allRecs').checked");
+			var x=0;
+			var checked=0;
+			while(document.queryResults.elements[x]) {
+				if(document.queryResults.elements[x].name == "marked[]") {
+					if (eval("document.queryResults.elements[x].checked")) {
+						checked++;
+					}
+				}
+				x++;
+			}
+			if (checked>0) {
+				val=true;
+			} else {
+				val=false;
+			}
+			toggleRadio('allRecs', 'selRecs', val);
+		}
 	</script><?php
 		}
 ?>

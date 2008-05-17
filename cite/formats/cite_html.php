@@ -150,7 +150,7 @@
 
 						// print a checkbox form element:
 						if (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
-							$recordData .= "\n\t\t<input type=\"checkbox\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"select this record\">";
+							$recordData .= "\n\t\t<input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"select this record\">";
 
 						if (!empty($row["orig_record"]))
 						{

@@ -59,5 +59,8 @@ Suggestions for improving refbase:
 
 - Enable remembering of marked records across different requests.
 
+- Refactor for more code reuse (share more between cite/list/details views,
+  break out all javascript to separate files, etc.).
+
 A more detailed list of planned feature additions is given at:
   <http://wiki.refbase.net/index.php/Planned_feature_additions>

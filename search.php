@@ -1027,7 +1027,7 @@
 						// print a checkbox form element:
 						if (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 						{
-							echo "\n\t\t<input type=\"checkbox\" name=\"marked[]\" value=\"";
+							echo "\n\t\t<input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"";
 							if ($displayType == "Browse")
 								echo $row[0];
 							else
@@ -1367,7 +1367,7 @@
 									if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the marker column in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 									{
 										if ($i == 0) // ... print a column with a checkbox if it's the first row of attribute data:
-											$recordData .= "\n\t<td align=\"left\" valign=\"top\" width=\"10\"><input type=\"checkbox\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"select this record\"></td>";
+											$recordData .= "\n\t<td align=\"left\" valign=\"top\" width=\"10\"><input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"select this record\"></td>";
 										else // ... otherwise simply print an empty TD tag:
 											$recordData .= "\n\t<td valign=\"top\" width=\"10\">&nbsp;</td>";
 									}
