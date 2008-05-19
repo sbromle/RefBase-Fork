@@ -18,15 +18,13 @@
 
 	// Create a sitemap for better indexing by search engines.
 	//   <http://www.sitemaps.org/>
+	// You can either use this to dynamically generate sitemaps or can make a
+	// crontab entry to wget it (saving execution time & allowing you to manually
+	// gzip the file (if your webserver doesn't already do this for you).
 
-	// TODO: - Include PDF links that are public
-	//       - Include modified time...but how to handle timezone?
+	// TODO:
+	//       - Handle cases where there are >50,000 URLs
 	//       - Possibly come up with smart ways to specify changefreq and priority
-	//       - Do we wish to include links other than full record views and PDFs?
-	//       - Handle cases where there are >50,000 references
-	//       - Switch to XML generation library (?)
-	//       - GZIP (?)
-	//       - make/update a static file (?)
 
 
 	// Incorporate some include files:
@@ -36,6 +34,9 @@
 
 	global $tableRefs;
 	global $databaseBaseURL;
+	global $fileVisibility;
+	global $fileVisibilityException;
+	global $filesBaseURL;
 
 	// --------------------------------------------------------------------
 
@@ -50,22 +51,48 @@
 
 	// --------------------------------------------------------------------
 
-	$query = "SELECT serial,modified_date FROM ".$tableRefs .' WHERE serial RLIKE ".+"';
+	$query = "SELECT *,file FROM ".$tableRefs .' WHERE serial RLIKE ".+"';
 
 	header('Content-Type: application/xml');
 	echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 	echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
+	echo "  <url>\n";
+	echo "    <loc>". $databaseBaseURL."index.php</loc>\n";
+	echo "    <changefreq>monthly</changefreq>\n";  // liberal, based on nucapt's history (not total records)
+	echo "  </url>\n";
 
 	// (3) RUN QUERY, (4) DISPLAY EXPORT FILE OR HEADER & RESULTS
 
 	// (3) RUN the query on the database through the connection:
 	$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
+	// For PHP4 support, we manually insert a colon in the TZ designation
+	$timezone = date("O"); // get timezone
+	$timezone = substr($timezone,0,-2) . ":" . substr($timezone,-2,2);
+
 	while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
 		echo "  <url>\n";
 		echo "    <loc>".$databaseBaseURL."show.php?record=".$row['serial']."</loc>\n";
-		echo "    <lastmod>".$row['modified_date']."</lastmod>\n";
+	  if (!empty($row['modified_date'])) {
+			$datemod = "    <lastmod>".$row['modified_date'];
+			if(!empty($row['modified_time'])){
+				$datemod .= "T".$row['modified_time'].$timezone;
+			}
+      $datemod .= "</lastmod>\n";
+      echo $datemod;
+		}
 		echo "  </url>\n";
+	  if ($fileVisibility == "everyone" OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]]))) {
+	    if (!empty($row["file"])) { // if the 'file' field is NOT empty 
+	      if (!ereg("^(https?|ftp|file)://", $row["file"])) { // if the 'file' field does not contain a full URL (starting with "http://", "https://", "ftp://" or "file://")
+	        echo "  <url>\n";
+	        echo "    <loc>".$databaseBaseURL.$filesBaseURL.$row["file"]."</loc>\n";
+	        if (!empty($datemod))
+            echo $datemod;
+          echo "  </url>\n";
+        }
+	    }
+	  }
 	}
 	echo "</urlset>";
 
