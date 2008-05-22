@@ -5103,7 +5103,11 @@ EOF;
 	{
 		$timeStamp = generateUNIXTimeStamp($date, $time);
 
-		$iso8601date = date('Y-m-d\TH:i:sO', $timeStamp); // PHP 4+5
+		$iso8601date = date('Y-m-d\TH:i:s', $timeStamp); // PHP 4+5
+		// for PHP4 support, we manually insert a colon in the TZ designation:
+		$timezone = date("O", $timeStamp); // get timezone
+		$iso8601date .= substr($timezone, 0, -2) . ":" . substr($timezone, -2, 2); // append timezone
+
 //		$iso8601date = date('c', $timeStamp); // PHP 5
 
 		return $iso8601date;
