@@ -66,33 +66,29 @@
 	// (3) RUN the query on the database through the connection:
 	$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
-	// For PHP4 support, we manually insert a colon in the TZ designation
-	$timezone = date("O"); // get timezone
-	$timezone = substr($timezone,0,-2) . ":" . substr($timezone,-2,2);
-
 	while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
 		echo "  <url>\n";
 		echo "    <loc>".$databaseBaseURL."show.php?record=".$row['serial']."</loc>\n";
-	  if (!empty($row['modified_date'])) {
-			$datemod = "    <lastmod>".$row['modified_date'];
-			if(!empty($row['modified_time'])){
-				$datemod .= "T".$row['modified_time'].$timezone;
-			}
-      $datemod .= "</lastmod>\n";
-      echo $datemod;
+		if (!empty($row['modified_date'])) {
+			$datemod = "    <lastmod>"
+			         . generateISO8601TimeStamp($row['modified_date'], $row['modified_time']) // function 'generateISO8601TimeStamp()' is defined in 'include.inc.php'
+			         . "</lastmod>\n";
+			echo $datemod;
 		}
+		else
+			$datemod = "";
 		echo "  </url>\n";
-	  if ($fileVisibility == "everyone" OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]]))) {
-	    if (!empty($row["file"])) { // if the 'file' field is NOT empty 
-	      if (!ereg("^(https?|ftp|file)://", $row["file"])) { // if the 'file' field does not contain a full URL (starting with "http://", "https://", "ftp://" or "file://")
-	        echo "  <url>\n";
-	        echo "    <loc>".$databaseBaseURL.$filesBaseURL.$row["file"]."</loc>\n";
-	        if (!empty($datemod))
-            echo $datemod;
-          echo "  </url>\n";
-        }
-	    }
-	  }
+		if ($fileVisibility == "everyone" OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]]))) {
+			if (!empty($row["file"])) { // if the 'file' field is NOT empty 
+				if (!ereg("^(https?|ftp|file)://", $row["file"])) { // if the 'file' field does not contain a full URL (starting with "http://", "https://", "ftp://" or "file://")
+					echo "  <url>\n";
+					echo "    <loc>".$databaseBaseURL.$filesBaseURL.$row["file"]."</loc>\n";
+					if (!empty($datemod))
+						echo $datemod;
+					echo "  </url>\n";
+				}
+			}
+		}
 	}
 	echo "</urlset>";
 
