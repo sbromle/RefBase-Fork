@@ -8,13 +8,13 @@
 	//             License for more details.
 	//
 	// File:       ./sitemap.php
-	// Repository: $HeadURL: https://refbase.svn.sourceforge.net/svnroot/refbase/branches/bleeding-edge/sitemap.php $
+	// Repository: $HeadURL$
 	// Author(s):  Richard Karnesky <mailto:rkarnesky@gmail.com>
 	//
 	// Created:    17-May-08, 15:50
-	// Modified:   $Date: 2008-05-17 15:36:57 -0500 (Sat, 17 May 2008) $
-	//             $Author: karnesky $
-	//             $Revision: 1136 $
+	// Modified:   $Date$
+	//             $Author$
+	//             $Revision$
 
 	// Create a sitemap for better indexing by search engines.
 	//   <http://www.sitemaps.org/>
