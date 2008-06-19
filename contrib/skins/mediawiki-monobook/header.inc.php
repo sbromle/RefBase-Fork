@@ -101,7 +101,6 @@
 			}
 			toggleRadio('allRecs', 'selRecs', val);
 		}
-	<
 	</script><?php
 		}
 ?>
