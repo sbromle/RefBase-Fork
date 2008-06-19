@@ -19,7 +19,8 @@
 	// This is a citation format file (which must reside within the 'cite/formats/' sub-directory of your refbase root directory). It contains a
 	// version of the 'citeRecords()' function that outputs a reference list from selected records in HTML format.
 	// 
-	// TODO: use divs + CSS styling (instead of a table-based layout) for _all_ output (not only for 'viewType=Mobile')
+	// TODO: - use divs + CSS styling (instead of a table-based layout) for _all_ output (not only for 'viewType=Mobile')
+	//       - I18n
 
 	// --------------------------------------------------------------------
 
@@ -32,7 +33,7 @@
 		global $defaultDropDownFieldsEveryone;
 		global $defaultDropDownFieldsLogin;
 		global $defaultCiteStyle;
-		global $showMoreInfoCitationView;
+		global $additionalFieldsCitationView;
 		global $displayResultsHeaderDefault;
 		global $displayResultsFooterDefault;
 		global $showLinkTypesInCitationView;
@@ -133,6 +134,8 @@
 				else
 					$rowClass = "odd";
 
+				$recordPermaLink = $databaseBaseURL . "show.php?record=" . $row["serial"]; // generate a permanent link for the current record
+
 				if (eregi("^Mobile$", $viewType))
 				{
 					$recordData .= "\n<div class=\"" . $rowClass . "\">"
@@ -148,7 +151,7 @@
 					{
 						$recordData .= "\n\t<td align=\"center\" valign=\"top\" width=\"10\">";
 
-						// print a checkbox form element:
+						// - Print a checkbox form element:
 						if (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 							$recordData .= "\n\t\t<input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"select this record\">";
 
@@ -158,13 +161,13 @@
 								$recordData .= "\n\t\t<br>";
 
 							if ($row["orig_record"] < 0)
-								$recordData .= "\n\t\t<img src=\"img/ok.gif\" alt=\"(original)\" title=\"original record\" width=\"14\" height=\"16\" hspace=\"0\" border=\"0\">";
+								$recordData .= "\n\t\t<img src=\"" . $databaseBaseURL . "img/ok.gif\" alt=\"(original)\" title=\"original record\" width=\"14\" height=\"16\" hspace=\"0\" border=\"0\">";
 							else // $row["orig_record"] > 0
-								$recordData .= "\n\t\t<img src=\"img/caution.gif\" alt=\"(duplicate)\" title=\"duplicate record\" width=\"5\" height=\"16\" hspace=\"0\" border=\"0\">";
+								$recordData .= "\n\t\t<img src=\"" . $databaseBaseURL . "img/caution.gif\" alt=\"(duplicate)\" title=\"duplicate record\" width=\"5\" height=\"16\" hspace=\"0\" border=\"0\">";
 						}
 
-						// add <abbr> block which works as a microformat that allows applications to identify objects on web pages; see <http://unapi.info/specs/> for more info
-						$recordData .= "\n\t\t<div class=\"unapi\"><abbr class=\"unapi-id\" title=\"" . $databaseBaseURL . "show.php?record=" . $row["serial"] . "\"></abbr></div>";
+						// - Add <abbr> block which works as a microformat that allows applications to identify objects on web pages; see <http://unapi.info/specs/> for more info
+						$recordData .= "\n\t\t<div class=\"unapi\"><abbr class=\"unapi-id\" title=\"" . $recordPermaLink . "\"></abbr></div>";
 
 						$recordData .= "\n\t</td>";
 					}
@@ -173,21 +176,80 @@
 					$recordData .= "\n\t<td id=\"ref" . $row["serial"] . "\" class=\"citation\" valign=\"top\">"
 					             . "\n\t\t" . $record;
 
-					if ($showMoreInfoCitationView == "yes") // display a triangle widget to show more info (keywords, abstract, etc) under each citation:
+					// Display a triangle widget to show more info (keywords, abstract, etc) under each citation:
+					if (!empty($additionalFieldsCitationView))
+					{
+						// Map MySQL field names to localized column names:
+						$fieldNamesArray = mapFieldNames(); // function 'mapFieldNames()' is defined in 'include.inc.php'
+
 						$recordData .= "\n\t\t<div class=\"showhide\">"
-						             . "\n\t\t\t<a href=\"#ref" . $row["serial"] . "\" onclick=\"toggleVisibility('moreinfo" . $row["serial"] . "','toggleimg" . $row["serial"] . "','toggletxt" . $row["serial"] . "','more info')\" title=\"" . $loc["LinkTitle_ToggleVisibility"] . "\">"
-						             . "<img id=\"toggleimg" . $row["serial"] . "\" class=\"toggleimg\" src=\"img/closed.gif\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
+						             . "\n\t\t\t<a href=\"javascript:toggleVisibility('moreinfo" . $row["serial"] . "','toggleimg" . $row["serial"] . "','toggletxt" . $row["serial"] . "','more%20info')\" title=\"" . $loc["LinkTitle_ToggleVisibility"] . "\">"
+						             . "<img id=\"toggleimg" . $row["serial"] . "\" class=\"toggleimg\" src=\"" . $databaseBaseURL . "img/closed.gif\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
 						             . "</a>"
 						             . "\n\t\t</div>"
-						             . "\n\t\t<div id=\"moreinfo" . $row["serial"] . "\" class=\"moreinfo\" style=\"display: none;\">"
-						             . "\n\t\t\t<div class=\"keywords\"><strong>" . $loc["Keywords"] . ":</strong> " . $row["keywords"] . "</div>"
-						             . "\n\t\t\t<div class=\"abstract\"><strong>" . $loc["Abstract"] . ":</strong> " . $row["abstract"] . "</div>"
+						             . "\n\t\t<div id=\"moreinfo" . $row["serial"] . "\" class=\"moreinfo\" style=\"display: none;\">";
+
+						// Print additional fields:
+						foreach ($additionalFieldsCitationView as $field)
+							if (isset($row[$field]) AND !empty($row[$field]))
+								$recordData .= "\n\t\t\t<div class=\"" . $field . "\"><strong>" . $fieldNamesArray[$field] . ":</strong> " . $row[$field] . "</div>";
+
+						// Print a row with links for the current record:
+						$recordData .= "\n\t\t\t<div class=\"reflinks\">";
+
+						// - Print the record's permanent URL:
+						$recordData .= "\n\t\t\t\t<div class=\"permalink\"><a href=\"" . $recordPermaLink . "\" title=\"copy this URL to directly link to this record\">";
+
+						if (eregi("^Print$", $viewType)) // for print view, we use the URL as link title
+							$recordData .= $recordPermaLink;
+						else
+							$recordData .= "Permanent link";
+
+						$recordData .= "</a></div>";
+
+						// - Print additional links to cite/export the current record:
+						//   Note: we omit the additional links in print view ('viewType=Print')
+						if (!eregi("^Print$", $viewType))
+						{
+							// -- Print cite links:
+							if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions']) AND isset($_SESSION['user_cite_formats']))
+							{
+								$userCiteFormatsArray = preg_split("/ *; */", $_SESSION['user_cite_formats'], -1, PREG_SPLIT_NO_EMPTY); // get a list of the user's cite formats (the 'PREG_SPLIT_NO_EMPTY' flag causes only non-empty pieces to be returned)
+
+								$recordData .= "\n\t\t\t\t<div class=\"citelinks\">"
+								             . "&nbsp;|&nbsp;Save citation:";
+
+								foreach ($userCiteFormatsArray as $citeFormat)
+									if (!eregi("^html$", $citeFormat)) // for now, we exclude the "HTML" cite format (as it's not any different to the regular Citation view HTML output)
+										$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $databaseBaseURL . generateURL("show.php", $citeFormat, array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder) . "\" title=\"output record as citation in " . $citeFormat . " format\">" . $citeFormat . "</a>";
+
+								$recordData .= "\n\t\t\t\t</div>";
+							}
+
+							// -- Print export links:
+							if (isset($_SESSION['user_permissions']) AND ereg("allow_export|allow_batch_export", $_SESSION['user_permissions']) AND isset($_SESSION['user_export_formats']))
+							{
+								$userExportFormatsArray = preg_split("/ *; */", $_SESSION['user_export_formats'], -1, PREG_SPLIT_NO_EMPTY); // get a list of the user's export formats
+
+								$recordData .= "\n\t\t\t\t<div class=\"exportlinks\">"
+								             . "&nbsp;|&nbsp;Export record:";
+
+								foreach ($userExportFormatsArray as $exportFormat)
+									$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $databaseBaseURL . generateURL("show.php", $exportFormat, array("record" => $row['serial'], "exportType" => "file"), true) . "\" title=\"export record in " . $exportFormat . " format\">" . $exportFormat . "</a>";
+
+								$recordData .= "\n\t\t\t\t</div>";
+							}
+						}
+
+						$recordData .= "\n\t\t\t</div>"
 						             . "\n\t\t</div>";
+					}
 
 					$recordData .= "\n\t</td>";
 				}
 
-				if ($showLinks == "1") // display links:
+				// Display the regular links column:
+				if ($showLinks == "1")
 				{
 					if (eregi("^Mobile$", $viewType))
 						$recordData .= "\n\t<div class=\"links\">";
@@ -224,7 +286,7 @@
 				$selectedField = "author"; // in the 'Search within Results" form, we'll always select the 'author' field by default
 
 				// Map MySQL field names to localized column names:
-				$fieldNamesArray = mapFieldNames(true); // function 'mapFieldNames()' is defined in 'include.inc.php'
+				$fieldNamesArray = mapFieldNames(true);
 				$localizedDropDownFieldsArray = array();
 
 				if (isset($_SESSION['loginEmail']) AND !empty($defaultDropDownFieldsLogin)) // if a user is logged in -AND- there were any additional fields specified...
@@ -307,14 +369,15 @@
 			$htmlData .= "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
 			           . "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
 			           . "\n<input type=\"hidden\" name=\"submit\" value=\"Cite\">" // provide a default value for the 'submit' form tag (then, if any form element is selected, hitting <enter> will act as if the user clicked the 'Cite' button)
+			           . "\n<input type=\"hidden\" name=\"originalDisplayType\" value=\"" . $displayType . "\">" // embed the original value of the '$displayType' variable
 			           . "\n<input type=\"hidden\" name=\"orderBy\" value=\"" . rawurlencode($orderBy) . "\">" // embed the current ORDER BY parameter so that it can be re-applied when displaying details
 			           . "\n<input type=\"hidden\" name=\"showQuery\" value=\"" . $showQuery . "\">" // embed the current value of '$showQuery' so that it's available on 'display details' (batch display) & 'cite'
 			           . "\n<input type=\"hidden\" name=\"showLinks\" value=\"" . $showLinks . "\">" // embed the current value of '$showLinks' so that it's available on 'display details' (batch display) & 'cite'
 			           . "\n<input type=\"hidden\" name=\"showRows\" value=\"" . $showRows . "\">" // embed the current value of '$showRows' so that it's available on 'display details' (batch display) & 'cite'
-			           . "\n<input type=\"hidden\" name=\"rowOffset\" value=\"" . $rowOffset . "\">" // embed the current value of '$rowOffset' so that it can be re-applied after the user pressed either of the 'Add', 'Remove', 'Remember' or 'Forget' buttons within the 'queryResults' form
-			           // Note: the inclusion of '$rowOffset' here is only meant to support reloading of the same results page again after a user clicked the 'Add', 'Remove', 'Remember' or 'Forget' buttons
+			           . "\n<input type=\"hidden\" name=\"rowOffset\" value=\"" . $rowOffset . "\">" // embed the current value of '$rowOffset' so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
+			           // Note: the inclusion of '$rowOffset' here is only meant to support reloading of the same results page again after a user clicked the 'Add' or 'Remove' buttons
 			           //       However, '$rowOffset' MUST NOT be set if the user clicked the 'Display' or 'Cite' button! Therefore we'll trap for this case at the top of the script.
-			           . "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"" . $queryURL . "\">"; // embed the current sqlQuery so that it can be re-applied after the user pressed either of the 'Add', 'Remove', 'Remember' or 'Forget' buttons within the 'queryResults' form
+			           . "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"" . $queryURL . "\">"; // embed the current sqlQuery so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
 		}
 
 		// Output query results:
