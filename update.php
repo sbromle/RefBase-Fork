@@ -614,6 +614,9 @@
 		$values = "(NULL, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', 'A100', 1)";
 		$resultArray["Table 'formats': inserted 'Text (Tab-Delimited)' import format"] = insertIfNotExists(array("format_name" => "Text (Tab-Delimited)", "format_type" => "import"), $tableFormats, $values);
 
+		$values = "(NULL, 'arXiv XML', 'import', 'true', 'import_arxiv2refbase.php', 'A130', 1)";
+		$resultArray["Table 'formats': inserted 'arXiv XML' import format"] = insertIfNotExists(array("format_name" => "arXiv XML", "format_type" => "import"), $tableFormats, $values);
+
 		$values = "(NULL, 'CrossRef XML', 'import', 'true', 'import_crossref2refbase.php', 'A150', 1)";
 		$resultArray["Table 'formats': inserted 'CrossRef XML' import format"] = insertIfNotExists(array("format_name" => "CrossRef XML", "format_type" => "import"), $tableFormats, $values);
 
@@ -663,6 +666,9 @@
 		$resultArray["Table 'formats': updated 'Word XML' export format. Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
 		// Add new export formats in table 'formats'
+		$values = "(NULL, 'ADS', 'export', 'true', 'bibutils/export_xml2ads.php', 'B005', 2)";
+		$resultArray["Table 'formats': inserted 'ADS' export format"] = insertIfNotExists(array("format_name" => "ADS", "format_type" => "export"), $tableFormats, $values);
+
 		$values = "(NULL, 'ISI', 'export', 'true', 'bibutils/export_xml2isi.php', 'B050', 2)";
 		$resultArray["Table 'formats': inserted 'ISI' export format"] = insertIfNotExists(array("format_name" => "ISI", "format_type" => "export"), $tableFormats, $values);
 
@@ -756,7 +762,7 @@
 		// Enable some of the newly created export/citation formats, citation styles & resource types for all users:
 		// Fetch IDs for all formats that shall be enabled:
 		$formatIDArray = array();
-		$query = "SELECT format_id, format_name FROM " . $tableFormats . " WHERE (format_name RLIKE '^(ISI|Atom XML|ODF XML|Word XML)$' AND format_type = 'export') OR (format_name RLIKE '^(html|RTF|PDF|LaTeX)$' AND format_type = 'cite')";
+		$query = "SELECT format_id, format_name FROM " . $tableFormats . " WHERE (format_name RLIKE '^(ISI|ODF XML|Word XML)$' AND format_type = 'export') OR (format_name RLIKE '^(html|RTF|PDF|LaTeX)$' AND format_type = 'cite')";
 		$result = queryMySQLDatabase($query);
 		$rowsFound = @ mysql_num_rows($result);
 		if ($rowsFound > 0)
