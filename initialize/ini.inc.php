@@ -190,7 +190,6 @@
 	                                  "Endnote",
 	                                  "ISI",
 	                                  "RIS",
-	                                  "Atom XML",
 	                                  "MODS XML",
 	                                  "ODF XML",
 	                                  "Word XML");
@@ -570,10 +569,13 @@
 	$defaultView = "List"; // possible values: "List", "Cite", "Display", "Browse"
 
 
-	// Specify whether more info (keywords, abstract, etc) is made available in Citation view:
-	// (this additional info is hidden by default and can be displayed by toggling the little
-	//  triangle widget that's printed below each citation)
-	$showMoreInfoCitationView = "yes"; // possible values: "yes", "no"
+	// Specify whether additional info is made available in Citation view by clicking a triangle
+	// widget underneath each citation, and which fields shall be included:
+	// (given field names must match column names in MySQL tables 'refs' and 'user_data';
+	//  you can change the order of fields to control the display order; to completely disable
+	//  this feature, specify an empty array, like: '$additionalFieldsCitationView = array();')
+	$additionalFieldsCitationView = array("abstract", "keywords", "user_keys", "user_groups",
+	                                      "user_notes", "cite_key");
 
 
 	// Specify whether additional fields shall be displayed in Details view by default:
@@ -599,16 +601,17 @@
 	// 
 	// - Results header:
 	//                                   "view type" => "display value"
-	$displayResultsHeaderDefault = array("List"      => "open",
+	$displayResultsHeaderDefault = array("List"      => "closed",
 	                                     "Cite"      => "closed",
 	                                     "Display"   => "closed",
-	                                     "Browse"    => "hidden");
+	                                     "Browse"    => "closed");
 
 	// - Results footer:
+	//   (note that the cite, group & export functionality doesn't yet work in Browse view)
 	//                                   "view type" => "display value"
-	$displayResultsFooterDefault = array("List"      => "closed",
+	$displayResultsFooterDefault = array("List"      => "open",
 	                                     "Cite"      => "closed",
-	                                     "Display"   => "closed",
+	                                     "Display"   => "open",
 	                                     "Browse"    => "hidden");
 
 
@@ -685,7 +688,7 @@
 	// - Generic OpenURL resolver provided by CrossRef: "http://www.crossref.org/openurl"
 	//   Notes: - the CrossRef resolver requires users to have an account and to supply their login
 	//            credentials in the 'pid' or 'req_dat' parameters; for more info please see:
-	//            <http://www.crossref.org/02publishers/openurl_info.html>
+	//            <http://www.crossref.org/openurl_info.html>
 	//          - to request an account, complete the form at: <http://www.crossref.org/requestaccount/>
 	// 
 	// - 1Cate, the OpenURL link-server from ISI/Openly: "http://isi.1cate.com/?sid=ISI:WoS"
