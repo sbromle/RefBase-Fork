@@ -201,7 +201,9 @@ INSERT INTO `formats` VALUES (1, 'MODS XML', 'import', 'true', 'bibutils/import_
 (30, 'Text (Tab-Delimited)', 'import', 'true', 'import_tabdelim2refbase.php', 'A100', 1),
 (31, 'CrossRef XML', 'import', 'true', 'import_crossref2refbase.php', 'A150', 1),
 (32, 'OAI_DC XML', 'export', 'true', 'export_oaidcxml.php', 'B170', 1),
-(33, 'SRW_DC XML', 'export', 'true', 'export_srwxml.php', 'B190', 1);
+(33, 'SRW_DC XML', 'export', 'true', 'export_srwxml.php', 'B190', 1),
+(34, 'ADS', 'export', 'true', 'bibutils/export_xml2ads.php', 'B005', 2),
+(35, 'arXiv XML', 'import', 'true', 'import_arxiv2refbase.php', 'A130', 1);
 
 # --------------------------------------------------------
 
