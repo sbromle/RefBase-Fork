@@ -173,7 +173,7 @@
 
 		//   B) Other export formats supported by 'show.php':
 		//   NOTE: These export formats currently do not support paging of results via '$showRows' and '$rowOffset' and thus always export the entire result set!
-		//   TODO: add links for ISI and Word XML
+		//   TODO: add links for ADS, ISI and Word XML
 
 		//   - BibTeX data for all results:
 //		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "BibTeX", array("where" => $queryWhereClause), true, $showRows, $rowOffset), "alternate", "BibTeX", "All results as BibTeX data");
@@ -193,8 +193,7 @@
 //		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "OAI_DC XML", array("where" => $queryWhereClause), true, $showRows, $rowOffset), "alternate", "OAI_DC XML", "All results as OAI_DC XML data");
 
 		//   - ODF XML data for all results:
-		//     TODO: in case of ODF, function 'generateURL()' should probably better set the 'exportType' parameter to "file"
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "ODF XML", array("where" => $queryWhereClause), true, $showRows, $rowOffset), "alternate", "ODF XML", "All results as ODF XML data");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "ODF XML", array("where" => $queryWhereClause, "exportType" => "file"), true, $showRows, $rowOffset), "alternate", "ODF XML", "All results as ODF XML data");
 
 
 		//   C) Citation formats supported by 'show.php':
@@ -541,7 +540,7 @@
 
 		//   B) Export formats
 		//   NOTE: should we rather generate 'unapi.php' and 'opensearch.php' URLs where possible?
-		//   TODO: add links for ISI, RSS XML and Word XML
+		//   TODO: add links for ADS, ISI, RSS XML and Word XML
 
 		//   - BibTeX data for this record:
 		atomLink($entry, $databaseBaseURL . generateURL("show.php", "BibTeX", array("record" => $row['serial']), true), "alternate", "BibTeX", "Export record in BibTeX format");
@@ -564,8 +563,7 @@
 //		atomLink($entry, $databaseBaseURL . generateURL("show.php", "OAI_DC XML", array("record" => $row['serial']), true), "alternate", "OAI_DC XML", "Export record as OAI_DC XML");
 
 		//   - ODF XML data for this record:
-		//     TODO: in case of ODF XML, function 'generateURL()' should probably better set the 'exportType' parameter to "file"
-		atomLink($entry, $databaseBaseURL . generateURL("show.php", "ODF XML", array("record" => $row['serial']), true), "alternate", "ODF XML", "Export record as ODF XML");
+		atomLink($entry, $databaseBaseURL . generateURL("show.php", "ODF XML", array("record" => $row['serial'], "exportType" => "file"), true), "alternate", "ODF XML", "Export record as ODF XML");
 
 		//   - SRW_DC XML data for this record:
 		//     NOTE: A link to MODS XML is already used with this type!
@@ -897,7 +895,7 @@
 		$elementAttributeArray = array();
 
 		// Define media types for the different formats:
-		// TODO: add types for ISI and Word XML
+		// TODO: add types for ADS, ISI and Word XML
 		if (eregi("^HTML$", $linkFormat))
 			$linkType = "text/html";
 
