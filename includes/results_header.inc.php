@@ -30,7 +30,7 @@
 
 		global $loc; // defined in 'locales/core.php'
 
-		$resultsHeaderToggleText = "Search &amp; Display Options";
+		$resultsHeaderToggleText = "Search & Display Options";
 
 		if (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] == "open"))
 		{
@@ -42,13 +42,13 @@
 		{
 			$resultsHeaderDisplayStyle = "none";
 			$resultsHeaderToggleImage = "img/closed.gif";
-			$resultsHeaderInitialToggleText = $resultsHeaderToggleText;
+			$resultsHeaderInitialToggleText = encodeHTML($resultsHeaderToggleText); // function 'encodeHTML()' is defined in 'include.inc.php'
 		}
 ?>
 
 <div class="resultsheader">
 <div class="showhide">
-	<a href="#" onclick="toggleVisibility('resultoptions','resultsHeaderToggleimg','resultsHeaderToggletxt','<?php echo $resultsHeaderToggleText; ?>')"<?php echo addAccessKey("attribute", "header"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "header"); ?>">
+	<a href="javascript:toggleVisibility('resultoptions','resultsHeaderToggleimg','resultsHeaderToggletxt','<?php echo rawurlencode($resultsHeaderToggleText); ?>')"<?php echo addAccessKey("attribute", "header"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "header"); ?>">
 		<img id="resultsHeaderToggleimg" class="toggleimg" src="<?php echo $resultsHeaderToggleImage; ?>" alt="<?php echo $loc["LinkTitle_ToggleVisibility"]; ?>" width="9" height="9" hspace="0" border="0">
 		<span id="resultsHeaderToggletxt" class="toggletxt"><?php echo $resultsHeaderInitialToggleText; ?></span>
 	</a>
