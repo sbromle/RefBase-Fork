@@ -231,6 +231,15 @@ div.resultsfooter {
 	font-size: 0.85em;
 }
 
+.citation .moreinfo .reflinks {
+	margin-top: 0.8em;
+}
+
+.citation .moreinfo .reflinks > * {
+	display: inline;
+	font-size: 1em;
+}
+
 #error {
 	
 }
