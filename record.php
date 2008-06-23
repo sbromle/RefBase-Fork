@@ -549,7 +549,17 @@
 				$userGroupsName = "";
 				$citeKeyName = "";
 				$relatedName = "";
-				$fileName = "";
+
+				// NOTE: currently, we only allow for file URLs with full URL paths
+				// 
+				// TODO: - ensure that there aren't any security issues
+				//       - should we accept local file paths/names from the import data? if so, how should we handle them?
+				//       - make sure that any recognized PDF files get renamed & filed according to the settings in 'initialize/ini.inc.php';
+				//         in case of remote file URLs, this may mean downloading the remote PDF, and filing/renaming it according to preference
+				if (isset($_REQUEST['file']) AND ereg("^(https?|ftp|file)://", $_REQUEST['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
+					$fileName = encodeHTML($_REQUEST['file']);
+				else
+					$fileName = "";
 
 				if (isset($_REQUEST['url']))
 					$urlName = encodeHTML($_REQUEST['url']);
