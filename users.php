@@ -47,15 +47,14 @@
 	// Check if the admin is logged in
 	if (!(isset($_SESSION['loginEmail']) && ($loginEmail == $adminLoginEmail)))
 	{
-		// save an error message:
-		$HeaderString = "<b><span class=\"warning\">You must be logged in as admin to view any user account details!</span></b>";
+		// return an appropriate error message:
+		$HeaderString = returnMsg("You must be logged in as admin to view any user account details!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 		// save the URL of the currently displayed page:
 		$referer = $_SERVER['HTTP_REFERER'];
 
 		// Write back session variables:
-		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-		saveSessionVariable("referer", $referer);
+		saveSessionVariable("referer", $referer); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 
 		header("Location: index.php");
 		exit;
@@ -250,8 +249,6 @@
 			$HeaderString = ($rowOffset + 1) . "&#8211;" . $showMaxRow . " of " . $rowsFound . $HeaderString;
 		elseif ($rowsFound == 0)
 			$HeaderString = $rowsFound . $HeaderString;
-		else
-			$HeaderString = $HeaderString; // well, this is actually bad coding but I do it for clearity reasons...
 	}
 	else
 	{
@@ -682,17 +679,11 @@
 			$userPermission = "";
 
 
-		// join array elements:
-		if (!empty($recordSerialsArray)) // the user did check some checkboxes
-			$recordSerialsString = implode("|", $recordSerialsArray); // separate record serials by "|" in order to facilitate regex querying...
-		else // the user didn't check any checkboxes
-			$recordSerialsString = "0"; // we use '0' which definitely doesn't exist as serial, resulting in a "nothing found" feedback
-
 		if (!empty($recordSerialsArray))
 		{
 			if (ereg("^(Add|Remove)$", $displayType)) // (hitting <enter> within the 'userGroupName' text entry field will act as if the user clicked the 'Add' button)
 			{
-				modifyUserGroups($tableUsers, $displayType, $recordSerialsArray, $recordSerialsString, "", $userGroup, $userGroupActionRadio); // add (remove) selected records to (from) the specified user group (function 'modifyUserGroups()' is defined in 'include.inc.php')
+				modifyUserGroups($tableUsers, $displayType, $recordSerialsArray, "", $userGroup); // add (remove) selected records to (from) the specified user group (function 'modifyUserGroups()' is defined in 'include.inc.php')
 			}
 			elseif (ereg("^(Allow|Disallow)$", $displayType))
 			{
@@ -702,13 +693,12 @@
 					$userPermissionsArray = array("$userPermission" => "no");
 
 				// Update the specified user permission for the current user:
-				updateUserPermissions($recordSerialsString, $userPermissionsArray);
+				$updateSucceeded = updateUserPermissions($recordSerialsArray, $userPermissionsArray); // function 'updateUserPermissions()' is defined in 'include.inc.php'
 
-				// save an informative message:
-				$HeaderString = "User permission <code>$userPermission</code> was updated successfully!";
-
-				// Write back session variables:
-				saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+				if ($updateSucceeded) // save an informative message:
+					$HeaderString = returnMsg("User permission <code>$userPermission</code> was updated successfully!", "", "", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
+				else // return an appropriate error message:
+					$HeaderString = returnMsg("User permission <code>$userPermission</code> could not be updated!", "warning", "strong", "HeaderString");
 			}
 		}
 
