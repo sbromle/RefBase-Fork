@@ -196,7 +196,7 @@
 		if (eregi("^Mobile$", $viewType)) // for Mobile view, we enforce the compact Citation view
 			$displayType = "Cite";
 		else
-			$displayType = ""; // if '$displayType' is empty, 'show.php' will use the default view that's given in variable '$defaultView' in 'ini.inc.php'
+			$displayType = ""; // if '$displayType' is empty, 'show.php' will use the default view that's given in session variable 'userDefaultView'
 
 		$exportContentType = "text/html";
 		if ($exportStylesheet == "DEFAULT")
@@ -555,7 +555,7 @@
 <table class="showhide" align="center" border="0" cellpadding="0" cellspacing="10" width="95%">
 <tr>
 	<td class="small" width="120" valign="top">
-		<a href="#" onclick="toggleVisibility('searchopt','optToggleimg','optToggletxt','<?php echo $loc["SearchOptions"]; ?>')"<?php echo addAccessKey("attribute", "search_opt"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "search_opt"); ?>">
+		<a href="javascript:toggleVisibility('searchopt','optToggleimg','optToggletxt','<?php echo rawurlencode($loc["SearchOptions"]); ?>')"<?php echo addAccessKey("attribute", "search_opt"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "search_opt"); ?>">
 			<img id="optToggleimg" class="toggleimg" src="img/closed.gif" alt="<?php echo $loc["LinkTitle_ToggleVisibility"]; ?>" width="9" height="9" hspace="0" border="0">
 			<span id="optToggletxt" class="toggletxt"><?php echo $loc["SearchOptions"]; ?></span>
 		</a>
@@ -590,7 +590,7 @@
 <table class="showhide" align="center" border="0" cellpadding="0" cellspacing="10" width="95%">
 <tr>
 	<td class="small" width="120" valign="top">
-		<a href="#" onclick="toggleVisibility('helptxt','helpToggleimg','helpToggletxt','<?php echo $loc["HelpAndExamples"]; ?>')"<?php echo addAccessKey("attribute", "search_help"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "search_help"); ?>">
+		<a href="javascript:toggleVisibility('helptxt','helpToggleimg','helpToggletxt','<?php echo rawurlencode($loc["HelpAndExamples"]); ?>')"<?php echo addAccessKey("attribute", "search_help"); ?> title="<?php echo $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "search_help"); ?>">
 			<img id="helpToggleimg" class="toggleimg" src="img/closed.gif" alt="<?php echo $loc["LinkTitle_ToggleVisibility"]; ?>" width="9" height="9" hspace="0" border="0">
 			<span id="helpToggletxt" class="toggletxt"><?php echo $loc["HelpAndExamples"]; ?></span>
 		</a>
