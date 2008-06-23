@@ -136,7 +136,7 @@
 	$nonASCIICharsSelected = "strip";
 
 	// default display options:
-	$displayType = $defaultView; // defined in 'ini.inc.php'
+	$displayType = $_SESSION['userDefaultView']; // get the default view for the current user
 	$showLinks = "1";
 	$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 	$citeStyle = $defaultCiteStyle; // defined in 'ini.inc.php'

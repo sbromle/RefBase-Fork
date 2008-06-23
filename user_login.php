@@ -207,6 +207,10 @@
 			// and save all allowed user actions as semicolon-delimited string to the session variable 'user_permissions':
 			getPermissions($row2["user_id"], "user", true); // function 'getPermissions()' is defined in 'include.inc.php'
 
+			// Get the default view for the current user
+			// and save it to the session variable 'userDefaultView':
+			getDefaultView($row2["user_id"]); // function 'getDefaultView()' is defined in 'include.inc.php'
+
 			// Get the default number of records per page preferred by the current user
 			// and save it to the session variable 'userRecordsPerPage':
 			getDefaultNumberOfRecords($row2["user_id"]); // function 'getDefaultNumberOfRecords()' is defined in 'include.inc.php'

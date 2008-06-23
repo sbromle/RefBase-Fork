@@ -59,6 +59,7 @@
 		deleteSessionVariable("loginLastName"); // clear the user's last name
 		deleteSessionVariable("abbrevInstitution"); // clear the user's abbreviated institution name
 		deleteSessionVariable("userLanguage"); // clear the user's preferred language
+		deleteSessionVariable("userDefaultView"); // clear the user's default view setting
 		deleteSessionVariable("userRecordsPerPage"); // clear the user's preferred number of records per page
 		deleteSessionVariable("userMainFields"); // clear the user's preferred list of "main fields"
 		deleteSessionVariable("lastLogin"); // clear the user's last login date & time
