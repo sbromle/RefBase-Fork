@@ -324,7 +324,7 @@
 					$updatedUserPermissionsArray[$permissionKey] = 'no'; // disallow the particular feature
 
 			// update all user permissions for the current user:
-			updateUserPermissions($userID, $updatedUserPermissionsArray); // function 'updateUserPermissions()' is defined in 'include.inc.php'
+			$updateSucceeded = updateUserPermissions(array($userID), $updatedUserPermissionsArray); // function 'updateUserPermissions()' is defined in 'include.inc.php'
 		}
 
 		// ---------------------------------------------------------------
