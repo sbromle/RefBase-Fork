@@ -73,14 +73,34 @@
 ?>
 
 	<script language="JavaScript" type="text/javascript">
-		function checkall(val,formpart){
-			x=0;
-			while(document.queryResults.elements[x]){
-				if(document.queryResults.elements[x].name==formpart){
-					document.queryResults.elements[x].checked=val;
+		function checkall(val, formpart) {
+			var x = 0;
+			while(document.queryResults.elements[x]) {
+				if(document.queryResults.elements[x].name == formpart) {
+					document.queryResults.elements[x].checked = val;
 				}
 				x++;
 			}
+			toggleRadio('allRecs', 'selRecs', val);
+		}
+		function toggleVisibility(id, imgid, txtid, txt) {
+			var e = document.getElementById(id);
+			var i = document.getElementById(imgid);
+			var t = document.getElementById(txtid);
+			if(e.style.display == 'block') {
+				e.style.display = 'none';
+				i.src = 'img/closed.gif';
+				t.innerHTML = txt;
+			}
+			else {
+				e.style.display = 'block';
+				i.src = 'img/open.gif';
+				t.innerHTML = '';
+			}
+		}
+		function toggleRadio(id1, id2, val) {
+			document.getElementById(id1).checked = !(val);
+			document.getElementById(id2).checked = val;
 		}
 		function updateAllRecs() {
 			var val=!eval("document.getElementById('allRecs').checked");
