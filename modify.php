@@ -1440,6 +1440,10 @@
 			recursiveMkdir(dirname($path));
 
 			mkdir($path, 0770); // create directory
+			// alternatively, if the above line doesn't work for you, you might want to try:
+//			$oldumask = umask(0);
+//			mkdir($path, 0755); // create directory
+//			umask($oldumask);
 		}
 	}
 
