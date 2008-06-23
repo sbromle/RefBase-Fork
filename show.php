@@ -66,8 +66,8 @@
 		$displayType = "";
 
 	// Note that for 'show.php' we don't accept any other display types than '', 'List', 'Display', 'Cite', 'Export' and 'Browse',
-	// if any other types were specified, we'll use the default view that's given in variable '$defaultView'. Also note that the
-	// display type is changed further down below.
+	// if any other types were specified, we'll use the default view that's given in session variable 'userDefaultView'. Also note
+	// that the display type is changed further down below.
 	if (!empty($displayType) AND !eregi("^(List|Display|Cite|Export|Browse)$", $displayType))
 		$displayType = "";
 
@@ -380,10 +380,10 @@
 		if (empty($displayType) AND (($recordConditionalSelector == "is equal to") OR (empty($recordConditionalSelector) AND is_numeric($serial)))) // if the 'displayType' parameter wasn't explicitly specified -AND- we're EITHER supposed to match record identifiers exactly OR '$recordConditionalSelector' wasn't specified and '$serial' is a number (which is the case for email announcement URLs: '.../show.php?record=12345')
 			$displayType = "Display"; // display record details (instead of the default view)
 
-	// Note that for 'show.php' we don't accept any other display types than '', List', 'Display', 'Cite', 'Export' and 'Browse',
-	// if any other types were specified, we'll use the default view that's given in variable '$defaultView':
+	// Note that for 'show.php' we don't accept any other display types than '', 'List', 'Display', 'Cite', 'Export' and 'Browse',
+	// if any other types were specified, we'll use the default view that's given in session variable 'userDefaultView':
 	if (empty($displayType))
-		$displayType = $defaultView; // defined in 'ini.inc.php'
+		$displayType = $_SESSION['userDefaultView']; // get the default view for the current user
 
 	// shift some variable contents based on the value of '$recordIDSelector':
 	if ($recordIDSelector == "call_number")
