@@ -28,6 +28,8 @@
 	// include transliteration tables:
 	include 'includes/transtab_unicode_ascii.inc.php'; // include unicode -> ascii transliteration table
 	include 'includes/transtab_latin1_ascii.inc.php'; // include latin1 -> ascii transliteration table
+	include 'includes/transtab_unicode_latin1.inc.php'; // include unicode -> latin1 transliteration table
+	include 'includes/transtab_unicode_refbase.inc.php'; // include unicode -> refbase transliteration table
 
 	// --------------------------------------------------------------------
 
@@ -119,6 +121,10 @@
 			// Get the user permissions for the current user
 			// and save all allowed user actions as semicolon-delimited string to the session variable 'user_permissions':
 			getPermissions(0, "user", true);
+
+			// Get the default view for the current user
+			// and save it to the session variable 'userDefaultView':
+			getDefaultView(0);
 
 			// Get the default number of records per page preferred by the current user
 			// and save it to the session variable 'userRecordsPerPage':
@@ -482,7 +488,7 @@
 		$recordSerialsString = "&marked[]=" . $recordSerialsString; // prefix also the very first record serial with "&marked[]="
 
 		// based on the refering script we adjust the parameters that get included in the link:
-		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_search|extract|users|user_details|user_receipt)\.php", $scriptURL))
+		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_search|opensearch|query_history|extract|users|user_details|user_receipt)\.php", $scriptURL))
 			$referer = $scriptURL; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
 									// to re-locate back to these pages after successful login/logout). Logout on 'install.php', 'users.php', 'user_details.php' or 'user_receipt.php' will redirect to 'index.php'.
 
@@ -1358,12 +1364,12 @@
 	{
 		global $defaultFieldsListViewMajor; // these variables are specified in 'ini.inc.php'
 		global $defaultFieldsListViewMinor;
-		global $defaultView;
+		global $additionalFieldsCitationView;
 		global $showAdditionalFieldsDetailsViewDefault;
 		global $showUserSpecificFieldsDetailsViewDefault;
 
 		if (empty($displayType))
-			$displayType = $defaultView;
+			$displayType = $_SESSION['userDefaultView']; // get the default view for the current user
 
 		$querySELECTclause = "SELECT ";
 
@@ -1412,6 +1418,16 @@
 
 				if ($displayType == "RSS") // for RSS output, we add some additional fields:
 					$querySELECTclause .= ", created_date, created_time, created_by, modified_date, modified_time, modified_by";
+
+				if (!empty($additionalFieldsCitationView)) // append all fields from '$additionalFieldsCitationView' that aren't yet included in the SELECT clause
+					foreach ($additionalFieldsCitationView as $field)
+						if (!preg_match("/\b" . $field . "\b/", $querySELECTclause))
+						{
+							if (preg_match("/^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)$/", $field)) // if '$field' is one of the user-specific fields, we'll add all of them below
+								$addUserSpecificFields = true;
+							else // append field:
+								$querySELECTclause .= ", " . $field;
+						}
 			}
 
 			// Browse view:
@@ -1505,8 +1521,7 @@
 	//       - use function 'generateURL()' to build the link URLs
 	function buildBrowseLinks($href, $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $maxPageNo, $formType, $displayType, $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType)
 	{
-		global $defaultView; // these variables are defined in 'ini.inc.php'
-		global $displayResultsHeaderDefault;
+		global $displayResultsHeaderDefault; // these variables are defined in 'ini.inc.php'
 		global $displayResultsFooterDefault;
 
 		global $loc; // '$loc' is made globally available in 'core.php'
@@ -1701,7 +1716,7 @@
 		// Add view links:
 		$viewLinksArray = array();
 
-		if (($href == "search.php") AND !eregi("^Mobile$", $viewType))
+		if (($href == "search.php") AND !eregi("^Browse$", $displayType) AND !eregi("^Mobile$", $viewType))
 		{
 			if (isset($_SESSION['user_permissions']) AND ereg("allow_list_view", $_SESSION['user_permissions']))
 			{
@@ -2147,7 +2162,7 @@ EOF;
 						<input type="submit" name="submit" value="$submitValue" title="$submitTitle">
 EOF;
 
-		if ($displayType != "Cite")
+		if (!eregi("^(Browse|Cite)$", $displayType))
 			$displayOptionsForm .= "\n\t\t\t\t\t\t<input type=\"submit\" name=\"submit\" value=\"Hide\" title=\"$hideButtonTitle\"$hideButtonDisabled>";
 
 		$displayOptionsForm .= <<<EOF
@@ -3179,7 +3194,7 @@ EOF;
 	//     type     - MIME type of file (e.g.: 'image/gif')
 	//     tmp_name - name of temporary file on server
 	//     error    - holds an error number >0 if something went wrong, otherwise 0
-	//                (the 'error' element was added with PHP 4.2.0. Error code explanation: <http://www.php.net/manual/en/features.file-upload.errors.php>)
+	//                (the 'error' element was added with PHP 4.2.0. Error code explanation: <http://www.php.net/file-upload.errors>)
 	//     size     - size of file in bytes
 
 	// depending what happend on upload, they will contain the following values (PHP 4.1 and above):
@@ -3304,42 +3319,19 @@ EOF;
 	// Note: this function serves two purposes (which must not be confused!):
 	// 		 - if "$queryTable = user_data", it will modify the values of the 'user_groups' field of the 'user_data' table (where a user can assign one or more groups to particular *references*)
 	// 		 - if "$queryTable = users", this function will modify the values of the 'user_groups' field of the 'users' table (where the admin can assign one or more groups to particular *users*)
-	function modifyUserGroups($queryTable, $displayType, $recordSerialsArray, $recordSerialsString, $userID, $userGroup, $userGroupActionRadio)
+	function modifyUserGroups($queryTable, $displayType, $recordSerialsArray, $userID, $userGroup)
 	{
 		global $tableUserData, $tableUsers; // defined in 'db.inc.php'
 
 		connectToMySQLDatabase();
 
-// 		// CAUTION: this commented code is highly experimental and exposes probably too much power and/or possible side effects!
-// 		// Check whether the contents of the '$userGroup' variable shall be interpreted as regular expression:
-// 		// Note: We assume the variable contents to be a (perl-style!) regular expression if the following conditions are true:
-// 		//       - the user checked the radio button next to the group text entry field ('userGroupName')
-// 		//       - the entered string starts with 'REGEXP:'
-// 		if (($userGroupActionRadio == "0") AND (ereg("^REGEXP:", $userGroup))) // don't escape possible meta characters
-// 		{
-// 			$userGroup = preg_replace("/REGEXP:(.+)/", "(\\1)", $userGroup); // remove 'REGEXP:' tage & enclose the following pattern in brackets
-// 			// The enclosing brackets ensure that a pipe '|' which is used in the grep pattern doesn't cause any harm.
-// 			// E.g., without enclosing brackets, the pattern 'mygroup|.+' would be (among others) resolved to ' *; *mygroup|.+ *' (see below).
-// 			// This, in turn, would cause the pattern to match beyond the group delimiter (semicolon), causing severe damage to the user's
-// 			// other group names!
-//
-// 			// to assure that the regular pattern specified by the user doesn't match beyond our group delimiter ';' (semicolon),
-// 			// we'll need to convert any greedy regex quantifiers to non-greedy ones:
-// 			$userGroup = preg_replace("/(?<![?+*]|[\d,]})([?+*]|\{\d+(, *\d*)?\})(?!\?)/", "\\1?", $userGroup);
-// 		}
+		$userGroupQuoted = preg_quote($userGroup, "/"); // escape meta characters (including '/' that is used as delimiter for the PCRE match & replace functions below and which gets passed as second argument)
 
-		// otherwise we escape any possible meta characters:
-//		else // if the user checked the radio button next to the group popup menu ($userGroupActionRadio == "1") -OR-
-			// the radio button next to the group text entry field was selected BUT the string does NOT start with an opening bracket and end with a closing bracket...
-			$userGroup = preg_quote($userGroup, "/"); // escape meta characters (including '/' that is used as delimiter for the PCRE replace functions below and which gets passed as second argument)
-
-
-		if ($queryTable == $tableUserData) // for the current user, get all entries within the 'user_data' table that refer to the selected records (listed in '$recordSerialsString'):
-			$query = "SELECT record_id, user_groups FROM $tableUserData WHERE record_id RLIKE " . quote_smart("^(" . $recordSerialsString . ")$") . " AND user_id = " . quote_smart($userID);
-		elseif ($queryTable == $tableUsers) // for the admin, get all entries within the 'users' table that refer to the selected records (listed in '$recordSerialsString'):
-			$query = "SELECT user_id as record_id, user_groups FROM $tableUsers WHERE user_id RLIKE " . quote_smart("^(" . $recordSerialsString . ")$");
+		if ($queryTable == $tableUserData) // for the current user, get all entries within the 'user_data' table that refer to the selected records (listed in '$recordSerialsArray'):
+			$query = "SELECT record_id, user_groups FROM $tableUserData WHERE record_id RLIKE " . quote_smart("^(" . implode("|", $recordSerialsArray) . ")$") . " AND user_id = " . quote_smart($userID);
+		elseif ($queryTable == $tableUsers) // for the admin, get all entries within the 'users' table that refer to the selected records (listed in '$recordSerialsArray'):
+			$query = "SELECT user_id as record_id, user_groups FROM $tableUsers WHERE user_id RLIKE " . quote_smart("^(" . implode("|", $recordSerialsArray) . ")$");
 			// (note that by using 'user_id as record_id' we can use the term 'record_id' as identifier of the primary key for both tables)
-
 
 		$result = queryMySQLDatabase($query); // RUN the query on the database through the connection
 
@@ -3356,19 +3348,19 @@ EOF;
 				$recordUserGroups = $row["user_groups"]; // extract the user groups that the current record belongs to
 
 				// ADD the specified user group to the 'user_groups' field:
-				if ($displayType == "Add" AND !ereg("(^|.*;) *$userGroup *(;.*|$)", $recordUserGroups)) // if the specified group isn't listed already within the 'user_groups' field:
+				if ($displayType == "Add" AND !preg_match("/(^|.*;) *$userGroupQuoted *(;.*|$)/", $recordUserGroups)) // if the specified group isn't listed already within the 'user_groups' field:
 				{
 					if (empty($recordUserGroups)) // and if the 'user_groups' field is completely empty
-						$recordUserGroups = ereg_replace("^.*$", "$userGroup", $recordUserGroups); // add the specified user group to the 'user_groups' field
+						$recordUserGroups = $userGroup; // add the specified user group to the 'user_groups' field
 					else // if the 'user_groups' field does already contain some user content:
-						$recordUserGroups = ereg_replace("^(.+)$", "\\1; $userGroup", $recordUserGroups); // append the specified user group to the 'user_groups' field
+						$recordUserGroups .= "; " . $userGroup; // append the specified user group to the 'user_groups' field
 				}
 
 				// REMOVE the specified user group from the 'user_groups' field:
 				elseif ($displayType == "Remove") // remove the specified group from the 'user_groups' field:
 				{
-					$recordUserGroups = preg_replace("/^ *$userGroup *(?=;|$)/", "", $recordUserGroups); // the specified group is listed at the very beginning of the 'user_groups' field
-					$recordUserGroups = preg_replace("/ *; *$userGroup *(?=;|$)/", "", $recordUserGroups); // the specified group occurs after some other group name within the 'user_groups' field
+					$recordUserGroups = preg_replace("/^ *$userGroupQuoted *(?=;|$)/", "", $recordUserGroups); // the specified group is listed at the very beginning of the 'user_groups' field
+					$recordUserGroups = preg_replace("/ *; *$userGroupQuoted *(?=;|$)/", "", $recordUserGroups); // the specified group occurs after some other group name within the 'user_groups' field
 					$recordUserGroups = ereg_replace("^ *; *", "", $recordUserGroups); // remove any remaining group delimiters at the beginning of the 'user_groups' field
 				}
 
@@ -3382,23 +3374,37 @@ EOF;
 			}
 		}
 
-		if ($queryTable == $tableUserData)
+		if (($queryTable == $tableUserData) AND ($displayType == "Add"))
 		{
 			// for all selected records that have no entries in the 'user_data' table (for this user), we'll need to add a new entry containing the specified group:
 			$leftoverSerialsArray = array_diff($recordSerialsArray, $foundSerialsArray); // get all unique array elements of '$recordSerialsArray' which are not in '$foundSerialsArray'
 
 			foreach ($leftoverSerialsArray as $leftoverRecordID) // for each record that we haven't processed yet (since it doesn't have an entry in the 'user_data' table for this user)
 			{
-				// for the current record & user ID, add a new entry (containing the specified group) to the 'user_data' table:
-				$queryUserData = "INSERT INTO $tableUserData SET "
-				               . "user_groups = " . quote_smart($userGroup) . ", "
-				               . "record_id = " . quote_smart($leftoverRecordID) . ", "
-				               . "user_id = " . quote_smart($userID) . ", "
-				               . "data_id = NULL"; // inserting 'NULL' into an auto_increment PRIMARY KEY attribute allocates the next available key value
+				if ($leftoverRecordID > 0) // function 'extractFormElementsQueryResults()' in 'search.php' assigns '$recordSerialsArray[]="0"' if '$recordSerialsArray' is empty
+				{
+					$foundSerialsArray[] = $leftoverRecordID; // add this record's serial to the array of found serial numbers
 
-				$resultUserData = queryMySQLDatabase($queryUserData); // RUN the query on the database through the connection
+					// for the current record & user ID, add a new entry (containing the specified group) to the 'user_data' table:
+					$queryUserData = "INSERT INTO $tableUserData SET "
+					               . "user_groups = " . quote_smart($userGroup) . ", "
+					               . "record_id = " . quote_smart($leftoverRecordID) . ", "
+					               . "user_id = " . quote_smart($userID) . ", "
+					               . "data_id = NULL"; // inserting 'NULL' into an auto_increment PRIMARY KEY attribute allocates the next available key value
+
+					$resultUserData = queryMySQLDatabase($queryUserData); // RUN the query on the database through the connection
+				}
 			}
 		}
+
+// TODO!
+		// save an informative message:
+//		if (count($foundSerialsArray) == "1")
+//			$recordHeader = $loc["record"]; // use singular form if only one record was updated
+//		else
+//			$recordHeader = $loc["records"]; // use plural form if multiple records were updated
+
+//		$HeaderString = returnMsg("The groups of " .  . " records were updated successfully!", "", "", "HeaderString");
 
 		getUserGroups($queryTable, $userID); // update the appropriate session variable
 	}
@@ -3944,6 +3950,44 @@ EOF;
 
 	// --------------------------------------------------------------------
 
+	// Get the default view for the current user:
+	function getDefaultView($userID)
+	{
+		global $defaultView; // defined in 'ini.inc.php'
+
+		$userOptionsArray = array(); // initialize array variables
+		$viewsArray = array("List"    => "allow_list_view",
+		                    "Cite"    => "allow_cite",
+		                    "Display" => "allow_details_view",
+		                    "Browse"  => "allow_browse_view");
+
+		$userDefaultView = $defaultView; // by default, we take the default view from the global variable '$defaultView'
+
+		// Note that if the user isn't logged in (userID=0), the default view is taken from variable '$defaultView'
+		// in 'ini.inc.php' and is not overridden by any of the '*_view' permissions ('allow_list_view', 'allow_details_view',
+		// 'allow_browse_view', 'allow_cite') in table 'user_permissions'
+
+		// Adopt the user's default view if he/she is NOT allowed to use the global default (given in '$defaultView'):
+		if (isset($viewsArray[$defaultView]) AND isset($_SESSION['user_permissions']) AND !ereg($viewsArray[$defaultView], $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain the '*_view' permission that corresponds to '$defaultView'
+		{
+			foreach ($viewsArray as $viewType => $viewPermission) // use the next allowed view as default view
+			{
+				if (ereg($viewPermission, $_SESSION['user_permissions']))
+				{
+					$userDefaultView = $viewType;
+					break;
+				}
+			}
+		}
+
+		// Write the name of the default view into a session variable:
+		saveSessionVariable("userDefaultView", $userDefaultView);
+
+		return $userDefaultView;
+	}
+
+	// --------------------------------------------------------------------
+
 	// Returns the total number of records in the database:
 	function getTotalNumberOfRecords()
 	{
@@ -4018,7 +4062,7 @@ EOF;
 	// --------------------------------------------------------------------
 
 	// Update the specified user permissions for the selected user(s):
-	function updateUserPermissions($recordSerialsString, $userPermissionsArray) // '$userPermissionsArray' must contain one or more key/value elements of the form array('allow_add' => 'yes', 'allow_delete' => 'no') where key is a particular 'allow_*' field name from table 'user_permissions' and value is either 'yes' or 'no'
+	function updateUserPermissions($userIDArray, $userPermissionsArray) // '$userPermissionsArray' must contain one or more key/value elements of the form array('allow_add' => 'yes', 'allow_delete' => 'no') where key is a particular 'allow_*' field name from table 'user_permissions' and value is either 'yes' or 'no'
 	{
 		global $tableUserPermissions; // defined in 'db.inc.php'
 
@@ -4031,12 +4075,10 @@ EOF;
 		foreach($userPermissionsArray as $permissionKey => $permissionValue)
 			$permissionQueryArray[] = $permissionKey . " = " . quote_smart($permissionValue);
 
-		if (!empty($permissionQueryArray))
+		if (!empty($userIDArray) AND !empty($permissionQueryArray))
 		{
-			$permissionQueryString = implode(", ", $permissionQueryArray);
-
 			// Update all specified permission settings in the 'user_permissions' table for the selected user(s):
-			$query = "UPDATE $tableUserPermissions SET " . $permissionQueryString . " WHERE user_id RLIKE " . quote_smart("^(" . $recordSerialsString . ")$");
+			$query = "UPDATE $tableUserPermissions SET " . implode(", ", $permissionQueryArray) . " WHERE user_id RLIKE " . quote_smart("^(" . implode("|", $userIDArray) . ")$");
 
 			$result = queryMySQLDatabase($query); // RUN the query on the database through the connection
 
@@ -4463,6 +4505,47 @@ EOF;
 
 	// --------------------------------------------------------------------
 
+	// Returns values from the given field & table:
+	function getFieldContents($tableName, $columnName, $userID = "", $queryWhereClause = "", $orderBy = "", $getDistinctValues = true)
+	{
+		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
+
+		connectToMySQLDatabase();
+
+		if ($getDistinctValues)
+			$distinct = "DISTINCT ";
+		else
+			$distinct = "";
+
+		// CONSTRUCT SQL QUERY:
+		$query = "SELECT " . $distinct . $columnName
+		       . " FROM " . $tableName;
+
+		if (($tableName == $tableRefs) AND isset($_SESSION['loginEmail']) AND !empty($userID)) // when querying table 'refs', and if a user is logged in...
+			$query .= " LEFT JOIN " . $tableUserData . " ON serial = record_id AND user_id = " . quote_smart($userID);
+
+		if (!empty($queryWhereClause))
+			$query .= " WHERE " . $queryWhereClause;
+
+		if (!empty($orderBy))
+			$query .= " ORDER BY " . $orderBy;
+
+		$result = queryMySQLDatabase($query); // RUN the query on the database through the connection
+
+		$fieldContentsArray = array(); // initialize array variable
+
+		$rowsFound = @ mysql_num_rows($result);
+		if ($rowsFound > 0) // If there were rows found ...
+		{
+			while ($row = @ mysql_fetch_array($result)) // for all rows found
+				$fieldContentsArray[] = $row[$columnName]; // append this row's field value to the array of extracted field values
+		}
+
+		return $fieldContentsArray;
+	}
+
+	// --------------------------------------------------------------------
+
 	// Remove a text pattern from the beginning and/or end of a string:
 	// This function is used to remove leading and/or trailing delimiters from a string.
 	// Notes:  - '$removePattern' must be specified as perl-style regular expression!
@@ -4736,7 +4819,7 @@ EOF;
 		        . "\r\n";
 
 		// open connection:
-		// see <http://www.php.net/manual/en/function.fsockopen.php>
+		// see <http://www.php.net/fsockopen>
 		$fp = fsockopen($host, $port, $errorNo, $errorMsg, $timeout);
 
 		if (!$fp)
@@ -4761,30 +4844,82 @@ EOF;
 
 	// --------------------------------------------------------------------
 
+	// Detect character encoding:
+	// NOTE: - Currently, this function only distinguishes between ISO-8859-1 and UTF-8!
+	function detectCharacterEncoding($sourceString, $detectOrder = "")
+	{
+		// Method A:
+		// Function 'mb_detect_encoding()' requires PHP with multi-byte support (i.e., PHP must
+		// be compiled with the '--enable-mbstring' configure option).
+		// (see: <http://php.net/manual/en/function.mb-detect-encoding.php>)
+
+//		$charSet = "";
+
+//		if (empty($detectOrder))
+			// Set the default character encoding detection order:
+			// (see: <http://www.php.net/mb-detect-order>)
+		//	$detectOrder = implode(", ", mb_detect_order()); // on an English system this may be e.g. "ASCII, UTF-8" which wouldn't be useful in our case
+//			$detectOrder = "UTF-8, ISO-8859-1"; // in case of refbase, we currently hardcode the detection order
+
+		// Detect the character encoding of the given '$sourceString' with the given '$detectOrder':
+//		$charSet = mb_detect_encoding($sourceString . "a", $detectOrder); // an ASCII char is appended to avoid a bug, see comment by <hoermann dot j at gmail dot com> at <http://php.net/manual/en/function.mb-detect-encoding.php>
+
+
+		// Method B:
+		// Based on function 'detectUTF8()' by user <chris at w3style dot co dot uk>
+		// at <http://php.net/manual/en/function.mb-detect-encoding.php>
+		// (see also: <http://w3.org/International/questions/qa-forms-utf-8.html>)
+
+		// Check if a string contains UTF-8 characters:
+		// NOTE: This regex pattern only looks for non-ASCII multibyte sequences in
+		//       the UTF-8 range and stops once it finds at least one multibytes string.
+		if (preg_match('%(?:
+		                      [\xC2-\xDF][\x80-\xBF]            # non-overlong 2-byte
+		                    | \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
+		                    | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2} # straight 3-byte
+		                    | \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
+		                    | \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
+		                    | [\xF1-\xF3][\x80-\xBF]{3}         # planes 4-15
+		                    | \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
+		                 )+%xs', $sourceString))
+			$charSet = "UTF-8"; // found at least one multibyte UTF-8 character
+		else
+			$charSet = "ISO-8859-1";
+
+		return $charSet;
+	}
+
+	// --------------------------------------------------------------------
+
 	// Convert to character encoding:
-	// This function converts text that's represented in the refbase database encoding
-	// (which is indicated in '$contentTypeCharset') into the character encoding given
-	// in '$targetCharset'. '$transliteration' must be either "TRANSLIT" or "IGNORE"
-	// causing characters which are unrecognized by the target charset to get either
-	// transliterated or ignored, respectively.
-	function convertToCharacterEncoding($targetCharset, $transliteration, $sourceString)
+	// This function converts text that's represented in '$sourceCharset' into the character encoding
+	// given in '$targetCharset'. If '$sourceCharset' isn't given, we default to the refbase database
+	// encoding (which is indicated in '$contentTypeCharset'). '$transliteration' must be either
+	// "TRANSLIT" or "IGNORE" causing characters which are unrecognized by the target charset to get
+	// either transliterated or ignored, respectively.
+	function convertToCharacterEncoding($targetCharset, $transliteration, $sourceString, $sourceCharset = "")
 	{
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 		global $transtab_latin1_ascii; // defined in 'transtab_latin1_ascii.inc.php'
 		global $transtab_unicode_ascii; // defined in 'transtab_unicode_ascii.inc.php'
+		global $transtab_unicode_latin1; // defined in 'transtab_unicode_latin1.inc.php'
+		global $transtab_unicode_refbase; // defined in 'transtab_unicode_refbase.inc.php'
 
-		// in case of ISO-8859-1/UTF-8 to ASCII conversion we attempt to transliterate non-ASCII chars,
+		if (empty($sourceCharset))
+			$sourceCharset = $contentTypeCharset;
+
+		// In case of ISO-8859-1/UTF-8 to ASCII conversion we attempt to transliterate non-ASCII chars,
 		// comparable to the fallback notations that people use commonly in email and on typewriters to
 		// represent unavailable characters:
 		if (($targetCharset == "ASCII") AND ($transliteration == "TRANSLIT"))
 		{
-			if ($contentTypeCharset == "UTF-8")
+			if ($sourceCharset == "UTF-8")
 				$convertedString = searchReplaceText($transtab_unicode_ascii, $sourceString, false);
 			else // we assume "ISO-8859-1" by default
 				$convertedString = searchReplaceText($transtab_latin1_ascii, $sourceString, false);
 
-			// strip any additional non-ASCII characters which we weren't able to transliterate:
-			$convertedString = iconv($contentTypeCharset, "ASCII//IGNORE", $convertedString);
+			// Strip any additional non-ASCII characters which we weren't able to transliterate:
+			$convertedString = iconv($sourceCharset, "ASCII//IGNORE", $convertedString);
 
 			// Notes from <http://www.php.net/manual/en/function.iconv.php> regarding "TRANSLIT" and "IGNORE":
 			// - If you append the string //TRANSLIT to out_charset transliteration is activated.
@@ -4794,8 +4929,25 @@ EOF;
 			//   are silently discarded. Otherwise, str is cut from the first illegal character.
 		}
 
+		// Similar to the ISO-8859-1/UTF-8 to ASCII conversion we attempt to transliterate non-latin1 chars when
+		// converting from UTF-8 to ISO-8859-1.
+		// NOTE: we don't use 'iconv("UTF-8", "ISO-8859-1//TRANSLIT", $sourceString)' here, since this seems to
+		//       abort the conversion with an error ("Detected an illegal character in input string") if e.g. a
+		//       greek delta character is encountered.
+		elseif (($targetCharset == "ISO-8859-1") AND ($transliteration == "TRANSLIT") AND ($sourceCharset == "UTF-8"))
+		{
+			// Convert Unicode entities to refbase markup (if possible):
+			$convertedString = searchReplaceText($transtab_unicode_refbase, $sourceString, true);
+
+			// Attempt to transliterate any remaining non-latin1 characters:
+			$convertedString = searchReplaceText($transtab_unicode_latin1, $convertedString, false);
+
+			// Strip any additional non-latin1 characters which we weren't able to transliterate:
+			$convertedString = iconv($sourceCharset, "ISO-8859-1//IGNORE", $convertedString);
+		}
+
 		else
-			$convertedString = iconv($contentTypeCharset, "$targetCharset//$transliteration", $sourceString);
+			$convertedString = iconv($sourceCharset, "$targetCharset//$transliteration", $sourceString);
 
 		return $convertedString;
 	}
@@ -4822,7 +4974,7 @@ EOF;
 		}
 		else
 			$encodedString = htmlentities($sourceString, ENT_COMPAT, "$contentTypeCharset");
-			// Notes from <http://www.php.net/manual/en/function.htmlentities.php>:
+			// Notes from <http://www.php.net/htmlentities>:
 			//
 			//     - The optional second parameter lets you define what will be done with 'single' and "double" quotes.
 			//       It takes on one of three constants with the default being ENT_COMPAT:
@@ -4839,20 +4991,21 @@ EOF;
 	// --------------------------------------------------------------------
 
 	// Encode HTML special chars:
-	// As opposed to the 'encodeHTML()' function this function will only convert the characters supported by the 'htmlspecialchars()' function:
+	// As opposed to the 'encodeHTML()' function this function will only convert the characters supported by the
+	// 'htmlspecialchars()' function:
 	// - '&' (ampersand) becomes '&amp;'
-	// - '"' (double quote) becomes '&quot;' when ENT_NOQUOTES  is not set
-	// - ''' (single quote) becomes '&#039;' only when  ENT_QUOTES is set
+	// - '"' (double quote) becomes '&quot;' when ENT_NOQUOTES is not set
+	// - ''' (single quote) becomes '&#039;' only when ENT_QUOTES is set
 	// - '<' (less than) becomes '&lt;'
 	// - '>' (greater than) becomes '&gt;'
-	// Note that these (and only these!) entities are also supported by XML (which is why we use this function within the XML generating functions
-	// 'generateRSS()', 'modsRecord()' & 'atomEntry()' and leave all other higher ASCII chars unencoded)
+	// Note that these (and only these!) entities are also supported by XML (which is why we use this function within the XML
+	// generating functions 'generateRSS()', 'modsRecord()' & 'atomEntry()' and leave all other higher ASCII chars unencoded)
 	function encodeHTMLspecialchars($sourceString)
 	{
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
 		$encodedString = htmlspecialchars($sourceString, ENT_COMPAT, "$contentTypeCharset");
-		// Notes from <http://www.php.net/manual/en/function.htmlspecialchars.php>:
+		// Notes from <http://www.php.net/htmlspecialchars>:
 		//
 		//     - The optional second parameter lets you define what will be done with 'single' and "double" quotes.
 		//       It takes on one of three constants with the default being ENT_COMPAT:
@@ -4864,6 +5017,137 @@ EOF;
 		//       was added in PHP 4.1.0. Presently, the ISO-8859-1 character set is used as the default.
 
 		return $encodedString;
+	}
+
+	// --------------------------------------------------------------------
+
+	// Decode HTML entities:
+	// This function converts HTML entities in '$sourceString' to the character encoding given in '$targetCharset'.
+	// It is intended to work similar to function 'html_entity_decode()' but should also support conversion of numeric
+	// entities as well as UTF-8 on PHP 4. In case of refbase, '$targetCharset' should be either "UTF-8" or "ISO-8859-1".
+	function decodeHTML($targetCharset, $sourceString)
+	{
+		global $contentTypeCharset; // defined in 'ini.inc.php'
+
+		static $transtab_HTML;
+
+		// Method A:
+		// Function 'html_entity_decode()' is available since PHP 4.3.0, but UTF-8 support was only added with PHP 5?
+		// (see <http://www.php.net/html-entity-decode>)
+		// NOTE: This function doesn't convert numeric entities, so, if used, it should be combined with the code block
+		//       underneath "Replace numeric entities" below.
+//		$convertedString = html_entity_decode($sourceString, ENT_QUOTES, "$targetCharset");
+		// W.r.t. the second parameter, see notes underneath the call to 'htmlentities()' in function 'encodeHTML()'
+
+
+		// Method B:
+		// Function 'mb_convert_encoding()' requires PHP with multi-byte support (i.e., PHP must be compiled with the
+		// '--enable-mbstring' configure option). Converts from 'HTML-ENTITIES' to '$targetCharset'.
+		// (see: <http://php.net/manual/en/function.mb-convert-encoding.php>)
+		// NOTE: Compared to methods A + C, this seems to yield different results! ?:-/
+//		$convertedString = mb_convert_encoding($sourceString, "$targetCharset", 'HTML-ENTITIES');
+
+
+		// Method C:
+		// Assembled from user contributions at <http://www.php.net/html-entity-decode>
+
+		// - Replace numeric entities:
+		$convertedString = preg_replace('/&#x0*([0-9a-f]+);/ei', "charNumToCharString('$targetCharset', hexdec('\\1'))", $sourceString); // hex notation
+		$convertedString = preg_replace('/&#0*([0-9]+);/e', "charNumToCharString('$targetCharset', '\\1')", $convertedString); // decimal notation
+
+		// - Replace literal entities:
+		if (!isset($transtab_HTML))
+		{
+			// Get the translation table that's used by function 'htmlspecialchars()':
+			$transtab_HTML = get_html_translation_table(HTML_ENTITIES, ENT_QUOTES);
+			$transtab_HTML = array_flip($transtab_HTML);
+
+			// Change the translation table from latin1 to UTF-8 (if necessary):
+			if ($targetCharset == "UTF-8")
+				foreach ($transtab_HTML as $key => $value)
+					$transtab_HTML[$key] = utf8_encode($value); // encode ISO-8859-1 char as UTF-8
+		}
+
+		$convertedString = strtr($convertedString, $transtab_HTML);
+
+		return $convertedString;
+	}
+
+	// --------------------------------------------------------------------
+
+	// Decode HTML special chars:
+	// As opposed to the 'decodeHTML()' function this function will only decode the characters supported by the
+	// 'htmlspecialchars()' function:
+	// - '&amp;' (ampersand) becomes '&'
+	// - '&quot;' (double quote) becomes '"' when ENT_NOQUOTES is not set
+	// - '&#039;' (single quote) becomes ''' only when ENT_QUOTES is set
+	// - '&lt;' (less than) becomes '<'
+	// - '&gt;' (greater than) becomes '>'
+	function decodeHTMLspecialchars($sourceString)
+	{
+		static $transtab_HTMLspecialchars;
+
+		// Method A:
+		// Function 'htmlspecialchars_decode()' seems to be available since PHP 5.1.0.
+		// (see <http://www.php.net/htmlspecialchars-decode>)
+//		$decodedString = htmlspecialchars_decode($sourceString, ENT_QUOTES);
+		// W.r.t. the second parameter, see notes underneath the call to 'htmlspecialchars()' in function 'encodeHTMLspecialchars()'
+
+
+		// Method B:
+		// Assembled from user contributions at <http://www.php.net/htmlspecialchars-decode>
+		if (!isset($transtab_HTMLspecialchars))
+		{
+			// Get the translation table that's used by function 'htmlspecialchars()':
+			$transtab_HTMLspecialchars = get_html_translation_table(HTML_SPECIALCHARS, ENT_QUOTES);
+			$transtab_HTMLspecialchars = array_flip($transtab_HTMLspecialchars);
+
+			if (!isset($transtab_HTMLspecialchars['&#039;'])) // we need to add '&#039;' since the above call to 'get_html_translation_table()' returns just '&#39;'
+				$transtab_HTMLspecialchars['&#039;'] = "'";
+		}
+
+		$decodedString = strtr($sourceString, $transtab_HTMLspecialchars);
+
+		return $decodedString;
+	}
+
+	// --------------------------------------------------------------------
+
+	// Returns the character string that corresponds to the given character code value:
+	// (modified after user contributions by <akniep at rayo dot info>, <aurynas dot butkus at gmail dot com>
+	//  and <romans at void dot lv> at <http://www.php.net/html-entity-decode>)
+	// NOTE: - In case of refbase, '$targetCharset' should be either "UTF-8" or "ISO-8859-1"
+	//       - For a latin1-based database, we'll convert any Unicode-only entities into the
+	//         corresponding refbase markup (if possible), and any remaining UTF-8 characters
+	//         will be converted to their ASCII equivalents.
+	function charNumToCharString($targetCharset, $num)
+	{
+		global $transtab_unicode_ascii; // defined in 'transtab_unicode_ascii.inc.php'
+		global $transtab_unicode_refbase; // defined in 'transtab_unicode_refbase.inc.php'
+
+		// Generates a UTF-8 string that corresponds to the given Unicode value:
+		if ($num < 0)
+			$utfChar = '';
+		elseif ($num < 128)
+			$utfChar = chr($num);
+		elseif ($num < 2048)
+			$utfChar = chr(($num >> 6) + 192) . chr(($num & 63) + 128);
+		elseif ($num < 65536)
+			$utfChar = chr(($num >> 12) + 224) . chr((($num >> 6) & 63) + 128) . chr(($num & 63) + 128);
+		elseif ($num < 2097152)
+			$utfChar = chr(($num >> 18) + 240) . chr((($num >> 12) & 63) + 128) . chr((($num >> 6) & 63) + 128) . chr(($num & 63) + 128);
+
+		if (!empty($utfChar) AND $targetCharset == "ISO-8859-1")
+		{
+			// Convert Unicode entities to refbase markup (if possible):
+			$utfChar = searchReplaceText($transtab_unicode_refbase, $utfChar, true);
+
+			// Convert any remaining UTF-8 characters to their ASCII equivalents:
+			// TODO: Should we use iconv (function 'convertToCharacterEncoding()') instead?
+			$utfChar = searchReplaceText($transtab_unicode_ascii, $utfChar, false);
+		}
+
+		return $utfChar;
 	}
 
 	// --------------------------------------------------------------------
@@ -4987,7 +5271,7 @@ EOF;
 			// NOTE: I've commented the above code block for now, since, for '$showAdditionalFieldsDetailsViewDefault=yes' with additional fields being hidden, it causes the 'location' field to appear when clicking any of the sort/browse/view links
 			//       The drawback is that the 'location' field isn't added to the SQL query now when a record in Details view is reloaded after an anonymous user did view the record in Details view and then decided to log in
 
-			if ((eregi("^(Display|Export|RSS)$",$displayType)) AND (!eregi("LEFT JOIN $tableUserData",$sqlQuery))) // if the 'LEFT JOIN...' statement isn't already part of the 'FROM' clause...
+			if ((eregi("^(Cite|Display|Export|RSS)$",$displayType)) AND (!eregi("LEFT JOIN $tableUserData",$sqlQuery))) // if the 'LEFT JOIN...' statement isn't already part of the 'FROM' clause...
 				$sqlQuery = eregi_replace(" FROM $tableRefs"," FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $loginUserID",$sqlQuery); // ...add the 'LEFT JOIN...' part to the 'FROM' clause
 		}
 
@@ -5279,9 +5563,9 @@ EOF;
 
 	// Generate an URL pointing to a RSS feed or any of the supported export/citation formats for the given query:
 	// '$urlType' must be one of these: - RSS XML
-	//                                  - export formats:   Endnote, BibTeX, RIS, ISI, Atom XML, MODS XML, OAI_DC XML, ODF XML, SRW_DC XML, SRW_MODS XML, Word XML
+	//                                  - export formats:   ADS, BibTeX, Endnote, ISI, RIS, Atom XML, MODS XML, OAI_DC XML, ODF XML, SRW_DC XML, SRW_MODS XML, Word XML
 	//                                  - citation formats: RTF, PDF, LaTeX, Markdown, ASCII, LaTeX .bbl
-	//                                  - default format:   html (variable '$defaultView' in 'ini.inc.php' specifies the default display type)
+	//                                  - default format:   html (session variable 'userDefaultView' specifies the default display type)
 	function generateURL($baseURL, $urlType, $queryParametersArray, $encodeAmpersands = false, $showRows = 0, $rowOffset = 0, $citeStyle = "", $citeOrder = "")
 	{
 		global $defaultCiteStyle; // defined in 'ini.inc.php'
@@ -5318,16 +5602,19 @@ EOF;
 		if (eregi("^((search|show)\.php)$", $baseURL))
 		{
 			// - export formats:
-			if (eregi("^(BibTeX|Endnote|RIS|ISI|Atom XML|MODS XML|OAI_DC XML|ODF XML|SRW_DC XML|SRW_MODS XML|Word XML)$", $urlType))
+			if (eregi("^(ADS|BibTeX|Endnote|RIS|ISI|Atom XML|MODS XML|OAI_DC XML|ODF XML|SRW_DC XML|SRW_MODS XML|Word XML)$", $urlType))
 			{
+				if (!isset($queryParametersArray["exportType"]))
+				{
+					if (eregi("XML", $urlType))
+						$queryParametersArray["exportType"] = "xml";
+					else
+						$queryParametersArray["exportType"] = "file";
+				}
+
 				$queryParametersArray["submit"] = "Export";
 
 				$queryParametersArray["exportFormat"] = $urlType;
-
-				if (eregi("XML", $urlType))
-					$queryParametersArray["exportType"] = "xml";
-				else
-					$queryParametersArray["exportType"] = "file";
 			}
 
 			// - citation formats:
