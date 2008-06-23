@@ -96,11 +96,11 @@
 	//   - 'Export' => generate and return selected records in the bibliographic format specified by the user ('generateExport()' function)
 	//   - 'RSS' => these value gets included within the 'RSS' link (in the page header) and will cause 'search.php' to return results as RSS feed
 	//   - 'Search', 'Show' or 'Hide' => these values change/refine the search results or their appearance on screen (how many entries & which columns get displayed)
-	//   - 'Add', 'Remove', 'Remember' or 'Forget' => these values will trigger actions that act on the selected records (NOTE: 'Remember' or 'Forget' are currently disabled!)
+	//   - 'Add', 'Remove' => these values will trigger actions that act on the selected records
 	if (isset($_REQUEST['submit']) AND !empty($_REQUEST['submit']))
 		$displayType = $_REQUEST['submit'];
 	else
-		$displayType = $defaultView; // defined in 'ini.inc.php'
+		$displayType = $_SESSION['userDefaultView']; // get the default view for the current user
 
 	// extract the original value of the '$displayType' variable:
 	// (which was included as a hidden form tag within the 'groupSearch' form of a search results page, the 'queryResults' form in Details view, and the 'duplicateSearch' form)
@@ -239,7 +239,7 @@
 	if (isset($_REQUEST['rowOffset']))
 	{
 		// Note: Besides passing the current value of '$rowOffset' within GET queries, this parameter was also included as a hidden tag into the 'queryResults' form.
-		//       This was done, so that the correct offset could be re-applied after the user pressed either of the 'Add', 'Remove', 'Remember' or 'Forget' buttons.
+		//       This was done, so that the correct offset could be re-applied after the user pressed either of the 'Add' or 'Remove' buttons.
 		//       However, '$rowOffset' MUST NOT be set if the user clicked the 'Display' or 'Cite' button within the 'queryResults' form!
 		//       Therefore, we'll trap this case here:
 		if (($formType != "queryResults") OR ($formType == "queryResults" AND !ereg("^(Display|Cite)$", $displayType)))
@@ -303,7 +303,7 @@
 	// - 'Markdown' => return citations as Markdown TEXT data with mime type 'text/plain'
 	// - 'ASCII' => return citations as TEXT data with mime type 'text/plain'
 	// - 'LaTeX .bbl' => return citations as LaTeX .bbl file (for use with LaTeX/BibTeX) with mime type 'application/x-latex'
-	if (isset($_REQUEST['citeType']) AND eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $_REQUEST['citeType']))
+	if (isset($_REQUEST['citeType']) AND eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $_REQUEST['citeType']) AND !eregi("^(Add|Remove)$", $displayType)) // we always return HTML if the user clicked either the 'Add' or the 'Remove' button
 		$citeType = $_REQUEST['citeType'];
 	else
 		$citeType = "html";
@@ -366,10 +366,15 @@
 	else
 		$recordSerialsArray = array();
 
+	if (isset($_REQUEST['recordsSelectionRadio']))
+		$recordsSelectionRadio = $_REQUEST['recordsSelectionRadio']; // for query results pages, extract user option whether we're supposed to process ALL records or just the ones that have been SELECTED on the current page
+	else
+		$recordsSelectionRadio = "1"; // process ALL records
+
 	// check if the user did mark any checkboxes (and set up variables accordingly, they will be used within the 'displayDetails()', 'generateCitations()' and 'modifyUserGroups()' functions)
-	if (ereg(".+[/_]search.php", $referer) AND empty($recordSerialsArray)) // no checkboxes were marked
+	if (ereg(".+[/_]search.php", $referer) AND ($recordsSelectionRadio == "0") AND empty($recordSerialsArray)) // the "Selected Records" option was chosen, but NO checkboxes were marked
 		$nothingChecked = true;
-	else // some checkboxes were marked -OR- the query resulted from another script like 'opensearch.php', 'show.php' or 'rss.php' (which has no checkboxes to mark!)
+	else // the "All Found Records" option was chosen -OR- the "Selected Records" option was chosen and some checkboxes were marked -OR- the query resulted from another script like 'opensearch.php', 'show.php' or 'rss.php' (which has no checkboxes to mark!)
 		$nothingChecked = false;
 
 
@@ -505,7 +510,7 @@
 	// --- Form within 'search.php': ---------------
 	elseif ($formType == "queryResults") // the user clicked one of the buttons under the query results list (that was produced by 'search.php')
 		{
-			list($query, $displayType) = extractFormElementsQueryResults($displayType, $originalDisplayType, $showLinks, $citeOrder, $orderBy, $userID, $sqlQuery, $referer, $recordSerialsArray);
+			list($query, $displayType) = extractFormElementsQueryResults($displayType, $originalDisplayType, $showLinks, $citeOrder, $orderBy, $userID, $sqlQuery, $referer, $recordSerialsArray, $recordsSelectionRadio);
 		}
 
 	// --- Form 'extract.php': ---------------------
@@ -950,14 +955,15 @@
 				echo "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
 				   . "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
 				   . "\n<input type=\"hidden\" name=\"submit\" value=\"Cite\">" // provide a default value for the 'submit' form tag (then, if any form element is selected, hitting <enter> will act as if the user clicked the 'Cite' button)
+				   . "\n<input type=\"hidden\" name=\"originalDisplayType\" value=\"$displayType\">" // embed the original value of the '$displayType' variable
 				   . "\n<input type=\"hidden\" name=\"orderBy\" value=\"" . rawurlencode($orderBy) . "\">" // embed the current ORDER BY parameter so that it can be re-applied when displaying details
 				   . "\n<input type=\"hidden\" name=\"showQuery\" value=\"$showQuery\">" // embed the current value of '$showQuery' so that it's available on 'display details' (batch display) & 'cite'
 				   . "\n<input type=\"hidden\" name=\"showLinks\" value=\"$showLinks\">" // embed the current value of '$showLinks' so that it's available on 'display details' (batch display) & 'cite'
 				   . "\n<input type=\"hidden\" name=\"showRows\" value=\"$showRows\">" // embed the current value of '$showRows' so that it's available on 'display details' (batch display) & 'cite'
-				   . "\n<input type=\"hidden\" name=\"rowOffset\" value=\"$rowOffset\">" // embed the current value of '$rowOffset' so that it can be re-applied after the user pressed either of the 'Add', 'Remove', 'Remember' or 'Forget' buttons within the 'queryResults' form
-				   // Note: the inclusion of '$rowOffset' here is only meant to support reloading of the same results page again after a user clicked the 'Add', 'Remove', 'Remember' or 'Forget' buttons
+				   . "\n<input type=\"hidden\" name=\"rowOffset\" value=\"$rowOffset\">" // embed the current value of '$rowOffset' so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
+				   // Note: the inclusion of '$rowOffset' here is only meant to support reloading of the same results page again after a user clicked the 'Add' or 'Remove' buttons
 				   //       However, '$rowOffset' MUST NOT be set if the user clicked the 'Display' or 'Cite' button! Therefore we'll trap for this case at the top of the script.
-				   . "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"$queryURL\">"; // embed the current sqlQuery so that it can be re-applied after the user pressed either of the 'Add', 'Remove', 'Remember' or 'Forget' buttons within the 'queryResults' form
+				   . "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"$queryURL\">"; // embed the current sqlQuery so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
 
 
 				// 5) And start a TABLE, with column headers
@@ -1306,10 +1312,10 @@
 				   . "\n<input type=\"hidden\" name=\"showQuery\" value=\"$showQuery\">" // embed the current value of '$showQuery' so that it's available on 'display details' (batch display) & 'cite'
 				   . "\n<input type=\"hidden\" name=\"showLinks\" value=\"$showLinks\">" // embed the current value of '$showLinks' so that it's available on 'display details' (batch display) & 'cite'
 				   . "\n<input type=\"hidden\" name=\"showRows\" value=\"$showRows\">" // embed the current value of '$showRows' so that it's available on 'display details' (batch display) & 'cite'
-				   . "\n<input type=\"hidden\" name=\"rowOffset\" value=\"$rowOffset\">" // embed the current value of '$rowOffset' so that it can be re-applied after the user pressed either of the 'Add', 'Remove', 'Remember' or 'Forget' buttons within the 'queryResults' form
-				   // Note: the inclusion of '$rowOffset' here is only meant to support reloading of the same results page again after a user clicked the 'Add', 'Remove', 'Remember' or 'Forget' buttons
+				   . "\n<input type=\"hidden\" name=\"rowOffset\" value=\"$rowOffset\">" // embed the current value of '$rowOffset' so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
+				   // Note: the inclusion of '$rowOffset' here is only meant to support reloading of the same results page again after a user clicked the 'Add' or 'Remove' buttons
 				   //       However, '$rowOffset' MUST NOT be set if the user clicked the 'Display' or 'Cite' button! Therefore we'll trap for this case at the top of the script.
-				   . "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"$queryURL\">"; // embed the current sqlQuery so that it can be re-applied after the user pressed either of the 'Add', 'Remove', 'Remember' or 'Forget' buttons within the 'queryResults' form
+				   . "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"$queryURL\">"; // embed the current sqlQuery so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
 
 
 				// 5) And start a TABLE, with column headers
@@ -1733,19 +1739,22 @@
 					$exportFileName = "export.xml";
 			}
 
-			elseif (eregi("BibTeX|Endnote|RIS|ISI", $exportFormat)) // if the export format name contains either 'BibTeX', 'Endnote', 'RIS' or 'ISI'
+			elseif (eregi("ADS|BibTeX|Endnote|ISI|RIS", $exportFormat)) // if the export format name contains either 'ADS', 'BibTeX', 'Endnote', 'ISI' or 'RIS'
 			{
-				if (eregi("Endnote", $exportFormat))
-					$exportFileName = "endnote_export.enw";
+				if (eregi("ADS", $exportFormat))
+					$exportFileName = "ads_export.txt";
 
 				elseif (eregi("BibTeX", $exportFormat))
 					$exportFileName = "bibtex_export.bib";
 
-				elseif (eregi("RIS", $exportFormat))
-					$exportFileName = "ris_export.ris";
+				elseif (eregi("Endnote", $exportFormat))
+					$exportFileName = "endnote_export.enw";
 
 				elseif (eregi("ISI", $exportFormat))
 					$exportFileName = "isi_export.txt";
+
+				elseif (eregi("RIS", $exportFormat))
+					$exportFileName = "ris_export.ris";
 			}
 
 			else
@@ -1950,7 +1959,7 @@
 					if (ereg("(allow_export|allow_batch_export)", $_SESSION['user_permissions']))
 						$resultsFooterToggleText .= ", ";
 					else
-						$resultsFooterToggleText .= " &amp; ";
+						$resultsFooterToggleText .= " & ";
 				}
 
 				$resultsFooterToggleText .= "Group";
@@ -1959,7 +1968,7 @@
 			if (!isset($_SESSION['loginEmail']) AND ($allowAnonymousGUIExport == "yes") OR (isset($_SESSION['loginEmail']) AND ereg("(allow_export|allow_batch_export)", $_SESSION['user_permissions'])))
 			{
 				if (ereg("(allow_cite|allow_user_groups)", $_SESSION['user_permissions']))
-					$resultsFooterToggleText .= " &amp; ";
+					$resultsFooterToggleText .= " & ";
 
 				$resultsFooterToggleText .= "Export";
 			}
@@ -1976,13 +1985,13 @@
 			{
 				$resultsFooterDisplayStyle = "none";
 				$resultsFooterToggleImage = "img/closed.gif";
-				$resultsFooterInitialToggleText = $resultsFooterToggleText;
+				$resultsFooterInitialToggleText = encodeHTML($resultsFooterToggleText);
 			}
 
 			$ResultsFooterRow = "\n<div class=\"resultsfooter\">";
 
 			$ResultsFooterRow .= "\n<div class=\"showhide\">"
-			                   . "\n\t<a href=\"#resultactions\" onclick=\"toggleVisibility('resultactions','resultsFooterToggleimg','resultsFooterToggletxt','" . $resultsFooterToggleText . "')\"" . addAccessKey("attribute", "footer") . " title=\"" . $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "footer") . "\">"
+			                   . "\n\t<a href=\"javascript:toggleVisibility('resultactions','resultsFooterToggleimg','resultsFooterToggletxt','" . rawurlencode($resultsFooterToggleText) . "')\"" . addAccessKey("attribute", "footer") . " title=\"" . $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "footer") . "\">"
 			                   . "\n\t\t<img id=\"resultsFooterToggleimg\" class=\"toggleimg\" src=\"" . $resultsFooterToggleImage . "\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
 			                   . "\n\t\t<span id=\"resultsFooterToggletxt\" class=\"toggletxt\">" . $resultsFooterInitialToggleText . "</span>"
 			                   . "\n\t</a>"
@@ -2352,11 +2361,10 @@
 	// TODO: build the complete SQL query using functions 'buildFROMclause()', 'buildWHEREclause()' and 'buildORDERclause()'
 	function extractFormElementsSimple($showLinks, $userID)
 	{
-		global $defaultView; // defined in 'ini.inc.php'
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
 		// Build SELECT clause:
-		if ($defaultView == "List") // honour the user's selection of fields to be displayed in List View
+		if ($_SESSION['userDefaultView'] == "List") // honour the user's selection of fields to be displayed in List View
 		{
 			// Defines a list of all checkbox names that are available in "Simple Search"
 			// and their corresponding column names from MySQL table 'refs':
@@ -2372,10 +2380,10 @@
 			// List View SELECT clause if they were marked in the search form interface:
 			$selectClauseColumnsArray = addToSelectClause($columnsArray);
 
-			$query = buildSELECTclause($defaultView, $showLinks, "", false, true, implode(", ", $selectClauseColumnsArray));
+			$query = buildSELECTclause($_SESSION['userDefaultView'], $showLinks, "", false, true, implode(", ", $selectClauseColumnsArray));
 		}
 		else
-			$query = buildSELECTclause($defaultView, $showLinks);
+			$query = buildSELECTclause($_SESSION['userDefaultView'], $showLinks);
 
 
 		// Build FROM clause:
@@ -2632,12 +2640,11 @@
 	// TODO: build the complete SQL query using functions 'buildFROMclause()', 'buildWHEREclause()' and 'buildORDERclause()'
 	function extractFormElementsLibrary($showLinks, $userID)
 	{
-		global $librarySearchPattern; // these variables are specified in 'ini.inc.php'
-		global $defaultView;
+		global $librarySearchPattern; // defined in 'ini.inc.php'
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
 		// Build SELECT clause:
-		if ($defaultView == "List") // honour the user's selection of fields to be displayed in List View
+		if ($_SESSION['userDefaultView'] == "List") // honour the user's selection of fields to be displayed in List View
 		{
 			// Defines a list of all checkbox names that are available in "Library Search"
 			// and their corresponding column names from MySQL table 'refs':
@@ -2659,10 +2666,10 @@
 			// List View SELECT clause if they were marked in the search form interface:
 			$selectClauseColumnsArray = addToSelectClause($columnsArray);
 
-			$query = buildSELECTclause($defaultView, $showLinks, "", false, true, implode(", ", $selectClauseColumnsArray));
+			$query = buildSELECTclause($_SESSION['userDefaultView'], $showLinks, "", false, true, implode(", ", $selectClauseColumnsArray));
 		}
 		else
-			$query = buildSELECTclause($defaultView, $showLinks);
+			$query = buildSELECTclause($_SESSION['userDefaultView'], $showLinks);
 
 
 		// Build FROM clause:
@@ -3034,11 +3041,10 @@
 	// TODO: build the complete SQL query using functions 'buildFROMclause()', 'buildWHEREclause()' and 'buildORDERclause()'
 	function extractFormElementsAdvanced($showLinks, $loginEmail, $userID)
 	{
-		global $defaultView; // defined in 'ini.inc.php'
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
 		// Build SELECT clause:
-		if ($defaultView == "List") // honour the user's selection of fields to be displayed in List View
+		if ($_SESSION['userDefaultView'] == "List") // honour the user's selection of fields to be displayed in List View
 		{
 			// Defines a list of all checkbox names that are available in "Advanced Search"
 			// and their corresponding column names from MySQL tables 'refs' & 'user_data':
@@ -3102,10 +3108,10 @@
 			// List View SELECT clause if they were marked in the search form interface:
 			$selectClauseColumnsArray = addToSelectClause($columnsArray);
 
-			$query = buildSELECTclause($defaultView, $showLinks, "", false, true, implode(", ", $selectClauseColumnsArray));
+			$query = buildSELECTclause($_SESSION['userDefaultView'], $showLinks, "", false, true, implode(", ", $selectClauseColumnsArray));
 		}
 		else
-			$query = buildSELECTclause($defaultView, $showLinks);
+			$query = buildSELECTclause($_SESSION['userDefaultView'], $showLinks);
 
 
 		// Build FROM clause:
@@ -4855,11 +4861,9 @@
 	// --------------------------------------------------------------------
 
 	// Build the database query from records selected by the user within the query results list (which, in turn, was returned by 'search.php'):
-	function extractFormElementsQueryResults($displayType, $originalDisplayType, $showLinks, $citeOrder, $orderBy, $userID, $sqlQuery, $referer, $recordSerialsArray)
+	function extractFormElementsQueryResults($displayType, $originalDisplayType, $showLinks, $citeOrder, $orderBy, $userID, $sqlQuery, $referer, $recordSerialsArray, $recordsSelectionRadio)
 	{
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
-
-		$recordsSelectionRadio = $_REQUEST['recordsSelectionRadio']; // extract user option whether we're supposed to process ALL records or just the ones that have been SELECTED on the current page
 
 		// Process ALL found records:
 		if ($recordsSelectionRadio == "1") // if the user checked the radio button next to the "All Found Records" option [this is the default]
@@ -4867,19 +4871,17 @@
 			// extract the 'WHERE' clause from the SQL query:
 			$queryWhereClause = extractWHEREclause($sqlQuery); // function 'extractWHEREclause()' is defined in 'include.inc.php'
 
-			$recordSerialsString = "";
+			if (eregi("^(Add|Remove)$", $displayType)) // the user clicked either the 'Add' or the 'Remove' button
+				 // get the serial numbers of all found records (which is required by function 'modifyUserGroups()'):
+				$recordSerialsArray = getFieldContents($tableRefs, "serial", $userID, $queryWhereClause); // function 'getFieldContents()' is defined in 'include.inc.php'
 		}
-
 		// Process SELECTED records only:
 		else // $recordsSelectionRadio == "0" // if the user checked the radio button next to the "Selected Records" option
 		{
-			// join array elements:
-			if (!empty($recordSerialsArray)) // the user did check some checkboxes
-				$recordSerialsString = implode("|", $recordSerialsArray); // separate record serials by "|" in order to facilitate regex querying...
-			else // the user didn't check any checkboxes
-				$recordSerialsString = "0"; // we use '0' which definitely doesn't exist as serial, resulting in a "nothing found" feedback
+			if (empty($recordSerialsArray)) // the user did NOT check any checkboxes
+				$recordSerialsArray[] = "0"; // since '0' doesn't exist as serial number, this will result in a "nothing found" feedback
 
-			$queryWhereClause = "serial RLIKE " . quote_smart("^(" . $recordSerialsString . ")$");
+			$queryWhereClause = "serial RLIKE " . quote_smart("^(" . implode("|", $recordSerialsArray) . ")$");
 		}
 
 		if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', extract form elements which add/remove the selected records to/from a user's group:
@@ -4939,16 +4941,10 @@
 					$query .= " FROM $tableRefs WHERE " . $queryWhereClause . " ORDER BY $orderBy";
 			}
 
-		elseif (isset($_SESSION['loginEmail']) AND ereg("^(Remember|Add|Remove)$", $displayType)) // if a user (who's logged in) clicked the 'Remember', 'Add' or 'Remove' button...
+		elseif (isset($_SESSION['loginEmail']) AND eregi("^(Add|Remove)$", $displayType)) // if a user (who's logged in) clicked the 'Add' or 'Remove' button...
 			{
-				if ($displayType == "Remember") // the user clicked the 'Remember' button
-					if (!empty($recordSerialsArray)) // the user did check some checkboxes
-						// save the the serials of all selected records to a session variable:
-						saveSessionVariable("selectedRecords", $recordSerialsArray); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-
-				if (ereg("^(Add|Remove)$", $displayType) AND !empty($userGroup)) // the user clicked either the 'Add' or the 'Remove' button
-					modifyUserGroups($tableUserData, $displayType, $recordSerialsArray, $recordSerialsString, $userID, $userGroup, $userGroupActionRadio); // add (remove) selected records to (from) the specified user group (function 'modifyUserGroups()' is defined in 'include.inc.php')
-
+				if (eregi("^(Add|Remove)$", $displayType) AND !empty($userGroup)) // the user clicked either the 'Add' or the 'Remove' button
+					modifyUserGroups($tableUserData, $displayType, $recordSerialsArray, $userID, $userGroup); // add (remove) selected records to (from) the specified user group (function 'modifyUserGroups()' is defined in 'include.inc.php')
 
 				// re-apply the current sqlQuery:
 				$query = eregi_replace(" FROM $tableRefs",", orig_record FROM $tableRefs", $sqlQuery); // add 'orig_record' column (which is required in order to present visual feedback on duplicate records)
@@ -4957,7 +4953,7 @@
 				if ($showLinks == "1")
 					$query = eregi_replace(" FROM $tableRefs",", file, url, doi, isbn, type FROM $tableRefs", $query); // add 'file', 'url', 'doi', 'isbn' & 'type columns
 
-				// re-assign the correct display type if the user clicked the 'Remember', 'Add' or 'Remove' button of the 'queryResults' form:
+				// re-assign the correct display type if the user clicked the 'Add' or 'Remove' button of the 'queryResults' form:
 				$displayType = $originalDisplayType;
 			}
 
@@ -5100,6 +5096,8 @@
 		$quickSearchSelector = $_REQUEST['quickSearchSelector']; // extract field name chosen by the user
 		$quickSearchName = $_REQUEST['quickSearchName']; // extract search text entered by the user
 
+		$userMainFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
+
 		// Build SELECT clause:
 		if (eregi("^(Cite|Display)$", $displayType))
 		{
@@ -5110,8 +5108,6 @@
 		{
 			if ($quickSearchSelector == "main fields") // if we're supposed to query all of the "main fields" at once
 			{
-				$userMainFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
-
 				$additionalFields = $defaultFieldsListViewMinor; // note that for the "main fields" option, we simply display the default list of columns
 			}
 			else
@@ -5179,6 +5175,7 @@
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
 		$groupSearchSelector = $_REQUEST['groupSearchSelector']; // extract the user group chosen by the user
+		$groupSearchSelector = preg_quote($groupSearchSelector, "/"); // escape possible meta characters within group names (otherwise the RLIKE SQL query that's generated below might fail)
 
 		// re-assign the correct display type (i.e. the view that was active when the user clicked the 'Show' button of the 'groupSearch' form):
 		if (!empty($originalDisplayType))
