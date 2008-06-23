@@ -153,8 +153,15 @@
       $co["rft.btitle"] = $row['title'];
 
     // stitle (abbrev_journal)
-    if (!empty($row['abbrev_journal']))
+    if (!empty($row['abbrev_journal'])) {
       $co["rft.stitle"] = $row['abbrev_journal'];
+      if (empty($row['publication']) && (!isset($co["rft.title"]))) {
+        // we duplicate the abbreviated journal name to 'rft.title' since the
+        // CrossRef resolver seems to require 'rft.title' (otherwise it aborts
+        // with an error: "No journal identifier supplied")
+        $co["rft.title"] = $row['abbrev_journal'];
+      }
+    }
 
     // series (series_title)
     if (!empty($row['series_title']))
