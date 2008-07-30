@@ -2151,6 +2151,7 @@
 	function findDuplicates($sqlQuery, $originalDisplayType)
 	{
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		// re-assign the correct display type (i.e. the view that was active when the user clicked the 'dups' link in the header):
 		if (!empty($originalDisplayType))
@@ -2304,7 +2305,7 @@
 					$recordIdentifier = preg_replace("/\s+/", "", $recordIdentifier);
 
 				if ($ignorePunctuation == "1") // ignore punctuation
-					$recordIdentifier = preg_replace("/[[:punct:]]+/", "", $recordIdentifier);
+					$recordIdentifier = preg_replace("/[$punct]+/$patternModifiers", "", $recordIdentifier);
 
 				if ($ignoreCharacterCase == "1") // ignore character case
 					$recordIdentifier = strtolower($recordIdentifier);
