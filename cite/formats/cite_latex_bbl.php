@@ -155,7 +155,7 @@
 		// Defines search & replace 'actions' that will be applied upon LaTeX output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:
 		$latexSearchReplaceActionsArray = array(
-		                                        array('fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+		                                        array('fields'  => array("title", "publication", "abbrev_journal", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
 		                                              'actions' => $transtab_refbase_latex
 		                                             )
 		                                       );

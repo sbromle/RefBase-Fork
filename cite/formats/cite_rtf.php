@@ -66,7 +66,7 @@
 		// in the corresponding 'fields' element:
 		$rtfSearchReplaceActionsArray = array(
 												array(
-														'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+														'fields'  => array("title", "publication", "abbrev_journal", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
 														'actions' => $transtab_refbase_rtf
 													)
 											);
