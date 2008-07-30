@@ -53,8 +53,8 @@
 		                             "bold-suffix"      => "**",
 		                             "italic-prefix"    => "_",
 		                             "italic-suffix"    => "_",
-		//                           "underline-prefix" => "",
-		//                           "underline-suffix" => "",
+		                             "underline-prefix" => "<u>",
+		                             "underline-suffix" => "</u>",
 		                             "endash"           => "&ndash;",
 		                             "emdash"           => "&mdash;",
 		                             "ampersand"        => "&",
@@ -68,7 +68,7 @@
 		// Defines search & replace 'actions' that will be applied upon Markdown output to all those refbase fields that are listed
 		// in the corresponding 'fields' element:
 		$markdownSearchReplaceActionsArray = array(
-		                                           array('fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+		                                           array('fields'  => array("title", "publication", "abbrev_journal", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
 		                                                 'actions' => $transtab_refbase_markdown
 		                                                )
 		                                          );
