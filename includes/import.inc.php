@@ -48,6 +48,8 @@
 	//          and was re-written by Matthias Steffens <mailto:refbase@extracts.de> to enable batch import
 	function isiToCsa($isiSourceData)
 	{
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		// Function preferences:
 		$extractAllAddresses = false; // if set to 'true', all addresses will be extracted from the ISI "C1" field;
 									// set to 'false' if you only want to extract the first address given in the ISI "C1" field
@@ -162,14 +164,14 @@
 								elseif ($recordFieldTag == "AF: Affiliation")
 								{
 									// remove any trailing punctuation from end of string:
-									$recordFieldData = preg_replace("/[[:punct:]]+$/", "", $recordFieldData);
+									$recordFieldData = preg_replace("/[$punct]+$/$patternModifiers", "", $recordFieldData);
 
 									$recordFieldDataArray = array(); // initialize array variable
 
 									// if the address data string contains multiple addresses (which are given as one address per line):
 									if (preg_match("/[\r\n]/", $recordFieldData))
 										// split address data string into individual addresses:
-										$recordFieldDataArray = preg_split("/[[:punct:]\s]*[\r\n]\s*/", $recordFieldData);
+										$recordFieldDataArray = preg_split("/[$punct\s]*[\r\n]\s*/$patternModifiers", $recordFieldData);
 									else
 										// use the single address as given:
 										$recordFieldDataArray[] = $recordFieldData;
@@ -191,7 +193,7 @@
 									$recordFieldData = preg_replace("/ *, */", "; ", $recordFieldData);
 
 								// if all of the record data is in uppercase letters, we attempt to convert the string to something more readable:
-								if ((preg_match("/^[[:upper:]\W\d]+$/", $recordFieldData)) AND ($isiTag != "UT")) // we exclude the ISI record ID from the ISI "UT" field
+								if ((preg_match("/^[$upper\W\d]+$/$patternModifiers", $recordFieldData)) AND ($isiTag != "UT")) // we exclude the ISI record ID from the ISI "UT" field
 									// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
 									// (note that this case transformation won't do the right thing for author initials and abbreviations,
 									//  but the result is better than the whole string being upper case, IMHO)
@@ -251,6 +253,8 @@
 	//          Matthias Steffens <mailto:refbase@extracts.de>
 	function crossrefToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
 		global $errors;
@@ -423,11 +427,11 @@
 					// If the author's family (or given) name is entirely in uppercase letters, we attempt to convert the string to something more readable:
 					if ($transformCase)
 					{
-						if (preg_match("/^[[:upper:]\W\d]+$/", $familyName))
+						if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $familyName))
 							// Convert upper case to title case (converts e.g. "STEFFENS" into "Steffens"):
 							$familyName = changeCase('title', $familyName); // function 'changeCase()' is defined in 'include.inc.php'
 
-						if (preg_match("/^[[:upper:]\W\d]+$/", $givenName))
+						if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $givenName))
 							// Convert upper case to title case (converts e.g. "MATTHIAS" into "Matthias"):
 							$givenName = changeCase('title', $givenName);
 					}
@@ -492,6 +496,8 @@
 	// '$feed' must contain the list of Atom feed items given as a SimplePie object
 	function arxivToRefbase(&$feed, $importRecordsRadio, $importRecordNumbersArray)
 	{
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
 		global $errors;
@@ -506,7 +512,7 @@
 		// NOTE: If function 'reArrangeAuthorContents()' would use 'preg_split()' (instead of just 'split()') to extract author name
 		//       & initials into separate list items, we could use following settings to transform the formatting of author names to
 		//       the one used by refbase:
-		//         $familyNameGivenNameDelimiter = "/ (?=([[:upper:]]+[[:alpha:]-]+)( *;|$))/";
+		//         $familyNameGivenNameDelimiter = "/ (?=([$upper]+[-$alpha]+)( *;|$))/$patternModifiers";
 		//         $familyNameFirst = false;
 		//         $shortenGivenNames = true;
 		//       This would e.g. convert "Steven M. Kahn" into "Kahn, S.M.". But since function 'reArrangeAuthorContents()' currently
@@ -638,13 +644,13 @@
 						// -- name:
 						// In case of a latin1-based database, attempt to convert UTF-8 data to refbase markup & latin1:
 						// NOTE: For authors, we need to perform charset conversion up here (and not further down below, as is done for all the other fields),
-						//       since otherwise the below '[:upper:]' and '[:alpha:]' character class elements would fail to match!
+						//       since otherwise the below '$upper' and '$alpha' character class elements would fail to match!
 						if (($contentTypeCharset == "ISO-8859-1") AND (detectCharacterEncoding($authorName) == "UTF-8")) // function 'detectCharacterEncoding()' is defined in 'include.inc.php'
 							$authorName = convertToCharacterEncoding("ISO-8859-1", "TRANSLIT", $authorName, "UTF-8"); // function 'convertToCharacterEncoding()' is defined in 'include.inc.php'
 
 						// Change the formatting of author names to the one used by refbase, i.e. the family name comes first, and a comma separates family name & initials:
 						// (further standardisation of person names is done in function 'standardizeFieldData()'; see also note for '$familyNameGivenNameDelimiter' above)
-						$authorName = preg_replace("/^(.+?) +([[:upper:]]+[[:alpha:]-]+)$/", "\\2, \\1", $authorName);
+						$authorName = preg_replace("/^(.+?) +([$upper]+[-$alpha]+)$/$patternModifiers", "\\2, \\1", $authorName);
 						$authorsArray[] = $authorName;
 
 						// -- arxiv:affiliation:
@@ -658,7 +664,7 @@
 							if (($contentTypeCharset == "ISO-8859-1") AND (detectCharacterEncoding($authorAddresses) == "UTF-8"))
 								$authorAddresses = convertToCharacterEncoding("ISO-8859-1", "TRANSLIT", $authorAddresses, "UTF-8");
 
-							$authorLastName = preg_replace("/^([[:upper:]]+[[:alpha:]-]+).+$/", "\\1", $authorName); // extract authors last name
+							$authorLastName = preg_replace("/^([$upper]+[-$alpha]+).+$/$patternModifiers", "\\1", $authorName); // extract authors last name
 							$addressArray[] = $authorLastName . ": " . $authorAddresses;
 						}
 					}
@@ -924,6 +930,12 @@
 																	)
 												),
 											array(
+													'fields'  => array("url"),
+													'actions' => array(
+																		"/^PM:(\d+)$/i" =>  "http://www.ncbi.nlm.nih.gov/pubmed/\\1" // convert "PM:17302433" into a resolvable PubMed URL; Bibutils 'xml2ris' (<= v3.40) converts "<identifier type="pubmed">17302433</identifier>" to "UR  - PM:17302433"
+																	)
+												),
+											array(
 													'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"), // convert font attributes (which some publishers include in RIS records that are available on their web pages)
 													'actions' => array(
 																		"/<sup>(.+?)<\/sup>/i" =>  "[super:\\1]", // replace '<sup>...</sup>' with refbase markup ('[super:...]')
@@ -940,7 +952,7 @@
 																		"/0RW1S34RfeSDcfkexd09rT4(.+?)1RW1S34RfeSDcfkexd09rT4/"  =>  "[sub:\\1]", // replace RefWorks indicators for subscript text with refbase markup ('[sub:...]')
 																		"/0RW1S34RfeSDcfkexd09rT2(.+?)1RW1S34RfeSDcfkexd09rT2/"  =>  "_\\1_", // replace RefWorks indicators for italic text with refbase markup ('_..._')
 																		"/0RW1S34RfeSDcfkexd09rT0(.+?)1RW1S34RfeSDcfkexd09rT0/"  =>  "**\\1**", // replace RefWorks indicators for bold text with refbase markup ('**...**')
-																		"/0RW1S34RfeSDcfkexd09rT1(.+?)1RW1S34RfeSDcfkexd09rT1/"  =>  "\\1" // remove RefWorks indicators for underline text (which isn't currently supported by refbase)
+																		"/0RW1S34RfeSDcfkexd09rT1(.+?)1RW1S34RfeSDcfkexd09rT1/"  =>  "__\\1__" // replace RefWorks indicators for underline text with refbase markup ('__...__')
 																	)
 												)
 										);
@@ -1132,6 +1144,8 @@
 	// array format which can be then imported by the 'addRecords()' function in 'include.inc.php'.
 	function medlineToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		global $errors;
 		global $showSource;
 
@@ -1182,7 +1196,7 @@
 											array(
 													'match'   => "/^AU  - /m",
 													'actions' => array(
-																		"/(?<=^AU  - )([[:alpha:] -]+) +([[:upper:]]+)/m"  =>  "\\1, \\2" // change the string formatting in 'AU' field(s) to the one used by refbase (i.e. insert a comma between family name & initials)
+																		"/(?<=^AU  - )([$alpha -]+) +([$upper]+)/m$patternModifiers"  =>  "\\1, \\2" // change the string formatting in 'AU' field(s) to the one used by refbase (i.e. insert a comma between family name & initials)
 																	)
 												)
 										);
@@ -1208,7 +1222,7 @@
 											array(
 													'fields'  => array("publication", "abbrev_journal"), // NOTE: this replacement action will probably be only beneficial for records of type "Journal Article" (if possible, this should rather be a preprocessor action to distinguish articles from books or other resource types)
 													'actions' => array(
-																		"/\b([[:lower:]])([[:alpha:]]{3,})/e"  =>  "strtoupper('\\1').'\\2'" // make sure that all journal title words (with >3 characters) start with an upper case letter (the 'e' modifier allows to execute PHP code within the replacement pattern)
+																		"/\b([$lower])([$alpha]{3,})/e$patternModifiers"  =>  "strtoupper('\\1').'\\2'" // make sure that all journal title words (with >3 characters) start with an upper case letter (the 'e' modifier allows to execute PHP code within the replacement pattern)
 																	)
 												),
 											array(
@@ -1554,7 +1568,7 @@
 																		"/0RW1S34RfeSDcfkexd09rT4(.+?)1RW1S34RfeSDcfkexd09rT4/"  =>  "[sub:\\1]", // replace RefWorks indicators for subscript text with refbase markup ('[sub:...]')
 																		"/0RW1S34RfeSDcfkexd09rT2(.+?)1RW1S34RfeSDcfkexd09rT2/"  =>  "_\\1_", // replace RefWorks indicators for italic text with refbase markup ('_..._')
 																		"/0RW1S34RfeSDcfkexd09rT0(.+?)1RW1S34RfeSDcfkexd09rT0/"  =>  "**\\1**", // replace RefWorks indicators for bold text with refbase markup ('**...**')
-																		"/0RW1S34RfeSDcfkexd09rT1(.+?)1RW1S34RfeSDcfkexd09rT1/"  =>  "\\1" // remove RefWorks indicators for underline text (which isn't currently supported by refbase)
+																		"/0RW1S34RfeSDcfkexd09rT1(.+?)1RW1S34RfeSDcfkexd09rT1/"  =>  "__\\1__" // replace RefWorks indicators for underline text with refbase markup ('__...__')
 																	)
 												)
 										);
@@ -1752,6 +1766,8 @@
 	// in 'include.inc.php'.
 	function scifinderToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		global $errors;
 		global $showSource;
 
@@ -1838,9 +1854,9 @@
 											array(
 													'fields'  => array("language"),
 													'actions' => array(
-																		"/^[[:lower:][:punct:] ]+(?=[[:upper:]][[:lower:]]+)/" =>  "", // remove any all-lowercase prefix string (so that field contents such as "written in English." get reduced to "English.")
+																		"/^[$lower$punct ]+(?=[$upper][$lower]+)/$patternModifiers" =>  "", // remove any all-lowercase prefix string (so that field contents such as "written in English." get reduced to "English.")
 																		"/language unavailable/" =>  "", // remove "language unavailable" string
-																		"/[[:punct:]] *$/" =>  "" // remove any punctuation from end of field contents
+																		"/[$punct] *$/$patternModifiers" =>  "" // remove any punctuation from end of field contents
 																	)
 												),
 											array(
@@ -2230,6 +2246,8 @@
 	// returns an array of records where each record contains an array of extracted field data:
 	function parseRecords($recordArray, $recordFormat, $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray, $preprocessorActionsArray)
 	{
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		global $showSource;
 
 		$parsedRecordsArray = array(); // initialize array variable which will hold parsed data of all records that shall be imported
@@ -2275,7 +2293,8 @@
 						// NOTE: while case transformation is also done in function 'standardizeFieldData()', we cannot omit it here
 						//       since tags that can occur multiple times must be treated individually (i.e. before merging them)
 						if ($transformCase AND ($tagsToRefbaseFieldsArray[$fieldLabel] != "type")) // we exclude reference types from any case transformations
-							if (preg_match("/^[[:upper:]\W\d]+$/", $fieldData))
+							// TODO: we should probably only use Unicode-aware expressions here (i.e. something like "/^([$upper$digit]|[^$word])+$/$patternModifiers")
+							if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $fieldData))
 								// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
 								// (note that this case transformation won't do the right thing for author initials and abbreviations,
 								//  but the result is better than the whole string being upper case, IMHO)
@@ -2353,6 +2372,8 @@
 	// (e.g. performs case transformation, standardizes thesis names, normalizes page ranges, and reformats person names according to preference)
 	function standardizeFieldData($fieldParametersArray, $recordFormat, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray)
 	{
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		if (!empty($fieldParametersArray))
 		{
 			// perform case transformation:
@@ -2362,7 +2383,8 @@
 			{
 				// if all of the field data is in uppercase letters, we attempt to convert the string to something more readable:
 				if ($transformCase AND (!ereg("^(type|issn|url|doi)$", $fieldKey))) // we exclude ISSN & DOI numbers, as well as URLs and reference types from any case transformations
-					if (preg_match("/^[[:upper:]\W\d]+$/", $fieldData))
+					// TODO: as above, we should probably only use Unicode-aware expressions here (i.e. something like "/^([$upper$digit]|[^$word])+$/$patternModifiers")
+					if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $fieldData))
 						// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
 						// (note that this case transformation won't do the right thing for author initials and abbreviations,
 						//  but the result is better than the whole string being upper case, IMHO)
@@ -2509,6 +2531,11 @@
 				foreach ($fieldParametersArray as $fieldName => $fieldValue)
 					if (in_array($fieldName, $fieldActionsArray['fields']))
 						$fieldParametersArray[$fieldName] = searchReplaceText($fieldActionsArray['actions'], $fieldValue, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
+
+			// if (except for a DOI) no other URL(s) are given AND the 'notes' field contains a PubMed ID, we extract the
+			// PubMed ID and copy a resolvable URL (that points to the PubMed article's abstract page) to the 'url' field:
+			if (!isset($fieldParametersArray['url']) AND preg_match("/PMID *: *\d+/i", $fieldParametersArray['notes']))
+				$fieldParametersArray['url'] = "http://www.ncbi.nlm.nih.gov/pubmed/" . preg_replace("/.*?PMID *: *(\d+).*/i", "\\1", $fieldParametersArray['notes']);
 		}
 
 		return $fieldParametersArray;
@@ -2864,6 +2891,8 @@
 	// array format which can be then imported by the 'addRecords()' function in 'include.inc.php'.
 	function csaToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		global $errors;
 		global $showSource;
 
@@ -2940,7 +2969,7 @@
 				{
 					$extractedSourceFieldData = preg_replace("/^([^.[]+).*/", "\\1", $sourceField); // attempt to extract the full monograph title from the source field
 
-					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the monograph title are uppercase, we attempt to convert the string to something more readable:
+					if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $extractedSourceFieldData)) // if all of the words within the monograph title are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "BIOLOGY AND ECOLOGY OF GLACIAL RELICT CRUSTACEA" into "Biology And Ecology Of Glacial Relict Crustacea")
 						$extractedSourceFieldData = changeCase('title', $extractedSourceFieldData); // function 'changeCase()' is defined in 'include.inc.php'
 
@@ -2954,7 +2983,7 @@
 					else // source field format might be something like: "Phycologia, vol. 34, no. 2, pp. 135-144, 1995"
 						$extractedSourceFieldData = preg_replace("/^([^.,]+).*/", "\\1", $sourceField); // attempt to extract the full journal name from the source field
 
-					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the journal name are uppercase, we attempt to convert the string to something more readable:
+					if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $extractedSourceFieldData)) // if all of the words within the journal name are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "POLAR BIOLOGY" into "Polar Biology")
 						$extractedSourceFieldData = changeCase('title', $extractedSourceFieldData);
 
@@ -2997,7 +3026,7 @@
 					$extractedSourceFieldData = preg_replace("/.*\[(.+?)\].*/", "\\1", $sourceField); // attempt to extract the abbreviated journal name from the source field
 					$extractedSourceFieldData = preg_replace("/\./", "", $extractedSourceFieldData); // remove any dots from the abbreviated journal name
 
-					if (preg_match("/^[[:upper:]\W\d]+$/", $extractedSourceFieldData)) // if all of the words within the abbreviated journal name are uppercase, we attempt to convert the string to something more readable:
+					if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $extractedSourceFieldData)) // if all of the words within the abbreviated journal name are uppercase, we attempt to convert the string to something more readable:
 						// perform case transformation (e.g. convert "BALT SEA ENVIRON PROC" into "Balt Sea Environ Proc")
 						$extractedSourceFieldData = changeCase('title', $extractedSourceFieldData);
 
@@ -3162,7 +3191,7 @@
 					// "PB: Publisher":
 					elseif (ereg("PB: Publisher", $fieldLabel))
 					{
-						if (preg_match("/^[[:upper:]\W\d]+$/", $fieldData)) // if all of the words within the publisher name are uppercase, we attempt to convert the string to something more readable:
+						if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $fieldData)) // if all of the words within the publisher name are uppercase, we attempt to convert the string to something more readable:
 							// perform case transformation (e.g. convert "ELSEVIER SCIENCE B.V." into "Elsevier Science B.V.")
 							$fieldData = changeCase('title', $fieldData);
 
