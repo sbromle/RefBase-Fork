@@ -22,6 +22,7 @@
 
 	$transtab_refbase_pdf = array(
 
+		"/__(?!_)(.+?)__/"      =>  "<u>\\1</u>", // the pattern for underline (__...__) must come before the one for italic (_..._)
 		"/_(.+?)_/"             =>  "<i>\\1</i>", // html-style fontshape markup is recognized and converted by the pdf-php package
 		"/\\*\\*(.+?)\\*\\*/"   =>  "<b>\\1</b>",
 		"/\\[super:(.+?)\\]/ie" =>  "superScriptToLatin1('\\1')", // function 'superScriptToLatin1()' will convert superscript letters '1', '2' and '3' to appropriate latin1 entities
