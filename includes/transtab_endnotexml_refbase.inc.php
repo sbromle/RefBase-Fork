@@ -16,15 +16,15 @@
 	//             $Author$
 	//             $Revision$
 
-	// Search & replace patterns for for conversion from Endnote XML text style markup to refbase markup. Converts fontshape markup (italic, bold) as well as
-	// super- and subscript into appropriate refbase markup. Note that greek letters are left as is, so import of greek letters will require an UTF-8 database.
+	// Search & replace patterns for conversion from Endnote XML text style markup to refbase markup. Converts fontshape markup (italic, bold, underline) as well
+	// as super- and subscript into appropriate refbase markup. Note that greek letters are left as is, so import of greek letters will require an UTF-8 database.
 	// Notes: - search & replace patterns must be specified as perl-style regular expression and search patterns must include the leading & trailing slashes
 
 	$transtab_endnotexml_refbase = array(
 
 		'#<style face="italic"[^<>\r\n]*>(.+?)</style>#i'      => "_\\1_",
 		'#<style face="bold"[^<>\r\n]*>(.+?)</style>#i'        => "**\\1**",
-		'#<style face="underline"[^<>\r\n]*>(.+?)</style>#i'   => "\\1", // underlined text isn't currently supported by refbase
+		'#<style face="underline"[^<>\r\n]*>(.+?)</style>#i'   => "__\\1__",
 		'#<style face="superscript"[^<>\r\n]*>(.+?)</style>#i' => "[super:\\1]",
 		'#<style face="subscript"[^<>\r\n]*>(.+?)</style>#i'   => "[sub:\\1]",
 		'#<style face="[^<>"]*"[^<>\r\n]*>(.+?)</style>#i'     => "\\1", // remove all remaining <style> information

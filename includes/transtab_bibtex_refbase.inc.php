@@ -16,13 +16,14 @@
 	//             $Author$
 	//             $Revision$
 
-	// Search & replace patterns for conversion from LaTeX/BibTeX markup & entities to refbase markup. Converts LaTeX fontshape markup (italic, bold) into
-	// appropriate refbase commands, super- and subscript as well as greek letters in math mode get converted into the respective refbase commands.
+	// Search & replace patterns for conversion from LaTeX/BibTeX markup & entities to refbase markup. Converts LaTeX fontshape markup (italic, bold, underline)
+	// into appropriate refbase commands, super- and subscript as well as greek letters in math mode get converted into the respective refbase commands.
 	// You may need to adopt the LaTeX markup to suit your individual needs.
 	// Notes: - search & replace patterns must be specified as perl-style regular expression and search patterns must include the leading & trailing slashes
 
 	$transtab_bibtex_refbase = array(
 
+		'/\\\\(?:ul|hl|uuline|uwave)\\{(.+?)\\}/i'                 => "__\\1__",
 		'/\\\\(?:text)?it\\{(.+?)\\}/i'                            => "_\\1_",
 		'/\\\\(?:text)?bf\\{(.+?)\\}/i'                            => "**\\1**",
 		'/((\\$\\^\\{.+?\\}\\$|\\\\textsuperscript\\{.+?\\}|\\{\\\\text(one|two|three)superior\\})+)/ie' => "bibtexSuperScriptToRefbase('\\1')", // function 'bibtexSuperScriptToRefbase()' will convert LaTeX/BibTeX superscript markup to appropriate refbase markup
