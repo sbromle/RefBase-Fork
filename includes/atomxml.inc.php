@@ -347,11 +347,9 @@
 		// for correct rendering of italic and bold letters in 'content' elements (which is of 'type="xhtml"').
 		global $transtab_refbase_html; // defined in 'transtab_refbase_html.inc.php'
 
-		// NOTE: We remove again some search & replace patterns that are present by default in '$transtab_refbase_html' and '$transtab_refbase_ascii'
-		//       since they cause problems here; this is surely hacky but I don't know any better. :-/
+		// NOTE: We remove again some search & replace patterns that are present by default in '$transtab_refbase_html' since they cause
+		//       problems here; this is surely hacky but I don't know any better. :-/
 		unset($transtab_refbase_html['/ +- +/']); // this would incorrectly convert author initials such as "J. - L." to "J. &#8211; L."
-		unset($transtab_refbase_html['/–/']); // for latin1-encoded data that have been converted to Unicode (see below), this conversion pattern would garble characters such as "Ö"
-		unset($transtab_refbase_ascii['/–/']); // same problem as for '$transtab_refbase_html'
 
 		// Define inline text markup to generate a plain text citation string:
 		// (to be included within a 'dcterms:bibliographicCitation' element)
@@ -408,7 +406,7 @@
 		$fieldSpecificSearchReplaceActionsArray = array();
 
 		if ($convertExportDataToUTF8 == "yes")
-			$fieldSpecificSearchReplaceActionsArray[] = array('fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+			$fieldSpecificSearchReplaceActionsArray[] = array('fields'  => array("title", "publication", "abbrev_journal", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
 			                                                  'actions' => $transtab_refbase_unicode
 			                                                 );
 

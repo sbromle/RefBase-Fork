@@ -110,10 +110,6 @@
 		// The array '$transtab_refbase_ascii' contains search & replace patterns for conversion from refbase markup to plain text.
 		global $transtab_refbase_ascii; // defined in 'transtab_refbase_ascii.inc.php'
 
-		// NOTE: We remove again some search & replace patterns that are present by default in '$transtab_refbase_ascii'
-		//       since they cause problems here; this is surely hacky but I don't know any better. :-/
-		unset($transtab_refbase_ascii['/–/']); // for latin1-encoded data that have been converted to Unicode (see below), this conversion pattern would garble characters such as "Ö"
-
 		// Define inline text markup to generate a plain text citation string:
 		// (to be included within a 'dcterms:bibliographicCitation' element)
 		$markupPatternsArrayPlain = array("bold-prefix"      => "", // NOTE: should we rather keep refbase font-shape markup (like _italic_ and **bold**) for plain text output?
@@ -169,7 +165,7 @@
 		$fieldSpecificSearchReplaceActionsArray = array();
 
 		if ($convertExportDataToUTF8 == "yes")
-			$fieldSpecificSearchReplaceActionsArray[] = array('fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+			$fieldSpecificSearchReplaceActionsArray[] = array('fields'  => array("title", "publication", "abbrev_journal", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
 			                                                  'actions' => $transtab_refbase_unicode
 			                                                 );
 
