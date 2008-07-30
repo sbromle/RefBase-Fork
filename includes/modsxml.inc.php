@@ -79,7 +79,7 @@
       //       'separateNames()' function would be also a 'preg_split' pattern
       //       (using the 'PREG_SPLIT_NO_EMPTY' flag) similar to this one:
       // 
-      //       "/(?<=^|[[:upper:]])\W+|(?<=^|[[:upper:]])(?=$|[[:upper:]])/"
+      //       "/(?<=^|[$upper])\W+|(?<=^|[$upper])(?=$|[$upper])/$patternModifiers"
       // 
       //       This would allow to separate initials that aren't separated by
       //       any whitespace or punctuation (such as in "Steffens, MT").
@@ -272,7 +272,7 @@
 
     if ($convertExportDataToUTF8 == "yes")
       $fieldSpecificSearchReplaceActionsArray[] = array(
-                                                          'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes", "publication"),
+                                                          'fields'  => array("title", "publication", "abbrev_journal", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
                                                           'actions' => $transtab_refbase_unicode
                                                       );
 
@@ -528,6 +528,23 @@
       $identifier = new XMLBranch("identifier");
       $identifier->setTagContent($row['doi']);
       $identifier->setTagAttribute("type", "doi");
+      $record->addXMLBranch($identifier);
+    }
+    //   pubmed
+    //   NOTE: Until refbase stores PubMed & arXiv IDs in a better way,
+    //         we extract them from the 'notes' field
+    if (preg_match("/PMID *: *\d+/i", $row['notes'])) {
+      $identifier = new XMLBranch("identifier");
+      $identifier->setTagContent(preg_replace("/.*?PMID *: *(\d+).*/i", "\\1", $row['notes']));
+      $identifier->setTagAttribute("type", "pubmed");
+      $record->addXMLBranch($identifier);
+    }
+    //   arxiv
+    //   NOTE: see note for pubmed
+    if (preg_match("/arXiv *: *[^ ;]+/i", $row['notes'])) {
+      $identifier = new XMLBranch("identifier");
+      $identifier->setTagContent(preg_replace("/.*?arXiv *: *([^ ;]+).*/i", "\\1", $row['notes']));
+      $identifier->setTagAttribute("type", "arxiv");
       $record->addXMLBranch($identifier);
     }
     //   cite_key
