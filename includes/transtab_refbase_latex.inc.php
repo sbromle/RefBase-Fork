@@ -21,9 +21,12 @@
 	// You may need to adopt the LaTeX markup to suit your individual needs.
 	// Search & replace patterns must be specified as perl-style regular expression and search patterns must include the leading & trailing slashes.
 
+	global $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 	$transtab_refbase_latex = array(
 
 		"/([{}])/"             =>  '\\\\\\1', // escaping of curly brackets has to be done as the first action so that conversion is only applied to field contents and doesn't mess with the generated LaTeX code
+		"/__(?!_)(.+?)__/"     =>  '\\1', // underline is currently removed; instead, you could use '\\ul{\\1}' which requires '\usepackage{soul}'; the pattern for underline (__...__) must come before the one for italic (_..._)
 		"/_(.+?)_/"            =>  '\\textit{\\1}', // or use '\\it{\\1}'
 		"/\\*\\*(.+?)\\*\\*/"  =>  '\\textbf{\\1}', // or use '\\bf{\\1}'
 		"/\\[super:(.+?)\\]/i" =>  '$^{\\1}$', // or use '\\textsuperscript{\\1}'
@@ -81,7 +84,9 @@
 		"/\\[Omega\\]/"        =>  '$\\Omega$',
 		"/\"(.+?)\"/"          =>  '{\\textquotedblleft}\\1{\\textquotedblright}',
 		"/ +- +/"              =>  " -- ",
-		"/–/"                  =>  '--'
+		"/–/$patternModifiers" =>  "--"
+		// Note that for UTF-8 based systems, '$patternModifiers' contains the "u" (PCRE_UTF8) pattern modifier which causes PHP/PCRE
+		// to treat pattern strings as UTF-8 (otherwise this conversion pattern would garble UTF-8 characters such as "Ö")
 
 	);
 

@@ -16,12 +16,15 @@
 	//             $Author$
 	//             $Revision$
 
-	// Search & replace patterns for conversion from refbase markup to HTML markup & entities. Converts refbase fontshape markup (italic, bold) and
-	// super- and subscript into HTML commands, greek letters get converted into the respective HTML entity codes.
+	// Search & replace patterns for conversion from refbase markup to HTML markup & entities. Converts refbase fontshape markup (italic, bold, underline)
+	// and super- and subscript into HTML commands, greek letters get converted into the respective HTML entity codes.
 	// Search & replace patterns must be specified as perl-style regular expression and search patterns must include the leading & trailing slashes.
+
+	global $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 	$transtab_refbase_html = array(
 
+		"/__(?!_)(.+?)__/"     =>  "<u>\\1</u>", // the pattern for underline (__...__) must come before the one for italic (_..._)
 		"/_(.+?)_/"            =>  "<i>\\1</i>",
 		"/\\*\\*(.+?)\\*\\*/"  =>  "<b>\\1</b>",
 		"/\\[super:(.+?)\\]/i" =>  "<sup>\\1</sup>",
@@ -79,7 +82,9 @@
 		"/\\[Omega\\]/"        =>  "&Omega;",
 		"/(?:\"|&quot;)(.+?)(?:\"|&quot;)/" => "&ldquo;\\1&rdquo;",
 		"/ +- +/"              =>  " &#8211; ",
-		"/–/"                  =>  "&#8211;"
+		"/–/$patternModifiers" =>  "&#8211;"
+		// Note that for UTF-8 based systems, '$patternModifiers' contains the "u" (PCRE_UTF8) pattern modifier which causes PHP/PCRE
+		// to treat pattern strings as UTF-8 (otherwise this conversion pattern would garble UTF-8 characters such as "Ö")
 
 	);
 

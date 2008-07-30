@@ -19,8 +19,11 @@
 	// Search & replace patterns and functions for conversion from refbase markup to Unicode entities.
 	// Search & replace patterns must be specified as perl-style regular expression and search patterns must include the leading & trailing slashes.
 
+	global $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 	$transtab_refbase_unicode = array(
 
+	//	"/__(?!_)(.+?)__/"      =>  '\\1', // the pattern for underline (__...__) must come before the one for italic (_..._)
 	//	"/_(.+?)_/"             =>  '\\1', // fontshape markup is currently NOT converted (uncomment to strip fontshape markup from exported text)
 	//	"/\\*\\*(.+?)\\*\\*/"   =>  '\\1',
 		"/\\[super:(.+?)\\]/ie" =>  "superScriptToUnicode('\\1')", // function 'superScriptToUnicode()' will convert superscript text to appropriate Unicode entities
@@ -78,7 +81,9 @@
 		"/\\[Omega\\]/"         =>  'Ω',
 		"/\"(.+?)\"/"           =>  '“\\1”', // <U201C>...<U201D> (left and right double quotation marks)
 		"/ +- +/"               =>  ' – ', // <U2013> (endash)
-		"//"                   =>  '–' // <U2013> (endash)
+		"//$patternModifiers"  =>  '–' // <U2013> (endash)
+		// Note that for UTF-8 based systems, '$patternModifiers' contains the "u" (PCRE_UTF8) pattern modifier which causes PHP/PCRE
+		// to treat pattern strings as UTF-8 (otherwise this conversion pattern would garble UTF-8 characters such as "Ö")
 
 	);
 

@@ -16,12 +16,15 @@
 	//             $Author$
 	//             $Revision$
 
-	// Search & replace patterns for conversion from refbase markup to plain text. Removes refbase fontshape markup (italic, bold)
+	// Search & replace patterns for conversion from refbase markup to plain text. Removes refbase fontshape markup (italic, bold, underline)
 	// as well as markup for super- and subscript or greek letters from the text. Adopt to your needs if necessary.
 	// Search & replace patterns must be specified as perl-style regular expression and search patterns must include the leading & trailing slashes.
 
+	global $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 	$transtab_refbase_ascii = array(
 
+		"/__(?!_)(.+?)__/"     =>  "\\1", // the pattern for underline (__...__) must come before the one for italic (_..._)
 		"/_(.+?)_/"            =>  "\\1",
 		"/\\*\\*(.+?)\\*\\*/"  =>  "\\1",
 		"/\\[super:(.+?)\\]/i" =>  "\\1",
@@ -77,7 +80,9 @@
 		"/\\[Chi\\]/"          =>  "Chi",
 		"/\\[Psi\\]/"          =>  "Psi",
 		"/\\[Omega\\]/"        =>  "Omega",
-		"/–/"                  =>  "-"
+		"/–/$patternModifiers" =>  "-"
+		// Note that for UTF-8 based systems, '$patternModifiers' contains the "u" (PCRE_UTF8) pattern modifier which causes PHP/PCRE
+		// to treat pattern strings as UTF-8 (otherwise this conversion pattern would garble UTF-8 characters such as "Ö")
 
 	);
 
