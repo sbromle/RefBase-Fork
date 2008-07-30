@@ -738,7 +738,7 @@
 	//                                                    "/Search Pattern/"  =>  "Replace Pattern"
 	$searchReplaceActionsArray = array(
 	                                   array(
-	                                         'fields'  => array("title", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
+	                                         'fields'  => array("title", "publication", "abbrev_journal", "address", "keywords", "abstract", "orig_title", "series_title", "abbrev_series_title", "notes"),
 	                                         'actions' => $transtab_refbase_html // perform search & replace actions that provide for human readable markup (as defined in 'includes/transtab_refbase_html.inc.php')
 	                                        )
 //	                                   ,
