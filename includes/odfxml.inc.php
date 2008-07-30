@@ -420,7 +420,7 @@
 
 		if ($convertExportDataToUTF8 == "yes")
 			$fieldSpecificSearchReplaceActionsArray[] = array(
-																'fields'  => array("Title", "Organizations", "Custom1", "Pages"),
+																'fields'  => array("Author", "Title", "Booktitle", "Journal", "Organizations", "Custom1", "Series", "Pages", "Note"),
 																'actions' => $transtab_refbase_unicode
 															);
 
