@@ -21,6 +21,7 @@
 
   	$transtab_refbase_html = array(
 
+  		"/__(?!_)(.+?)__/"     =>  "<u>\\1</u>", // the pattern for underline (__...__) must come before the one for italic (_..._)
   		"/_(.+?)_/"            =>  "<i>\\1</i>",
   		"/\\*\\*(.+?)\\*\\*/"  =>  "<b>\\1</b>",
   		"/\\[super:(.+?)\\]/i" =>  "<sup>\\1</sup>",
@@ -77,8 +78,7 @@
   		"/\\[Psi\\]/"          =>  "&Psi;",
   		"/\\[Omega\\]/"        =>  "&Omega;",
   		"/(?:\"|&quot;)(.+?)(?:\"|&quot;)/" => "&ldquo;\\1&rdquo;",
-  		"/ +- +/"              =>  " &#8211; ",
-  		"//"                  =>  "&#8211;"
+  		"/ +- +/"              =>  " &#8211; "
   	);
 
     $link = mysql_connect($hostName, $username, $password);
