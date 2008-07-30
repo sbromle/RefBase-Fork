@@ -31,6 +31,11 @@
 	include 'includes/transtab_unicode_latin1.inc.php'; // include unicode -> latin1 transliteration table
 	include 'includes/transtab_unicode_refbase.inc.php'; // include unicode -> refbase transliteration table
 
+	if ($contentTypeCharset == "UTF-8") // variable '$contentTypeCharset' is defined in 'ini.inc.php'
+		include_once 'includes/transtab_unicode_charset.inc.php'; // include unicode character case conversion tables
+	else // we assume "ISO-8859-1" by default
+		include_once 'includes/transtab_latin1_charset.inc.php'; // include latin1 character case conversion tables
+
 	// --------------------------------------------------------------------
 
 	// Untaint user data:
@@ -2516,11 +2521,7 @@ EOF;
 	//			- within one author object, there's only *one* delimiter separating author name & initials!
 	function reArrangeAuthorContents($authorContents, $familyNameFirst, $oldBetweenAuthorsDelim, $newBetweenAuthorsDelimStandard, $newBetweenAuthorsDelimLastAuthor, $oldAuthorsInitialsDelim, $newAuthorsInitialsDelimFirstAuthor, $newAuthorsInitialsDelimStandard, $betweenInitialsDelim, $initialsBeforeAuthorFirstAuthor, $initialsBeforeAuthorStandard, $shortenGivenNames, $numberOfAuthorsTriggeringEtAl, $includeNumberOfAuthors, $customStringAfterFirstAuthors, $encodeHTML)
 	{
-		// Note: The 'start_session()' function should establish an appropriate locale via function 'setSystemLocale()' so that e.g. '[[:upper:]]' would also match 'Ø' etc.
-		//       However, since locale support depends on the individual server & system, we keep the workaround which literally specifies higher ASCII chars of the latin1 character set below.
-		//       (in order to have this work, the character encoding of 'search.php' must be set to 'Western (Iso Latin 1)' aka 'ISO-8859-1'!)
-		//       higher ASCII chars upper case = "ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ"
-		//       higher ASCII chars lower case = "äåáàâãçéèêëñöøóòôõüúùûíìîïæÿß"
+		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		$authorsArray = split($oldBetweenAuthorsDelim, $authorContents); // get a list of all authors for this record
 
@@ -2547,21 +2548,21 @@ EOF;
 				{
 					// within initials, reduce all full first names (-> defined by a starting uppercase character, followed by one ore more lowercase characters)
 					// to initials, i.e., only retain their first character
-					$singleAuthorArray[1] = preg_replace("/([[:upper:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ])[[:lower:]äåáàâãçéèêëñöøóòôõüúùûíìîïæÿß]+/", "\\1", $singleAuthorArray[1]);
+					$singleAuthorArray[1] = preg_replace("/([$upper])[$lower]+/$patternModifiers", "\\1", $singleAuthorArray[1]);
 				}
 
 				// within initials, remove any dots:
-				$singleAuthorArray[1] = preg_replace("/([[:upper:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ])\.+/", "\\1", $singleAuthorArray[1]);
+				$singleAuthorArray[1] = preg_replace("/([$upper])\.+/$patternModifiers", "\\1", $singleAuthorArray[1]);
 
 				// within initials, remove any spaces *between* initials:
-				$singleAuthorArray[1] = preg_replace("/(?<=[-[:upper:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ]) +(?=[-[:upper:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ])/", "", $singleAuthorArray[1]);
+				$singleAuthorArray[1] = preg_replace("/(?<=[-$upper]) +(?=[-$upper])/$patternModifiers", "", $singleAuthorArray[1]);
 
 				// within initials, add a space after a hyphen, but only if ...
 				if (ereg(" $", $betweenInitialsDelim)) // ... the delimiter that separates initials ends with a space
-					$singleAuthorArray[1] = preg_replace("/-(?=[[:upper:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ])/", "- ", $singleAuthorArray[1]);
+					$singleAuthorArray[1] = preg_replace("/-(?=[$upper])/$patternModifiers", "- ", $singleAuthorArray[1]);
 
 				// then, separate initials with the specified delimiter:
-				$singleAuthorArray[1] = preg_replace("/([[:upper:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ])(?=[^[:lower:]äåáàâãçéèêëñöøóòôõüúùûíìîïæÿß]+|$)/", "\\1$betweenInitialsDelim", $singleAuthorArray[1]);
+				$singleAuthorArray[1] = preg_replace("/([$upper])(?=[^$lower]+|$)/$patternModifiers", "\\1$betweenInitialsDelim", $singleAuthorArray[1]);
 			}
 
 
@@ -4692,6 +4693,15 @@ EOF;
 
 	// Perform case transformations on the given text input:
 	// ('$transformation' must be either 'lower', 'upper', 'title' or 'heading')
+	// 
+	// NOTE: For UTF-8, the PHP functions 'strtolower()' and 'strtoupper()' will only work correctly
+	//       if the server has locales installed which support UTF-8! More info is available at:
+	//       <http://www.phpwact.org/php/i18n/charsets>
+	//       <http://www.phpwact.org/php/i18n/utf-8>
+	// 
+	// TODO: Implement function 'changeCase()' so that it always works for UTF-8
+	//       See e.g. functions 'utf8_strtolower()' and 'utf8_strtoupper()' at
+	//       <http://dev.splitbrain.org/view/darcs/dokuwiki/inc/utf8.php>
 	function changeCase($transformation, $sourceString)
 	{
 		if (eregi("lower", $transformation)) // change source text to lower case
