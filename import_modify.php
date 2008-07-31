@@ -549,14 +549,16 @@
 
 	if ((count($importRecordNumbersRecognizedFormatArray) == 1) AND !eregi("^(cli|be)", $client)) // if this is the only record we'll need to import -AND- if the import didn't originate from a refbase command line client:
 	{
-		foreach ($importDataArray['records'][0] as $fieldParameterKey => $fieldParameterValue)
-			$importDataArray['records'][0][$fieldParameterKey] = $fieldParameterKey . "=" . rawurlencode($fieldParameterValue); // copy parameter name and equals sign in front of parameter value
-
-		$fieldParameters = implode("&", $importDataArray['records'][0]); // merge list of parameters
+		// save import data to session variable:
+		// NOTE: Saving import data to a session variable allows to retain large param/value strings (that would exceed
+		//       the maximum string limit for GET requests). This works around a limitation in Internet Explorer which
+		//       has a maximum URL length of 2,083 characters & a maximum path length of 2,048 characters.
+		//       More info: <http://support.microsoft.com/kb/208427/EN-US/>
+		saveSessionVariable("importData", $importDataArray['records'][0]); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 
 		// RELOCATE TO IMPORT PAGE:
 		// call 'record.php' and load the form fields with the data of the current record
-		header("Location: record.php?recordAction=add&mode=import&importSource=generic&" . $fieldParameters);
+		header("Location: record.php?recordAction=add&mode=import&importSource=generic");
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
 	else // import record(s) directly:

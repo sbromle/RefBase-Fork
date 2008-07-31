@@ -63,6 +63,22 @@
 	else
 		$formVars = array();
 
+	// Read out import data that were saved as a session variable:
+	// NOTE: This is done by 'import_modify.php' (if a single record was imported via the web interface) in order to retain
+	//       large param/value strings (that would exceed the maximum string limit for GET requests). This works around a limitation
+	//       in Internet Explorer which has a maximum URL length of 2,083 characters & a maximum path length of 2,048 characters.
+	//       More info: <http://support.microsoft.com/kb/208427/EN-US/>
+	if (isset($_SESSION['importData']))
+	{
+		foreach ($_SESSION['importData'] as $varname => $value)
+		{
+			$_POST[$varname] = $value;
+			$_REQUEST[$varname] = $value;
+		}
+
+		deleteSessionVariable("importData"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
+	}
+
 	// --------------------------------------------------------------------
 
 	if (isset($_REQUEST['recordAction']))
