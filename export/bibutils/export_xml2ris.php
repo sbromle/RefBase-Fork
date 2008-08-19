@@ -33,7 +33,13 @@
 	function exportRecords($result, $rowOffset, $showRows, $exportStylesheet, $displayType)
 	{
 		// function 'exportBibutils()' is defined in 'execute.inc.php'
-		return exportBibutils($result,"xml2ris");
+		$risSourceText = exportBibutils($result,"xml2ris");
+
+		// NOTE: the 'exec()' command that is used in function 'execute()' in file 'execute.inc.php'
+		//       does not include trailing whitespace in its '$output' array [*]; since this would
+		//       chop off trailing whitespace from closing RIS 'ER  - ' tags, we add it back here
+		//       [*] see <http://www.php.net/manual/en/function.exec.php>
+		return preg_replace("/^ER  -$/m", "ER  - ", $risSourceText);
 	}
 
 	// --- END EXPORT FORMAT ---
