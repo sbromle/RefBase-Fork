@@ -19,9 +19,6 @@
 	// This script provides options which are individual for each user.
 	// 
 	// TODO: - I18n, more encodeHTML fixes?
-	//       - refbase should automatically switch to a view that's supported for the current user
-	//         (e.g. handle the combination of 'allow_list_view=NO' and '$defaultView=List');
-	//         this may be best solved by a user-specific default view setting + some JavaScript magic
 
 
 	// Incorporate some include files:
@@ -120,7 +117,7 @@
 		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 
 		// Redirect the browser back to the calling page
-		header("Location: index.php"); // Note: if 'header("Location: " . $_SERVER['HTTP_REFERER'])' is used, the error message won't get displayed! ?:-/
+		header("Location: " . $referer); // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 		exit;
 	}
 
@@ -135,8 +132,8 @@
 		// Write back session variables:
 		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 
-		// Redirect the browser back to the main page
-		header("Location: index.php");
+		// Redirect the browser back to the calling page
+		header("Location: " . $referer);
 		exit;
 	}
 
@@ -683,10 +680,12 @@
 <tr>
 	<td align="left"><b><a id="permissions">User Permissions:</a></b></td>
 	<td>
-		<input type="checkbox" name="allow_add" value="yes"<?php echo $allowAddChecked; ?>>&nbsp;&nbsp;Add records
+		<input type="checkbox" name="allow_add" value="yes"<?php echo $allowAddChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowAdd']; ?>
+
 	</td>
 	<td>
-		<input type="checkbox" name="allow_download" value="yes"<?php echo $allowDownloadChecked; ?>>&nbsp;&nbsp;File download
+		<input type="checkbox" name="allow_download" value="yes"<?php echo $allowDownloadChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowDownload']; ?>
+
 	</td>
 </tr>
 <tr>
@@ -695,36 +694,19 @@
 		<!--<a href="JavaScript:checkall(false,'allow*')" title="deselect all permission options">Deselect All</a>-->
 	</td>
 	<td>
-		<input type="checkbox" name="allow_edit" value="yes"<?php echo $allowEditChecked; ?>>&nbsp;&nbsp;Edit records
+		<input type="checkbox" name="allow_edit" value="yes"<?php echo $allowEditChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowEdit']; ?>
+
 	</td>
 	<td>
-		<input type="checkbox" name="allow_upload" value="yes"<?php echo $allowUploadChecked; ?>>&nbsp;&nbsp;File upload
-	</td>
-</tr>
-<tr>
-	<td align="left"></td>
-	<td>
-		<input type="checkbox" name="allow_delete" value="yes"<?php echo $allowDeleteChecked; ?>>&nbsp;&nbsp;Delete records
-	</td>
-	<td></td>
-</tr>
-<tr>
-	<td align="left"></td>
-	<td colspan="2"></td>
-</tr>
-<tr>
-	<td align="left"></td>
-	<td>
-		<input type="checkbox" name="allow_list_view" value="yes"<?php echo $allowListViewChecked; ?>>&nbsp;&nbsp;List view
-	</td>
-	<td>
-		<input type="checkbox" name="allow_print_view" value="yes"<?php echo $allowPrintViewChecked; ?>>&nbsp;&nbsp;Print view
+		<input type="checkbox" name="allow_upload" value="yes"<?php echo $allowUploadChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowUpload']; ?>
+
 	</td>
 </tr>
 <tr>
 	<td align="left"></td>
 	<td>
-		<input type="checkbox" name="allow_details_view" value="yes"<?php echo $allowDetailsViewChecked; ?>>&nbsp;&nbsp;Details view
+		<input type="checkbox" name="allow_delete" value="yes"<?php echo $allowDeleteChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowDelete']; ?>
+
 	</td>
 	<td></td>
 </tr>
@@ -735,7 +717,19 @@
 <tr>
 	<td align="left"></td>
 	<td>
-		<input type="checkbox" name="allow_sql_search" value="yes"<?php echo $allowSQLSearchChecked; ?>>&nbsp;&nbsp;SQL search
+		<input type="checkbox" name="allow_list_view" value="yes"<?php echo $allowListViewChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowListView']; ?>
+
+	</td>
+	<td>
+		<input type="checkbox" name="allow_print_view" value="yes"<?php echo $allowPrintViewChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowPrintView']; ?>
+
+	</td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td>
+		<input type="checkbox" name="allow_details_view" value="yes"<?php echo $allowDetailsViewChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowDetailsView']; ?>
+
 	</td>
 	<td></td>
 </tr>
@@ -746,16 +740,8 @@
 <tr>
 	<td align="left"></td>
 	<td>
-		<input type="checkbox" name="allow_user_groups" value="yes"<?php echo $allowUserGroupsChecked; ?>>&nbsp;&nbsp;User groups
-	</td>
-	<td>
-		<input type="checkbox" name="allow_rss_feeds" value="yes"<?php echo $allowRSSFeedsChecked; ?>>&nbsp;&nbsp;RSS feeds
-	</td>
-</tr>
-<tr>
-	<td align="left"></td>
-	<td>
-		<input type="checkbox" name="allow_user_queries" value="yes"<?php echo $allowUserQueriesChecked; ?>>&nbsp;&nbsp;User queries
+		<input type="checkbox" name="allow_sql_search" value="yes"<?php echo $allowSQLSearchChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowSQLSearch']; ?>
+
 	</td>
 	<td></td>
 </tr>
@@ -766,25 +752,19 @@
 <tr>
 	<td align="left"></td>
 	<td>
-		<input type="checkbox" name="allow_import" value="yes"<?php echo $allowImportChecked; ?>>&nbsp;&nbsp;Import
+		<input type="checkbox" name="allow_user_groups" value="yes"<?php echo $allowUserGroupsChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowUserGroups']; ?>
+
 	</td>
 	<td>
-		<input type="checkbox" name="allow_batch_import" value="yes"<?php echo $allowBatchImportChecked; ?>>&nbsp;&nbsp;Batch import
-	</td>
-</tr>
-<tr>
-	<td align="left"></td>
-	<td>
-		<input type="checkbox" name="allow_export" value="yes"<?php echo $allowExportChecked; ?>>&nbsp;&nbsp;Export
-	</td>
-	<td>
-		<input type="checkbox" name="allow_batch_export" value="yes"<?php echo $allowBatchExportChecked; ?>>&nbsp;&nbsp;Batch export
+		<input type="checkbox" name="allow_rss_feeds" value="yes"<?php echo $allowRSSFeedsChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowRSSFeeds']; ?>
+
 	</td>
 </tr>
 <tr>
 	<td align="left"></td>
 	<td>
-		<input type="checkbox" name="allow_cite" value="yes"<?php echo $allowCiteChecked; ?>>&nbsp;&nbsp;Cite
+		<input type="checkbox" name="allow_user_queries" value="yes"<?php echo $allowUserQueriesChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowUserQueries']; ?>
+
 	</td>
 	<td></td>
 </tr>
@@ -795,7 +775,42 @@
 <tr>
 	<td align="left"></td>
 	<td>
-		<input type="checkbox" name="allow_modify_options" value="yes"<?php echo $allowChangePersonInfoChecked; ?>>&nbsp;&nbsp;Modify options
+		<input type="checkbox" name="allow_import" value="yes"<?php echo $allowImportChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowImport']; ?>
+
+	</td>
+	<td>
+		<input type="checkbox" name="allow_batch_import" value="yes"<?php echo $allowBatchImportChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowBatchImport']; ?>
+
+	</td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td>
+		<input type="checkbox" name="allow_export" value="yes"<?php echo $allowExportChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowExport']; ?>
+
+	</td>
+	<td>
+		<input type="checkbox" name="allow_batch_export" value="yes"<?php echo $allowBatchExportChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowBatchExport']; ?>
+
+	</td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td>
+		<input type="checkbox" name="allow_cite" value="yes"<?php echo $allowCiteChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowCite']; ?>
+
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td colspan="2"></td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td>
+		<input type="checkbox" name="allow_modify_options" value="yes"<?php echo $allowChangePersonInfoChecked; ?>>&nbsp;&nbsp;<?php echo $loc['UserPermission_AllowModifyOptions']; ?>
+
 	</td>
 	<td></td>
 </tr>
