@@ -327,10 +327,18 @@ div.resultsfooter {
 .citation .moreinfo > * {
 	margin-bottom: 0.4em;
 	font-size: 0.85em;
+	color: #333333;
+	line-height: 1.3em;
+/*
+	max-width: 700px;
+*/
 }
 
 .citation .moreinfo .reflinks {
 	margin-top: 0.8em;
+/*
+	max-width: none;
+*/
 }
 
 .citation .moreinfo .reflinks > * {
