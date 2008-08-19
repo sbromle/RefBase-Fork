@@ -70,11 +70,22 @@
 		$formVars['showSource'] = "1";
 	}
 
-	// Get the referring page (or set a default one if no referrer is available or if the data were sent via a bookmarklet):
-	if (!empty($_SERVER['HTTP_REFERER']) AND !eregi("^jsb", $client)) // if the referrer variable isn't empty and doesn't originate from a bookmarklet
-		$referer = $_SERVER['HTTP_REFERER']; // on error, redirect to calling page
-	else
-		$referer = "import.php"; // on error, redirect to import form
+	// Save the URL of the referring page the 'referer' session variable:
+	// NOTE: For 'import_modify.php' we probably want to *always* set the referrer to 'import.php' since the preference of function 'start_session()'
+	//       for a referrer that was saved in a session variable may lead back to the wrong page if the user used the back button of his browser.
+	//       This happens e.g. if:
+	//        1. the user imports, say, ID 'arXiv:cond-mat/0703452' which gets loaded into the 'record.php' form
+	//        2. the user uses his browser's back button to switch back to the 'import.php' form
+	//        3. the user attempts to import 'arXiv:cond-mat/070345' (which is an incorrect arXiv ID)
+	//       In that case, if the referrer gets loaded from the session variable, it will redirect back to 'record.php' (instead of 'import.php').
+	//       This can be circumvented either by saving the '$_SERVER['HTTP_REFERER']' to the 'referer' session variable explicitly, or by simply
+	//       hardcoding '$referer' to "import.php" (which is what we do here)
+//	$referer = $_SERVER['HTTP_REFERER'];
+//	saveSessionVariable("referer", $referer); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+
+	// Set the default referrer if no referrer is available or if it just points to 'index.php' (or if the data were sent via a bookmarklet):
+//	if (empty($referer) OR ($referer == "index.php") OR eregi("^jsb", $client)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+		$referer = "import.php"; // on error, we'll (by default) redirect to the import form
 
 	// First of all, check if the user is logged in:
 	if (!isset($_SESSION['loginEmail'])) // -> if the user isn't logged in
@@ -104,7 +115,10 @@
 	//       may expose yet another security hole...)
 
 	// Get the form used by the user:
-	$formType = $formVars['formType'];
+	if (isset($formVars['formType']))
+		$formType = $formVars['formType'];
+	else
+		$formType = "import";
 
 	// In case of the main import form, get the source text containing the bibliographic record(s):
 	// Note that data from any successfully uploaded file will override data pasted into the 'sourceText' text entry field
@@ -338,7 +352,7 @@
 		}
 
 		// - arXiv IDs:
-		if (eregi("^arXiv XML$", $sourceFormat) AND preg_match("#(arXiv:|http://arxiv\.org/abs/)?([\w.-]+/\d{7}|\d{4}\.\d{4,})(v\d+)?#i", $sourceIDs))
+		elseif (eregi("^arXiv XML$", $sourceFormat) AND preg_match("#(arXiv:|http://arxiv\.org/abs/)?([\w.-]+/\d{7}|\d{4}\.\d{4,})(v\d+)?#i", $sourceIDs))
 		{
 			// Remove any "arXiv:" or "http://arxiv.org/abs/" prefixes from the ID string:
 			$sourceIDs = preg_replace("#(?<=^|\s)(arXiv:|http://arxiv\.org/abs/)#", "", $sourceIDs);
@@ -554,7 +568,7 @@
 		//       the maximum string limit for GET requests). This works around a limitation in Internet Explorer which
 		//       has a maximum URL length of 2,083 characters & a maximum path length of 2,048 characters.
 		//       More info: <http://support.microsoft.com/kb/208427/EN-US/>
-		saveSessionVariable("importData", $importDataArray['records'][0]); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+		saveSessionVariable("importData", $importDataArray['records'][0]);
 
 		// RELOCATE TO IMPORT PAGE:
 		// call 'record.php' and load the form fields with the data of the current record
@@ -651,7 +665,7 @@
 			$HeaderString = returnMsg($loc["NoRecordsImported"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 			// Write back session variables:
-			saveSessionVariable("errors", $errors); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+			saveSessionVariable("errors", $errors);
 			saveSessionVariable("formVars", $formVars);
 
 			header("Location: " . $referer); // redirect to the calling page (normally, 'import.php')
