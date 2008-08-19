@@ -262,7 +262,8 @@
 				// copy row field data to array of field parameters (using the corresponding ODF index name as element key):
 				if(!is_array($odfIndexesToRefbaseFieldsArray[$odfIndex]))
 				{
-					$fieldParametersArray[$odfIndex] = $row[$refbaseField];
+					if (!empty($refbaseField) AND !empty($row[$refbaseField]))
+						$fieldParametersArray[$odfIndex] = $row[$refbaseField];
 				}
 				else // if the current index's value in '$odfIndexesToRefbaseFieldsArray' is an array...
 				{
@@ -322,11 +323,11 @@
 						elseif (!empty($odfIndexesToRefbaseFieldsArray[$odfIndex]['Any']) AND !empty($row[$odfIndexesToRefbaseFieldsArray[$odfIndex]['Any']]))
 							$fieldParametersArray[$odfIndex] = $row[$odfIndexesToRefbaseFieldsArray[$odfIndex]['Any']];
 					}
-
-					// if this ODF field isn't set yet, provide an empty string:
-					if (!isset($fieldParametersArray[$odfIndex]))
-							$fieldParametersArray[$odfIndex] = "";
 				}
+
+				// if this ODF field isn't set yet, provide an empty string:
+				if (!isset($fieldParametersArray[$odfIndex]))
+					$fieldParametersArray[$odfIndex] = "";
 			}
 		}
 
