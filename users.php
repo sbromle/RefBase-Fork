@@ -516,6 +516,8 @@
 	// (i.e., build a TABLE containing a row with buttons for assigning selected users to a particular group)
 	function buildUserResultsFooter($NoColumns)
 	{
+		global $loc; // '$loc' is made globally available in 'core.php'
+
 		// Start a TABLE
 		$userResultsFooterRow = "\n<table class=\"resultsfooter\" align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"10\" width=\"90%\" summary=\"This table holds the results footer which offers a form to assign selected users to a group and set their permissions\">";
 
@@ -576,24 +578,27 @@
 								. "\n\t\t<input type=\"submit\" name=\"submit\" value=\"Disallow\" title=\"do not allow the selected users to use the specified feature\">&nbsp;&nbsp;&nbsp;feature:&nbsp;&nbsp;"
 								. "\n\t\t<select name=\"userPermissionSelector\" title=\"select the permission setting you'd like to change for the selected users\">";
 
-		$userPermissionsArray = array('allow_add'                => 'Add records',
-										'allow_edit'             => 'Edit records',
-										'allow_delete'           => 'Delete records',
-										'allow_download'         => 'File download',
-										'allow_upload'           => 'File upload',
-										'allow_details_view'     => 'Details view',
-										'allow_print_view'       => 'Print view',
-										'allow_sql_search'       => 'SQL search',
-										'allow_user_groups'      => 'User groups',
-										'allow_user_queries'     => 'User queries',
-										'allow_rss_feeds'        => 'RSS feeds',
-										'allow_import'           => 'Import',
-										'allow_export'           => 'Export',
-										'allow_cite'             => 'Cite',
-										'allow_batch_import'     => 'Batch import',
-										'allow_batch_export'     => 'Batch export',
-										'allow_modify_options'   => 'Modify options');
-//										'allow_edit_call_number' => 'Edit call number');
+		// Map raw field names from table 'user_permissions' with items of the global localization array ('$loc'):
+		$userPermissionsArray = array('allow_add'                => $loc['UserPermission_AllowAdd'],
+										'allow_edit'             => $loc['UserPermission_AllowEdit'],
+										'allow_delete'           => $loc['UserPermission_AllowDelete'],
+										'allow_download'         => $loc['UserPermission_AllowDownload'],
+										'allow_upload'           => $loc['UserPermission_AllowUpload'],
+										'allow_list_view'        => $loc['UserPermission_AllowListView'],
+										'allow_details_view'     => $loc['UserPermission_AllowDetailsView'],
+										'allow_print_view'       => $loc['UserPermission_AllowPrintView'],
+//										'allow_browse_view'      => $loc['UserPermission_AllowBrowseView'],
+										'allow_sql_search'       => $loc['UserPermission_AllowSQLSearch'],
+										'allow_user_groups'      => $loc['UserPermission_AllowUserGroups'],
+										'allow_user_queries'     => $loc['UserPermission_AllowUserQueries'],
+										'allow_rss_feeds'        => $loc['UserPermission_AllowRSSFeeds'],
+										'allow_import'           => $loc['UserPermission_AllowImport'],
+										'allow_export'           => $loc['UserPermission_AllowExport'],
+										'allow_cite'             => $loc['UserPermission_AllowCite'],
+										'allow_batch_import'     => $loc['UserPermission_AllowBatchImport'],
+										'allow_batch_export'     => $loc['UserPermission_AllowBatchExport'],
+										'allow_modify_options'   => $loc['UserPermission_AllowModifyOptions']);
+//										'allow_edit_call_number' => $loc['UserPermission_AllowEditCallNumber']);
 
 		$optionTags = buildSelectMenuOptions($userPermissionsArray, "", "\t\t\t", true); // build properly formatted <option> tag elements from the items listed in the '$userPermissionsArray' variable
 		$userResultsFooterRow .= $optionTags;
