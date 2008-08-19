@@ -81,9 +81,9 @@
 		"/\\[Chi\\]/"          =>  "\\uc0\\u935 ",
 		"/\\[Psi\\]/"          =>  "\\uc0\\u936 ",
 		"/\\[Omega\\]/"        =>  "\\uc0\\u937 ",
-		"/\"(.+?)\"/"          =>  "\\u8220\\'22\\1\\u8221\\'22",
-		"/ +- +/"              =>  " \\uc0\\u8211  ",
-		"/–/$patternModifiers" =>  "\\uc0\\u8211 "
+		"/\"(.+?)\"/"          =>  "\\ldblquote \\1\\rdblquote ", // see also notes in 'cite_rtf.php' at '$markupPatternsArray'
+		"/ +- +/"              =>  " \\endash  ",
+		"/–/$patternModifiers" =>  "\\endash "
 		// Note that for UTF-8 based systems, '$patternModifiers' contains the "u" (PCRE_UTF8) pattern modifier which causes PHP/PCRE
 		// to treat pattern strings as UTF-8 (otherwise this conversion pattern would garble UTF-8 characters such as "Ö")
 
