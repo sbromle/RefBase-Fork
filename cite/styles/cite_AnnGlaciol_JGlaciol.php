@@ -142,15 +142,12 @@
 				else // $row['online_publication'] == "no" -> this record refers to a printed article, so we append any pages info instead:
 				{
 					if (!empty($row['pages']))      // pages
-						{
-							if (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication'])) // only add "," if either volume, issue, abbrev_journal or publication isn't empty
-								$record .= ",";
+					{
+						if (!empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication'])) // only add "," if either volume, issue, abbrev_journal or publication isn't empty
+							$record .= ", ";
 
-							if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-								$record .= " " . (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages']));
-							else
-								$record .= " " . $row['pages'];
-						}
+						$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"]); // function 'formatPageInfo()' is defined in 'cite.inc.php'
+					}
 				}
 
 				if (!ereg("\.\)? *$", $record))
@@ -293,15 +290,12 @@
 					}
 
 				if (!empty($row['pages']))      // pages
-					{
-						if (!empty($row['place']) || !empty($row['publisher']))
-							$record .= ",";
+				{
+					if (!empty($row['place']) || !empty($row['publisher']))
+						$record .= ", ";
 
-						if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-							$record .= " " . (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // replace hyphen with em dash
-						else
-							$record .= " " . $row['pages'];
-					}
+					$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"]); // function 'formatPageInfo()' is defined in 'cite.inc.php'
+				}
 
 				if (!ereg("\. *$", $record))
 					$record .= ".";
@@ -429,15 +423,12 @@
 							}
 
 //						if (!empty($row['pages']))      // pages
-//							{
-//								if (!empty($row['place']) || !empty($row['publisher']))
-//									$record .= ",";
-//		
-//								if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-//									$record .= " " . (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // replace hyphen with em dash
-//								else
-//									$record .= " " . $row['pages'];
-//							}
+//						{
+//							if (!empty($row['place']) || !empty($row['publisher']))
+//								$record .= ", ";
+//
+//							$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"]); // function 'formatPageInfo()' is defined in 'cite.inc.php'
+//						}
 
 						if (!ereg("\. *$", $record))
 							$record .= ".";

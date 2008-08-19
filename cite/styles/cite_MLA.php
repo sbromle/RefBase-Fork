@@ -25,6 +25,7 @@
 
 	// TODO: - newspaper & magazine articles, conference proceedings, manuals, patents, reports, software, published dissertation
 	//       - use dashes for subsequent entries when citing two or more books by the same author -> see e.g. example at: <http://web.csustan.edu/english/reuben/pal/append/AXI.HTML>
+	//       - don't add a dot if the abbreviated journal (or series title) ends with a dot!
 
 	// --------------------------------------------------------------------
 
@@ -167,14 +168,7 @@
 						if (!empty($row['year']) || !empty($row['volume']) || !empty($row['issue']) || !empty($row['abbrev_journal']) || !empty($row['publication'])) // only add ": " if either volume, issue, abbrev_journal or publication isn't empty
 							$record .= ": ";
 
-						if (preg_match("/(?<=^|[^0-9])([0-9]+) *[-–] *\\1/", $row['pages'])) // if the 'pages' field contains a page range with identical start & end numbers (like: "127-127") -> single-page item
-							$record .= (ereg_replace("([0-9]+) *[-–] *[0-9]+", "\\1", $row['pages'])); // reformat as "XX"
-
-						elseif (ereg("[0-9]+ *[-–] *[0-9]*", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132", or "127-" if only start page given) -> multi-page item
-							$record .= (ereg_replace("([0-9]+) *[-–] *([0-9]*)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // reformat as "XX-XX" (replace hyphen with em dash)
-
-						else
-							$record .= $row['pages']; // page info is ambiguous, so we don't mess with it
+						$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"]); // function 'formatPageInfo()' is defined in 'cite.inc.php'
 					}
 				}
 
@@ -385,23 +379,7 @@
 					}
 
 				if (!empty($row['pages']))      // pages
-				{
-					$record .= ". ";
-
-					if (preg_match("/(?<=^|[^0-9])([0-9]+) *[-–] *\\1/", $row['pages'])) // if the 'pages' field contains a page range with identical start & end numbers (like: "127-127") -> single-page item
-						$record .= (ereg_replace("([0-9]+) *[-–] *[0-9]+", "\\1", $row['pages'])); // reformat as "XX"
-
-					elseif (ereg("[0-9]+ *[-–] *[0-9]*", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132", or "127-" if only start page given) -> multi-page item
-					{
-						if (ereg("[0-9]+ *[-–] *[0-9]* +[^ ]+", $row['pages'])) // if the 'pages' field contains some trailing text that's separated from the page range by a space
-							$record .= (ereg_replace("([0-9]+) *[-–] *([0-9]*) +([^ ]+)", "\\1" . $markupPatternsArray["endash"] . "\\2 \\3", $row['pages'])); // replace hyphen with em dash, and keep trailing text separated by a space
-						else
-							$record .= (ereg_replace("([0-9]+) *[-–] *([0-9]*)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages'])); // reformat as "XX-XX" (replace hyphen with em dash)
-					}
-
-					else
-						$record .= $row['pages']; // page info is ambiguous, so we don't mess with it
-				}
+					$record .= ". " . formatPageInfo($row['pages'], $markupPatternsArray["endash"]); // function 'formatPageInfo()' is defined in 'cite.inc.php'
 
 				if (!ereg("\. *$", $record))
 					$record .= ".";
