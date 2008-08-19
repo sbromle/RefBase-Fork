@@ -57,15 +57,12 @@
 	//       may expose yet another security hole...)
 
 	// First of all, check if this script was called by something else than 'duplicate_manager.php':
-	if (!ereg(".+/duplicate_manager.php", $_SERVER['HTTP_REFERER']))
+	if (!eregi(".+/duplicate_manager\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 		
-		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
-			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
-		else
-			header("Location: index.php"); // redirect to main page ('index.php')
+		header("Location: " . $referer); // redirect to calling page
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
@@ -131,7 +128,7 @@
 		saveSessionVariable("formVars", $formVars);
 
 		// There are errors. Relocate back to the 'Flag Duplicates' form (script 'duplicate_manager.php'):
-		header("Location: " . $_SERVER['HTTP_REFERER']);
+		header("Location: " . $referer);
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
@@ -176,7 +173,7 @@
 		saveSessionVariable("formVars", $formVars);
 		
 		// Relocate back to the 'Flag Duplicates' form (script 'duplicate_manager.php'):
-		header("Location: " . $_SERVER['HTTP_REFERER']);
+		header("Location: " . $referer);
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}

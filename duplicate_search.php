@@ -69,20 +69,12 @@
 	else
 		$viewType = "";
 
-
 	// Check if the script was called with parameters (like: 'duplicate_search.php?customQuery=1&sqlQuery=...')
 	// If so, the parameter 'customQuery=1' will be set:
 	if (isset($_REQUEST['customQuery']) AND ($_REQUEST['customQuery'] == "1"))
 		$customQuery = "1"; // accept any previous SQL queries
 	else
 		$customQuery = "0";
-
-
-	// get the referring URL (if any):
-	if (isset($_SERVER['HTTP_REFERER']))
-		$referer = $_SERVER['HTTP_REFERER'];
-	else
-		$referer = ""; // if there's no HTTP referer available we provide the empty string here
 
 
 	// Setup some required variables:

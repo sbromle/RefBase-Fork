@@ -56,7 +56,7 @@
 		// inform the user that the maximum post data size was exceeded:
 		$HeaderString = returnMsg($loc["Warning_PostDataSizeMustNotExceed"] . " " . $maxPostDataSize . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-		header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to 'record.php'
+		header("Location: " . $referer); // redirect to 'record.php' (variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php')
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
@@ -77,15 +77,12 @@
 	$pageLoginStatus = $formVars['pageLoginStatus'];
 
 	// First of all, check if this script was called by something else than 'record.php':
-	if (!ereg(".+/record.php\?.+", $_SERVER['HTTP_REFERER']))
+	if (!ereg(".+/record.php\?.+", $referer))
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 
-		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
-			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
-		else
-			header("Location: index.php"); // redirect to main page ('index.php')
+		header("Location: " . $referer); // redirect to calling page
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
@@ -98,7 +95,7 @@
 			// return an appropriate error message:
 			$HeaderString = returnMsg($loc["Warning_PageStatusOutDated"] . "!", "warning", "strong", "HeaderString", "", "<br>" . $loc["Warning_RecordDataReloaded"] . ":"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to 'record.php'
+			header("Location: " . $referer); // redirect to 'record.php'
 
 			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		}
@@ -111,7 +108,7 @@
 		}
 
 		// else if the user isn't logged in yet: ((!isset($_SESSION['loginEmail'])) AND ($pageLoginStatus != "logged in"))
-		header("Location: user_login.php?referer=" . rawurlencode($_SERVER['HTTP_REFERER'])); // ask the user to login first, then he'll get directed back to 'record.php'
+		header("Location: user_login.php?referer=" . rawurlencode($referer)); // ask the user to login first, then he'll get directed back to 'record.php'
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
@@ -171,7 +168,7 @@
 		// return an appropriate error message:
 		$HeaderString = returnMsg($HeaderString, "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-		header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to 'record.php'
+		header("Location: " . $referer); // redirect to 'record.php'
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
@@ -700,7 +697,7 @@
 		saveSessionVariable("formVars", $formVars);
 
 		// There are errors. Relocate back to the record entry form:
-		header("Location: " . $_SERVER['HTTP_REFERER']);
+		header("Location: " . $referer);
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}

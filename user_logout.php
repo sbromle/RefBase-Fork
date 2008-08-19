@@ -32,22 +32,6 @@
 
 	// --------------------------------------------------------------------
 
-	if (isset($_REQUEST['referer']))
-	{
-		$referer = $_REQUEST['referer']; // get the referring URL from the superglobal '$_REQUEST' variable (if any)
-	}
-	elseif (isset($_SESSION['referer']))
-	{
-		$referer = $_SESSION['referer']; // get the referring URL from the superglobal '$_SESSION' variable (if any)
-	}
-	else // if '$referer' is still not set
-	{
-		if (isset($_SERVER['HTTP_REFERER']))
-			$referer = $_SERVER['HTTP_REFERER'];
-		else
-			$referer = "index.php"; // if all other attempts fail, we'll re-direct to the main page
-	}
-
 	// Is the user logged in?
 	if (isset($_SESSION['loginEmail']))
 	{
@@ -121,8 +105,8 @@
 		saveSessionVariable("HeaderString", $HeaderString); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 	}
 
-	if (!preg_match("/.*user(_details|_options|_receipt|s)\.php.*|.*(error|install|query_manager|query_history)\.php.*/", $referer))
-		header("Location: $referer"); // redirect the user to the calling page
+	if (!preg_match("/.*user(_details|_options|_receipt|s)\.php.*|.*(error|install|query_manager|query_history)\.php.*/", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+		header("Location: " . $referer); // redirect the user to the calling page
 	else
 		header("Location: index.php"); // back to main page
 ?>

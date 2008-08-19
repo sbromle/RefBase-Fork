@@ -44,17 +44,14 @@
 	// --------------------------------------------------------------------
 
 	// First of all, check if this script was called by something else than 'record.php' (via 'modify.php'):
-	// Notes: - although 'receipt.php' gets actually called by 'modify.php', the HTTP_REFERER will be still set to 'record.php'
+	// Notes: - although 'receipt.php' gets actually called by 'modify.php', the referrer will be still set to 'record.php'
 	//        - if a user clicks on Login/Logout while viewing a 'receipt.php' page she should get directed back to this receipt page (which is why 'receipt.php' must be also among the recognized referrers)
-	if (!preg_match("/.*(record|receipt)\.php.*/", $_SERVER['HTTP_REFERER']))
+	if (!preg_match("/.*(record|receipt)\.php.*/", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 		
-		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
-			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
-		else
-			header("Location: index.php"); // redirect to main page ('index.php')
+		header("Location: " . $referer); // redirect to calling page
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}

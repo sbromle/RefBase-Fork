@@ -43,22 +43,6 @@
 
 	// --------------------------------------------------------------------
 
-	if (isset($_REQUEST['referer']))
-	{
-		$referer = $_REQUEST['referer']; // get the referring URL from the superglobal '$_REQUEST' variable (if any)
-	}
-	elseif (isset($_SESSION['referer']))
-	{
-		$referer = $_SESSION['referer']; // get the referring URL from the superglobal '$_SESSION' variable (if any)
-	}
-	else // if '$referer' is still not set
-	{
-		if (isset($_SERVER['HTTP_REFERER']))
-			$referer = $_SERVER['HTTP_REFERER'];
-		else
-			$referer = "index.php"; // if all other attempts fail, we'll re-direct to the main page
-	}
-
 	if (isset($_REQUEST["loginEmail"]))
 		$loginEmail = $_REQUEST["loginEmail"];
 //		$loginEmail = clean($_REQUEST["loginEmail"], 30); // using the clean function would be secure!
@@ -70,8 +54,8 @@
 	// Check if the user is already logged in
 	if (isset($_SESSION['loginEmail']))
 	{
-		if (!ereg("error\.php\?.+|user_login\.php|install\.php", $referer))
-			header("Location: $referer"); // redirect the user to the calling page
+		if (!eregi("error\.php\?.+|user_login\.php|install\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+			header("Location: " . $referer); // redirect the user to the calling page
 		else
 			header("Location: index.php"); // back to main page
 	}
@@ -230,8 +214,8 @@
 			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 
-			if (!ereg("error\.php\?.+|user_login\.php|install\.php", $referer))
-				header("Location: $referer"); // redirect the user to the calling page
+			if (!eregi("error\.php\?.+|user_login\.php|install\.php", $referer))
+				header("Location: " . $referer); // redirect the user to the calling page
 			else
 				header("Location: index.php"); // back to main page
 		}

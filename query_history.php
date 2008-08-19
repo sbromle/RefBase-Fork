@@ -11,7 +11,7 @@
 	// Repository: $HeadURL$
 	// Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
 	//
-	// Created:    02-Jan-03, 22:43
+	// Created:    09-May-08, 12:00
 	// Modified:   $Date$
 	//             $Author$
 	//             $Revision$
@@ -87,10 +87,7 @@
 		// return an appropriate error message:
 		$HeaderString = returnMsg("No query history available!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 		
-		if (!empty($_SERVER['HTTP_REFERER'])) // if the referer variable isn't empty
-			header("Location: " . $_SERVER['HTTP_REFERER']); // redirect to calling page
-		else
-			header("Location: index.php"); // redirect to main page ('index.php')
+		header("Location: " . $referer); // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}

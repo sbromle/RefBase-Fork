@@ -67,11 +67,6 @@
 	else
 		$oldQuery = array();
 
-	if (isset($_SERVER['HTTP_REFERER']))
-		$referer = $_SERVER['HTTP_REFERER'];
-	else
-		$referer = "index.php"; // if there's no HTTP referer available we relocate back to the main page
-
 	// --------------------------------------------------------------------
 
 	// (4) DISPLAY HEADER & RESULTS
@@ -93,15 +88,19 @@
 	// Build appropriate links:
 	$links = "\n<tr>"
 	       . "\n\t<td>"
-	       . "\n\t\tChoose how to proceed:&nbsp;&nbsp;"
-	       . "\n\t\t<a href=\"" . str_replace('&','&amp;',$referer) . "\">Go Back</a>"; // provide a 'go back' link (the following would only work with javascript: <a href=\"javascript:history.back()\">Go Back</a>")
+	       . "\n\t\tChoose how to proceed:&nbsp;&nbsp;";
 
-	if (!empty($oldQuery)) // only provide a link to any previous search results if '$oldQuery' isn't empty
+	// - provide a 'go back' link (the following would only work with javascript: <a href=\"javascript:history.back()\">Go Back</a>")
+	$links .= "\n\t\t<a href=\"" . str_replace('&','&amp;',$referer) . "\">Go Back</a>"; // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+
+	// - provide a link to any previous search results:
+	if (!empty($oldQuery))
 		$links .= "\n\t\t&nbsp;&nbsp;-OR-&nbsp;&nbsp;"
 		        . "\n\t\t<a href=\"" . $oldQueryURL . "\">Display previous search results</a>";
 
+	// - we also include a link to the home page here:
 	$links .= "\n\t\t&nbsp;&nbsp;-OR-&nbsp;&nbsp;"
-	        . "\n\t\t<a href=\"index.php\">Goto " . encodeHTML($officialDatabaseName) . " Home</a>" // we include the link to the home page here
+	        . "\n\t\t<a href=\"index.php\">Goto " . encodeHTML($officialDatabaseName) . " Home</a>"
 	        . "\n\t</td>"
 	        . "\n</tr>";
 
