@@ -136,20 +136,24 @@
 		$bibItemsArray = array();
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"      => "\\textbf{",
-		                             "bold-suffix"      => "}",
-		                             "italic-prefix"    => "\\textit{",
-		                             "italic-suffix"    => "}",
-		//                           "underline-prefix" => "\\ul{", // the '\ul' command requires '\usepackage{soul}'
-		//                           "underline-suffix" => "}",
-		                             "endash"           => "--", // or use '{\\textendash}'
-		                             "emdash"           => "---", // or use '{\\textemdash}'
-		                             "ampersand"        => "&", // conversion of ampersands is done below, after the citation has been generated
-		                             "double-quote"     => '"',
-		                             "single-quote"     => "'", // same as for ampersands
-		                             "less-than"        => "<",
-		                             "greater-than"     => ">",
-		                             "newline"          => "\n\n"
+		$markupPatternsArray = array("bold-prefix"        => "\\textbf{",
+		                             "bold-suffix"        => "}",
+		                             "italic-prefix"      => "\\textit{",
+		                             "italic-suffix"      => "}",
+		                             "underline-prefix"   => "\\ul{", // the '\ul' command requires '\usepackage{soul}'
+		                             "underline-suffix"   => "}",
+		                             "endash"             => "--", // or use '{\\textendash}'
+		                             "emdash"             => "---", // or use '{\\textemdash}'
+		                             "ampersand"          => "&", // conversion of ampersands is done below, after the citation has been generated
+		                             "double-quote"       => '"',
+		                             "double-quote-left"  => "{\\textquotedblleft}",
+		                             "double-quote-right" => "{\\textquotedblright}",
+		                             "single-quote"       => "'", // same as for ampersands
+		                             "single-quote-left"  => "{\\textquoteleft}",
+		                             "single-quote-right" => "{\\textquoteright}",
+		                             "less-than"          => "<",
+		                             "greater-than"       => ">",
+		                             "newline"            => "\n\n"
 		                            );
 
 		// Defines search & replace 'actions' that will be applied upon LaTeX output to all those refbase fields that are listed
