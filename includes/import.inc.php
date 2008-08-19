@@ -48,7 +48,7 @@
 	//          and was re-written by Matthias Steffens <mailto:refbase@extracts.de> to enable batch import
 	function isiToCsa($isiSourceData)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		// Function preferences:
 		$extractAllAddresses = false; // if set to 'true', all addresses will be extracted from the ISI "C1" field;
@@ -253,7 +253,7 @@
 	//          Matthias Steffens <mailto:refbase@extracts.de>
 	function crossrefToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
@@ -496,7 +496,7 @@
 	// '$feed' must contain the list of Atom feed items given as a SimplePie object
 	function arxivToRefbase(&$feed, $importRecordsRadio, $importRecordNumbersArray)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		global $contentTypeCharset; // defined in 'ini.inc.php'
 
@@ -1144,7 +1144,7 @@
 	// array format which can be then imported by the 'addRecords()' function in 'include.inc.php'.
 	function medlineToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		global $errors;
 		global $showSource;
@@ -1766,7 +1766,7 @@
 	// in 'include.inc.php'.
 	function scifinderToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		global $errors;
 		global $showSource;
@@ -2246,7 +2246,7 @@
 	// returns an array of records where each record contains an array of extracted field data:
 	function parseRecords($recordArray, $recordFormat, $importRecordNumbersRecognizedFormatArray, $tagsToRefbaseFieldsArray, $tagsMultipleArray, $referenceTypesToRefbaseTypesArray, $fieldDelimiter, $dataDelimiter, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray, $preprocessorActionsArray)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		global $showSource;
 
@@ -2372,7 +2372,7 @@
 	// (e.g. performs case transformation, standardizes thesis names, normalizes page ranges, and reformats person names according to preference)
 	function standardizeFieldData($fieldParametersArray, $recordFormat, $personDelimiter, $familyNameGivenNameDelimiter, $familyNameFirst, $shortenGivenNames, $transformCase, $postprocessorActionsArray)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		if (!empty($fieldParametersArray))
 		{
@@ -2445,6 +2445,8 @@
 			}
 
 			// if the 'pages' field contains a page range, verify that the end page is actually greater than the start page:
+			// TODO: - make regex patterns Unicode-aware (e.g. use '$punct' instead of '-')
+			//       - can this be standardized with function 'formatPageInfo()' in 'cite.inc.php'?
 			if (isset($fieldParametersArray['pages']) AND preg_match("/^\d+\D*-\D*\d+$/", $fieldParametersArray['pages']))
 			{
 				list($startPage, $endPage) = preg_split("/\D*-\D*/", $fieldParametersArray['pages']);
@@ -2866,6 +2868,8 @@
 	// This function takes the URL given in '$sourceURL' and retrieves the returned data:
 	function fetchDataFromURL($sourceURL)
 	{
+		global $errors;
+
 		$handle = fopen($sourceURL, "r"); // fetch data from URL in read mode
 
 		$sourceData = "";
@@ -2879,7 +2883,14 @@
 			fclose($handle);
 		}
 		else
-			$sourceData = "Error occurred: Failed to open " . $sourceURL; // network error
+		{
+			$errorMessage = "Error occurred: Failed to open " . $sourceURL; // network error
+
+			if (!isset($errors["sourceText"]))
+				$errors["sourceText"] = $errorMessage;
+			else
+				$errors["sourceText"] = $errors["sourceText"] . "<br>" . $errorMessage;
+		}
 
 		return $sourceData;
 	}
@@ -2891,7 +2902,7 @@
 	// array format which can be then imported by the 'addRecords()' function in 'include.inc.php'.
 	function csaToRefbase($sourceText, $importRecordsRadio, $importRecordNumbersArray)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		global $errors;
 		global $showSource;
@@ -3070,7 +3081,7 @@
 						if (preg_match("/ su(b|per)\(.+?\)/", $fieldData))
 							$fieldData = preg_replace("/ (su(?:b|per))\((.+?)\)/", "[\\1:\\2]", $fieldData); // transform " sub(...)" & " super(...)" markup into "[sub:...]" & "[super:...]" markup
 						if (preg_match("/(?<= )mu /", $fieldData))
-							$fieldData = preg_replace("/(?<= )mu /", "µ", $fieldData); // transform "mu " markup into "µ" markup
+							$fieldData = preg_replace("/(?<= )mu /", "[mu]", $fieldData); // transform "mu " markup into "[mu]" markup
 					}
 
 
