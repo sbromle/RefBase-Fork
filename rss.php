@@ -31,6 +31,7 @@
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password
 	include 'includes/include.inc.php'; // include common functions
+	include 'includes/cite.inc.php'; // include citation functions
 	include 'initialize/ini.inc.php'; // include common variables
 
 	// --------------------------------------------------------------------
@@ -76,8 +77,8 @@
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_IncorrectOrMissingParams"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
 
-		// Redirect the browser back to the main page:
-		header("Location: index.php"); // Note: if 'header("Location: " . $_SERVER['HTTP_REFERER'])' is used, the error message won't get displayed! ?:-/
+		// Redirect the browser back to the calling page:
+		header("Location: " . $referer); // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	}
 	else
