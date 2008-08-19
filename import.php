@@ -119,7 +119,10 @@
 	// If there were some errors on submit -> Re-load the data that were submitted by the user:
 	if (!empty($errors))
 	{
-		$formType = $formVars['formType']; // get the form type that was submitted by the user (and which subsequently caused an error)
+		if (isset($formVars['formType']))
+			$formType = $formVars['formType']; // get the form type that was submitted by the user (and which subsequently caused an error)
+		else
+			$formType = "";
 
 		// (A) main import form:
 		if (isset($formVars['sourceText'])) // '$formVars['sourceText']' may be non-existent in the (unlikely but possible) event that a user calls 'import_modify.php' directly
