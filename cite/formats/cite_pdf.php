@@ -52,20 +52,24 @@
 		$typeTitlesArray = array();
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"      => "<b>", // html-style fontshape markup is recognized and converted by the pdf-php package
-		                             "bold-suffix"      => "</b>",
-		                             "italic-prefix"    => "<i>",
-		                             "italic-suffix"    => "</i>",
-		                             "underline-prefix" => "<u>",
-		                             "underline-suffix" => "</u>",
-		                             "endash"           => "–",
-		                             "emdash"           => "––", // I don't know how to correctly print an emdash so we'll currently use two endashes instead
-		                             "ampersand"        => "&",
-		                             "double-quote"     => '"',
-		                             "single-quote"     => "'",
-		                             "less-than"        => "<",
-		                             "greater-than"     => ">",
-		                             "newline"          => "\n"
+		$markupPatternsArray = array("bold-prefix"        => "<b>", // html-style fontshape markup is recognized and converted by the pdf-php package
+		                             "bold-suffix"        => "</b>",
+		                             "italic-prefix"      => "<i>",
+		                             "italic-suffix"      => "</i>",
+		                             "underline-prefix"   => "<u>",
+		                             "underline-suffix"   => "</u>",
+		                             "endash"             => "¦", // see notes for "*-quote-*" below; we could also use "–" here
+		                             "emdash"             => "©", // an emdash might also be faked with two endashes ("––")
+		                             "ampersand"          => "&",
+		                             "double-quote"       => '"',
+		                             "double-quote-left"  => "ª", // AFAIK, the ISO-8859-1 (latin1) character set does not have any curly quotes,
+		                             "double-quote-right" => "¬", // see e.g. <http://www.ramsch.org/martin/uni/fmi-hp/iso8859-1.html>; but ...
+		                             "single-quote"       => "'",
+		                             "single-quote-left"  => "®", // ... since the pdf-php package let's you replace an (unused) character for any other PostScript char (see below), we use
+		                             "single-quote-right" => "¶", // the '$diff' array below to replace e.g. "®" with a single left curly quote and "¶" with a single right curly quote, etc
+		                             "less-than"          => "<",
+		                             "greater-than"       => ">",
+		                             "newline"            => "\n"
 		                            );
 
 		// Defines search & replace 'actions' that will be applied upon PDF output to all those refbase fields that are listed
@@ -98,33 +102,20 @@
 		$headingFont = 'includes/classes/org/pdf-php/fonts/Helvetica.afm';
 		$textBodyFont = 'includes/classes/org/pdf-php/fonts/Times-Roman.afm';
 
-//		$diff = array(
-//		              196 => 'Adieresis',
-//		              228 => 'adieresis',
-//		              214 => 'Odieresis',
-//		              246 => 'odieresis',
-//		              220 => 'Udieresis',
-//		              252 => 'udieresis',
-//		              223 => 'germandbls',
-//		              224 => 'agrave',
-//		              225 => 'aacute',
-//		              232 => 'egrave',
-//		              233 => 'eacute',
-//		              236 => 'igrave',
-//		              237 => 'iacute',
-//		              242 => 'ograve',
-//		              243 => 'oacute',
-//		              249 => 'ugrave',
-//		              250 => 'uacute',
-//		              200 => 'Egrave',
-//		              241 => 'ntilde',
-//		              8211 => 'endash',
-//		              8212 => 'emdash'
-//		             );
+		// Re-map character numbers from the 0->255 range to a named character, i.e. replace an (unused) character for any other PostScript char;
+		// see the PDF reference for a list of supported PostScript/PDF character names: <http://www.adobe.com/devnet/pdf/pdf_reference.html>;
+		// for the decimal code numbers of the ISO-8859-1 character set, see e.g.: <http://www.ramsch.org/martin/uni/fmi-hp/iso8859-1.html>
+		$diff = array(
+		               166 => 'endash', // "¦"
+		               169 => 'emdash', // "©"
+		               170 => 'quotedblleft', // "ª"
+		               172 => 'quotedblright', // "¬"
+		               174 => 'quoteleft', // "®"
+		               182 => 'quoteright' // "¶"
+		             );
 
 		// Select a font:
-//		$pdf->selectFont($textBodyFont, array('encoding' => 'WinAnsiEncoding', 'differences' => $diff));
-		$pdf->selectFont($textBodyFont, array('encoding' => 'WinAnsiEncoding'));
+		$pdf->selectFont($textBodyFont, array('encoding' => 'WinAnsiEncoding', 'differences' => $diff));
 
 		$pdf->openHere('Fit');
 
@@ -160,12 +151,12 @@
 		if ($pdfPageSize == 'a4')
 		{
 			$pdf->line(20, 40, 575, 40);
-			$pdf->addText(50, 28, 10, $officialDatabaseName . ' – ' . $databaseBaseURL);
+			$pdf->addText(50, 28, 10, $officialDatabaseName . ' ¦ ' . $databaseBaseURL); // w.r.t. the endash, see notes at '$markupPatternsArray' and '$diff' above
 		}
 		elseif ($pdfPageSize == 'letter')
 		{
 			$pdf->line(20, 40, 592, 40);
-			$pdf->addText(50, 28, 10, $officialDatabaseName . ' – ' . $databaseBaseURL);
+			$pdf->addText(50, 28, 10, $officialDatabaseName . ' ¦ ' . $databaseBaseURL);
 		}
 
 		$pdf->restoreState();
@@ -219,7 +210,7 @@
 
 					if (!empty($sectionHeading))
 					{
-						$pdf->selectFont($headingFont, array('encoding' => 'WinAnsiEncoding')); // use Helvetica
+						$pdf->selectFont($headingFont, array('encoding' => 'WinAnsiEncoding', 'differences' => $diff)); // use Helvetica
 						$pdf->ezText($sectionHeading, '14', array('justification' => 'left')); // create heading using a font size of 14pt
 					}
 				}
@@ -227,6 +218,13 @@
 				// If character encoding is not UTF-8 already, convert record text to UTF-8:
 //				if ($contentTypeCharset != "UTF-8")
 //					$record = convertToCharacterEncoding("UTF-8", "IGNORE", $record); // function 'convertToCharacterEncoding()' is defined in 'include.inc.php'
+
+				// NOTE: Export of cited references to PDF does currently only work with a latin1 database but not with UTF-8 (since I don't know how to write Unicode characters to PDF).
+				//       As a workaround, we could convert UTF-8 characters to latin1 if possible (and omit any other higher ASCII chars)
+				// TODO: While this workaround indeed fixes display issues with higher ASCII chars that have equivalents in the latin1 charset, this will currently swallow higher ASCII
+				//       hyphens/dashes such as endashes (which display correctly without this workaround).
+//				if ($contentTypeCharset == "UTF-8")
+//					$record = convertToCharacterEncoding("ISO-8859-1", "TRANSLIT", $record, "UTF-8"); // function 'convertToCharacterEncoding()' is defined in 'include.inc.php'
 
 				// Set paragraph text options:
 				$textOptions = array(
