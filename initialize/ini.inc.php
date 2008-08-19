@@ -209,9 +209,13 @@
 	                           "AMA",
 	                           "MLA",
 	                           "Chicago",
+	                           "Harvard 1",
+	                           "Harvard 2",
+	                           "Harvard 3",
+	                           "Vancouver",
 	                           "Deep Sea Res",
 	                           "J Glaciol",
-	                           "Polar Biol",
+	                           "Mar Biol",
 	                           "Text Citation");
 
 
