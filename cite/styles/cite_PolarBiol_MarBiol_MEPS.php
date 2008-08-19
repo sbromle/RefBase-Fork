@@ -26,6 +26,8 @@
 
 	function citeRecord($row, $citeStyle, $citeType, $markupPatternsArray, $encodeHTML)
 	{
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		$record = ""; // make sure that our buffer variable is empty
 
 		// --- BEGIN TYPE = JOURNAL ARTICLE / MAGAZINE ARTICLE / NEWSPAPER ARTICLE --------------------------------------------------------------
@@ -119,15 +121,12 @@
 				else // $row['online_publication'] == "no" -> this record refers to a printed article, so we append any pages info instead:
 				{
 					if (!empty($row['pages']))      // pages
-						{
-							if (!empty($row['volume'])||!empty($row['issue'])) // only add ":" if either volume or issue isn't empty
-								$record .= ":";
-							if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-								$pagesDisplay = (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages']));
-							else
-								$pagesDisplay = $row['pages'];
-							$record .= $pagesDisplay;
-						}
+					{
+						if (!empty($row['volume'])||!empty($row['issue'])) // only add ":" if either volume or issue isn't empty
+							$record .= ":";
+
+						$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"], "", "", " pp"); // function 'formatPageInfo()' is defined in 'cite.inc.php'
+					}
 				}
 			}
 
@@ -295,13 +294,7 @@
 					}
 
 				if (!empty($row['pages']))      // pages
-					{
-						if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
-							$pagesDisplay = (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages']));
-						else
-							$pagesDisplay = $row['pages'];
-						$record .= "pp " . $pagesDisplay;
-					}
+					$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"], "p ", "pp ", " pp"); // function 'formatPageInfo()' is defined in 'cite.inc.php'
 			}
 
 		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / JOURNAL / MANUAL / MANUSCRIPT / MAP / MISCELLANEOUS / PATENT / REPORT / SOFTWARE ---
@@ -422,9 +415,12 @@
 
 				if (!empty($row['pages']))      // pages
 					{
-						if (ereg("[0-9] *[-–] *[0-9]", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
+						// TODO: use function 'formatPageInfo()' when it can recognize & process total number of pages
+//						$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"], "p ", "pp ", " pp"); // function 'formatPageInfo()' is defined in 'cite.inc.php'
+
+						if (preg_match("/\d *[$dash] *\d/$patternModifiers", $row['pages'])) // if the 'pages' field contains a page range (like: "127-132")
 							// Note that we'll check for page ranges here although for whole books the 'pages' field should NOT contain a page range but the total number of pages! (like: "623 pp")
-							$pagesDisplay = (ereg_replace("([0-9]+) *[-–] *([0-9]+)", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages']));
+							$pagesDisplay = (preg_replace("/(\d+) *[$dash] *(\d+)/$patternModifiers", "\\1" . $markupPatternsArray["endash"] . "\\2", $row['pages']));
 						else
 							$pagesDisplay = $row['pages'];
 						$record .= $pagesDisplay;
