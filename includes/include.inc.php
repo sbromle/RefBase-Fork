@@ -57,7 +57,7 @@
 		global $loginLastName;
 		global $abbrevInstitution;
 		global $lastLogin;
-//		global $referer;
+		global $referer; // '$referer' is made globally available from within this function
 
 		global $connection;
 
@@ -140,8 +140,21 @@
 			getMainFields(0);
 		}
 
-//		if (isset($_SESSION['referer']))
-//			$referer = $_SESSION['referer'];
+		// Set the referrer:
+		if (isset($_REQUEST['referer']) AND !empty($_REQUEST['referer']))
+			$referer = $_REQUEST['referer']; // get the referring URL from the superglobal '$_REQUEST' variable (if any)
+
+		elseif (isset($_SESSION['referer']) AND !empty($_SESSION['referer']))
+		{
+			$referer = $_SESSION['referer']; // get the referring URL from the superglobal '$_SESSION' variable (if any)
+			deleteSessionVariable("referer");
+		}
+
+		elseif (isset($_SERVER['HTTP_REFERER']) AND !empty($_SERVER['HTTP_REFERER']))
+			$referer = $_SERVER['HTTP_REFERER']; // get the referring URL from the superglobal '$_SERVER' variable (if any)
+
+		else // as an example, the referrer won't be set if a user clicked on a URL of type 'show.php?record=12345' within an email announcement
+			$referer = "index.php"; // if all other attempts fail, we'll re-direct to the main page
 	}
 
 	// --------------------------------------------------------------------
@@ -493,14 +506,14 @@
 		$recordSerialsString = "&marked[]=" . $recordSerialsString; // prefix also the very first record serial with "&marked[]="
 
 		// based on the refering script we adjust the parameters that get included in the link:
-		if (ereg(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_search|opensearch|query_history|extract|users|user_details|user_receipt)\.php", $scriptURL))
+		if (eregi(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_search|opensearch|query_history|extract|users|user_details|user_receipt)\.php", $scriptURL))
 			$referer = $scriptURL; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
 									// to re-locate back to these pages after successful login/logout). Logout on 'install.php', 'users.php', 'user_details.php' or 'user_receipt.php' will redirect to 'index.php'.
 
-		elseif (ereg(".*(record|receipt)\.php", $scriptURL))
+		elseif (eregi(".*(record|receipt)\.php", $scriptURL))
 			$referer = $scriptURL . "?" . "recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg);
 
-		elseif (ereg(".*error\.php", $scriptURL))
+		elseif (eregi(".*error\.php", $scriptURL))
 			$referer = $scriptURL . "?" . "errorNo=" . $errorNo . "&errorMsg=" . rawurlencode($errorMsg) . "&headerMsg=" . rawurlencode($headerMsg);
 
 		else
@@ -537,7 +550,7 @@
 			{
 				$loginWelcomeMsg = "";
 
-				if (ereg(".*(record|import[^.]*)\.php", $scriptURL))
+				if (eregi(".*(record|import[^.]*)\.php", $scriptURL))
 					$loginStatus = "<span class=\"warning\">You must be logged in<br>to submit this form!</span>";
 				else
 					$loginStatus = "";
@@ -2521,7 +2534,7 @@ EOF;
 	//			- within one author object, there's only *one* delimiter separating author name & initials!
 	function reArrangeAuthorContents($authorContents, $familyNameFirst, $oldBetweenAuthorsDelim, $newBetweenAuthorsDelimStandard, $newBetweenAuthorsDelimLastAuthor, $oldAuthorsInitialsDelim, $newAuthorsInitialsDelimFirstAuthor, $newAuthorsInitialsDelimStandard, $betweenInitialsDelim, $initialsBeforeAuthorFirstAuthor, $initialsBeforeAuthorStandard, $shortenGivenNames, $numberOfAuthorsTriggeringEtAl, $includeNumberOfAuthors, $customStringAfterFirstAuthors, $encodeHTML)
 	{
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		$authorsArray = split($oldBetweenAuthorsDelim, $authorContents); // get a list of all authors for this record
 
@@ -2669,6 +2682,8 @@ EOF;
 	// them with content from the given record
 	function parsePlaceholderString($formVars, $placeholderString, $fallbackPlaceholderString)
 	{
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		if (empty($placeholderString))
 			$placeholderString = $fallbackPlaceholderString; // if, for some odd reason, an empty placeholder string was given, we'll use the placeholder(s) given in '$fallbackPlaceholderString'
 
@@ -2827,7 +2842,7 @@ EOF;
 						if (!empty($formVars['pagesNo']) AND preg_match("/\d+/i", $formVars['pagesNo'])) // if the 'pages' field contains a number
 						{
 							$startPage = $prefix;
-							$startPage .= preg_replace("/^\D*(\d+).*/i", "\\1", $formVars['pagesNo']); // extract starting page
+							$startPage .= preg_replace("/^\D*?(\w*\d+\w*).*/i", "\\1", $formVars['pagesNo']); // extract starting page
 							$startPage .= $suffix;
 							$convertedPlaceholderArray[] = $startPage;
 						}
@@ -2838,7 +2853,7 @@ EOF;
 					{
 						if (!empty($formVars['pagesNo']) AND preg_match("/\d+/i", $formVars['pagesNo'])) // if the 'pages' field contains a number
 						{
-							$pages = preg_replace("/^\D*(\d+)( *[-–]+ *\d+)?.*/i", "\\1\\2", $formVars['pagesNo']); // extract page range (if there's any), otherwise just the first number
+							$pages = preg_replace("/^\D*?(\w*\d+\w*)( *[$dash]+ *\w*\d+\w*)?.*/i$patternModifiers", "\\1\\2", $formVars['pagesNo']); // extract page range (if there's any), otherwise just the first number
 							$endPage = $prefix;
 							$endPage .= extractDetailsFromField("pages", $pages, "[^0-9]+", "[-1]"); // we'll use this function instead of just grabbing a matched regex pattern since it'll also work when just a number but no range is given (e.g. when startPage = endPage)
 							$endPage .= $suffix;
@@ -5213,7 +5228,7 @@ EOF;
 		if (!isset($_SESSION['loginEmail'])) // if NO user is logged in...
 		{
 			// ... and any user-specific fields are part of the SELECT or ORDER BY statement...
-			if ((empty($referer) OR eregi(".+search.php",$referer)) AND (eregi("(SELECT |ORDER BY |, *)(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)",$sqlQuery))) // if the calling script ends with 'search.php' (i.e., is NOT 'show.php' or 'sru.php', see note below!) AND any user-specific fields are part of the SELECT or ORDER BY clause
+			if ((empty($referer) OR eregi(".+search\.php",$referer)) AND (eregi("(SELECT |ORDER BY |, *)(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)",$sqlQuery))) // if the calling script ends with 'search.php' (i.e., is NOT 'show.php' or 'sru.php', see note below!) AND any user-specific fields are part of the SELECT or ORDER BY clause
 			{
 				// if the 'SELECT' clause contains any user-specific fields:
 				if (preg_match("/SELECT(.(?!FROM))+?(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)/i",$sqlQuery))
@@ -5232,11 +5247,11 @@ EOF;
 			}
 
 			// ... and the 'LEFT JOIN...' statement is part of the 'FROM' clause...
-			if ((eregi(".+search.php",$referer)) AND (eregi("LEFT JOIN $tableUserData",$sqlQuery))) // if the calling script ends with 'search.php' (i.e., is NOT 'show.php' or 'sru.php', see note below!) AND the 'LEFT JOIN...' statement is part of the 'FROM' clause...
+			if ((eregi(".+search\.php",$referer)) AND (eregi("LEFT JOIN $tableUserData",$sqlQuery))) // if the calling script ends with 'search.php' (i.e., is NOT 'show.php' or 'sru.php', see note below!) AND the 'LEFT JOIN...' statement is part of the 'FROM' clause...
 				$sqlQuery = eregi_replace("FROM $tableRefs LEFT JOIN.+WHERE","FROM $tableRefs WHERE",$sqlQuery); // ...delete 'LEFT JOIN...' part from 'FROM' clause
 
 			// ... and any user-specific fields are part of the WHERE clause...
-			if ((eregi(".+search.php",$referer) OR eregi("^RSS$",$displayType)) AND (eregi("WHERE.+(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)",$sqlQuery))) // if a user who's NOT logged in tries to query user-specific fields (by use of 'sql_search.php')...
+			if ((eregi(".+search\.php",$referer) OR eregi("^RSS$",$displayType)) AND (eregi("WHERE.+(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)",$sqlQuery))) // if a user who's NOT logged in tries to query user-specific fields (by use of 'sql_search.php')...
 			// Note that the script 'show.php' may query the user-specific field 'selected' (e.g., by URLs of the form: 'show.php?author=...&userID=...&only=selected')
 			// but since (in that case) the '$referer' variable is either empty or does not end with 'search.php' this if clause will not apply (which is ok since we want to allow 'show.php' to query the 'selected' field).
 			// The same applies in the case of 'sru.php' which may query the user-specific field 'cite_key' (e.g., by URLs like: 'sru.php?version=1.1&query=bib.citekey=...&x-info-2-auth1.0-authenticationToken=email=...')
@@ -5467,7 +5482,7 @@ EOF;
 		                                  "AND"                            =>  "and");
 
 		// Perform search & replace actions on the SQL query:
-		$translatedSQL = searchReplaceText($sqlSearchReplacePatterns, $translatedSQL, false); // function 'searchReplaceText()' is defined in 'include.inc.php'
+		$translatedSQL = searchReplaceText($sqlSearchReplacePatterns, $translatedSQL, false);
 
 		$translatedSQL = str_replace('"',"'",$translatedSQL); // replace any remaining " with '
 
