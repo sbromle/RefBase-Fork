@@ -104,6 +104,8 @@
 		global $convertExportDataToUTF8;
 		global $defaultCiteStyle;
 
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		// The array '$transtab_refbase_unicode' contains search & replace patterns for conversion from refbase markup to Unicode entities.
 		global $transtab_refbase_unicode; // defined in 'transtab_refbase_unicode.inc.php'
 
@@ -471,7 +473,7 @@
 			//         so this should be made into a dedicated function!
 			if (!empty($row['pages']) AND preg_match("/\d+/i", $row['pages'])) // if the 'pages' field contains a number
 			{
-				$pages = preg_replace("/^\D*(\d+)( *[-–]+ *\d+)?.*/i", "\\1\\2", $row['pages']); // extract page range (if there's any), otherwise just the first number
+				$pages = preg_replace("/^\D*(\d+)( *[$dash]+ *\d+)?.*/i$patternModifiers", "\\1\\2", $row['pages']); // extract page range (if there's any), otherwise just the first number
 				$startPage = preg_replace("/^\D*(\d+).*/i", "\\1", $row['pages']); // extract starting page
 				$endPage = extractDetailsFromField("pages", $pages, "[^0-9]+", "[-1]"); // extract ending page (function 'extractDetailsFromField()' is defined in 'include.inc.php')
 				// NOTE: To extract the ending page, we'll use function 'extractDetailsFromField()'
@@ -479,7 +481,7 @@
 				//       when just a number but no range is given (e.g. when startPage = endPage)
 
 				// - 'prism:startingPage':
-				if (preg_match("/\d+ *[-–]+ *\d+/i", $row['pages'])) // if there's a page range
+				if (preg_match("/\d+ *[$dash]+ *\d+/i$patternModifiers", $row['pages'])) // if there's a page range
 					addMetaElement($record, "prism", "startingPage", array(), $startPage);
 
 				// - 'prism:endingPage':
