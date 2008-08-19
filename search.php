@@ -109,13 +109,6 @@
 	else
 		$originalDisplayType = "";
 
-	// get the referring URL (if any):
-	if (isset($_SERVER['HTTP_REFERER']))
-		$referer = $_SERVER['HTTP_REFERER'];
-	else // as an example, 'HTTP_REFERER' won't be set if a user clicked on a URL of type '.../show.php?record=12345' within an email announcement
-		$referer = ""; // if there's no HTTP referer available we provide the empty string here
-
-
 	// we need to check if the user is allowed to view records with the specified display type:
 	if ($displayType == "List")
 	{
@@ -152,7 +145,7 @@
 
 			if (!eregi("^cli", $client))
 			{
-				if (ereg(".+extract.php", $referer)) // if the query was submitted by 'extract.php'
+				if (eregi(".+extract\.php", $referer)) // if the query was submitted by 'extract.php' (variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php')
 					header("Location: " . $referer); // redirect to calling page
 				else
 					header("Location: index.php"); // redirect to main page ('index.php')
@@ -169,38 +162,49 @@
 			$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForExport"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 			if (!eregi("^cli", $client))
+				header("Location: index.php"); // redirect to main page ('index.php')
+
+			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		}
+	}
+
+	if ($formType == "sqlSearch" AND eregi(".+/sql_search\.php", $referer))
+	{
+		// NOTES: - currently, we restrict this if clause to requests from 'sql_search.php'
+		//        - note that this if clause is in NO way fool-proof since it won't apply if:
+		//          - the SQL query gets sent from another (custom) script
+		//          - the '$referer' variable is empty or defaults to 'index.php'
+		//          - the SQL query contained in the 'search.php' request gets edited directly
+		//        - the other approach would be to disallow SQL searches (if the user has no permission to do so) from any but a few
+		//          selected scripts; however, at least the scripts 'search.php', 'opensearch.php', 'show.php', 'user_login.php' and
+		//          'query_history.php' must be allowed
+		//          - in that case, 'show.php' should save the URL of the current 'show.php' request to the 'referer' session variable;
+		//            since function 'start_session()' prefers '$_SESSION['referer']' over '$_SERVER['HTTP_REFERER']', this means that
+		//            '$referer' then contains a 'show.php' URL and not e.g. a '*_search.php' URL; this, in turn, prevents the
+		//            "NoPermission_ForSQL" warning if a user clicked the "Show All" link in the header of any of the '*_search.php' pages
+		//          - however, since refbase currently relies heavily on embedded SQL queries, disallowing SQL searches from any but a few
+		//            selected scripts may fail in unforeseen cases; it would also prevent users to embed 'search.php' links in foreign pages
+		//        - since it would be always possible to edit the 'search.php' request directly, we currently just disallow SQL searches via
+		//          the GUI (i.e. the 'sql_search.php' form); BUT:
+		//        - note that further measures (e.g. to prevent cross-site scripting (XSS) attacks or access to unwanted SQL queries & tables)
+		//          are done below
+		// TODO: is there a way to disallow manual SQL searches (if the user has no permission to do so) which still allows searches from
+		//       'opensearch.php' & 'show.php' etc and which does not rely on any passed referrer?
+
+		if (isset($_SESSION['user_permissions']) AND !ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_sql_search'...
+		{
+			// return an appropriate error message:
+			$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForSQL"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
+
+			if (!eregi("^cli", $client))
 			{
-				if (ereg(".+extract.php", $referer)) // if the query was submitted by 'extract.php'
+				if (eregi(".+/sql_search\.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php'
 					header("Location: " . $referer); // redirect to calling page
 				else
 					header("Location: index.php"); // redirect to main page ('index.php')
 			}
 
 			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-		}
-	}
-	elseif ((empty($displayType) OR ($displayType == "List")) AND ereg(".+[/_]search.php", $referer))
-	{
-		// by restricting this if clause to scripts that end with '/search.php' or '_search.php', we exclude 'opensearch.php' and 'show.php' to allow for SQL queries like : 'show.php?date=...&when=...&range=...' and 'show.php?year=...'
-		// (and if the referer variable is empty this if clause won't apply either)
-
-		if (isset($_SESSION['user_permissions']) AND !ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_sql_search'...
-		{
-			if ($formType == "sqlSearch" AND !ereg(".+/search.php", $referer)) // if the calling URL contained 'formType=sqlSearch' but wasn't sent by 'search.php' (but, e.g., by 'sql_search.php')
-			{
-				// return an appropriate error message:
-				$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForSQL"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
-
-				if (!eregi("^cli", $client))
-				{
-					if (ereg(".+sql_search.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php'
-						header("Location: " . $referer); // redirect to calling page
-					else
-						header("Location: index.php"); // redirect to main page ('index.php')
-				}
-
-				exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-			}
 		}
 	}
 
@@ -372,7 +376,7 @@
 		$recordsSelectionRadio = "1"; // process ALL records
 
 	// check if the user did mark any checkboxes (and set up variables accordingly, they will be used within the 'displayDetails()', 'generateCitations()' and 'modifyUserGroups()' functions)
-	if (ereg(".+[/_]search.php", $referer) AND ($recordsSelectionRadio == "0") AND empty($recordSerialsArray)) // the "Selected Records" option was chosen, but NO checkboxes were marked
+	if (eregi(".+[/_]search\.php", $referer) AND ($recordsSelectionRadio == "0") AND empty($recordSerialsArray)) // the "Selected Records" option was chosen, but NO checkboxes were marked
 		$nothingChecked = true;
 	else // the "All Found Records" option was chosen -OR- the "Selected Records" option was chosen and some checkboxes were marked -OR- the query resulted from another script like 'opensearch.php', 'show.php' or 'rss.php' (which has no checkboxes to mark!)
 		$nothingChecked = false;
@@ -435,8 +439,8 @@
 
 		if (!eregi("^cli", $client))
 		{
-			if (eregi(".+(sql|duplicate)_search.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php' or 'duplicate_search.php'
-				header("Location: $referer"); // relocate back to the calling page
+			if (eregi(".+(sql|duplicate)_search\.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php' or 'duplicate_search.php'
+				header("Location: " . $referer); // relocate back to the calling page
 			else // if the user didn't come from 'sql_search.php' or 'duplicate_search.php' (e.g., if he attempted to hack parameters of a GET query directly)
 				header("Location: index.php"); // relocate back to the main page
 		}
@@ -562,7 +566,7 @@
 
 
 	// (4) If the display type is 'Export', display the exported file...
-	if (($displayType == "Export") && (empty($headerMsg)))
+	if (($displayType == "Export"))
 	{
 		// Find out how many rows are available:
 		$rowsFound = @ mysql_num_rows($result); // for all other display types, the '$rowsFound' variable is set within function 'seekInMySQLResultsToOffset()' (see below)
@@ -2151,7 +2155,7 @@
 	function findDuplicates($sqlQuery, $originalDisplayType)
 	{
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
-		global $alnum, $alpha, $cntrl, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		// re-assign the correct display type (i.e. the view that was active when the user clicked the 'dups' link in the header):
 		if (!empty($originalDisplayType))
@@ -2293,7 +2297,7 @@
 						// (eventually, the '$formVars' array should use the MySQL field names as names for its array keys)
 						$formVars = buildFormVarsArray($row); // function 'buildFormVarsArray()' is defined in 'include.inc.php'
 
-						// ignore initials in author names:
+						// ignore initials in author names:
 						$row[$i] = parsePlaceholderString($formVars, "<:authors[0||]:>", ""); // function 'parsePlaceholderString()' is defined in 'include.inc.php'
 					}
 
