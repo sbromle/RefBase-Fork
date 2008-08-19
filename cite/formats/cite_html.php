@@ -63,20 +63,24 @@
 		$typeTitlesArray = array();
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"      => "<b>",
-		                             "bold-suffix"      => "</b>",
-		                             "italic-prefix"    => "<i>",
-		                             "italic-suffix"    => "</i>",
-		                             "underline-prefix" => "<u>",
-		                             "underline-suffix" => "</u>",
-		                             "endash"           => "&#8211;",
-		                             "emdash"           => "&#8212;",
-		                             "ampersand"        => "&",
-		                             "double-quote"     => '"',
-		                             "single-quote"     => "'",
-		                             "less-than"        => "<",
-		                             "greater-than"     => ">",
-		                             "newline"          => "\n<br>\n"
+		$markupPatternsArray = array("bold-prefix"        => "<b>",
+		                             "bold-suffix"        => "</b>",
+		                             "italic-prefix"      => "<i>",
+		                             "italic-suffix"      => "</i>",
+		                             "underline-prefix"   => "<u>",
+		                             "underline-suffix"   => "</u>",
+		                             "endash"             => "&#8211;",
+		                             "emdash"             => "&#8212;",
+		                             "ampersand"          => "&",
+		                             "double-quote"       => '"',
+		                             "double-quote-left"  => "&ldquo;",
+		                             "double-quote-right" => "&rdquo;",
+		                             "single-quote"       => "'",
+		                             "single-quote-left"  => "&lsquo;",
+		                             "single-quote-right" => "&rsquo;",
+		                             "less-than"          => "<",
+		                             "greater-than"       => ">",
+		                             "newline"            => "\n<br>\n"
 		                            );
 
 

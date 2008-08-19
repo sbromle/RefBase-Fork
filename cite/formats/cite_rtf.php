@@ -46,20 +46,24 @@
 		$typeTitlesArray = array();
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"      => "{\\b ",
-		                             "bold-suffix"      => "}",
-		                             "italic-prefix"    => "{\\i ",
-		                             "italic-suffix"    => "}",
-		                             "underline-prefix" => "{\\ul ",
-		                             "underline-suffix" => "}",
-		                             "endash"           => "\\endash ",
-		                             "emdash"           => "\\emdash ",
-		                             "ampersand"        => "&",
-		                             "double-quote"     => '"',
-		                             "single-quote"     => "'",
-		                             "less-than"        => "<",
-		                             "greater-than"     => ">",
-		                             "newline"          => "\n{\\f1\\fs24 \par}\n"
+		$markupPatternsArray = array("bold-prefix"        => "{\\b ",
+		                             "bold-suffix"        => "}",
+		                             "italic-prefix"      => "{\\i ",
+		                             "italic-suffix"      => "}",
+		                             "underline-prefix"   => "{\\ul ",
+		                             "underline-suffix"   => "}",
+		                             "endash"             => "\\endash ", // or use "\\uc0\\u8211 " or "\\u8211\\'2D" (the first two seem to work more reliably than the third one)
+		                             "emdash"             => "\\emdash ", // or use "\\uc0\\u8212 " or "\\u8212\\'2D"
+		                             "ampersand"          => "&",
+		                             "double-quote"       => '"',
+		                             "double-quote-left"  => "\\ldblquote ", // or use "\\uc0\\u8220 " or "\\u8220\\'22"
+		                             "double-quote-right" => "\\rdblquote ", // or use "\\uc0\\u8221 " or "\\u8221\\'22"
+		                             "single-quote"       => "'",
+		                             "single-quote-left"  => "\\lquote ", // or use "\\uc0\\u8216 " or "\\u8216\\'27"
+		                             "single-quote-right" => "\\rquote ", // or use "\\uc0\\u8217 " or "\\u8217\\'27"
+		                             "less-than"          => "<",
+		                             "greater-than"       => ">",
+		                             "newline"            => "\n{\\f1\\fs24 \par}\n"
 		                            );
 
 		// Defines search & replace 'actions' that will be applied upon RTF output to all those refbase fields that are listed

@@ -51,20 +51,24 @@
 		$typeTitlesArray = array();
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"      => "", // for plain text output, we'll omit any font-shape markup
-		                             "bold-suffix"      => "",
-		                             "italic-prefix"    => "",
-		                             "italic-suffix"    => "",
-		                             "underline-prefix" => "",
-		                             "underline-suffix" => "",
-		                             "endash"           => "-",
-		                             "emdash"           => "-",
-		                             "ampersand"        => "&",
-		                             "double-quote"     => '"',
-		                             "single-quote"     => "'",
-		                             "less-than"        => "<",
-		                             "greater-than"     => ">",
-		                             "newline"          => "\n"
+		$markupPatternsArray = array("bold-prefix"        => "", // for plain text output, we'll omit any font-shape markup
+		                             "bold-suffix"        => "",
+		                             "italic-prefix"      => "",
+		                             "italic-suffix"      => "",
+		                             "underline-prefix"   => "",
+		                             "underline-suffix"   => "",
+		                             "endash"             => "-",
+		                             "emdash"             => "-",
+		                             "ampersand"          => "&",
+		                             "double-quote"       => '"',
+		                             "double-quote-left"  => '"',
+		                             "double-quote-right" => '"',
+		                             "single-quote"       => "'",
+		                             "single-quote-left"  => "'",
+		                             "single-quote-right" => "'",
+		                             "less-than"          => "<",
+		                             "greater-than"       => ">",
+		                             "newline"            => "\n"
 		                            );
 
 		// Defines search & replace 'actions' that will be applied upon TEXT output to all those refbase fields that are listed

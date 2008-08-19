@@ -49,20 +49,24 @@
 		$typeTitlesArray = array();
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
-		$markupPatternsArray = array("bold-prefix"      => "**",
-		                             "bold-suffix"      => "**",
-		                             "italic-prefix"    => "_",
-		                             "italic-suffix"    => "_",
-		                             "underline-prefix" => "<u>",
-		                             "underline-suffix" => "</u>",
-		                             "endash"           => "&ndash;",
-		                             "emdash"           => "&mdash;",
-		                             "ampersand"        => "&",
-		                             "double-quote"     => '"',
-		                             "single-quote"     => "'",
-		                             "less-than"        => "<",
-		                             "greater-than"     => ">",
-		                             "newline"          => "  \n"
+		$markupPatternsArray = array("bold-prefix"        => "**",
+		                             "bold-suffix"        => "**",
+		                             "italic-prefix"      => "_",
+		                             "italic-suffix"      => "_",
+		                             "underline-prefix"   => "<u>",
+		                             "underline-suffix"   => "</u>",
+		                             "endash"             => "&ndash;",
+		                             "emdash"             => "&mdash;",
+		                             "ampersand"          => "&",
+		                             "double-quote"       => '"',
+		                             "double-quote-left"  => "&ldquo;",
+		                             "double-quote-right" => "&rdquo;",
+		                             "single-quote"       => "'",
+		                             "single-quote-left"  => "&lsquo;",
+		                             "single-quote-right" => "&rsquo;",
+		                             "less-than"          => "<",
+		                             "greater-than"       => ">",
+		                             "newline"            => "  \n"
 		                            );
 
 		// Defines search & replace 'actions' that will be applied upon Markdown output to all those refbase fields that are listed
