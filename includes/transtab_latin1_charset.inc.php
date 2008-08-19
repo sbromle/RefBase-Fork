@@ -33,8 +33,8 @@
 	//       higher ASCII chars upper case = "ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆ"
 	//       higher ASCII chars lower case = "äåáàâãçéèêëñöøóòôõüúùûíìîïæÿß"
 
-	//       The variables '$alnum', '$alpha', '$cntrl', '$digit', '$graph', '$lower', '$print', '$punct', '$space', '$upper',
-	//       '$word' must be used within a perl-style regex character class.
+	//       The variables '$alnum', '$alpha', '$cntrl', '$dash', '$digit', '$graph', '$lower', '$print', '$punct', '$space',
+	//       '$upper', '$word' must be used within a perl-style regex character class.
 
 	// Matches ISO-8859-1 letters & digits:
 	$alnum = "[:alnum:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆäåáàâãçéèêëñöøóòôõüúùûíìîïæÿß";
@@ -44,6 +44,9 @@
 
 	// Matches ISO-8859-1 control characters:
 	$cntrl = "[:cntrl:]";
+
+	// Matches ISO-8859-1 dashes & hyphens:
+	$dash = "-–";
 
 	// Matches ISO-8859-1 digits:
 	$digit = "[:digit:]";

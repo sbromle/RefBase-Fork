@@ -30,8 +30,8 @@
 	//       properties requires the "/.../u" PCRE pattern modifier! More info:
 	//       <http://www.php.net/manual/en/regexp.reference.php#regexp.reference.unicode>
 
-	//       The variables '$alnum', '$alpha', '$cntrl', '$digit', '$graph', '$lower', '$print', '$punct', '$space', '$upper',
-	//       '$word' must be used within a perl-style regex character class and require the "/.../u" PCRE pattern modifier.
+	//       The variables '$alnum', '$alpha', '$cntrl', '$dash', '$digit', '$graph', '$lower', '$print', '$punct', '$space',
+	//       '$upper', '$word' must be used within a perl-style regex character class and require the "/.../u" PCRE pattern modifier.
 
 	// Matches Unicode letters & digits:
 	$alnum = "\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}"; // Unicode-aware equivalent of "[:alnum:]"
@@ -41,6 +41,9 @@
 
 	// Matches Unicode control codes & characters not in other categories:
 	$cntrl = "\p{C}"; // Unicode-aware equivalent of "[:cntrl:]"
+
+	// Matches Unicode dashes & hyphens:
+	$dash = "\p{Pd}";
 
 	// Matches Unicode digits:
 	$digit = "\p{Nd}"; // Unicode-aware equivalent of "[:digit:]"
