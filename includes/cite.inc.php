@@ -150,4 +150,82 @@
 
 		return $typeTitle;
 	}
+
+	// --------------------------------------------------------------------
+
+	// Format page information:
+	// 
+	// NOTES: - this function (and refbase in general) assumes following rules for the original formatting of page information in '$origPageInfo':
+	//          - single-page items are given as a page range with identical start & end numbers (e.g. "127-127")
+	//          - multi-page items are given as a page range where the end number is greater than the start number (e.g. "127-132")
+	//          - for multi-page items where only the start page is known, a hyphen is appended to the start page (e.g. "127-")
+	//          - total number of pages are given with a "pp" suffix (e.g. "498 pp"), see TODO
+	//          - the given page info is left as is if it does not match any of the above rules (e.g. a single page number is ambiguous since it
+	//            could mean a single page or the total number of pages)
+	//        - the function attempts to deal with page locators that contain letters (e.g. "A1 - A3" or "4a-4c") but, ATM, locator parts (e.g. "A1")
+	//          must contain at least one digit character & must not contain any whitespace
+	// 
+	// TODO:  - should we only use Unicode-aware regex expressions (i.e. always use '$space', '$digit' or '$word' instead of ' ', '\d' or '\w', etc)?
+	//        - recognize & process total number of pages
+	//        - for '$shortenPageRangeEnd=true', add support for page locators that contain letters (e.g. "A1 - A3" or "4a-4c")
+	function formatPageInfo($origPageInfo, $pageRangeDelim = "-", $singlePagePrefix = "", $pageRangePrefix = "", $totalPagesPrefix = "", $singlePageSuffix = "", $pageRangeSuffix = "", $totalPagesSuffix = "", $shortenPageRangeEnd = false)
+	{
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
+		// Check original page info for any recognized page locators, and process them appropriately:
+		if (preg_match("/\w*\d+\w* *[$dash]+ *(?:\w*\d+\w*)?/$patternModifiers", $origPageInfo)) // the original page info contains a page range (like: "127-127", "127-132", "A1 - A3", "4a-4c", or "127-" if only start page given)
+		{
+			// Remove any whitespace around dashes or hyphens that indicate a page range:
+			$origPageInfo = preg_replace("/(\w*\d+\w*) *([$dash]+) *(\w*\d+\w*)?(?=[^\w\d]|$)/$patternModifiers", "\\1\\2\\3", $origPageInfo);
+
+			// Split original page info into its functional parts:
+			// NOTE: ATM, we simply split on any whitespace characters, then process all parts with page ranges
+			//       (this will also reduce runs of whitespace to a single space)
+			$partsArray = preg_split("/ +/", $origPageInfo);
+			$partsCount = count($partsArray);
+
+			for ($i=0; $i < $partsCount; $i++)
+			{
+				// Format parts with page ranges:
+				// - single-page item:
+				if (preg_match("/(\w*\d+\w*)[$dash]+\\1(?=[^\w\d]|$)/$patternModifiers", $partsArray[$i])) // this part contains a page range with identical start & end numbers (like: "127-127")
+					$partsArray[$i] = preg_replace("/(\w*\d+\w*)[$dash]+\\1(?=[^\w\d]|$)/$patternModifiers", $singlePagePrefix . "\\1" . $singlePageSuffix, $partsArray[$i]);
+
+				// - multi-page item:
+				elseif (preg_match("/\w*\d+\w*[$dash]+(?:\w*\d+\w*)?(?=[^\w\d]|$)/$patternModifiers", $partsArray[$i])) // this part contains a page range (like: "127-132", or "127-" if only start page given)
+				{
+					// In case of '$shortenPageRangeEnd=true', we abbreviate ending page numbers so that digits aren't repeated unnecessarily:
+					if ($shortenPageRangeEnd AND preg_match("/\d+[$dash]+\d+/$patternModifiers", $partsArray[$i])) // ATM, only digit-only page locators (like: "127-132") are supported
+					{
+						// NOTE: the logic of this 'if' clause doesn't work if the original page info contains something like "173-190; 195-195" (where, for the first page range, '$endPage' would be "190;" and not "190")
+						list($startPage, $endPage) = preg_split("/[$dash]+/$patternModifiers", $partsArray[$i]);
+
+						$countStartPage = strlen($startPage);
+						$countEndPage = strlen($endPage);
+
+						if(($countStartPage == $countEndPage) AND ($startPage < $endPage))
+						{
+							for ($j=0; $j < $countStartPage; $j++)
+							{
+								if (preg_match("/^" . substr($startPage, $j, 1) . "/", $endPage)) // if the ending page number has a digit that's identical to the starting page number (at the same digit offset)
+									$endPage = substr($endPage, 1); // remove the first digit from the remaining ending page number
+								else
+									break;
+							}
+						}
+
+						$partsArray[$i] = $pageRangePrefix . $startPage . $pageRangeDelim . $endPage . $pageRangeSuffix;
+					}
+					else // don't abbreviate ending page numbers:
+						$partsArray[$i] = preg_replace("/(\w*\d+\w*)[$dash]+(\w*\d+\w*)?(?=[^\w\d]|$)/$patternModifiers", $pageRangePrefix . "\\1" . $pageRangeDelim . "\\2" . $pageRangeSuffix, $partsArray[$i]);
+				}
+			}
+				
+			$newPageInfo = join(" ", $partsArray); // merge again all parts
+		}
+		else
+			$newPageInfo = $origPageInfo; // page info is ambiguous, so we don't mess with it
+
+		return $newPageInfo;
+	}
 ?>
