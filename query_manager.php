@@ -96,24 +96,15 @@
 	else
 		$customQuery = "0";
 
-
 	if (isset($_REQUEST['queryAction']))
 		$queryAction = $_REQUEST['queryAction']; // check whether the user wants to *add* a query or *edit* an existing one
 	else
 		$queryAction = "add"; // *add* query will be the default action if no parameter is given
 
-
 	if (isset($_REQUEST['queryID']))
 		$queryID = $_REQUEST['queryID']; // fetch the query ID of the query to edit
 	else
 		$queryID = "";
-
-
-	// get the referring URL (if any):
-	if (isset($_SERVER['HTTP_REFERER']))
-		$referer = $_SERVER['HTTP_REFERER'];
-	else
-		$referer = ""; // if there's no HTTP referer available we provide the empty string here
 
 
 	// Setup some required variables:
@@ -320,11 +311,19 @@
 	{
 		$webViewTypeSelected = "";
 		$printViewTypeSelected = " selected";
+		$mobileViewTypeSelected = "";
+	}
+	elseif (eregi("^Mobile$", $queryViewType))
+	{
+		$webViewTypeSelected = "";
+		$printViewTypeSelected = "";
+		$mobileViewTypeSelected = " selected";
 	}
 	else // '$queryViewType' is 'Web' or ''
 	{
 		$webViewTypeSelected = " selected";
 		$printViewTypeSelected = "";
+		$mobileViewTypeSelected = "";
 	}
 
 
@@ -388,6 +387,7 @@
 			<select name="queryViewType">
 				<option<?php echo $webViewTypeSelected; ?>>Web</option>
 				<option<?php echo $printViewTypeSelected; ?>>Print</option>
+				<option<?php echo $mobileViewTypeSelected; ?>>Mobile</option>
 			</select>
 		</td>
 	</tr>
