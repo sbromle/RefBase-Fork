@@ -144,7 +144,8 @@ CREATE TABLE `depends` (
 #
 
 INSERT INTO `depends` VALUES (1, 'refbase', 'true', NULL),
-(2, 'bibutils', 'true', NULL);
+(2, 'bibutils', 'true', NULL),
+(3, 'pdftotext', 'true', NULL);
 
 # --------------------------------------------------------
 
@@ -375,13 +376,17 @@ INSERT INTO `styles` VALUES
 (2, 'AMA', 'true', 'styles/cite_AMA.php', 'A020', 1),
 (3, 'MLA', 'true', 'styles/cite_MLA.php', 'A030', 1),
 (4, 'Chicago', 'true', 'styles/cite_Chicago.php', 'A070', 1),
-(5, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B010', 1),
-(6, 'Deep Sea Res', 'true', 'styles/cite_DeepSeaRes.php', 'B020', 1),
-(7, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B030', 1),
-(8, 'Mar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B040', 1),
-(9, 'MEPS', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B050', 1),
-(10, 'Polar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B060', 1),
-(11, 'Text Citation', 'true', 'styles/cite_TextCitation.php', 'C010', 1);
+(5, 'Harvard 1', 'true', 'styles/cite_Harvard_1.php', 'A090', 1),
+(6, 'Harvard 2', 'true', 'styles/cite_Harvard_2.php', 'A093', 1),
+(7, 'Harvard 3', 'true', 'styles/cite_Harvard_3.php', 'A096', 1),
+(8, 'Vancouver', 'true', 'styles/cite_Vancouver.php', 'A110', 1),
+(9, 'Ann Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B010', 1),
+(10, 'Deep Sea Res', 'true', 'styles/cite_DeepSeaRes.php', 'B020', 1),
+(11, 'J Glaciol', 'true', 'styles/cite_AnnGlaciol_JGlaciol.php', 'B030', 1),
+(12, 'Mar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B040', 1),
+(13, 'MEPS', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B050', 1),
+(14, 'Polar Biol', 'true', 'styles/cite_PolarBiol_MarBiol_MEPS.php', 'B060', 1),
+(15, 'Text Citation', 'true', 'styles/cite_TextCitation.php', 'C010', 1);
 
 # --------------------------------------------------------
 
@@ -637,18 +642,26 @@ INSERT INTO `user_styles` VALUES (1, 1, 0, 'true'),
 (2, 2, 0, 'true'),
 (3, 3, 0, 'true'),
 (4, 4, 0, 'true'),
-(5, 6, 0, 'true'),
-(6, 7, 0, 'true'),
-(7, 10, 0, 'true'),
-(8, 11, 0, 'true'),
-(9, 1, 1, 'true'),
-(10, 2, 1, 'true'),
-(11, 3, 1, 'true'),
-(12, 4, 1, 'true'),
-(13, 6, 1, 'true'),
-(14, 7, 1, 'true'),
-(15, 10, 1, 'true'),
-(16, 11, 1, 'true');
+(5, 5, 0, 'true'),
+(6, 6, 0, 'true'),
+(7, 7, 0, 'true'),
+(8, 8, 0, 'true'),
+(9, 10, 0, 'true'),
+(10, 11, 0, 'true'),
+(11, 12, 0, 'true'),
+(12, 15, 0, 'true'),
+(13, 1, 1, 'true'),
+(14, 2, 1, 'true'),
+(15, 3, 1, 'true'),
+(16, 4, 1, 'true'),
+(17, 5, 1, 'true'),
+(18, 6, 1, 'true'),
+(19, 7, 1, 'true'),
+(20, 8, 1, 'true'),
+(21, 10, 1, 'true'),
+(22, 11, 1, 'true'),
+(23, 12, 1, 'true'),
+(24, 15, 1, 'true');
 
 # --------------------------------------------------------
 

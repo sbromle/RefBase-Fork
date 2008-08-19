@@ -38,6 +38,14 @@ ALTER TABLE `deleted` ADD COLUMN `version` mediumint(8) unsigned default 1 AFTER
 # --------------------------------------------------------
 
 #
+# update table `depends`
+#
+
+INSERT INTO `depends` VALUES (NULL, 'pdftotext', 'true', NULL);
+
+# --------------------------------------------------------
+
+#
 # replace table `formats`
 #
 
@@ -139,7 +147,11 @@ INSERT INTO `styles` VALUES (NULL, 'Ann Glaciol', 'true', 'styles/cite_AnnGlacio
 (NULL, 'APA', 'true', 'styles/cite_APA.php', 'A010', 1),
 (NULL, 'AMA', 'true', 'styles/cite_AMA.php', 'A020', 1),
 (NULL, 'MLA', 'true', 'styles/cite_MLA.php', 'A030', 1),
-(NULL, 'Chicago', 'true', 'styles/cite_Chicago.php', 'A070', 1);
+(NULL, 'Chicago', 'true', 'styles/cite_Chicago.php', 'A070', 1),
+(NULL, 'Harvard 1', 'true', 'styles/cite_Harvard_1.php', 'A090', 1),
+(NULL, 'Harvard 2', 'true', 'styles/cite_Harvard_2.php', 'A093', 1),
+(NULL, 'Harvard 3', 'true', 'styles/cite_Harvard_3.php', 'A096', 1),
+(NULL, 'Vancouver', 'true', 'styles/cite_Vancouver.php', 'A110', 1);
 
 UPDATE `styles` SET `order_by` = 'C010' WHERE `style_name` = 'Text Citation';
 UPDATE `styles` SET `order_by` = 'B060' WHERE `style_name` = 'Polar Biol';

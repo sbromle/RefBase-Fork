@@ -298,6 +298,10 @@
 		$result = queryMySQLDatabase($query);
 		$resultArray["Table 'refs': updated 'type' field (removed 'Unsupported' label for all newly supported types). Affected rows"] = ($result ? mysql_affected_rows($connection) : 0);
 
+		// Add new utilities to table 'depends'
+		$values = "(NULL, 'pdftotext', 'true', NULL)";
+		$resultArray["Table 'depends': inserted entry for 'pdftotext' utility"] = insertIfNotExists(array("depends_external" => "pdftotext"), $tableDepends, $values);
+
 		// Create new MySQL table 'user_options'
 		$properties = "(option_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
 					. "user_id MEDIUMINT UNSIGNED NOT NULL, "
@@ -382,6 +386,18 @@
 
 		$values = "(NULL, 'Chicago', 'true', 'styles/cite_Chicago.php', 'A070', '1')";
 		$resultArray["Table 'styles': inserted style 'Chicago'"] = insertIfNotExists(array("style_name" => "Chicago"), $tableStyles, $values);
+
+		$values = "(NULL, 'Harvard 1', 'true', 'styles/cite_Harvard_1.php', 'A090', '1')";
+		$resultArray["Table 'styles': inserted style 'Harvard 1'"] = insertIfNotExists(array("style_name" => "Harvard 1"), $tableStyles, $values);
+
+		$values = "(NULL, 'Harvard 2', 'true', 'styles/cite_Harvard_2.php', 'A093', '1')";
+		$resultArray["Table 'styles': inserted style 'Harvard 2'"] = insertIfNotExists(array("style_name" => "Harvard 2"), $tableStyles, $values);
+
+		$values = "(NULL, 'Harvard 3', 'true', 'styles/cite_Harvard_3.php', 'A096', '1')";
+		$resultArray["Table 'styles': inserted style 'Harvard 3'"] = insertIfNotExists(array("style_name" => "Harvard 3"), $tableStyles, $values);
+
+		$values = "(NULL, 'Vancouver', 'true', 'styles/cite_Vancouver.php', 'A110', '1')";
+		$resultArray["Table 'styles': inserted style 'Vancouver'"] = insertIfNotExists(array("style_name" => "Vancouver"), $tableStyles, $values);
 
 		$query = "UPDATE " . $tableStyles . " SET order_by = 'B010' WHERE style_name = 'Ann Glaciol'";
 		$result = queryMySQLDatabase($query);
@@ -773,7 +789,7 @@
 
 		// Fetch IDs for all styles that shall be enabled:
 		$styleIDArray = array();
-		$query = "SELECT style_id, style_name FROM " . $tableStyles . " WHERE style_name RLIKE '^(AMA|APA|Chicago|J Glaciol|MLA)$'";
+		$query = "SELECT style_id, style_name FROM " . $tableStyles . " WHERE style_name RLIKE '^(AMA|APA|Chicago|Harvard( [0-9]+)?|J Glaciol|MLA|Vancouver)$'";
 		$result = queryMySQLDatabase($query);
 		$rowsFound = @ mysql_num_rows($result);
 		if ($rowsFound > 0)
