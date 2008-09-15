@@ -462,10 +462,7 @@
 		global $loginLinks;
 		global $adminLoginEmail; // ('$adminLoginEmail' is specified in 'ini.inc.php')
 
-
-		// Read session variables:
-		if (isset($_SESSION['loginUserID']))
-			$loginUserID = $_SESSION['loginUserID'];
+		global $loc; // '$loc' is made globally available in 'core.php'
 
 
 //		$referer = $_SERVER["REQUEST_URI"]; // 'REQUEST_URI' does only seem to work for GET requests (but not for POST requests!) ?:-/
@@ -520,15 +517,16 @@
 			$referer = $scriptURL . "?" . "formType=" . "sqlSearch" . "&submit=" . $displayType . "&headerMsg=" . rawurlencode($headerMsg) . "&sqlQuery=" . $queryURL . "&showQuery=" . $showQuery . "&showLinks=" . $showLinks . "&showRows=" . $showRows . "&rowOffset=" . $rowOffset . $recordSerialsString . "&citeStyle=" . rawurlencode($citeStyle) . "&citeOrder=" . $citeOrder . "&orderBy=" . rawurlencode($orderBy);
 		// --- END WORKAROUND -----
 
+
 		// Is the user logged in?
 		if (isset($_SESSION['loginEmail']))
 			{
-				$loginWelcomeMsg = "Welcome<br><em>" . encodeHTML($loginFirstName) . " " . encodeHTML($loginLastName) . "</em>!";
+				$loginStatus = $loc["Welcome"];
+
+				$loginWelcomeMsg = "<em>" . encodeHTML($loginFirstName) . " " . encodeHTML($loginLastName) . "</em>!";
 
 				if ($loginEmail == $adminLoginEmail)
-					$loginStatus = "You're logged in as<br><span class=\"warning\">Admin</span> (<em>" . $loginEmail . "</em>)";
-				else
-					$loginStatus = "You're logged in as<br><em>" . $loginEmail . "</em>";
+					$loginStatus .= " <span class=\"warning\">" . $loc["Admin"] . "</span>";
 
 				$loginLinks = "";
 				if ($loginEmail == $adminLoginEmail) // if the admin is logged in, add the 'Add User' & 'Manage Users' links:
@@ -538,30 +536,25 @@
 				}
 				else // if a normal user is logged in, we add the 'My Refs' and 'Options' links instead:
 				{
-					$loginLinks .= "<a href=\"search.php?formType=myRefsSearch&amp;showQuery=0&amp;showLinks=1&amp;myRefsRadio=1\"" . addAccessKey("attribute", "my_refs") . " title=\"display all of your records" . addAccessKey("title", "my_refs") . "\">My Refs</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
+					$loginLinks .= "<a href=\"search.php?formType=myRefsSearch&amp;showQuery=0&amp;showLinks=1&amp;myRefsRadio=1\"" . addAccessKey("attribute", "my_refs") . " title=\"" . $loc["LinkTitle_MyRefs"] . addAccessKey("title", "my_refs") . "\">" . $loc["MyRefs"] . "</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
 
 					if (isset($_SESSION['user_permissions']) AND ereg("allow_modify_options", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_modify_options'...
 						// ... include a link to 'user_receipt.php':
-						$loginLinks .= "<a href=\"user_receipt.php?userID=" . $loginUserID . "\"" . addAccessKey("attribute", "my_opt") . " title=\"view and modify your account details and options" . addAccessKey("title", "my_opt") . "\">Options</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
+						$loginLinks .= "<a href=\"user_receipt.php?userID=" . $loginUserID . "\"" . addAccessKey("attribute", "my_opt") . " title=\"" . $loc["LinkTitle_Options"] . addAccessKey("title", "my_opt") . "\">" . $loc["Options"] . "</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
 				}
-				$loginLinks .= "<a href=\"user_logout.php?referer=" . rawurlencode($referer) . "\"" . addAccessKey("attribute", "login") . " title=\"logout from the database" . addAccessKey("title", "login") . "\">Logout</a>";
+				$loginLinks .= "<a href=\"user_logout.php?referer=" . rawurlencode($referer) . "\"" . addAccessKey("attribute", "login") . " title=\"" . $loc["LinkTitle_Logout"] . addAccessKey("title", "login") . "\">" . $loc["Logout"] . "</a>";
 			}
 		else
 			{
-				$loginWelcomeMsg = "";
-
 				if (eregi(".*(record|import[^.]*)\.php", $scriptURL))
-					$loginStatus = "<span class=\"warning\">You must be logged in<br>to submit this form!</span>";
+					$loginStatus = "<span class=\"warning\">" . $loc["Warning_LoginToSubmitForm"] . "!</span>";
 				else
 					$loginStatus = "";
 
-				$loginLinks = "<a href=\"user_login.php?referer=" . rawurlencode($referer) . "\"" . addAccessKey("attribute", "login") . " title=\"login to the database" . addAccessKey("title", "login") . "\">Login</a>";
-			}
+				$loginWelcomeMsg = "";
 
-		// Write back session variables:
-		saveSessionVariable("loginUserID", $loginUserID);
-		saveSessionVariable("loginStatus", $loginStatus);
-		saveSessionVariable("loginLinks", $loginLinks);
+				$loginLinks = "<a href=\"user_login.php?referer=" . rawurlencode($referer) . "\"" . addAccessKey("attribute", "login") . " title=\"" . $loc["LinkTitle_Login"] . addAccessKey("title", "login") . "\">" . $loc["Login"] . "</a>";
+			}
 
 		// Although the '$referer' variable gets included as GET parameter above, we'll also save the variable as session variable:
 		// (this should help re-directing to the correct page if a user called 'user_login/logout.php' manually, i.e., without parameters)
@@ -1251,11 +1244,19 @@
 	// BUILD FIELD NAME LINKS
 	// (i.e., build clickable column headers for each available column)
 	// TODO: I18n
-	function buildFieldNameLinks($href, $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $HTMLbeforeLink, $HTMLafterLink, $formType, $submitType, $linkName, $orig_fieldname, $headerMsg, $viewType)
+	function buildFieldNameLinks($href, $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, $wrapResults, $citeStyle, $HTMLbeforeLink, $HTMLafterLink, $formType, $submitType, $linkName, $orig_fieldname, $headerMsg, $viewType)
 	{
+		global $databaseBaseURL; // defined in 'ini.inc.php'
+
 		global $client;
 
-		// map MySQL field names to localized column names:
+		// Setup the base URL:
+		if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+			$baseURL = $databaseBaseURL;
+		else
+			$baseURL = "";
+
+		// Map MySQL field names to localized column names:
 		$fieldNamesArray = mapFieldNames();
 
 		// Get all field properties of the current MySQL field:
@@ -1346,7 +1347,7 @@
 
 		// start the table header tag & print the attribute name as link:
 		$tableHeaderLink = $HTMLbeforeLink
-		                   . "<a href=\"" . $href
+		                   . "<a href=\"" . $baseURL . $href
 		                   . "?sqlQuery=" . $queryURLNewOrder
 		                   . "&amp;submit=" . $submitType
 		                   . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1363,9 +1364,9 @@
 
 		// append sort indicator after the 1st-level sort attribute:
 		if (preg_match("/ORDER BY $orig_fieldname(?! DESC)(?=,| LIMIT|$)/i", $query)) // if 1st-level sort is by this attribute (in ASCending order)...
-			$tableHeaderLink .= "&nbsp;<img src=\"img/sort_asc.gif\" alt=\"(up)\" title=\"sorted by field '" . $orig_fieldname . "' (ascending order)\" width=\"8\" height=\"10\" hspace=\"0\" border=\"0\">"; // ...append an upward arrow image
+			$tableHeaderLink .= "&nbsp;<img src=\"" . $baseURL . "img/sort_asc.gif\" alt=\"(up)\" title=\"sorted by field '" . $orig_fieldname . "' (ascending order)\" width=\"8\" height=\"10\" hspace=\"0\" border=\"0\">"; // ...append an upward arrow image
 		elseif (preg_match("/ORDER BY $orig_fieldname DESC/i", $query)) // if 1st-level sort is by this attribute (in DESCending order)...
-			$tableHeaderLink .= "&nbsp;<img src=\"img/sort_desc.gif\" alt=\"(down)\" title=\"sorted by field '" . $orig_fieldname . "' (descending order)\" width=\"8\" height=\"10\" hspace=\"0\" border=\"0\">"; // ...append a downward arrow image
+			$tableHeaderLink .= "&nbsp;<img src=\"" . $baseURL . "img/sort_desc.gif\" alt=\"(down)\" title=\"sorted by field '" . $orig_fieldname . "' (descending order)\" width=\"8\" height=\"10\" hspace=\"0\" border=\"0\">"; // ...append a downward arrow image
 
 		$tableHeaderLink .=  $HTMLafterLink; // append any necessary HTML
 
@@ -1534,12 +1535,12 @@
 
 	//	BUILD BROWSE LINKS
 	// (i.e., build a TABLE row with links for "previous" & "next" browsing, as well as links to intermediate pages)
-	// TODO: - I18n
-	//       - use divs + CSS styling (instead of a table-based layout) for _all_ output (not only for 'viewType=Mobile')
+	// TODO: - use divs + CSS styling (instead of a table-based layout) for _all_ output (not only for 'viewType=Mobile')
 	//       - use function 'generateURL()' to build the link URLs
-	function buildBrowseLinks($href, $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $maxPageNo, $formType, $displayType, $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType)
+	function buildBrowseLinks($href, $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $wrapResults, $maxPageNo, $formType, $displayType, $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType)
 	{
-		global $displayResultsHeaderDefault; // these variables are defined in 'ini.inc.php'
+		global $databaseBaseURL; // these variables are defined in 'ini.inc.php'
+		global $displayResultsHeaderDefault;
 		global $displayResultsFooterDefault;
 
 		global $loc; // '$loc' is made globally available in 'core.php'
@@ -1560,6 +1561,12 @@
 		if (ereg("[0-9]+\.[0-9+]",$lastPage)) // if the result number is not an integer..
 			$lastPage = (int) $lastPage + 1; // we convert the number into an integer and add 1
 
+		// Setup the base URL:
+		if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+			$baseURL = $databaseBaseURL;
+		else
+			$baseURL = "";
+
 		if (eregi("^Mobile$", $viewType))
 		{
 			$BrowseLinks = "\n<div class=\"resultnav\">";
@@ -1574,14 +1581,14 @@
 		}
 
 		if (eregi("^Mobile$", $viewType))
-			$BrowseLinks .= "\n\t<div class=\"mainnav\"><a href=\"index.php\"" . addAccessKey("attribute", "home") . " title=\"" . $loc["LinkTitle_Home"] . addAccessKey("title", "home") . "\">" . $loc["Home"] . "</a></div>";
+			$BrowseLinks .= "\n\t<div class=\"mainnav\"><a href=\"" . $baseURL . "index.php\"" . addAccessKey("attribute", "home") . " title=\"" . $loc["LinkTitle_Home"] . addAccessKey("title", "home") . "\">" . $loc["Home"] . "</a></div>";
 		elseif (eregi("^Print$", $viewType) OR eregi("^cli", $client))
-			$BrowseLinks .= "\n\t<td class=\"mainnav\" align=\"left\" valign=\"bottom\" width=\"225\"><a href=\"index.php\"" . addAccessKey("attribute", "home") . " title=\"" . $loc["LinkTitle_Home"] . addAccessKey("title", "home") . "\">" . $loc["Home"] . "</a></td>";
+			$BrowseLinks .= "\n\t<td class=\"mainnav\" align=\"left\" valign=\"bottom\" width=\"225\"><a href=\"" . $baseURL . "index.php\"" . addAccessKey("attribute", "home") . " title=\"" . $loc["LinkTitle_Home"] . addAccessKey("title", "home") . "\">" . $loc["Home"] . "</a></td>";
 		elseif (($href == "users.php") OR !isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 		{
 			$BrowseLinks .= "\n\t<td class=\"small\" align=\"left\" valign=\"bottom\" width=\"225\">"
-			              . "\n\t\t<a href=\"JavaScript:checkall(true,'marked%5B%5D')\" title=\"select all records on this page\">" . $loc["SelectAll"] . "</a>&nbsp;&nbsp;&nbsp;"
-			              . "\n\t\t<a href=\"JavaScript:checkall(false,'marked%5B%5D')\" title=\"deselect all records on this page\">" . $loc["DeselectAll"] . "</a>"
+			              . "\n\t\t<a href=\"JavaScript:checkall(true,'marked%5B%5D')\" title=\"" . $loc["LinkTitle_SelectAll"] . "\">" . $loc["SelectAll"] . "</a>&nbsp;&nbsp;&nbsp;"
+			              . "\n\t\t<a href=\"JavaScript:checkall(false,'marked%5B%5D')\" title=\"" . $loc["LinkTitle_DeselectAll"] . "\">" . $loc["DeselectAll"] . "</a>"
 			              . "\n\t</td>";
 		}
 		else // don't show the select/deselect links when the results footer is hidden
@@ -1599,11 +1606,11 @@
 		// create a "[xx-xx]" link (linking directly to the previous range of pages):
 		if ($pageOffset > "0")
 			{
-				$previousRangeFirstPage = ($pageOffset - $maxPageNo + 1); // calculate the first page of the next page range
+				$previousRangeFirstPage = ($pageOffset - $maxPageNo + 1); // calculate the first page of the previous page range
 
-				$previousRangeLastPage = ($previousRangeFirstPage + $maxPageNo - 1); // calculate the last page of the next page range
+				$previousRangeLastPage = ($previousRangeFirstPage + $maxPageNo - 1); // calculate the last page of the previous page range
 
-				$BrowseLinks .= "\n\t\t<a href=\"" . $href
+				$BrowseLinks .= "\n\t\t<a href=\"" . $baseURL . $href
 				              . "?sqlQuery=" . rawurlencode($query)
 				              . "&amp;submit=" . $displayType
 				              . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1617,13 +1624,13 @@
 				              . "&amp;rowOffset=" . (($pageOffset - $maxPageNo) * $showRows)
 				              . "&amp;client=" . rawurlencode($client)
 				              . "&amp;viewType=" . $viewType
-				              . "\" title=\"display results page " . $previousRangeFirstPage . " and links to pages " . $previousRangeFirstPage . "&#8211;" . $previousRangeLastPage . "\">[" . $previousRangeFirstPage . "&#8211;" . $previousRangeLastPage . "] </a>";
+				              . "\" title=\"" . $loc["LinkTitle_DisplayResultsPage"] . " " . $previousRangeFirstPage . " " . $loc["LinkTitle_DisplayLinksToResultsPages"] . " " . $previousRangeFirstPage . "&#8211;" . $previousRangeLastPage . "\">[" . $previousRangeFirstPage . "&#8211;" . $previousRangeLastPage . "] </a>";
 			}
 
 		// b) Are there any previous pages?
 		if ($rowOffset > 0)
 			// Yes, so create a previous link
-			$BrowseLinks .= "\n\t\t<a href=\"" . $href
+			$BrowseLinks .= "\n\t\t<a href=\"" . $baseURL . $href
 			              . "?sqlQuery=" . rawurlencode($query)
 			              . "&amp;submit=" . $displayType
 			              . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1637,7 +1644,7 @@
 			              . "&amp;rowOffset=" . $previousOffset
 			              . "&amp;client=" . rawurlencode($client)
 			              . "&amp;viewType=" . $viewType
-			              . "\"" . addAccessKey("attribute", "previous") . " title=\"display previous results page" . addAccessKey("title", "previous") . "\">&lt;&lt;</a>";
+			              . "\"" . addAccessKey("attribute", "previous") . " title=\"" . $loc["LinkTitle_DisplayPreviousResultsPage"] . addAccessKey("title", "previous") . "\">&lt;&lt;</a>";
 		else
 			// No, there is no previous page so don't print a link
 			$BrowseLinks .= "\n\t\t&lt;&lt;";
@@ -1651,7 +1658,7 @@
 				if ($x < $rowOffset || 
 					$x > ($rowOffset + $showRows - 1))
 					// No, so print out a link
-					$BrowseLinks .= " \n\t\t<a href=\"" . $href
+					$BrowseLinks .= " \n\t\t<a href=\"" . $baseURL . $href
 					              . "?sqlQuery=" . rawurlencode($query)
 					              . "&amp;submit=" . $displayType
 					              . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1665,7 +1672,7 @@
 					              . "&amp;rowOffset=" . $x
 					              . "&amp;client=" . rawurlencode($client)
 					              . "&amp;viewType=" . $viewType
-					              . "\" title=\"display results page $page\">$page</a>";
+					              . "\" title=\"" . $loc["LinkTitle_DisplayResultsPage"] . " " . $page . "\">" . $page . "</a>";
 				else
 					// Yes, so don't print a link
 					$BrowseLinks .= " \n\t\t<b>$page</b>"; // current page is set in <b>BOLD</b>
@@ -1675,7 +1682,7 @@
 		// d) Are there any Next pages?
 		if ($rowsFound > $nextOffset)
 			// Yes, so create a next link
-			$BrowseLinks .= "\n\t\t<a href=\"" . $href
+			$BrowseLinks .= "\n\t\t<a href=\"" . $baseURL . $href
 			              . "?sqlQuery=" . rawurlencode($query)
 			              . "&amp;submit=" . $displayType
 			              . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1689,7 +1696,7 @@
 			              . "&amp;rowOffset=" . $nextOffset
 			              . "&amp;client=" . rawurlencode($client)
 			              . "&amp;viewType=" . $viewType
-			              . "\"" . addAccessKey("attribute", "next") . " title=\"display next results page" . addAccessKey("title", "next") . "\">&gt;&gt;</a>";
+			              . "\"" . addAccessKey("attribute", "next") . " title=\"" . $loc["LinkTitle_DisplayNextResultsPage"] . addAccessKey("title", "next") . "\">&gt;&gt;</a>";
 		else
 			// No,	there is no next page so don't print a link
 			$BrowseLinks .= "\n\t\t&gt;&gt;";
@@ -1704,7 +1711,7 @@
 				if ($nextRangeLastPage > $lastPage)
 					$nextRangeLastPage = $lastPage; // adjust if this is the last range of pages and if it doesn't go up to the max allowed no of pages
 
-				$BrowseLinks .= "\n\t\t<a href=\"" . $href
+				$BrowseLinks .= "\n\t\t<a href=\"" . $baseURL . $href
 				              . "?sqlQuery=" . rawurlencode($query)
 				              . "&amp;submit=" . $displayType
 				              . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1718,7 +1725,7 @@
 				              . "&amp;rowOffset=" . (($pageOffset + $maxPageNo) * $showRows)
 				              . "&amp;client=" . rawurlencode($client)
 				              . "&amp;viewType=" . $viewType
-				              . "\" title=\"display results page " . $nextRangeFirstPage . " and links to pages " . $nextRangeFirstPage . "&#8211;" . $nextRangeLastPage . "\"> [" . $nextRangeFirstPage . "&#8211;" . $nextRangeLastPage . "]</a>";
+				              . "\" title=\"" . $loc["LinkTitle_DisplayResultsPage"] . " " . $nextRangeFirstPage . " " . $loc["LinkTitle_DisplayLinksToResultsPages"] . " " . $nextRangeFirstPage . "&#8211;" . $nextRangeLastPage . "\"> [" . $nextRangeFirstPage . "&#8211;" . $nextRangeLastPage . "]</a>";
 			}
 
 		if (eregi("^Mobile$", $viewType))
@@ -1749,7 +1756,7 @@
 					$listViewQuery = newSELECTclause($listViewSelectClause, $query); // replace SELECT clause in current query and URL encode query
 
 					// f) create a 'List View' link that will show the currently displayed result set in List view:
-					$viewLinksArray[] = "<div class=\"leftview\"><a href=\"" . $href
+					$viewLinksArray[] = "<div class=\"leftview\"><a href=\"" . $baseURL . $href
 					                  . "?sqlQuery=" . $listViewQuery
 					                  . "&amp;submit=List"
 					                  . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1763,10 +1770,10 @@
 					                  . "&amp;rowOffset=" . $rowOffset
 					                  . "&amp;client=" . rawurlencode($client)
 					                  . "&amp;viewType=" . $viewType
-					                  . "\"" . addAccessKey("attribute", "list") . " title=\"display all found records in list view" . addAccessKey("title", "list") . "\">List View</a></div>";
+					                  . "\"" . addAccessKey("attribute", "list") . " title=\"" . $loc["LinkTitle_DisplayListView"] . addAccessKey("title", "list") . "\">" . $loc["ListView"] . "</a></div>";
 				}
 				else
-					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"leftview\">List View</div></div>";
+					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"leftview\">" . $loc["ListView"] . "</div></div>";
 			}
 
 			if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions']))
@@ -1778,7 +1785,7 @@
 					$citeViewQuery = newSELECTclause($citeViewSelectClause, $query); // replace SELECT clause in current query and URL encode query
 
 					// g) create a 'Citations' link that will show the currently displayed result set in Citation view:
-					$viewLinksArray[] = "<div class=\"middleview\"><a href=\"" . $href
+					$viewLinksArray[] = "<div class=\"middleview\"><a href=\"" . $baseURL . $href
 					                  . "?sqlQuery=" . $citeViewQuery
 					                  . "&amp;submit=Cite"
 					                  . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1792,10 +1799,10 @@
 					                  . "&amp;rowOffset=" . $rowOffset
 					                  . "&amp;client=" . rawurlencode($client)
 					                  . "&amp;viewType=" . $viewType
-					                  . "\"" . addAccessKey("attribute", "cite") . " title=\"display all found records as citations" . addAccessKey("title", "cite") . "\">Citations</a></div>";
+					                  . "\"" . addAccessKey("attribute", "cite") . " title=\"" . $loc["LinkTitle_DisplayCiteView"] . addAccessKey("title", "cite") . "\">" . $loc["Citations"] . "</a></div>";
 				}
 				else
-					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"middleview\">Citations</div></div>";
+					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"middleview\">" . $loc["Citations"] . "</div></div>";
 			}
 
 			if (isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions']))
@@ -1811,7 +1818,7 @@
 					$detailsViewQuery = newSELECTclause($detailsViewSelectClause, $query); // replace SELECT clause in current query and URL encode query
 
 					// h) create a 'Details' link that will show the currently displayed result set in Details view:
-					$viewLinksArray[] = "<div class=\"rightview\"><a href=\"" . $href
+					$viewLinksArray[] = "<div class=\"rightview\"><a href=\"" . $baseURL . $href
 					                  . "?sqlQuery=" . $detailsViewQuery
 					                  . "&amp;submit=Display"
 					                  . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1825,10 +1832,10 @@
 					                  . "&amp;rowOffset=" . $rowOffset
 					                  . "&amp;client=" . rawurlencode($client)
 					                  . "&amp;viewType=" . $viewType
-					                  . "\"" . addAccessKey("attribute", "details") . " title=\"display details for all found records" . addAccessKey("title", "details") . "\">Details</a></div>";
+					                  . "\"" . addAccessKey("attribute", "details") . " title=\"" . $loc["LinkTitle_DisplayDetailsView"] . addAccessKey("title", "details") . "\">" . $loc["Details"] . "</a></div>";
 				}
 				else
-					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"rightview\">Details</div></div>";
+					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"rightview\">" . $loc["Details"] . "</div></div>";
 			}
 
 			if (count($viewLinksArray) > 1)
@@ -1848,7 +1855,7 @@
 			if (eregi("^(Print|Mobile)$", $viewType))
 			{
 				// i) create a 'Web View' link that will show the currently displayed result set in web view:
-				$BrowseLinks .= "<a class=\"toggleprint\" href=\"" . $href
+				$BrowseLinks .= "<a class=\"toggleprint\" href=\"" . $baseURL . $href
 				              . "?sqlQuery=" . rawurlencode($query)
 				              . "&amp;submit=" . $displayType
 				              . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1861,13 +1868,13 @@
 				              . "&amp;showRows=" . $showRows
 				              . "&amp;rowOffset=" . $rowOffset
 				              . "&amp;viewType=Web"
-				              . "\"" . addAccessKey("attribute", "print") . "><img src=\"img/web.gif\" alt=\"web\" title=\"back to web view" . addAccessKey("title", "print") . "\" width=\"16\" height=\"16\" hspace=\"0\" border=\"0\"></a>";
+				              . "\"" . addAccessKey("attribute", "print") . "><img src=\"" . $baseURL . "img/web.gif\" alt=\"web\" title=\"" . $loc["LinkTitle_DisplayWebView"] . addAccessKey("title", "print") . "\" width=\"16\" height=\"16\" hspace=\"0\" border=\"0\"></a>";
 			}
 			else
 			{
 				if (isset($_SESSION['user_permissions']) AND ereg("allow_print_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_print_view'...
 					// j) create a 'Print View' link that will show the currently displayed result set in print view:
-					$BrowseLinks .= "<a class=\"toggleprint\" href=\"" . $href
+					$BrowseLinks .= "<a class=\"toggleprint\" href=\"" . $baseURL . $href
 					              . "?sqlQuery=" . rawurlencode($query)
 					              . "&amp;submit=" . $displayType
 					              . "&amp;citeStyle=" . rawurlencode($citeStyle)
@@ -1880,7 +1887,7 @@
 					              . "&amp;showRows=" . $showRows
 					              . "&amp;rowOffset=" . $rowOffset
 					              . "&amp;viewType=Print"
-					              . "\"" . addAccessKey("attribute", "print") . "><img src=\"img/print.gif\" alt=\"print\" title=\"display print view" . addAccessKey("title", "print") . "\" width=\"17\" height=\"18\" hspace=\"0\" border=\"0\"></a>";
+					              . "\"" . addAccessKey("attribute", "print") . "><img src=\"" . $baseURL . "img/print.gif\" alt=\"print\" title=\"" . $loc["LinkTitle_DisplayPrintView"] . addAccessKey("title", "print") . "\" width=\"17\" height=\"18\" hspace=\"0\" border=\"0\"></a>";
 			}
 		}
 
@@ -1901,12 +1908,95 @@
 
 	// --------------------------------------------------------------------
 
+	//	BUILD QUICK SEARCH ELEMENTS
+	// (i.e., generate the "Quick Search" form)
+	function buildQuickSearchElements($query, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType)
+	{
+		global $loc; // '$loc' is made globally available in 'core.php'
+
+		global $client;
+
+		$encodedCiteStyle = rawurlencode($citeStyle);
+		$encodedClient = rawurlencode($client);
+
+		$accessKeyAttribute = addAccessKey("attribute", "qck_search");
+		$accessKeyTitle = addAccessKey("title", "qck_search");
+
+		// extract the first field from the 'WHERE' clause:
+		if (preg_match("/ WHERE [ ()]*(\w+)/i", $query))
+			$firstField = preg_replace("/.+ WHERE [ ()]*(\w+).*/i", "\\1", $query);
+		else
+			$firstField = "";
+
+		// add the "Quick Search" form:
+		$quickSearchForm = <<<EOF
+			<form action="search.php" method="GET" name="quickSearch">
+				<fieldset>
+					<input type="hidden" name="formType" value="quickSearch">
+					<input type="hidden" name="originalDisplayType" value="$displayType">
+					<input type="hidden" name="sqlQuery" value="$queryURL">
+					<input type="hidden" name="showQuery" value="$showQuery">
+					<input type="hidden" name="showLinks" value="$showLinks">
+					<input type="hidden" name="showRows" value="$showRows">
+					<input type="hidden" name="client" value="$encodedClient">
+					<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
+					<input type="hidden" name="citeOrder" value="$citeOrder">
+					<legend>$loc[QuickSearch]:</legend>
+					<div id="queryField">
+						<label for="quickSearchSelector">$loc[Field]:</label>
+						<select id="quickSearchSelector" name="quickSearchSelector" title="$loc[DescriptionSelectFieldQuickSearchForm]">
+EOF;
+
+		// build correct option tags:
+		$userMainFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
+
+		$dropDownFieldNameArray = array("main fields" => $loc["DropDownFieldName_MainFields"]);
+
+		foreach($userMainFieldsArray as $userMainField)
+		{
+			// generate the variable name of the correct '$loc' locale for this field:
+			$dropDownFieldNameLocale = preg_replace("/_(\w)/e", "ucfirst('\\1')", $userMainField); // the 'e' modifier allows to execute PHP code within the replacement pattern
+			$dropDownFieldNameLocale = "DropDownFieldName_" . ucfirst($dropDownFieldNameLocale);
+			// add this field's name and localized string to the array of fields that will be included in the "Quick Search" drop-down menu:
+			$dropDownFieldNameArray[$userMainField] = $loc[$dropDownFieldNameLocale];
+		}
+
+		$optionTags = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t\t\t\t\t", true);
+
+		if (!empty($firstField) AND in_array($firstField, $userMainFieldsArray)) // if the first field from the 'WHERE' clause is one of the main fields
+			$quickSearchForm .= ereg_replace("<option([^>]* value=\"$firstField\")", "<option\\1 selected", $optionTags); // we select that field by adding the 'selected' parameter to the appropriate <option> tag
+		else
+			$quickSearchForm .= ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_MainFields"], "<option\\1 selected>" . $loc["DropDownFieldName_MainFields"], $optionTags); // select the 'main fields' menu entry ...
+
+		$quickSearchForm .= <<<EOF
+
+						</select>
+						<label for="quickSearchName">$loc[contains]:</label>
+						<input type="text" id="quickSearchName" name="quickSearchName" size="11"$accessKeyAttribute title="$loc[DescriptionEnterSearchString]$accessKeyTitle">
+					</div>
+					<div id="querySubmit">
+						<input type="submit" value="$loc[ButtonTitle_Search]" title="$loc[DescriptionSearchDB]">
+					</div>
+				</fieldset>
+			</form>
+
+EOF;
+
+		return $quickSearchForm;
+	}
+
+	// --------------------------------------------------------------------
+
 	//	BUILD REFINE SEARCH ELEMENTS
 	// (i.e., provide options to refine the search results)
-	// TODO: I18n
 	function buildRefineSearchElements($href, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $dropDownFieldsArray, $dropDownFieldSelected, $displayType)
 	{
+		global $loc; // '$loc' is made globally available in 'core.php'
+
+		global $client;
+
 		$encodedCiteStyle = rawurlencode($citeStyle);
+		$encodedClient = rawurlencode($client);
 
 		$accessKeyAttribute = addAccessKey("attribute", "refine");
 		$accessKeyTitle = addAccessKey("title", "refine");
@@ -1915,39 +2005,40 @@
 		<form action="$href" method="GET" name="refineSearch">
 			<fieldset>
 				<input type="hidden" name="formType" value="refineSearch">
-				<input type="hidden" name="submit" value="Search">
+				<input type="hidden" name="submit" value="$loc[ButtonTitle_Search]">
 				<input type="hidden" name="originalDisplayType" value="$displayType">
 				<input type="hidden" name="sqlQuery" value="$queryURL">
 				<input type="hidden" name="showQuery" value="$showQuery">
 				<input type="hidden" name="showLinks" value="$showLinks">
 				<input type="hidden" name="showRows" value="$showRows">
+				<input type="hidden" name="client" value="$encodedClient">
 				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
 				<input type="hidden" name="citeOrder" value="$citeOrder">
-				<legend>Search within Results:</legend>
+				<legend>$loc[SearchWithinResults]:</legend>
 				<div id="refineField">
-					<label for="refineSearchSelector">Field:</label>
-					<select id="refineSearchSelector" name="refineSearchSelector" title="choose the field you want to search">
+					<label for="refineSearchSelector">$loc[Field]:</label>
+					<select id="refineSearchSelector" name="refineSearchSelector" title="$loc[DescriptionSelectFieldRefineResultsForm]">
 EOF;
 
 		// build correct option tags from the column items provided:
 		$optionTags = buildSelectMenuOptions($dropDownFieldsArray, "", "\t\t\t\t\t\t", true);
 
-		$optionTags = ereg_replace("<option([^>]*)>($dropDownFieldSelected)</option>", "<option\\1 selected>\\2</option>", $optionTags); // add 'selected' attribute
+		$optionTags = ereg_replace("<option([^>]* value=\"$dropDownFieldSelected\")", "<option\\1 selected", $optionTags); // add 'selected' attribute
 
 		$refineSearchForm .= $optionTags;
 
 		$refineSearchForm .= <<<EOF
 
 					</select>
-					<label for="refineSearchName">contains:</label>
-					<input type="text" id="refineSearchName" name="refineSearchName" size="11"$accessKeyAttribute title="enter your search string here$accessKeyTitle">
+					<label for="refineSearchName">$loc[contains]:</label>
+					<input type="text" id="refineSearchName" name="refineSearchName" size="11"$accessKeyAttribute title="$loc[DescriptionEnterSearchString]$accessKeyTitle">
 				</div>
 				<div id="refineOpt">
-					<input type="checkbox" id="refineSearchExclude" name="refineSearchExclude" value="1" title="mark this checkbox to exclude all records from the current result set that match the above search criterion">
-					<label for="refineSearchExclude">Exclude matches</label>
+					<input type="checkbox" id="refineSearchExclude" name="refineSearchExclude" value="1" title="$loc[DescriptionExcludeResultsCheckboxRefineResultsForm]">
+					<label for="refineSearchExclude">$loc[ExcludeMatches]</label>
 				</div>
 				<div id="refineSubmit">
-					<input type="submit" name="submit" value="Search" title="search within the current result set">
+					<input type="submit" name="submit" value="$loc[ButtonTitle_Search]" title="$loc[DescriptionSearchButtonRefineResultsForm]">
 				</div>
 			</fieldset>
 		</form>
@@ -1964,9 +2055,12 @@ EOF;
 	// Note: this function serves two purposes (which must not be confused!):
 	// 		 - if "$href = search.php", it will modify the values of the 'user_groups' field of the 'user_data' table (where a user can assign one or more groups to particular *references*)
 	//       - if "$href = users.php", this function will modify the values of the 'user_groups' field of the 'users' table (where the admin can assign one or more groups to particular *users*)
-	// TODO: I18n
 	function buildGroupSearchElements($href, $queryURL, $query, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType)
 	{
+		global $loc; // '$loc' is made globally available in 'core.php'
+
+		global $client;
+
 		if (preg_match("/.+user_groups RLIKE \"[()|^.;* ]+[^;]+?[()|$.;* ]+\"/i", $query)) // if the query does contain a 'WHERE' clause that searches for a particular user group
 			$currentGroup = preg_replace("/.+user_groups RLIKE \"[()|^.;* ]+([^;]+?)[()|$.;* ]+\".*/i", "\\1", $query); // extract the particular group name
 		else
@@ -1980,34 +2074,35 @@ EOF;
 			if (($href == "search.php" AND isset($_SESSION['userGroups'])) OR ($href == "users.php" AND isset($_SESSION['adminUserGroups']))) // if the appropriate session variable is set
 			{
 				$groupSearchDisabled = "";
-				$groupSearchSelectorTitle = "choose the group that you want to display";
-				$groupSearchButtonTitle = "show all records that belong to the specified group";
+				$groupSearchSelectorTitle = $loc["DescriptionSelectFieldGroupsForm"];
+				$groupSearchButtonTitle = $loc["DescriptionShowButtonGroupsForm"];
 			}
 			else
 			{
 				$groupSearchDisabled = " disabled"; // disable the 'Show My Groups' form if the session variable holding the user's groups isnt't available
-				$groupSearchSelectorTitle = "(to setup a new group with all selected records, enter a group name at the bottom of this page, then click the 'Add' button)";
-				$groupSearchButtonTitle = "(not available since you haven't specified any groups yet)";
+				$groupSearchSelectorTitle = "(" . $loc["DescriptionSelectFieldGroupsFormDisabled"] . ")";
+				$groupSearchButtonTitle = "(" . $loc["DescriptionShowButtonGroupsFormDisabled"] . ")";
 			}
 
 			// adjust the form & dropdown labels according to the calling script (which is either 'search.php' or 'users.php')
 			if ($href == "search.php")
 			{
-				$formLegend = "Show My Group:";
-				$dropdownLabel = "My:";
+				$formLegend = $loc["ShowMyGroup"] . ":";
+				$dropdownLabel = $loc["My"] . ":";
 			}
 			elseif ($href == "users.php")
 			{
-				$formLegend = "Show User Group:";
-				$dropdownLabel = "Users:";
+				$formLegend = $loc["ShowUserGroup"] . ":";
+				$dropdownLabel = $loc["Users"] . ":";
 			}
 			else // currently, '$href' will be either 'search.php' or 'users.php', but anyhow
 			{
-				$formLegend = "Show Group:";
+				$formLegend = $loc["ShowGroup"] . ":";
 				$dropdownLabel = "";
 			}
 
 			$encodedCiteStyle = rawurlencode($citeStyle);
+			$encodedClient = rawurlencode($client);
 
 			$groupSearchForm = <<<EOF
 		<form action="$href" method="GET" name="groupSearch">
@@ -2018,6 +2113,7 @@ EOF;
 				<input type="hidden" name="showQuery" value="$showQuery">
 				<input type="hidden" name="showLinks" value="$showLinks">
 				<input type="hidden" name="showRows" value="$showRows">
+				<input type="hidden" name="client" value="$encodedClient">
 				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
 				<input type="hidden" name="citeOrder" value="$citeOrder">
 				<legend>$formLegend</legend>
@@ -2035,19 +2131,19 @@ EOF;
 					$optionTags = buildSelectMenuOptions($_SESSION['adminUserGroups'], " *; *", "\t\t\t\t\t\t", false);
 
 				if (!empty($currentGroup)) // if the current SQL query contains a 'WHERE' clause that searches for a particular user group
-					$optionTags = ereg_replace("<option>$currentGroup</option>", "<option selected>$currentGroup</option>", $optionTags); // we select that group by adding the 'selected' parameter to the apropriate <option> tag
+					$optionTags = ereg_replace("<option>$currentGroup</option>", "<option selected>$currentGroup</option>", $optionTags); // we select that group by adding the 'selected' parameter to the appropriate <option> tag
 
 				$groupSearchForm .= $optionTags;
 			}
 			else
-				$groupSearchForm .= "<option>(no groups available)</option>";
+				$groupSearchForm .= "<option>($loc[NoGroupsAvl])</option>";
 
 			$groupSearchForm .= <<<EOF
 
 					</select>
 				</div>
 				<div id="groupSubmit">
-					<input type="submit" value="Show" title="$groupSearchButtonTitle"$groupSearchDisabled>
+					<input type="submit" value="$loc[ButtonTitle_Show]" title="$groupSearchButtonTitle"$groupSearchDisabled>
 				</div>
 			</fieldset>
 		</form>
@@ -2064,67 +2160,70 @@ EOF;
 
 	//	BUILD DISPLAY OPTIONS FORM ELEMENTS
 	// (i.e., provide options to show/hide columns or change the number of records displayed per page)
-	// TODO: I18n
 	function buildDisplayOptionsElements($href, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $citeStyle, $citeOrder, $dropDownFieldsArray, $dropDownFieldSelected, $fieldsToDisplay, $displayType, $headerMsg)
 	{
+		global $loc; // '$loc' is made globally available in 'core.php'
+
+		global $client;
+
 		if ($displayType == "Browse")
 		{
-			$submitValue = "Browse";
-			$submitTitle = "browse the current result set by the specified field";
-			$recordsOrItems = "items";
+			$submitValue = $loc["ButtonTitle_Browse"];
+			$submitTitle = $loc["DescriptionShowButtonDisplayOptionsFormBrowseView"];
 			$selectorDivID = "optShowHideField";
 			$selectorID = "displayOptionsSelector";
-			$selectorLabel = "Field:";
-			$selectorTitle = "choose the field you want to browse";
-			$showRowsLabel = "$recordsOrItems per page";
+			$selectorLabel = $loc["Field"] . ":";
+			$selectorTitle = $loc["DescriptionSelectFieldDisplayOptionsFormBrowseView"];
+			$showRowsLabel = $loc["ShowRecordsPerPage_SuffixBrowseView"];
+			$showRowsTitle = $loc["DescriptionShowRecordsPerPageBrowseView"];
 		}
 		elseif ($displayType == "Cite")
 		{
-			$submitValue = "Show";
-			$submitTitle = "display found records using the specified citation style and sort order";
-			$recordsOrItems = "records";
+			$submitValue = $loc["ButtonTitle_Show"];
+			$submitTitle = $loc["DescriptionShowButtonDisplayOptionsFormCiteView"];
 			$selectorDivID = "optCiteStyle";
 			$selectorID = "citeStyle";
-			$selectorLabel = "Style:";
-			$selectorTitle = "choose your preferred citation style";
-			$showRowsLabel = "per page";
+			$selectorLabel = $loc["Style"] . ":";
+			$selectorTitle = $loc["DescriptionSelectStyleDisplayOptionsFormCiteView"];
+			$showRowsLabel = $loc["ShowRecordsPerPage_SuffixCiteView"];
+			$showRowsTitle = $loc["DescriptionShowRecordsPerPage"];
 		}
 		elseif ($displayType == "Display")
 		{
-			$submitValue = "Show";
-			$submitTitle = "show the specified fields";
-			$recordsOrItems = "records";
+			$submitValue = $loc["ButtonTitle_Show"];
+			$submitTitle = $loc["DescriptionShowButtonDisplayOptionsFormDetailsView"];
 			$selectorDivID = "optShowHideField";
 			$selectorID = "displayOptionsSelector";
-			$selectorLabel = "Fields:";
-			$selectorTitle = "choose the fields you want to show or hide";
-			$showRowsLabel = "$recordsOrItems per page";
+			$selectorLabel = $loc["Field"] . ":";
+			$selectorTitle = $loc["DescriptionSelectFieldDisplayOptionsFormDetailsView"];
+			$showRowsLabel = $loc["ShowRecordsPerPage_Suffix"];
+			$showRowsTitle = $loc["DescriptionShowRecordsPerPage"];
 		}
 		else
 		{
-			$submitValue = "Show";
-			$submitTitle = "show the specified field";
-			$recordsOrItems = "records";
+			$submitValue = $loc["ButtonTitle_Show"];
+			$submitTitle = $loc["DescriptionShowButtonDisplayOptionsForm"];
 			$selectorDivID = "optShowHideField";
 			$selectorID = "displayOptionsSelector";
-			$selectorLabel = "Field:";
-			$selectorTitle = "choose the field you want to show or hide";
-			$showRowsLabel = "$recordsOrItems per page";
+			$selectorLabel = $loc["Field"] . ":";
+			$selectorTitle = $loc["DescriptionSelectFieldDisplayOptionsForm"];
+			$showRowsLabel = $loc["ShowRecordsPerPage_Suffix"];
+			$showRowsTitle = $loc["DescriptionShowRecordsPerPage"];
 		}
 
 		if (($displayType != "Cite") AND ($fieldsToDisplay < 2))
 		{
 			$hideButtonDisabled = " disabled"; // disable the 'Hide' button if there's currently only one field being displayed (except the links column)
-			$hideButtonTitle = "(only available with two or more fields being displayed!)";
+			$hideButtonTitle = "(" . $loc["DescriptionHideButtonDisplayOptionsFormOnlyOneField"] . ")";
 		}
 		else
 		{
 			$hideButtonDisabled = "";
 
 			if ($displayType == "Display")
-				$hideButtonTitle = "hide the specified fields";
+				$hideButtonTitle = $loc["DescriptionHideButtonDisplayOptionsFormDetailsView"];
 			else
-				$hideButtonTitle = "hide the specified field";
+				$hideButtonTitle = $loc["DescriptionHideButtonDisplayOptionsForm"];
 		}
 
 		if (($displayType == "Cite") AND (!isset($_SESSION['user_styles'])))
@@ -2133,6 +2232,7 @@ EOF;
 			$citeStyleDisabled = "";
 
 		$encodedCiteStyle = rawurlencode($citeStyle);
+		$encodedClient = rawurlencode($client);
 		$encodedHeaderMsg = rawurlencode($headerMsg);
 
 		$accessKeyAttribute = addAccessKey("attribute", "max_rows");
@@ -2151,10 +2251,11 @@ EOF;
 				<input type="hidden" name="showLinks" value="$showLinks">
 				<input type="hidden" name="rowOffset" value="$rowOffset">
 				<input type="hidden" name="showRows" value="$showRows">
+				<input type="hidden" name="client" value="$encodedClient">
 				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
 				<input type="hidden" name="citeOrder" value="$citeOrder">
 				<input type="hidden" name="headerMsg" value="$encodedHeaderMsg">
-				<legend>Display Options:</legend>
+				<legend>$loc[DisplayOptions]:</legend>
 				<div id="optMain">
 					<div id="$selectorDivID">
 						<label for="$selectorID">$selectorLabel</label>
@@ -2164,7 +2265,7 @@ EOF;
 		// build correct option tags from the column items provided:
 		$optionTags = buildSelectMenuOptions($dropDownFieldsArray, "", "\t\t\t\t\t\t\t", true);
 
-		$optionTags = ereg_replace("<option([^>]*)>($dropDownFieldSelected)</option>", "<option\\1 selected>\\2</option>", $optionTags); // add 'selected' attribute
+		$optionTags = ereg_replace("<option([^>]* value=\"$dropDownFieldSelected\")", "<option\\1 selected", $optionTags); // add 'selected' attribute
 
 		$displayOptionsForm .= $optionTags;
 
@@ -2181,7 +2282,7 @@ EOF;
 EOF;
 
 		if (!eregi("^(Browse|Cite)$", $displayType))
-			$displayOptionsForm .= "\n\t\t\t\t\t\t<input type=\"submit\" name=\"submit\" value=\"Hide\" title=\"$hideButtonTitle\"$hideButtonDisabled>";
+			$displayOptionsForm .= "\n\t\t\t\t\t\t<input type=\"submit\" name=\"submit\" value=\"" . $loc["ButtonTitle_Hide"] . "\" title=\"$hideButtonTitle\"$hideButtonDisabled>";
 
 		$displayOptionsForm .= <<<EOF
 
@@ -2195,22 +2296,22 @@ EOF;
 			$displayOptionsForm .= <<<EOF
 
 					<div id="optCiteOrder">
-						<label for="citeOrder">Sort by:</label>
-						<select id="citeOrder" name="citeOrder" title="choose the primary sort order for your citation list">
+						<label for="citeOrder">$loc[SortBy]:</label>
+						<select id="citeOrder" name="citeOrder" title="$loc[DescriptionSelectOrderDisplayOptionsFormCiteView]">
 EOF;
 
 			// build correct option tags for the "Sort by" ('citeOrder') dropdown menu (and select the currently chosen option):
-			$citeOrderItemsArray = array("author"    => "author",
-			                             "year"      => "year",
-			                             "type"      => "type",
-			                             "type-year" => "type, year");
+			$citeOrderItemsArray = array("author"    => $loc["DropDownFieldName_Author"],
+			                             "year"      => $loc["DropDownFieldName_Year"],
+			                             "type"      => $loc["DropDownFieldName_Type"],
+			                             "type-year" => $loc["DropDownFieldName_TypeYear"]);
 
 			$citeOrderOptionTags = buildSelectMenuOptions($citeOrderItemsArray, "", "\t\t\t\t\t\t\t", true);
 
 			if (isset($citeOrderItemsArray[$citeOrder]))
 				$citeOrderOptionTags = ereg_replace("<option([^>]*)>(" . $citeOrderItemsArray[$citeOrder] . ")</option>", "<option\\1 selected>\\2</option>", $citeOrderOptionTags); // add 'selected' attribute to the currently chosen 'citeOrder' option
 			else // add & select a "(custom order)" option (which indicates that the current sort order matches none of the above 'citeOrder' options):
-				$citeOrderOptionTags = "\n\t\t\t\t\t\t\t<option value=\"\" selected>(custom)</option>" . $citeOrderOptionTags;
+				$citeOrderOptionTags = "\n\t\t\t\t\t\t\t<option value=\"\" selected>(" . $loc["DropDownFieldName_Custom"] . ")</option>" . $citeOrderOptionTags;
 
 			$displayOptionsForm .= $citeOrderOptionTags;
 
@@ -2224,7 +2325,7 @@ EOF;
 		$displayOptionsForm .= <<<EOF
 
 					<div id="optRecsPerPage">
-						<input type="text" id="showRows" name="showRows" value="$showRows" size="4"$accessKeyAttribute title="specify how many $recordsOrItems shall be displayed per page$accessKeyTitle">
+						<input type="text" id="showRows" name="showRows" value="$showRows" size="4"$accessKeyAttribute title="$showRowsTitle$accessKeyTitle">
 						<label for="showRows">$showRowsLabel</label>
 					</div>
 				</div>
@@ -2240,14 +2341,17 @@ EOF;
 
 	// Build the database query from user input provided by the "Search within Results" or "Display Options" forms
 	// above the query results list (which, in turn, was returned by 'search.php' or 'users.php', respectively):
-	// TODO: - I18n (i.e. make function logic independent from actual submit button names!)
-	//       - build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
+	// TODO: - build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
 	function extractFormElementsRefineDisplay($queryTable, $displayType, $originalDisplayType, $query, $showLinks, $citeOrder, $userID)
 	{
 		global $tableRefs, $tableUserData, $tableUsers; // defined in 'db.inc.php'
 
+		global $loc; // '$loc' is made globally available in 'core.php'
+
+		$encodedDisplayType = encodeHTML($displayType); // note that we need to HTML encode '$displayType' for comparison with the HTML encoded locales
+
 		// extract form variables:
-		if ($displayType == "Search") // the user clicked the 'Search' button of the "Search within Results" form
+		if ($encodedDisplayType == $loc["ButtonTitle_Search"]) // the user clicked the 'Search' button of the "Search within Results" form
 		{
 			$fieldSelector = $_REQUEST['refineSearchSelector']; // extract field name chosen by the user
 			$refineSearchName = $_REQUEST['refineSearchName']; // extract search text entered by the user
@@ -2258,7 +2362,7 @@ EOF;
 				$refineSearchActionCheckbox = "0"; // the user did NOT mark the checkbox next to "Exclude matches"
 		}
 
-		elseif (ereg("^(Show|Hide|Browse)$", $displayType)) // the user clicked either the 'Browse' or 'Show'/'Hide' buttons of the "Display Options" form
+		elseif (ereg("^(" . $loc["ButtonTitle_Show"] . "|" . $loc["ButtonTitle_Hide"] . "|" . $loc["ButtonTitle_Browse"] . ")$", $encodedDisplayType)) // the user clicked either the 'Browse' or 'Show'/'Hide' buttons of the "Display Options" form
 		// (hitting <enter> within the 'ShowRows' text entry field of the "Display Options" form will act as if the user clicked the 'Browse'/'Show' button)
 		{
 			if (isset($_REQUEST['displayOptionsSelector']))
@@ -2279,7 +2383,7 @@ EOF;
 
 		$additionalFields = "";
 
-		if ($displayType == "Search")
+		if ($encodedDisplayType == $loc["ButtonTitle_Search"])
 		{
 			// rebuild the current SELECT clause:
 			$newSelectClause = buildSELECTclause($originalDisplayType, $showLinks, $additionalFields, false, $addRequiredFields, $previousSelectClause);
@@ -2309,7 +2413,7 @@ EOF;
 		}
 
 
-		elseif ($displayType == "Show" OR $displayType == "Hide")
+		elseif (ereg("^(" . $loc["ButtonTitle_Show"] . "|" . $loc["ButtonTitle_Hide"] . ")$", $encodedDisplayType)) // the user clicked the 'Show'/'Hide' buttons of the "Display Options" form
 		{
 			if (eregi("^Cite$", $originalDisplayType)) // in case of Citation view, we regenerate the SELECT clause from scratch:
 			{
@@ -2353,7 +2457,7 @@ EOF;
 				}
 				else // add (or remove) the chosen fields from the SELECT clause:
 				{
-					if ($displayType == "Show") // if the user clicked the 'Show' button, add the chosen fields to the SELECT clause:
+					if ($encodedDisplayType == $loc["ButtonTitle_Show"]) // if the user clicked the 'Show' button, add the chosen fields to the SELECT clause:
 					{
 						$matchField = "pages";								
 
@@ -2384,7 +2488,7 @@ EOF;
 						if ((!empty($fieldsList)) AND (!preg_match("/\b" . $fieldsList . "\b/i", $previousSelectClause))) // if none of the chosen fields are currently displayed...
 							$previousSelectClause = preg_replace("/(?<=\b" . $matchField . "\b)/i", $fieldsList, $previousSelectClause); // ...add the chosen fields to the current SELECT clause:
 					}
-					if ($displayType == "Hide") // if the user clicked the 'Hide' button, remove the chosen fields from the SELECT clause:
+					if ($encodedDisplayType == $loc["ButtonTitle_Hide"]) // if the user clicked the 'Hide' button, remove the chosen fields from the SELECT clause:
 					{
 						if ($fieldSelector == "keywords, abstract")
 							$fieldsList = "\b(keywords|abstract)\b";
@@ -2409,12 +2513,12 @@ EOF;
 
 			else // otherwise, i.e. for List view, add (or remove) the chosen field from the SELECT clause:
 			{
-				if ($displayType == "Show") // if the user clicked the 'Show' button...
+				if ($encodedDisplayType == $loc["ButtonTitle_Show"]) // if the user clicked the 'Show' button...
 				{
 					if (!preg_match("/\b" . $fieldSelector . "\b/i", $previousSelectClause)) // ...and the chosen field is *not* already displayed...
 						$additionalFields = $fieldSelector; // ...add the chosen field to the current SELECT clause
 				}
-				elseif ($displayType == "Hide") // if the user clicked the 'Hide' button...
+				elseif ($encodedDisplayType == $loc["ButtonTitle_Hide"]) // if the user clicked the 'Hide' button...
 				{
 					if (preg_match("/\b" . $fieldSelector . "\b/i", $previousSelectClause)) // ...and the chosen field *is* currently displayed...
 					{
@@ -2434,7 +2538,7 @@ EOF;
 
 
 		// TODO: don't manipulate the SQL query in '$query' directly, but instead use functions 'extractSELECTclause()' and 'buildSELECTclause()' (similar as above)
-		elseif ($displayType == "Browse") // if the user clicked the 'Browse' button within the "Display Options" form...
+		elseif ($encodedDisplayType == $loc["ButtonTitle_Browse"]) // if the user clicked the 'Browse' button within the "Display Options" form...
 		{
 			$previousField = preg_replace("/^SELECT (\w+).+/i", "\\1", $query); // extract the field that was previously used in Browse view
 
@@ -4627,6 +4731,12 @@ EOF;
 			}
 		}
 
+		// NOTE: When a 'show.php' URL is called from within another script via function 'fetchDataFromURL()'
+		//       (as is the case for 'index.php'), '$_SERVER['SCRIPT_NAME']' and '$_SERVER['PHP_SELF']' do seem
+		//       to return double slashes for path separators (e.g. "/refs//search.php"). I don't know why this
+		//       happens. The line below fixes this:
+		$pathToScript = preg_replace('#//+#', '/', $pathToScript);
+
 		return $pathToScript;
 	}
 
@@ -4823,6 +4933,38 @@ EOF;
 		                     504 => "HTTP/1.1 504 Gateway Time-out");
 
 		header($http[$statusCode]);
+	}
+
+	// --------------------------------------------------------------------
+
+	// This function takes the URL given in '$sourceURL' and retrieves the returned data:
+	function fetchDataFromURL($sourceURL)
+	{
+		global $errors;
+
+		$handle = fopen($sourceURL, "r"); // fetch data from URL in read mode
+
+		$sourceData = "";
+
+		if ($handle)
+		{
+			while (!feof($handle))
+			{
+				$sourceData .= fread($handle, 4096); // read data in chunks
+			}
+			fclose($handle);
+		}
+		else
+		{
+			$errorMessage = "Error occurred: Failed to open " . $sourceURL; // network error
+
+			if (!isset($errors["sourceText"]))
+				$errors["sourceText"] = $errorMessage;
+			else
+				$errors["sourceText"] = $errors["sourceText"] . "<br>" . $errorMessage;
+		}
+
+		return $sourceData;
 	}
 
 	// --------------------------------------------------------------------
@@ -5223,6 +5365,14 @@ EOF;
 			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "location", true);
 		}
 
+		// supply generic 'WHERE' clause if it didn't exist in the SQL query:
+		if (!eregi(" FROM " . $tableRefs . ".* WHERE ", $sqlQuery))
+			$sqlQuery = preg_replace("/(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", " WHERE serial RLIKE \".+\"", $sqlQuery, 1);
+
+		// supply generic 'ORDER BY' clause if it didn't exist in the SQL query:
+		// TODO: - add a suitable 'ORDER BY' clause for Browse view and if '$citeOrder != "author"'
+		if (!eregi(" FROM " . $tableRefs . ".* ORDER BY ", $sqlQuery) AND ($displayType != "Browse"))
+			$sqlQuery = preg_replace("/(?= LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", " ORDER BY author, year DESC, publication", $sqlQuery, 1);
 
 		// handle the display & querying of user-specific fields:
 		if (!isset($_SESSION['loginEmail'])) // if NO user is logged in...
