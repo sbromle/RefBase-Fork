@@ -174,10 +174,10 @@
 		if (isset($_REQUEST['originalDisplayType']))
 			$displayType = $_REQUEST['originalDisplayType']; // extract the type of display requested by the user (either 'Display', 'Cite', 'List' or '')
 
-		if (isset($_REQUEST['showLinks']))
-			$showLinks = $_REQUEST['showLinks'];
+		if (isset($_REQUEST['showLinks']) AND ($_REQUEST['showLinks'] == "0"))
+			$showLinks = "0";
 
-		if (isset($_REQUEST['showRows']))
+		if (isset($_REQUEST['showRows']) AND ereg("^[1-9]+[0-9]*$", $_REQUEST['showRows']))
 			$showRows = $_REQUEST['showRows'];
 
 		if (isset($_REQUEST['citeStyle']))
