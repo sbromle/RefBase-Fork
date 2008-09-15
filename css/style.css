@@ -190,6 +190,157 @@ div.resultsfooter {
 	
 }
 
+#loginInfo {
+	font-size: 1em;
+}
+
+#loginInfo > * {
+	margin-top: 0.4em;
+	font-size: 1em;
+}
+
+#queryrefs {
+	margin-top: 1.3em;
+	margin-bottom: -2em;
+	margin-right: -11px;
+	font-size: 1em;
+}
+
+#queryrefs fieldset {
+	border: none;
+}
+
+#queryrefs legend, #queryrefs #queryField label {
+	display: none;
+}
+
+#queryrefs #queryField, #queryrefs #querySubmit {
+	display: inline;
+	font-size: 1em;
+}
+
+#userlogin, #userlogin .boxBody {
+	margin-bottom: -1.1em;
+	font-size: 1em;
+}
+
+#userlogin fieldset {
+	border: none;
+}
+
+#userlogin legend {
+	display: none;
+}
+
+#userlogin #loginUser, #userlogin #loginPwd {
+	text-align: right;
+	font-size: 1em;
+}
+
+#userlogin #loginUserLabel {
+	display: inline;
+	position: relative;
+	left: -2.4em;
+	font-size: 1em;
+}
+
+#userlogin #loginUserLabel:lang(fr) {
+	left: -4.0em;
+}
+
+#userlogin #loginUserLabel:lang(cn) {
+	left: -1em;
+}
+
+#userlogin #loginPwdLabel {
+	display: inline;
+	position: relative;
+	left: -0.35em;
+	font-size: 1em;
+}
+
+#userlogin #loginPwdLabel:lang(de) {
+	left: -0.7em;
+}
+
+#userlogin #loginPwdLabel:lang(fr) {
+	left: 0em;
+}
+
+#userlogin #loginPwdLabel:lang(cn) {
+	left: -1.5em;
+}
+
+#userlogin #loginUserInput, #userlogin #loginPwdInput {
+	display: inline;
+}
+
+#userlogin #loginEmail:lang(fr), #userlogin #loginPassword:lang(fr) {
+	width: 7.7em;
+}
+
+#userlogin #loginEmail:lang(cn), #userlogin #loginPassword:lang(cn) {
+	width: 11em;
+}
+#userlogin #loginSubmit input[type=submit] {
+	margin-top: 0.6em;
+}
+
+#recentlinks {
+	margin-left: -15px;
+	font-size: 1em;
+}
+
+#includerefs {
+	margin-left: -22px;
+	font-size: 1.25em;
+}
+
+#includeprogress, #includerefs > a {
+	margin-left: 30px;
+	font-size: 0.8em;
+}
+
+#includeprogress > img {
+	position: relative;
+	top: 3px;
+	left: 5px;
+}
+
+#showgroupmain {
+	margin-bottom: 1.25em;
+	font-size: 1em;
+}
+
+#showgroupmain fieldset {
+	border: none;
+}
+
+#showgroupmain legend, #showgroupmain #groupSelect label {
+	display: none;
+}
+
+#showgroupmain #groupSubmit input[type=submit] {
+	margin-top: 0.6em;
+}
+
+#recallquerymain {
+	margin-top: -0.9em;
+	font-size: 1em;
+}
+
+#recallquerymain fieldset {
+	border: none;
+}
+
+#recallquerymain legend, #recallquerymain #recallSelect label {
+	display: none;
+}
+
+#recallquerymain #recallSubmit input[type=submit] {
+	margin-top: 0.6em;
+}
+
 #resultoptions {
 	margin-left: 20px;
 	text-align: center;
@@ -222,16 +373,16 @@ div.resultsfooter {
 	font-size: 1em;
 }
 
-#showgroup div#groupSelect {
+#showgroup #groupSelect {
 	font-size: 1em;
 }
 
-#showgroup div#groupSubmit {
+#showgroup #groupSubmit {
 	margin-top: 0.25em;
 	font-size: 1em;
 }
 
-#showgroup div#groupSelect label, #refineresults div#refineField label, #displayopt div#optShowHideField label {
+#showgroup #groupSelect label, #refineresults #refineField label, #displayopt #optShowHideField label {
 	display: none;
 }
 
@@ -240,13 +391,13 @@ div.resultsfooter {
 	font-size: 1em;
 }
 
-#refineresults div#refineField {
+#refineresults #refineField {
 	display: block;
 	margin-bottom: 0.25em;
 	font-size: 1em;
 }
 
-#refineresults div#refineOpt, #refineresults div#refineSubmit {
+#refineresults #refineOpt, #refineresults #refineSubmit {
 	display: inline;
 	font-size: 1em;
 }
@@ -257,26 +408,26 @@ div.resultsfooter {
 	font-size: 1em;
 }
 
-#displayopt div#optMain {
+#displayopt #optMain {
 	font-size: 1em;
 }
 
-#displayopt div#optShowHideField, #displayopt div#optCiteStyle, #displayopt div#optSubmit {
+#displayopt #optShowHideField, #displayopt #optCiteStyle, #displayopt #optSubmit {
 	display: inline;
 	font-size: 1em;
 }
 
-#displayopt div#optOther {
+#displayopt #optOther {
 	margin-top: 0.25em;
 	font-size: 1em;
 }
 
-#displayopt div#optCiteOrder, #displayopt div#optRecsPerPage {
+#displayopt #optCiteOrder, #displayopt #optRecsPerPage {
 	display: inline;
 	font-size: 1em;
 }
 
-#displayopt div#optCiteOrder {
+#displayopt #optCiteOrder {
 	margin-right: 0.4em;
 }
 
@@ -455,13 +606,13 @@ div.resultsfooter {
 	font-size: 1em;
 }
 
-#grouprefs div#myGroup {
+#grouprefs #myGroup {
 	display: block;
 	margin-bottom: 0.25em;
 	font-size: 1em;
 }
 
-#grouprefs div#newGroup, #grouprefs div#addRemoveGroup {
+#grouprefs #newGroup, #grouprefs #addRemoveGroup {
 	display: inline;
 	font-size: 1em;
 }
@@ -562,3 +713,49 @@ a:hover .toggletxt {
 	font-size: 0.85em;
 	line-height: 1.3em;
 }
+
+/* Begin ThrashBox code (modified slightly for use with refbase)
+   Credit: Simple Rounded Corner CSS Boxes by Ryan Thrash
+   see <http://www.modxcms.com/simple-rounded-corner-css-boxes.html>
+   and the ThrashBox online generator <http://www.spiffybox.com/>
+*/
+/* set the image to use and establish the lower-right position */
+.box, .boxBody, .boxHead, .boxHead h3 {
+	background: transparent url(../img/rounded_box.png) no-repeat bottom right;
+}
+.box {
+	/* intended total box width - padding-right(next) */
+/*	width: 200px !important; */
+	/* IE Win = width - padding */
+/*	width: 185px; */
+	padding-right: 5px; /* the gap on the right edge of the image (not content padding) */
+	margin: 0 auto; /* use to position the box */
+}
+
+/* set the top-right image */
+.boxHead {
+	background-position: top right; margin-right: -5px; /* pull the right image over on top of border */
+	padding-right: 15px; /* right-image-gap + right-inside padding */
+}
+
+/* set the top-left image */
+.boxHead h3 {
+	background-position: top left;
+	margin: 0; /* reset main site styles*/
+	border: 0; /* ditto */
+	padding: 10px 0 10px 15px; /* padding-left = image gap + interior padding ... no padding-right */
+	height: auto !important; height: 1%; /* IE Holly Hack */
+}
+
+/* set the lower-left corner image */
+.boxBody {
+	background-position: bottom left;
+	margin-right: 0; /* interior-padding right */
+	padding: 0 0 1px 5px; /* mirror .boxHead right/left */
+}
+
+/* font styling */
+.boxHead h3 {
+	color: #222222;
+}
+/* End ThrashBox code */
