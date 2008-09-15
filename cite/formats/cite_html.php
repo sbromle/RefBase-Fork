@@ -138,6 +138,11 @@
 				else
 					$rowClass = "odd";
 
+				if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+					$baseURL = $databaseBaseURL;
+				else
+					$baseURL = "";
+
 				$recordPermaLink = $databaseBaseURL . "show.php?record=" . $row["serial"]; // generate a permanent link for the current record
 
 				if (eregi("^Mobile$", $viewType))
@@ -150,7 +155,7 @@
 					$recordData .= "\n<tr class=\"" . $rowClass . "\">";
 
 					// Print a column with a checkbox:
-					// Note: we omit the results footer in print/mobile view ('viewType=Print' or 'viewType=Mobile') and when outputting only a partial document structure ('wrapResults=0')!
+					// Note: we omit the results footer in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
 					if ((!eregi("^Print$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 					{
 						$recordData .= "\n\t<td align=\"center\" valign=\"top\" width=\"10\">";
@@ -165,9 +170,9 @@
 								$recordData .= "\n\t\t<br>";
 
 							if ($row["orig_record"] < 0)
-								$recordData .= "\n\t\t<img src=\"" . $databaseBaseURL . "img/ok.gif\" alt=\"(original)\" title=\"original record\" width=\"14\" height=\"16\" hspace=\"0\" border=\"0\">";
+								$recordData .= "\n\t\t<img src=\"" . $baseURL . "img/ok.gif\" alt=\"(original)\" title=\"original record\" width=\"14\" height=\"16\" hspace=\"0\" border=\"0\">";
 							else // $row["orig_record"] > 0
-								$recordData .= "\n\t\t<img src=\"" . $databaseBaseURL . "img/caution.gif\" alt=\"(duplicate)\" title=\"duplicate record\" width=\"5\" height=\"16\" hspace=\"0\" border=\"0\">";
+								$recordData .= "\n\t\t<img src=\"" . $baseURL . "img/caution.gif\" alt=\"(duplicate)\" title=\"duplicate record\" width=\"5\" height=\"16\" hspace=\"0\" border=\"0\">";
 						}
 
 						// - Add <abbr> block which works as a microformat that allows applications to identify objects on web pages; see <http://unapi.info/specs/> for more info
@@ -188,7 +193,7 @@
 
 						$recordData .= "\n\t\t<div class=\"showhide\">"
 						             . "\n\t\t\t<a href=\"javascript:toggleVisibility('moreinfo" . $row["serial"] . "','toggleimg" . $row["serial"] . "','toggletxt" . $row["serial"] . "','more%20info')\" title=\"" . $loc["LinkTitle_ToggleVisibility"] . "\">"
-						             . "<img id=\"toggleimg" . $row["serial"] . "\" class=\"toggleimg\" src=\"" . $databaseBaseURL . "img/closed.gif\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
+						             . "<img id=\"toggleimg" . $row["serial"] . "\" class=\"toggleimg\" src=\"" . $baseURL . "img/closed.gif\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
 						             . "</a>"
 						             . "\n\t\t</div>"
 						             . "\n\t\t<div id=\"moreinfo" . $row["serial"] . "\" class=\"moreinfo\" style=\"display: none;\">";
@@ -202,7 +207,12 @@
 						$recordData .= "\n\t\t\t<div class=\"reflinks\">";
 
 						// - Print the record's permanent URL:
-						$recordData .= "\n\t\t\t\t<div class=\"permalink\"><a href=\"" . $recordPermaLink . "\" title=\"copy this URL to directly link to this record\">";
+						if (eregi("^inc", $client)) // we open links in a new browser window if refbase data are included somewhere else:
+							$target = " target=\"_blank\"";
+						else
+							$target = "";
+
+						$recordData .= "\n\t\t\t\t<div class=\"permalink\"><a href=\"" . $recordPermaLink . "\"" . $target . " title=\"copy this URL to directly link to this record\">";
 
 						if (eregi("^Print$", $viewType)) // for print view, we use the URL as link title
 							$recordData .= $recordPermaLink;
@@ -225,7 +235,7 @@
 
 								foreach ($userCiteFormatsArray as $citeFormat)
 									if (!eregi("^html$", $citeFormat)) // for now, we exclude the "HTML" cite format (as it's not any different to the regular Citation view HTML output)
-										$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $databaseBaseURL . generateURL("show.php", $citeFormat, array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder) . "\" title=\"output record as citation in " . $citeFormat . " format\">" . $citeFormat . "</a>";
+										$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $baseURL . generateURL("show.php", $citeFormat, array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder) . "\" title=\"output record as citation in " . $citeFormat . " format\">" . $citeFormat . "</a>";
 
 								$recordData .= "\n\t\t\t\t</div>";
 							}
@@ -239,7 +249,7 @@
 								             . "&nbsp;|&nbsp;Export record:";
 
 								foreach ($userExportFormatsArray as $exportFormat)
-									$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $databaseBaseURL . generateURL("show.php", $exportFormat, array("record" => $row['serial'], "exportType" => "file"), true) . "\" title=\"export record in " . $exportFormat . " format\">" . $exportFormat . "</a>";
+									$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $baseURL . generateURL("show.php", $exportFormat, array("record" => $row['serial'], "exportType" => "file"), true) . "\" title=\"export record in " . $exportFormat . " format\">" . $exportFormat . "</a>";
 
 								$recordData .= "\n\t\t\t\t</div>";
 							}
@@ -282,12 +292,17 @@
 
 		// OUTPUT RESULTS:
 
-		if ($wrapResults != "0")
+		// Note: we omit the results header, browse links & query form for CLI clients, and when outputting only a partial document structure ('wrapResults=0')
+		if (!eregi("^cli", $client) AND ($wrapResults != "0"))
 		{
-			// Note: we omit the results header in print/mobile view! ('viewType=Print' or 'viewType=Mobile') and when outputting only a partial document structure ('wrapResults=0')!
-			if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
+			// Note: we also omit the results header in print/mobile view ('viewType=Print' or 'viewType=Mobile')
+			if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
 			{
-				$selectedField = "author"; // in the 'Search within Results" form, we'll always select the 'author' field by default
+				// Extract the first field from the 'WHERE' clause:
+				if (preg_match("/ WHERE [ ()]*(\w+)/i", $query))
+					$selectedField = preg_replace("/.+ WHERE [ ()]*(\w+).*/i", "\\1", $query);
+				else
+					$selectedField = "author"; // in the 'Search within Results" form, we'll select the 'author' field by default
 
 				// Map MySQL field names to localized column names:
 				$fieldNamesArray = mapFieldNames(true);
@@ -341,47 +356,47 @@
 
 			// Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
 			// call the 'buildBrowseLinks()' function (defined in 'include.inc.php'):
-			$BrowseLinks = buildBrowseLinks("search.php", $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $maximumBrowseLinks, "sqlSearch", "Cite", $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType);
+			$BrowseLinks = buildBrowseLinks("search.php", $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $wrapResults, $maximumBrowseLinks, "sqlSearch", "Cite", $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType);
 			$htmlData .= $BrowseLinks;
-		}
 
-		if (eregi("^Mobile$", $viewType))
-		{
-			// Extract the original OpenSearch/CQL query that was saved by 'opensearch.php' as a session variable:
-			if (isset($_SESSION['cqlQuery']))
-				$cqlQuery = $_SESSION['cqlQuery'];
-			else
-				$cqlQuery = "";
+			if (eregi("^Mobile$", $viewType))
+			{
+				// Extract the original OpenSearch/CQL query that was saved by 'opensearch.php' as a session variable:
+				if (isset($_SESSION['cqlQuery']))
+					$cqlQuery = $_SESSION['cqlQuery'];
+				else
+					$cqlQuery = "";
 
-			// Include an OpenSearch-style (CQL) query form:
-			$htmlData .= "\n<div id=\"queryform\">"
-			           . "\n\t<form action=\"opensearch.php\" method=\"GET\" name=\"openSearch\">"
-			           . "\n\t\t<input type=\"hidden\" name=\"formType\" value=\"openSearch\">"
-			           . "\n\t\t<input type=\"hidden\" name=\"submit\" value=\"" . $loc["ButtonTitle_Search"] . "\">"
-			           . "\n\t\t<input type=\"hidden\" name=\"viewType\" value=\"" . $viewType . "\">"
-			           . "\n\t\t<input type=\"hidden\" name=\"startRecord\" value=\"1\">"
-			           . "\n\t\t<input type=\"hidden\" name=\"maximumRecords\" value=\"" . $showRows . "\">"
-			           . "\n\t\t<input type=\"hidden\" name=\"recordSchema\" value=\"html\">"
-			           . "\n\t\t<input type=\"text\" name=\"query\" value=\"" . $cqlQuery . "\" size=\"25\" title=\"" . $loc["DescriptionEnterSearchString"] . "\">"
-			           . "\n\t\t<input type=\"submit\" name=\"submit\" value=\"" . $loc["ButtonTitle_Search"] . "\" title=\"" . $loc["SearchDB"] . "\">"
-			           . "\n\t</form>"
-			           . "\n</div>";
-		}
-		elseif ((!eregi("^Print$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
-		{
-			// Include the 'queryResults' form:
-			$htmlData .= "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
-			           . "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
-			           . "\n<input type=\"hidden\" name=\"submit\" value=\"Cite\">" // provide a default value for the 'submit' form tag (then, if any form element is selected, hitting <enter> will act as if the user clicked the 'Cite' button)
-			           . "\n<input type=\"hidden\" name=\"originalDisplayType\" value=\"" . $displayType . "\">" // embed the original value of the '$displayType' variable
-			           . "\n<input type=\"hidden\" name=\"orderBy\" value=\"" . rawurlencode($orderBy) . "\">" // embed the current ORDER BY parameter so that it can be re-applied when displaying details
-			           . "\n<input type=\"hidden\" name=\"showQuery\" value=\"" . $showQuery . "\">" // embed the current value of '$showQuery' so that it's available on 'display details' (batch display) & 'cite'
-			           . "\n<input type=\"hidden\" name=\"showLinks\" value=\"" . $showLinks . "\">" // embed the current value of '$showLinks' so that it's available on 'display details' (batch display) & 'cite'
-			           . "\n<input type=\"hidden\" name=\"showRows\" value=\"" . $showRows . "\">" // embed the current value of '$showRows' so that it's available on 'display details' (batch display) & 'cite'
-			           . "\n<input type=\"hidden\" name=\"rowOffset\" value=\"" . $rowOffset . "\">" // embed the current value of '$rowOffset' so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
-			           // Note: the inclusion of '$rowOffset' here is only meant to support reloading of the same results page again after a user clicked the 'Add' or 'Remove' buttons
-			           //       However, '$rowOffset' MUST NOT be set if the user clicked the 'Display' or 'Cite' button! Therefore we'll trap for this case at the top of the script.
-			           . "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"" . $queryURL . "\">"; // embed the current sqlQuery so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
+				// Include an OpenSearch-style (CQL) query form:
+				$htmlData .= "\n<div id=\"queryform\">"
+						   . "\n\t<form action=\"opensearch.php\" method=\"GET\" name=\"openSearch\">"
+						   . "\n\t\t<input type=\"hidden\" name=\"formType\" value=\"openSearch\">"
+						   . "\n\t\t<input type=\"hidden\" name=\"submit\" value=\"" . $loc["ButtonTitle_Search"] . "\">"
+						   . "\n\t\t<input type=\"hidden\" name=\"viewType\" value=\"" . $viewType . "\">"
+						   . "\n\t\t<input type=\"hidden\" name=\"startRecord\" value=\"1\">"
+						   . "\n\t\t<input type=\"hidden\" name=\"maximumRecords\" value=\"" . $showRows . "\">"
+						   . "\n\t\t<input type=\"hidden\" name=\"recordSchema\" value=\"html\">"
+						   . "\n\t\t<input type=\"text\" name=\"query\" value=\"" . $cqlQuery . "\" size=\"25\" title=\"" . $loc["DescriptionEnterSearchString"] . "\">"
+						   . "\n\t\t<input type=\"submit\" name=\"submit\" value=\"" . $loc["ButtonTitle_Search"] . "\" title=\"" . $loc["DescriptionSearchDB"] . "\">"
+						   . "\n\t</form>"
+						   . "\n</div>";
+			}
+			elseif ((!eregi("^Print$", $viewType)) AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+			{
+				// Include the 'queryResults' form:
+				$htmlData .= "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
+						   . "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
+						   . "\n<input type=\"hidden\" name=\"submit\" value=\"Cite\">" // provide a default value for the 'submit' form tag (then, if any form element is selected, hitting <enter> will act as if the user clicked the 'Cite' button)
+						   . "\n<input type=\"hidden\" name=\"originalDisplayType\" value=\"" . $displayType . "\">" // embed the original value of the '$displayType' variable
+						   . "\n<input type=\"hidden\" name=\"orderBy\" value=\"" . rawurlencode($orderBy) . "\">" // embed the current ORDER BY parameter so that it can be re-applied when displaying details
+						   . "\n<input type=\"hidden\" name=\"showQuery\" value=\"" . $showQuery . "\">" // embed the current value of '$showQuery' so that it's available on 'display details' (batch display) & 'cite'
+						   . "\n<input type=\"hidden\" name=\"showLinks\" value=\"" . $showLinks . "\">" // embed the current value of '$showLinks' so that it's available on 'display details' (batch display) & 'cite'
+						   . "\n<input type=\"hidden\" name=\"showRows\" value=\"" . $showRows . "\">" // embed the current value of '$showRows' so that it's available on 'display details' (batch display) & 'cite'
+						   . "\n<input type=\"hidden\" name=\"rowOffset\" value=\"" . $rowOffset . "\">" // embed the current value of '$rowOffset' so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
+						   // Note: the inclusion of '$rowOffset' here is only meant to support reloading of the same results page again after a user clicked the 'Add' or 'Remove' buttons
+						   //       However, '$rowOffset' MUST NOT be set if the user clicked the 'Display' or 'Cite' button! Therefore we'll trap for this case at the top of the script.
+						   . "\n<input type=\"hidden\" name=\"sqlQuery\" value=\"" . $queryURL . "\">"; // embed the current sqlQuery so that it can be re-applied after the user pressed either of the 'Add' or 'Remove' buttons within the 'queryResults' form
+			}
 		}
 
 		// Output query results:
@@ -399,7 +414,7 @@
 		}
 
 		// Append the footer:
-		// Note: we omit the results footer in print/mobile view ('viewType=Print' or 'viewType=Mobile') and when outputting only a partial document structure ('wrapResults=0')!
+		// Note: we omit the results footer & browse links in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
 		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0"))
 		{
 			// Again, insert the (already constructed) BROWSE LINKS
