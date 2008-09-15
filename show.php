@@ -78,15 +78,15 @@
 	else
 		$viewType = "";
 
-	if (isset($_REQUEST['showQuery']))
-		$showQuery = $_REQUEST['showQuery'];
+	if (isset($_REQUEST['showQuery']) AND ($_REQUEST['showQuery'] == "1"))
+		$showQuery = "1";
 	else
-		$showQuery = "";
+		$showQuery = "0"; // don't show the SQL query by default
 
-	if (isset($_REQUEST['showLinks']))
-		$showLinks = $_REQUEST['showLinks'];
+	if (isset($_REQUEST['showLinks']) AND ($_REQUEST['showLinks'] == "0"))
+		$showLinks = "0";
 	else
-		$showLinks = "1"; // for 'show.php' we'll always show the links column by default if the 'showLinks' parameter isn't set explicitly to "0"
+		$showLinks = "1"; // show the links column by default
 
 	if (isset($_REQUEST['showRows']) AND ereg("^[0-9]+$", $_REQUEST['showRows'])) // NOTE: we cannot use "^[1-9]+[0-9]*$" here since 'maximumRecords=0' is used in 'opensearch.php' queries to return just the number of found records (and not the full record data)
 		$showRows = $_REQUEST['showRows']; // contains the desired number of search results (OpenSearch equivalent: '{count}')
@@ -99,7 +99,7 @@
 		$rowOffset = ""; // if no value to the 'startRecord' parameter is given, we'll output records starting with the first record in the result set
 
 	if (isset($_REQUEST['wrapResults']) AND ($_REQUEST['wrapResults'] == "0"))
-		$wrapResults = $_REQUEST['wrapResults']; // for citation output, 'wrapResults=0' causes refbase to output only a partial document structure containing solely the search results (e.g. for HTML, everything is omitted except for the <table> block containing the search results)
+		$wrapResults = "0"; // 'wrapResults=0' causes refbase to output only a partial document structure containing solely the search results (e.g. for HTML, everything is omitted except for the <table> block containing the search results)
 	else
 		$wrapResults = "1"; // we'll output a full document (HTML, RTF, LaTeX, etc) structure unless the 'wrapResults' parameter is set explicitly to "0"
 
@@ -932,6 +932,14 @@
 		                              "headerMsg"        => $headerMsg
 		                             );
 
+		// Save the URL of the current 'show.php' request to the 'referer' session variable:
+		// NOTE: since function 'start_session()' prefers '$_SESSION['referer']' over '$_SERVER['HTTP_REFERER']', this means that '$referer'
+		//       contains a 'show.php' URL and not e.g. a '*_search.php' URL; this, in turn, can prevent the "NoPermission_ForSQL" warning
+		//       if a user clicked the "Show All" link in the header of any of the '*_search.php' pages
+		//       (see notes above the "NoPermission_ForSQL" error message in 'search.php')
+//		if (isset($_SERVER['REQUEST_URI']))
+//			saveSessionVariable("referer", $_SERVER['REQUEST_URI']); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+
 		// Call 'search.php' in order to display record details:
 		if ($_SERVER['REQUEST_METHOD'] == "POST")
 		{
@@ -939,7 +947,7 @@
 			// NOTE: If the original request was a POST (as is the case for the refbase command line client) saving POST data to a session
 			//       variable allows to retain large param/value strings (that would exceed the maximum string limit for GET requests).
 			//       'search.php' will then write the saved POST data back to '$_POST' and '$_REQUEST'. (see also note and commented code below)
-			saveSessionVariable("postData", $queryParametersArray); // function 'saveSessionVariable()' is defined in 'include.inc.php'
+			saveSessionVariable("postData", $queryParametersArray);
 
 			header("Location: search.php?client=" . $client); // we also pass the 'client' parameter in the GET request so that it's available to 'search.php' before sessions are initiated
 		}
