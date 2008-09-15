@@ -2727,7 +2727,7 @@
 				           . "&id=" . $pmid;
 
 				// Perform query:
-				$sourceText .= fetchDataFromURL($sourceURL);
+				$sourceText .= fetchDataFromURL($sourceURL); // function 'fetchDataFromURL()' is defined in 'include.inc.php'
 			}
 
 			// Alternative code that fetches PubMed records via a single HTTP request:
@@ -2856,43 +2856,11 @@
 					$sourceURL .= "&" . $item;
 
 				// Perform query:
-				$sourceText .= fetchDataFromURL($sourceURL);
+				$sourceText .= fetchDataFromURL($sourceURL); // function 'fetchDataFromURL()' is defined in 'include.inc.php'
 			}
 		}
 
 		return array($errors, $sourceText);
-	}
-
-	// --------------------------------------------------------------------
-
-	// This function takes the URL given in '$sourceURL' and retrieves the returned data:
-	function fetchDataFromURL($sourceURL)
-	{
-		global $errors;
-
-		$handle = fopen($sourceURL, "r"); // fetch data from URL in read mode
-
-		$sourceData = "";
-
-		if ($handle)
-		{
-			while (!feof($handle))
-			{
-				$sourceData .= fread($handle, 4096); // read data in chunks
-			}
-			fclose($handle);
-		}
-		else
-		{
-			$errorMessage = "Error occurred: Failed to open " . $sourceURL; // network error
-
-			if (!isset($errors["sourceText"]))
-				$errors["sourceText"] = $errorMessage;
-			else
-				$errors["sourceText"] = $errors["sourceText"] . "<br>" . $errorMessage;
-		}
-
-		return $sourceData;
 	}
 
 	// --------------------------------------------------------------------
