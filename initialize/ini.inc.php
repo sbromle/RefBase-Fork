@@ -119,7 +119,7 @@
 
 
 	// The default interface language:
-	$defaultLanguage = "en"; // e.g. "en", "de", "fr", "es" or "cn"
+	$defaultLanguage = "en"; // possible values: "en", "de", "fr", or "cn"
 
 
 	// The number of records that's returned by default:
@@ -245,6 +245,20 @@
 	// selected from a search field drop-down menu; these fields will also be included as
 	// separate entries in the "Quick Search" drop-down menu.
 	$defaultMainFields = "author, title, publication, keywords, abstract"; // e.g. "author, title, publication, keywords, abstract"
+
+
+	// The list of fields that are available in the "main fields" selector of the user's
+	// account options page:
+	// The given field names must match column names in MySQL tables 'refs' and 'user_data'.
+	// The given fields will be available to the user to add them to his/her preferred list
+	// of "main fields". The fields selected by the user will be used instead of the default
+	// list of "main fields" provided in '$defaultMainFields' (see above). The user's
+	// default list of "main fields" can be specified in '$defaultUserOptions["main_fields"]'
+	// (see below).
+	$availableMainFields = array("author", "title", "year", "publication", "abbrev_journal",
+	                             "editor", "series_title", "abbrev_series_title", "keywords",
+	                             "abstract", "area", "notes", "call_number", "serial",
+	                             "user_keys", "user_notes", "user_groups", "cite_key");
 
 
 	// The list of fields that will be displayed by default in List view (i.e. the default
@@ -656,9 +670,10 @@
 	                    "my_refs"     => "7", // "My Refs" link
 	                    "my_opt"      => "8", // "Options" link
 	                    "login"       => "9", // "Login/Logout" link
+	                    "qck_search"  => "f", // text entry field of the "Quick Search" form
 	                    // results header:
 	                    "header"      => ",", // "Search & Display Options" link that toggles visibility of the results header
-	                    "refine"      => "f", // text entry field of the "Search within Results" form
+	                    "refine"      => "",  // text entry field of the "Search within Results" form
 	                    "max_rows"    => "r", // "records per page" text entry field of the "Display Options" form
 	                    // browse links:
 	                    "next"        => "n", // "next results page" link
@@ -677,8 +692,8 @@
 	                    "show_rec"    => "w", // "Show Record" link
 	                    "extract"     => "x", // "Extract Citations" link
 	                    // search pages:
-	                    "search_opt"  => ",",  // "Search/Display Options" link that toggles visibility of the search/display options
-	                    "search_help" => ".",  // "Help/Examples" link that toggles visibility of the inline help/examples
+	                    "search_opt"  => ",", // "Search/Display Options" link that toggles visibility of the search/display options
+	                    "search_help" => ".", // "Help/Examples" link that toggles visibility of the inline help/examples
 	                   );
 
 
