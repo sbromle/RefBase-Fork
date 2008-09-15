@@ -255,6 +255,13 @@
 			deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 		}
 
+		// Get the list of "main fields" preferred by the current user:
+		// NOTE: We have to call function 'getMainFields()' up here since it updates
+		//       session variable 'userMainFields' which gets used in function
+		//       'buildQuickSearchElements()' (which, in turn, is called from within
+		//       function 'showPageHeader()')
+		$mainFieldsArray = getMainFields($userID); // function 'getMainFields()' is defined in 'include.inc.php'
+
 		// Call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- User Receipt", "noindex,nofollow", "Receipt page confirming correct entry of user details and options for the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
 		showPageHeader($HeaderString);
@@ -490,9 +497,6 @@
 
 				echo "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
 				   . "\n\t\t</tr>";
-
-				// get the list of "main fields" preferred by the current user:
-				$mainFieldsArray = getMainFields($userID); // function 'getMainFields()' is defined in 'include.inc.php'
 
 				// list all fields that were selected by the current user as "main fields":
 				echo "\n\t\t<tr valign=\"top\">"
