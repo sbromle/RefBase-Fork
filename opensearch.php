@@ -503,7 +503,7 @@
 <tr>
 	<td>&nbsp;</td>
 	<td>
-		<input type="submit" name="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>" title="<?php echo $loc["SearchDB"]; ?>">
+		<input type="submit" name="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>" title="<?php echo $loc["DescriptionSearchDB"]; ?>">
 	</td>
 </tr>
 </table>
@@ -548,7 +548,7 @@
 <tr>
 	<td>&nbsp;</td>
 	<td>
-		<input type="submit" name="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>" title="<?php echo $loc["SearchDB"]; ?>">
+		<input type="submit" name="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>" title="<?php echo $loc["DescriptionSearchDB"]; ?>">
 	</td>
 </tr>
 </table>
