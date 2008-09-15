@@ -1,12 +1,21 @@
 #!/usr/bin/perl
 
 # Project:    Web Reference Database (refbase) <http://www.refbase.net>
-# Copyright:  Matthias Steffens <mailto:refbase@extracts.de>
-#             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
-#             Please see the GNU General Public License for more details.
-# File:       ./refbase_import
-# Created:    30-Sep-06, 23:30
-# Modified:   03-Oct-06, 22:40
+# Copyright:  Matthias Steffens <mailto:refbase@extracts.de> and the file's
+#             original author(s).
+#
+#             This code is distributed in the hope that it will be useful,
+#             but WITHOUT ANY WARRANTY. Please see the GNU General Public
+#             License for more details.
+#
+# File:       ./contrib/command_line/refbase_import
+# Repository: $HeadURL$
+# Author(s):  Matthias Steffens <mailto:refbase@extracts.de>
+#
+# Created:    06-Jun-06, 18:00
+# Modified:   $Date$
+#             $Author$
+#             $Revision$
 
 # REFBASE_IMPORT -- a refbase command line interface
 
@@ -18,18 +27,18 @@
 #             Further information is available at <http://cli.refbase.net/>
 #             A list of supported import formats is given at <http://import.refbase.net/>
 
-# Version:    1.0
+# Version:    1.1
 
 # Requires:   - a shell with Perl execution capabilities
 #             - the Perl CPAN modules LWP::UserAgent, HTTP::Request::Common, HTTP::Response, HTTP::Cookies and URI::URL
-#             - access to an up-to-date refbase CVS version
+#             - access with import permissions to a refbase database (refbase-0.9.0 or greater)
 
 # Limits:     - The character encoding of your import data must match the encoding of your refbase database (i.e., 'latin1' or 'utf8')
 #             - The authentication mechanism is currently limited in that a given password will be transferred as parameter in the POST request
 
 # --------------------------------------------------------------------------------------------------------------
 
-$version = "1.0";
+$version = "1.1";
 
 # Configure variables:
 
@@ -40,7 +49,10 @@ $version = "1.0";
 #        - by default, data will be uploaded to the server labeled with key 'default'
 %hosts = (
 				'default' => 'http://beta.refbase.net/',
-				'local'   => 'http://localhost/refs/'
+				'local'   => 'http://localhost/refs/',
+				'beta'    => 'http://beta.refbase.net/',
+				'demo'    => 'http://demo.refbase.net/',
+				'org'     => 'http://www.refbase.org/'
 );
 
 # Specify the default values for all options that are not explicitly specified:
@@ -48,9 +60,9 @@ $version = "1.0";
 				# import options:
 				'skipBadRecords'      => '0',      # -b|--skipbad    -> must be '0' (don't skip records with unrecognized data format) or '1' (skip records with unrecognized data format)
 				'importRecordsRadio'  => 'all',    # -i|--import     -> must be 'all' (import all records) or 'only' (import only those records specified in 'importRecords')
-				'pubmedIDs'           => '',       # -p|--pmid
+				'sourceIDs'           => '',       # -p|--pmid       -> this also applies for '--arxiv|--doi|--openurl' since they are essentially just aliases for '-p'
 				'importRecords'       => '1',      # -r|--records    -> must be a list of numbers and/or ranges (e.g., '1-5' will import the first five records; '1 3-5 7' will import records 1, 3, 4, 5 and 7)
-				'formType'            => 'data',   # -t|--type       -> must be 'data' (generic data import) or 'pmid' (import via PubMed ID)
+				'formType'            => 'data',   # -t|--type       -> must be 'data' (generic data import) or 'id' (import via ID)
 
 				# fixed parameters:
 				'client'              => "cli-refbase_import-" . $version # the client ID of this command line utility
@@ -69,12 +81,16 @@ $cookieJarFile = "$ENV{HOME}/.lwpcookies.txt";
 
 # --------------------------------------------------------------------------------
 
+# NOTE: You shouldn't need to change anything below this line
+
+# CPAN modules:
 use LWP::UserAgent; # more info: <http://search.cpan.org/~gaas/libwww-perl-5.805/lib/LWP/UserAgent.pm>
 use HTTP::Request::Common; # more info: <http://search.cpan.org/~gaas/libwww-perl-5.805/lib/HTTP/Request/Common.pm>
 use HTTP::Response; # more info: <http://search.cpan.org/~gaas/libwww-perl-5.805/lib/HTTP/Response.pm>
 use HTTP::Cookies; # more info: <http://search.cpan.org/~gaas/libwww-perl-5.805/lib/HTTP/Cookies.pm>
 use URI::URL; # more info: <http://search.cpan.org/~gaas/URI-1.35/URI/URL.pm>
 
+# initialize variables:
 $host = $hosts{'default'};
 
 # Extract options:
@@ -89,7 +105,7 @@ else {
 		# extract import options:
 		if ($_ =~ /^(?:-b|--skipbad)=(.+)$/) { $params{'skipBadRecords'} = $1; }
 		elsif ($_ =~ /^(?:-i|--import)=(.+)$/) { $params{'importRecordsRadio'} = $1; }
-		elsif ($_ =~ /^(?:-p|--pmid)=(.+)$/) { $params{'pubmedIDs'} = $1; }
+		elsif ($_ =~ /^(?:-p|--pmid|--arxiv|--doi|--openurl)=(.+)$/) { $params{'sourceIDs'} = $1; }
 		elsif ($_ =~ /^(?:-r|--records)=(.+)$/) { $params{'importRecords'} = $1; }
 		elsif ($_ =~ /^(?:-t|--type)=(.+)$/) { $params{'formType'} = $1; }
 
@@ -100,7 +116,7 @@ else {
 
 		# extract file:
 		# (note that if multiple files were given, only the last given file will be honoured)
-		elsif ($_ =~ /^(?!(-[biprtHPU]|--(?:skipbad|import|pmid|records|type|host|password|user))=)([^ ]+)/) { @sourceFile = $2; }
+		elsif ($_ =~ /^(?!(-[biprtHPU]|--(?:skipbad|import|pmid|arxiv|doi|openurl|records|type|host|password|user))=)([^ ]+)/) { @sourceFile = $2; }
 	}
 }
 
@@ -112,19 +128,20 @@ if (($params{'formType'} =~ /^data$/i) && (scalar @sourceFile == 0)) {
 		. "      examples. For general help with the syntax type 'refbase_import -h'.\n\n";
 	exit;
 }
-# for '--type=pmid', check if at least one PubMed ID was given:
-elsif (($params{'formType'} =~ /^pmid$/i) && ($params{'pubmedIDs'} !~ /\d+/)) {
+# for '--type=id' (or, previously: --type=pmid), check if at least one PubMed ID, arXiv ID, DOI or OpenURL was given:
+# TODO: improve identification/verification of the given IDs
+elsif (($params{'formType'} =~ /^(pm)?id$/i) && ($params{'sourceIDs'} !~ /\d+/)) {
 	print "There were validation errors regarding the data you submitted:\n\n";
-	print "pubmedIDs: You must specify at least one PubMed ID! The 'import via PubMed ID'\n"
-		. "           feature ('--type=pmid') requires the '-p|--pmid' option to be specified.\n"
-		. "           Type 'refbase_import -X' to see some usage examples. For general help\n"
+	print "sourceIDs: You must specify at least one PubMed ID, arXiv ID, DOI or OpenURL! The 'import via ID'\n"
+		. "           feature ('--type=id') requires the '-p, --pmid' option or one of '--arxiv|--doi|--openurl'\n"
+		. "           to be specified. Type 'refbase_import -X' to see some usage examples. For general help\n"
 		. "           with the syntax type 'refbase_import -h'.\n\n";
 	exit;
 }
 
 # adjust form type value:
-if ($params{'formType'} =~ /^pmid$/i) { # --type=pmid
-	$params{'formType'} = "importPubMed";
+if ($params{'formType'} =~ /^(pm)?id$/i) { # --type=id (or, previously: --type=pmid)
+	$params{'formType'} = "importID";
 }
 else { # --type=data
 	$params{'formType'} = "import";
@@ -171,7 +188,7 @@ if (!$loginSuccessful) {
 
 # send POST request:
 # (uses HTTP::Request::Common & HTTP::Response)
-if ($params{'formType'} =~ /^importPubMed$/i) { # --type=pmid
+if ($params{'formType'} =~ /^importID$/i) { # --type=id (or, previously: --type=pmid)
 	$request = POST $importURL, \%params;
 }
 else { # --type=data
@@ -224,6 +241,7 @@ sub login
 	# send POST request:
 	# (uses HTTP::Request::Common & HTTP::Response)
 	$request = POST $loginURL, \%loginParams;
+
 	$response = $userAgent->request($request);
 	
 	if ($response->is_error()) {
@@ -257,39 +275,42 @@ sub usage
 		. "Notes:   - Two import modes are supported:\n"
 		. "           1) '--type=data' requires an import FILE to be specified;\n"
 		. "              for supported import formats, see: http://import.refbase.net/\n"
-		. "           2) '--type=pmid' requires the '-p|--pmid' option with one or more PubMed IDs\n"
-		. "              delimited by any non-digit characters.\n"
+		. "           2) '--type=id' requires the '-p, --pmid' option or one of '--arxiv|--doi|--openurl' with\n"
+		. "              one or more whitespace-delimited PubMed IDs, arXiv IDs, DOIs or OpenURLs, respectively.\n"
 		. "         - Options syntax: [OPTION]=[VALUE], e.g. '-p=16351846' or '--pmid=\"16351846 16783713\"'.\n"
 		. "         - For each option, default values can be specified at the top of the script.\n"
 		. "           Current defaults are given in parentheses.\n\n"
 
-		. "General Options:   -h, --help       - display this help text\n"
-		. "                   -v, --version    - display version information\n"
-		. "                   -X, --examples   - display usage examples\n\n"
+		. "General Options:   -h, --help         - display this help text\n"
+		. "                   -v, --version      - display version information\n"
+		. "                   -X, --examples     - display usage examples\n\n"
 
-		. "Import Options:    -b, --skipbad    - skip records with unrecognized data format ('" . $params{'skipBadRecords'} . "')\n"
-		. "                                      possible values: 0, 1\n"
-		. "                   -i, --import     - import all or only some records ('" . $params{'importRecordsRadio'} . "')\n"
-		. "                                      possible values: all, only\n"
-		. "                   -p, --pmid       - PubMed IDs of records to import ('" . $params{'pubmedIDs'} . "')\n"
-		. "                   -r, --records    - positional numbers and/or ranges of records to import ('" . $params{'importRecords'} . "')\n"
-		. "                                      requires the '--import=only' option\n"
-		. "                   -t, --type       - import type ('" . $params{'formType'} . "')\n"
-		. "                                      possible values: data, pmid\n\n"
+		. "Import Options:    -b, --skipbad      - skip records with unrecognized data format ('" . $params{'skipBadRecords'} . "')\n"
+		. "                                        possible values: 0, 1\n"
+		. "                   -i, --import       - import all or only some records ('" . $params{'importRecordsRadio'} . "')\n"
+		. "                                        possible values: all, only\n"
+		. "                   -p, --pmid,        - IDs of records to import ('" . $params{'sourceIDs'} . "')\n"
+		. "                       --arxiv,         supported IDs: PubMed ID (PMID), arXiv ID, DOI, OpenURL\n"
+		. "                       --doi,           \n"
+		. "                       --openurl        \n"
+		. "                   -r, --records      - positional numbers and/or ranges of records to import ('" . $params{'importRecords'} . "')\n"
+		. "                                        requires the '--import=only' option\n"
+		. "                   -t, --type         - import type ('" . $params{'formType'} . "')\n"
+		. "                                        possible values: data, id\n\n"
 
-		. "Server Options:    -H, --host       - URL of the refbase database ('" . $host . "')\n"
-		. "                                      defined shortcuts: " . join(', ', keys(%hosts)) . "\n"
-		. "                   -P, --password   - password for given user account";
+		. "Server Options:    -H, --host         - URL of the refbase database ('" . $host . "')\n"
+		. "                                        defined shortcuts: " . join(', ', sort keys(%hosts)) . "\n"
+		. "                   -P, --password     - password for given '-U, --user' account";
 
 	if ($loginParams{'loginPassword'} ne '') {
-		print "\n                                      (a default pwd has been defined)\n";
+		print "\n                                        (a default pwd has been defined)\n";
 	}
 	else {
 		print " ('')\n";
 	}
 
-	print "                   -U, --user       - login email address of an existing refbase user with\n"
-		. "                                      import permissions ('" . $loginParams{'loginEmail'} . "')\n\n";
+	print "                   -U, --user         - login email address of an existing refbase user with\n"
+		. "                                        import permissions ('" . $loginParams{'loginEmail'} . "')\n\n";
 
 	exit $status;
 }
@@ -338,11 +359,34 @@ sub examples
  
  --------------------------------------------------------------------------------
 
- 4) Fetch two records from PubMed via their PMID identifier (in this example,
-    records with PMIDs 16351846 and 16783713) and import them into your local
-    refbase database:
+ 4) Import MODS XML records from file 'mods.xml' into the refbase demo database
+    using the defaults defined within the refbase_import script:
  
-    refbase_import -H=local -t=pmid -p=16351846,16783713
+    refbase_import -H=http://demo.refbase.net/ -U=user@refbase.net -P=user mods.xml
+ 
+ --------------------------------------------------------------------------------
+
+ 5) Fetch two records from PubMed.gov via their PMID (i.e. the unique PubMed
+    identifier, in this example, records with PMIDs 16351846 and 16783713) and
+    import them into your local refbase database:
+ 
+    refbase_import -H=local -t=id -p="16351846 16783713"
+ 
+ --------------------------------------------------------------------------------
+
+ 6) Fetch two records from CrossRef.org via their DOI (i.e. the unique Document
+    Object Identifier, in this example, records with DOIs 10.3354/meps251037 and
+    10.1103/PhysRev.47.777) and import them into your local refbase database:
+ 
+    refbase_import -H=local -t=id --doi="10.3354/meps251037 10.1103/PhysRev.47.777"
+ 
+ --------------------------------------------------------------------------------
+
+ 7) Fetch three records from arXiv.org via their arXiv ID (i.e. the unique arXiv
+    identifier, in this example, records with arXiv IDs astro-ph/0609768, 0806.1829
+    and 0802.0204v1) and import them into your local refbase database:
+ 
+    refbase_import -H=local -t=id --arxiv="astro-ph/0609768 0806.1829 0802.0204v1"
  
  --------------------------------------------------------------------------------
 
