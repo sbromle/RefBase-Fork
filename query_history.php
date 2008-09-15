@@ -65,7 +65,7 @@
 		$viewType = "";
 
 	if (isset($_REQUEST['wrapResults']) AND ($_REQUEST['wrapResults'] == "0"))
-		$wrapResults = $_REQUEST['wrapResults']; // 'wrapResults=0' causes refbase to output only a partial document structure containing solely the query history (i.e. everything is omitted except for the <div id="queryhistory">)
+		$wrapResults = "0"; // 'wrapResults=0' causes refbase to output only a partial document structure containing solely the query history (i.e. everything is omitted except for the <div id="queryhistory">)
 	else
 		$wrapResults = "1"; // we'll output a full HTML document structure unless the 'wrapResults' parameter is set explicitly to "0"
 
