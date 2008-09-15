@@ -27,11 +27,11 @@
 // More info is available in the refbase forums:
 // <http://sourceforge.net/forum/message.php?msg_id=4404553>
 
-// You'll need to adopt following variables to your needs:
+// You may want to adopt following variables to your needs:
 // - variable 'authorNames' contains regex patterns for all authors whose names
 //   shall be printed in bold face
 // - variable 'url' in function 'showRefs()' must contain the URL to the refbase
-//   'show.php' script on your own server
+//   'show.php' script on your server
 // - you may want to tweak other parameter settings in function 'showRefs' (e.g.
 //   parameters 'showRows', 'citeStyle' or 'citeOrder')
 
@@ -63,10 +63,10 @@ var authorNames = new Array(
 // the 'show.php' API: <http://linking.refbase.net/>, <http://bibliographies.refbase.net/>
 function showRefs(query) {
 	if (query == "none") {
-		document.getElementById("refs").innerHTML = "References will be listed here.";
+		document.getElementById("includerefs").innerHTML = "References will be listed here.";
 	}
 	else {
-		var url = "http://beta.refbase.net/show.php"; // set URL to your server's own 'show.php' script
+		var url = "show.php"; // set URL to your server's 'show.php' script
 		url = url + "?"             + query;
 		url = url + "&client="      + "inc-refbase-1.0"; // "inc-" indicates include mechanisms
 		url = url + "&wrapResults=" + "0"; // output only a partial document structure containing solely the search results
@@ -74,7 +74,7 @@ function showRefs(query) {
 		// set defaults if some params were not given in the query:
 		// (empty param values trigger the database defaults)
 		if (query.search(/submit=(Display|Cite|Export|Browse)?(?=&|$)/) == -1)
-			url = url + "&submit=Cite"; // note that, currently, only 'submit=Cite' is fully supported
+			url = url + "&submit=Cite"; // possible values: "Cite", "List", "Display"
 
 		if (query.search(/showLinks=[01]/) == -1)
 			url = url + "&showLinks=1";
@@ -89,7 +89,7 @@ function showRefs(query) {
 			url = url + "&citeStyle=APA"; // the specified citation style must have a matching entry within the 'styles' MySQL table
 
 		if (query.search(/citeOrder=\w+/) == -1)
-			url = url + "&citeOrder=year"; // possible values: "author", "year", "type", "type-year"
+			url = url + "&citeOrder=year"; // possible values: "author", "year", "type", "type-year", "creation-date"
 
 		if (query.search(/without=/) == -1)
 			url = url + "&without=dups";
@@ -128,18 +128,18 @@ function getURL(url) {
 
 // ------------------------------------------------------------------
 
-// Update an HTML element (with id = "refs") with the response text returned by the XMLHTTP request:
+// Update an HTML element (with id = "includerefs") with the response text returned by the XMLHTTP request:
 function stateChanged() {
-	document.getElementById("refs").innerHTML = "Fetching references from database... " + "<img src='../img/progress.gif'>";
+	document.getElementById("includerefs").innerHTML = "<div id='includeprogress'>Fetching references from database... " + "<img src='img/progress.gif'></div>";
 
 	if (xmlHTTP.readyState == 4 || xmlHTTP.readyState == "complete") {
 		var response = xmlHTTP.responseText;
 
 		if (!response) {
-			document.getElementById("refs").innerHTML = "No data returned!";
+			document.getElementById("includerefs").innerHTML = "No data returned!";
 		}
 		else {
-			document.getElementById("refs").innerHTML = highlightAuthors(response);
+			document.getElementById("includerefs").innerHTML = highlightAuthors(response);
 		}
 	}
 
