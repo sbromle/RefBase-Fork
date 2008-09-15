@@ -80,6 +80,14 @@
 
 	// --------------------------------------------------------------------
 
+	// Adjust the width of the right-hand column according to the calling user agent:
+	// NOTE: strictly, this isn't really necessary but it helps to achieve a similar appearance of the login form on Firefox/Gecko & Safari/WebKit browsers (with all supported GUI languages)
+	// TODO: figure out a better way (which isn't based on user agent sniffing); the problem could also be avoided by simply stacking <input> fields & their labels on top of each other
+	if (isset($_SERVER['HTTP_USER_AGENT']) AND eregi("AppleWebKit", $_SERVER['HTTP_USER_AGENT']))
+		$rightColumnWidth = "215";
+	else
+		$rightColumnWidth = "225";
+
 	// Get the total number of records:
 	$recordCount = getTotalNumberOfRecords(); // function 'getTotalNumberOfRecords()' is defined in 'include.inc.php'
 
@@ -88,26 +96,10 @@
 
 	// (4) DISPLAY header:
 	// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
-	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["Home"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, $rssURLArray);
+	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["Home"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", true, "", $viewType, $rssURLArray);
 	showPageHeader($HeaderString);
 
 	// Define variables holding common drop-down elements, i.e. build properly formatted <option> tag elements:
-	// - "Quick Search" form:
-	$userMainFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
-
-	$dropDownFieldNameArray = array("main fields" => $loc["DropDownFieldName_MainFields"]);
-
-	foreach($userMainFieldsArray as $userMainField)
-	{
-		// generate the variable name of the correct '$loc' locale for this field:
-		$dropDownFieldNameLocale = preg_replace("/_(\w)/e", "ucfirst('\\1')", $userMainField); // the 'e' modifier allows to execute PHP code within the replacement pattern
-		$dropDownFieldNameLocale = "DropDownFieldName_" . ucfirst($dropDownFieldNameLocale);
-		// add this field's name and localized string to the array of fields that will be included in the "Quick Search" drop-down menu:
-		$dropDownFieldNameArray[$userMainField] = $loc[$dropDownFieldNameLocale];
-	}
-
-	$dropDownItems = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
-
 	// - "Browse My Refs" form:
 	$dropDownFieldNameArray2 = array("author"      => $loc["DropDownFieldName_Author"],
 	                                 "year"        => $loc["DropDownFieldName_Year"],
@@ -122,245 +114,89 @@
 
 <table align="center" border="0" cellpadding="2" cellspacing="5" width="90%" summary="This table explains features, goals and usage of the <?php echo encodeHTML($officialDatabaseName); ?>">
 	<tr>
-		<td colspan="2"><h3><?php echo $loc["GoalsAndFeatures"]; ?></h3></td>
-		<td width="182" valign="bottom"><?php
-if (!isset($_SESSION['loginEmail']))
-	{
-?><h5><?php echo $loc["Login"]; ?>:</h5><?php
-	}
-else
-	{
-?><h5><?php echo $loc["ShowMyRefs"]; ?>:</h5><?php
-	}
-?></td>
-	</tr>
-	<tr>
-		<td width="15">&nbsp;</td>
-		<td><?php echo $loc["ThisDatabaseAttempts"]; ?>
-
-			<br>
-			<br>
-			<?php echo $loc["ThisDatabaseProvides"] . ":"; ?>
-
-			<ul type="circle">
-				<li><?php echo $loc["Features_ComprehensiveDataset"];
-					// report the total number of records:
-					echo ", ". $loc["currently featuring"]; ?><a href="show.php?records=all" title="<?php echo $loc["LinkTitle_ShowAll"]; ?>"><?php echo $recordCount . " " . $loc["records"]; ?></a></li>
-				<li><?php echo $loc["Features_StandardizedInterface"]; ?></li>
-				<li><?php echo $loc["Features_SearchOptions"]; ?></li>
-				<li><?php echo $loc["Features_DisplayCiteExportOptions"]; ?></li>
-				<li><?php
-
-				// -------------------------------------------------------
-				if (isset($_SESSION['user_permissions']) AND ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
-				{
-				// ... include a link to 'import.php':
-					echo "<a href=\"import.php\">". $loc["Import"] ."</a>";
-				}
-				else
-				{
-					echo $loc["Import"];
-				}
-
-				// -------------------------------------------------------
-
-				echo $loc["ImportLinkText"]; ?></li>
-			</ul>
-		</td>
-		<td width="182" valign="top">
+		<td colspan="2"><h3><?php echo $loc["RecentAdditions"]; ?></h3></td>
+		<td width="<?php echo $rightColumnWidth; ?>" valign="bottom" rowspan="2">
 <?php
 if (!isset($_SESSION['loginEmail']))
 	{
 ?>
-			<form action="user_login.php" method="POST">
-				<?php echo $loc["EmailAddress"]; ?>:
-				<br>
-				<input type="text" name="loginEmail" size="12">
-				<br>
-				<?php echo $loc["Password"]; ?>:
-				<br>
-				<input type="password" name="loginPassword" size="12">
-				<br>
-				<input type="submit" value="<?php echo $loc["ButtonTitle_Login"]; ?>">
-			</form><?php
+			<div id="userlogin" class="box">
+				<div class="boxHead">
+					<h3><?php echo $loc["Login"]; ?>:</h3>
+				</div>
+				<div class="boxBody">
+					<form action="user_login.php" method="POST" name="login">
+						<fieldset>
+							<input type="hidden" name="referer" value="index.php">
+							<legend><?php echo $loc["Login"]; ?>:</legend>
+							<div id="loginUser">
+								<div id="loginUserLabel">
+									<label for="loginEmail"><?php echo $loc["Email"]; ?>:</label>
+								</div>
+								<div id="loginUserInput">
+									<input type="text" id="loginEmail" name="loginEmail" size="14">
+								</div>
+							</div>
+							<div id="loginPwd">
+								<div id="loginPwdLabel">
+									<label for="loginPassword"><?php echo $loc["Password"]; ?>:</label>
+								</div>
+								<div id="loginPwdInput">
+									<input type="password" id="loginPassword" name="loginPassword" size="14">
+								</div>
+							</div>
+							<div id="loginSubmit">
+								<input type="submit" value="<?php echo $loc["ButtonTitle_Login"]; ?>">
+							</div>
+						</fieldset>
+					</form>
+				</div>
+			</div><?php
 	}
-else
+elseif (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', show the 'Show My Groups' form:
 	{
+		if (!isset($_SESSION['userGroups']))
+			$groupSearchDisabled = " disabled"; // disable the 'Show My Groups' form if the session variable holding the user's groups isnt't available
+		else
+			$groupSearchDisabled = "";
 ?>
-			<form action="search.php" method="GET">
-				<input type="hidden" name="formType" value="myRefsSearch">
-				<input type="hidden" name="showQuery" value="0">
-				<input type="hidden" name="showLinks" value="1">
-				<input type="radio" name="myRefsRadio" value="1" checked>&nbsp;<?php echo $loc["All"]; ?>
+			<div id="showgroupmain" class="box">
+				<div class="boxHead">
+					<h3><?php echo $loc["ShowMyGroup"]; ?>:</h3>
+				</div>
+				<div class="boxBody">
+					<form action="search.php" method="GET" name="groupSearch">
+						<fieldset>
+							<input type="hidden" name="formType" value="groupSearch">
+							<input type="hidden" name="showQuery" value="0">
+							<input type="hidden" name="showLinks" value="1">
+							<legend><?php echo $loc["ShowMyGroup"]; ?>:</legend>
+							<div id="groupSelect">
+								<label for="groupSearchSelector"><?php echo $loc["My"]; ?>:</label>
+								<select name="groupSearchSelector"<?php echo $groupSearchDisabled; ?>><?php
 
-				<br>
-				<input type="radio" name="myRefsRadio" value="0">&nbsp;<?php echo $loc["Only"]; ?>:
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findMarked" value="1">
-				<select name="markedSelector">
-					<option value="marked"><?php echo $loc["marked"]; ?></option>
-					<option value="not marked"><?php echo $loc["notMarked"]; ?></option>
-				</select>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findSelected" value="1">
-				<select name="selectedSelector">
-					<option value="selected"><?php echo $loc["selected"]; ?></option>
-					<option value="not selected"><?php echo $loc["notSelected"]; ?></option>
-				</select>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findCopy" value="1">&nbsp;<?php echo $loc["copy"]; ?>:
-				<select name="copySelector">
-					<option value="true"><?php echo $loc["true"]; ?></option>
-					<option value="fetch"><?php echo $loc["fetch"]; ?></option>
-					<option value="ordered"><?php echo $loc["ordered"]; ?></option>
-					<option value="false"><?php echo $loc["false"]; ?></option>
-				</select>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findUserKeys" value="1">&nbsp;<?php echo $loc["key"]; ?>:&nbsp;&nbsp;
-				<input type="text" name="userKeysName" size="7">
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findUserNotes" value="1">&nbsp;<?php echo $loc["note"]; ?>:&nbsp;
-				<input type="text" name="userNotesName" size="7">
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="findUserFile" value="1">&nbsp;<?php echo $loc["file"]; ?>:&nbsp;&nbsp;&nbsp;
-				<input type="text" name="userFileName" size="7">
-				<br>
-				<input type="submit" value="<?php echo $loc["ButtonTitle_Show"]; ?>">
-			</form><?php
-	}
+								if (isset($_SESSION['userGroups']))
+								{
+									$optionTags = buildSelectMenuOptions($_SESSION['userGroups'], " *; *", "\t\t\t\t\t\t\t\t\t", false); // build properly formatted <option> tag elements from the items listed in the 'userGroups' session variable
+									echo $optionTags;
+								}
+								else
+								{
 ?>
 
-		</td>
-	</tr>
-	<tr>
-		<td colspan="2"><h3><?php echo $loc["Search"]; ?></h3></td>
-		<td width="182" valign="bottom"><h5><?php echo $loc["QuickSearch"]; ?>:</h5></td>
-	</tr>
-	<tr>
-		<td width="15">&nbsp;</td>
-		<td><?php echo $loc["SearchDB"]; ?>:
-			<ul type="circle">
-				<li><a href="simple_search.php"><?php echo $loc["SimpleSearch"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["SearchMain"]; ?></li>
-				<li><a href="advanced_search.php"><?php echo $loc["AdvancedSearch"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["SearchAll"]; ?></li><?php
-
-		// -------------------------------------------------------
-		if (isset($_SESSION['user_permissions']) AND ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
-		{
-		// ... include a link to 'sql_search.php':
+									<option>(<?php echo $loc["NoGroupsAvl"]; ?>)</option><?php
+								}
 ?>
 
-				<li><a href="sql_search.php"><?php echo $loc["SQLSearch"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["SearchSQL"]; ?></li><?php
-		}
-
-		// -------------------------------------------------------
-		if (!empty($librarySearchPattern))
-		{
-		// ... include a link to 'library_search.php':
-?>
-
-				<li><a href="library_search.php"><?php echo $loc["LibrarySearch"]; ?></a>&nbsp;&nbsp;&nbsp;&#8211;&nbsp;&nbsp;&nbsp;<?php echo $loc["SearchExt"]; ?> <?php echo encodeHTML($hostInstitutionName); ?></li><?php
-		}
-?>
-
-			</ul>
-		</td>
-		<td width="182" valign="top">
-			<form action="search.php" method="GET">
-				<input type="hidden" name="formType" value="quickSearch">
-				<input type="hidden" name="showQuery" value="0">
-				<input type="hidden" name="showLinks" value="1">
-				<select name="quickSearchSelector"><?php
-
-$quickSearchDropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_MainFields"], "<option\\1 selected>" . $loc["DropDownFieldName_MainFields"], $dropDownItems); // select the 'main fields' menu entry ...
-echo $quickSearchDropDownItems;
-?>
-
-				</select>
-				<br>
-				<input type="text" name="quickSearchName" size="12">
-				<br>
-				<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>">
-			</form>
-		</td>
-	</tr><?php
-if (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_browse_view'...
-	{
-?>
-
-	<tr>
-		<td width="15">&nbsp;</td>
-		<td>
-			<?php echo $loc["browse all"]; ?>:
-		</td>
-		<td width="182" valign="top">
-<?php
-if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions'])))
-	{
-?>
-			<h5><?php echo $loc["BrowseMyRefs"]; ?>:</h5><?php
-	}
-else
-	{
-?>
-			&nbsp;<?php
-	}
-?>
-
-		</td>
-	</tr>
-	<tr>
-		<td width="15">&nbsp;</td>
-		<td>
-			<ul type="circle" class="moveup">
-				<li><a href="show.php?submit=Browse&amp;by=author"><?php echo $loc["author"]; ?></a> | <a href="show.php?submit=Browse&amp;by=year"><?php echo $loc["year"]; ?></a> | <a href="show.php?submit=Browse&amp;by=publication"><?php echo $loc["publication"]; ?></a> | <a href="show.php?submit=Browse&amp;by=keywords"><?php echo $loc["keywords"]; ?></a></li>
-				<li><a href="show.php?submit=Browse&amp;by=location"><?php echo $loc["location"]; ?></a> | <a href="show.php?submit=Browse&amp;by=area"><?php echo $loc["area"]; ?></a> | <a href="show.php?submit=Browse&amp;by=language"><?php echo $loc["language"]; ?></a> | <a href="show.php?submit=Browse&amp;by=type"><?php echo $loc["type"]; ?></a></li>
-			</ul>
-		</td>
-		<td width="182" valign="top">
-<?php
-if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_browse_view', show the 'Browse My Refs' form:
-	{
-?>
-			<form action="search.php" method="GET">
-				<input type="hidden" name="formType" value="myRefsBrowse">
-				<input type="hidden" name="submit" value="Browse">
-				<input type="hidden" name="showQuery" value="0">
-				<input type="hidden" name="showLinks" value="1">
-				<input type="hidden" name="showRows" value="10">
-				<select name="browseFieldSelector"><?php
-
-$browseMyRefsDropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems2); // select the 'author' menu entry ...
-echo $browseMyRefsDropDownItems;
-?>
-
-				</select>
-				<br>
-				<input type="submit" value="<?php echo $loc["ButtonTitle_Browse"]; ?>">
-			</form><?php
-	}
-else
-	{
-?>
-			&nbsp;<?php
-	}
-?>
-
-		</td>
-	</tr><?php
-	}
-?>
-
-	<tr>
-		<td width="15">&nbsp;</td>
-		<td>
-			<?php echo $loc["view all"]; ?>:
-		</td>
-		<td width="182" valign="top">
-<?php
-if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions'])))
-	{
-?>
-			<h5><?php echo $loc["ShowMyGroup"]; ?>:</h5><?php
+								</select>
+							</div>
+							<div id="groupSubmit">
+								<input type="submit" value="<?php echo $loc["ButtonTitle_Show"]; ?>"<?php echo $groupSearchDisabled; ?>>
+							</div>
+						</fieldset>
+					</form>
+				</div>
+			</div><?php
 	}
 else
 	{
@@ -400,43 +236,68 @@ else
 		}
 	}
 ?>
+			<div id="recentlinks">
+				<ul type="circle" class="moveup">
+					<li><?php echo $loc["added"]; ?>: <a href="show.php?date=<?php echo $CurrentDate; ?>"><?php echo $loc["today"]; ?></a> | <a href="show.php?date=<?php echo $DateYesterday; ?>"><?php echo $loc["yesterday"]; ?></a> | <a href="show.php?date=<?php echo $DateLastWeek; ?>&amp;range=after"><?php echo $loc["last 7 days"]; ?></a><?php if (isset($_SESSION['loginEmail']) AND !empty($lastLoginDate) AND !empty($lastLoginTime)) { ?> | <a href="show.php?date=<?php echo $lastLoginDate; ?>&amp;time=<?php echo $lastLoginTime; ?>&amp;range=equal_or_after"><?php echo $loc["since last login"]; ?></a><?php } ?></li>
+					<li><?php echo $loc["edited"]; ?>: <a href="show.php?date=<?php echo $CurrentDate; ?>&amp;when=edited"><?php echo $loc["today"]; ?></a> | <a href="show.php?date=<?php echo $DateYesterday; ?>&amp;when=edited"><?php echo $loc["yesterday"]; ?></a> | <a href="show.php?date=<?php echo $DateLastWeek; ?>&amp;when=edited&amp;range=after"><?php echo $loc["last 7 days"]; ?></a><?php if (isset($_SESSION['loginEmail']) AND !empty($lastLoginDate) AND !empty($lastLoginTime)) { ?> | <a href="show.php?date=<?php echo $lastLoginDate; ?>&amp;time=<?php echo $lastLoginTime; ?>&amp;when=edited&amp;range=equal_or_after"><?php echo $loc["since last login"]; ?></a><?php } ?></li>
+					<li><?php echo $loc["published in"]; ?>: <a href="show.php?year=<?php echo $CurrentYear; ?>"><?php echo $CurrentYear; ?></a> | <a href="show.php?year=<?php echo ($CurrentYear - 1); ?>"><?php echo ($CurrentYear - 1); ?></a> | <a href="show.php?year=<?php echo ($CurrentYear - 2); ?>"><?php echo ($CurrentYear - 2); ?></a> | <a href="show.php?year=<?php echo ($CurrentYear - 3); ?>"><?php echo ($CurrentYear - 3); ?></a></li>
+				</ul>
+			</div>
+		</td>
+	</tr><?php
+if (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_browse_view'...
+	{
+?>
+
+	<tr>
+		<td width="15">&nbsp;</td>
+		<td>
+			<?php echo $loc["browse all"]; ?>:
+		</td>
+		<td width="<?php echo $rightColumnWidth; ?>" valign="top">
+<?php
+if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions'])))
+	{
+?>
+			<h5><?php echo $loc["BrowseMyRefs"]; ?>:</h5><?php
+	}
+else
+	{
+?>
+			&nbsp;<?php
+	}
+?>
+
+		</td>
+	</tr>
+	<tr>
+		<td width="15">&nbsp;</td>
+		<td>
 			<ul type="circle" class="moveup">
-				<li><?php echo $loc["added"]; ?>: <a href="show.php?date=<?php echo $CurrentDate; ?>"><?php echo $loc["today"]; ?></a> | <a href="show.php?date=<?php echo $DateYesterday; ?>"><?php echo $loc["yesterday"]; ?></a> | <a href="show.php?date=<?php echo $DateLastWeek; ?>&amp;range=after"><?php echo $loc["last 7 days"]; ?></a><?php if (isset($_SESSION['loginEmail']) AND !empty($lastLoginDate) AND !empty($lastLoginTime)) { ?> | <a href="show.php?date=<?php echo $lastLoginDate; ?>&amp;time=<?php echo $lastLoginTime; ?>&amp;range=equal_or_after"><?php echo $loc["since last login"]; ?></a><?php } ?></li>
-				<li><?php echo $loc["edited"]; ?>: <a href="show.php?date=<?php echo $CurrentDate; ?>&amp;when=edited"><?php echo $loc["today"]; ?></a> | <a href="show.php?date=<?php echo $DateYesterday; ?>&amp;when=edited"><?php echo $loc["yesterday"]; ?></a> | <a href="show.php?date=<?php echo $DateLastWeek; ?>&amp;when=edited&amp;range=after"><?php echo $loc["last 7 days"]; ?></a><?php if (isset($_SESSION['loginEmail']) AND !empty($lastLoginDate) AND !empty($lastLoginTime)) { ?> | <a href="show.php?date=<?php echo $lastLoginDate; ?>&amp;time=<?php echo $lastLoginTime; ?>&amp;when=edited&amp;range=equal_or_after"><?php echo $loc["since last login"]; ?></a><?php } ?></li>
-				<li><?php echo $loc["published in"]; ?>: <a href="show.php?year=<?php echo $CurrentYear; ?>"><?php echo $CurrentYear; ?></a> | <a href="show.php?year=<?php echo ($CurrentYear - 1); ?>"><?php echo ($CurrentYear - 1); ?></a> | <a href="show.php?year=<?php echo ($CurrentYear - 2); ?>"><?php echo ($CurrentYear - 2); ?></a> | <a href="show.php?year=<?php echo ($CurrentYear - 3); ?>"><?php echo ($CurrentYear - 3); ?></a></li>
+				<li><a href="show.php?submit=Browse&amp;by=author"><?php echo $loc["author"]; ?></a> | <a href="show.php?submit=Browse&amp;by=year"><?php echo $loc["year"]; ?></a> | <a href="show.php?submit=Browse&amp;by=publication"><?php echo $loc["publication"]; ?></a> | <a href="show.php?submit=Browse&amp;by=keywords"><?php echo $loc["keywords"]; ?></a></li>
+				<li><a href="show.php?submit=Browse&amp;by=location"><?php echo $loc["location"]; ?></a> | <a href="show.php?submit=Browse&amp;by=area"><?php echo $loc["area"]; ?></a> | <a href="show.php?submit=Browse&amp;by=language"><?php echo $loc["language"]; ?></a> | <a href="show.php?submit=Browse&amp;by=type"><?php echo $loc["type"]; ?></a></li>
 			</ul>
 		</td>
-		<td width="182" valign="top">
+		<td width="<?php echo $rightColumnWidth; ?>" valign="top">
 <?php
-if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', show the 'Show My Groups' form:
+if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_browse_view', show the 'Browse My Refs' form:
 	{
-		if (!isset($_SESSION['userGroups']))
-			$groupSearchDisabled = " disabled"; // disable the 'Show My Groups' form if the session variable holding the user's groups isnt't available
-		else
-			$groupSearchDisabled = "";
 ?>
 			<form action="search.php" method="GET">
-				<input type="hidden" name="formType" value="groupSearch">
+				<input type="hidden" name="formType" value="myRefsBrowse">
+				<input type="hidden" name="submit" value="Browse">
 				<input type="hidden" name="showQuery" value="0">
 				<input type="hidden" name="showLinks" value="1">
-				<select name="groupSearchSelector"<?php echo $groupSearchDisabled; ?>><?php
+				<input type="hidden" name="showRows" value="10">
+				<select name="browseFieldSelector"><?php
 
-				if (isset($_SESSION['userGroups']))
-				{
-					$optionTags = buildSelectMenuOptions($_SESSION['userGroups'], " *; *", "\t\t\t\t\t", false); // build properly formatted <option> tag elements from the items listed in the 'userGroups' session variable
-					echo $optionTags;
-				}
-				else
-				{
-?>
-
-					<option>(<?php echo $loc["NoGroupsAvl"]; ?>)</option><?php
-				}
+$browseMyRefsDropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems2); // select the 'author' menu entry ...
+echo $browseMyRefsDropDownItems;
 ?>
 
 				</select>
 				<br>
-				<input type="submit" value="<?php echo $loc["ButtonTitle_Show"]; ?>"<?php echo $groupSearchDisabled; ?>>
+				<input type="submit" value="<?php echo $loc["ButtonTitle_Browse"]; ?>">
 			</form><?php
 	}
 else
@@ -447,62 +308,16 @@ else
 ?>
 
 		</td>
-	</tr>
+	</tr><?php
+	}
+?>
+
 	<tr>
 		<td width="15">&nbsp;</td>
 		<td>
-<?php
-if (isset($_SESSION['user_permissions']) AND ereg("(allow_details_view|allow_cite)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable either contains 'allow_details_view' or 'allow_cite'...
-	{
-?>
-			<?php echo $loc["Tools serial nums"]; ?>:<?php
-	}
-else
-	{
-?>
-			&nbsp;<?php
-	}
-?>
-
+			<?php echo $loc["MostRecentPublications"]; ?>:
 		</td>
-		<td width="182" valign="top">
-<?php
-if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_queries", $_SESSION['user_permissions'])))
-	{
-?>
-			<h5><?php echo $loc["RecallMyQuery"]; ?>:</h5><?php
-	}
-else
-	{
-?>
-			&nbsp;<?php
-	}
-?>
-
-		</td>
-	</tr>
-	<tr>
-		<td width="15">&nbsp;</td>
-		<td>
-			<ul type="circle" class="moveup"><?php
-if (isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_details_view'...
-	{
-?>
-
-				<li><a href="show.php"><?php echo $loc["SearchSerial"]; ?></a><?php echo $loc["SearchSerialLinkText"]; ?></li><?php
-	}
-
-if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite'...
-	{
-?>
-
-				<li><a href="extract.php"><?php echo $loc["extractCitations"]; ?></a><?php echo $loc["ExtractCitationsLinkText"]; ?></li><?php
-	}
-?>
-
-			</ul>
-		</td>
-		<td width="182" valign="top">
+		<td width="<?php echo $rightColumnWidth; ?>" valign="top" rowspan="2">
 <?php
 if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_queries", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_queries', show the 'Recall My Query' form:
 	{
@@ -511,29 +326,44 @@ if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND
 		else
 			$querySearchDisabled = "";
 ?>
-			<form action="queries.php" method="GET">
-				<input type="hidden" name="formType" value="querySearch">
-				<input type="hidden" name="showQuery" value="0">
-				<input type="hidden" name="showLinks" value="1">
-				<select name="querySearchSelector"<?php echo $querySearchDisabled; ?>><?php
+			<div id="recallquerymain" class="box">
+				<div class="boxHead">
+					<h3><?php echo $loc["RecallMyQuery"]; ?>:</h3>
+				</div>
+				<div class="boxBody">
+					<form action="queries.php" method="GET" name="querySearch">
+						<fieldset>
+							<input type="hidden" name="formType" value="querySearch">
+							<input type="hidden" name="showQuery" value="0">
+							<input type="hidden" name="showLinks" value="1">
+							<legend><?php echo $loc["RecallMyQuery"]; ?>:</legend>
+							<div id="recallSelect">
+								<label for="querySearchSelector"><?php echo $loc["Query"]; ?>:</label>
+								<select name="querySearchSelector"<?php echo $querySearchDisabled; ?>><?php
 
-				if (isset($_SESSION['userQueries']))
-				{
-					$optionTags = buildSelectMenuOptions($_SESSION['userQueries'], " *; *", "\t\t\t\t\t", false); // build properly formatted <option> tag elements from the items listed in the 'userQueries' session variable
-					echo $optionTags;
-				}
-				else
-				{
+								if (isset($_SESSION['userQueries']))
+								{
+									$optionTags = buildSelectMenuOptions($_SESSION['userQueries'], " *; *", "\t\t\t\t\t\t\t\t\t", false); // build properly formatted <option> tag elements from the items listed in the 'userQueries' session variable
+									echo $optionTags;
+								}
+								else
+								{
 ?>
 
-					<option>(<?php echo $loc["NoQueriesAvl"]; ?>)</option><?php
-				}
+									<option>(<?php echo $loc["NoQueriesAvl"]; ?>)</option><?php
+								}
 ?>
 
-				</select>
-				<br>
-				<input type="submit" name="submit" value="<?php echo $loc["ButtonTitle_Go"]; ?>"<?php echo $querySearchDisabled; ?>>&nbsp;<input type="submit" name="submit" value="<?php echo $loc["ButtonTitle_Edit"]; ?>"<?php echo $querySearchDisabled; ?>>
-			</form><?php
+								</select>
+							</div>
+							<div id="recallSubmit">
+								<input type="submit" name="submit" value="<?php echo $loc["ButtonTitle_Go"]; ?>"<?php echo $querySearchDisabled; ?>>
+								<input type="submit" name="submit" value="<?php echo $loc["ButtonTitle_Edit"]; ?>"<?php echo $querySearchDisabled; ?>>
+							</div>
+						</fieldset>
+					</form>
+				</div>
+			</div><?php
 	}
 else
 	{
@@ -545,12 +375,46 @@ else
 		</td>
 	</tr>
 	<tr>
+		<td width="15">&nbsp;</td>
+		<td>
+			<div id="includerefs"><?php
+
+			// NOTE: - as an alternative to the below code block, we could also fetch citations via an AJAX event and let the JavaScript functions in file 'javascript/show.js' ' write the results into the '<div id="includerefs">' section;
+			//         to do so:
+			//           1. pass the JavaScript file 'javascript/show.js' as the 6th parameter to the 'displayHTMLhead' function (see above)
+			//           2. call JavaScript function 'showRefs()' via an 'onload' event in the body tag of function 'displayHTMLhead()' in 'includes/header.inc.php':  onload="showRefs('records=all&amp;showRows=5&amp;citeOrder=creation-date')"
+			//              TODO: function 'displayHTMLhead()' should get modified so that it only calls the 'onload' event if necessary/requested
+			// 
+			//       - the above alternative works within the user's current session, i.e. the links section will contain any edit or file links (if the user has appropriate permissions);
+			//         however, the below method (which uses function 'fetchDataFromURL()') does NOT maintain the user's current session (and adding the user's current PHPSESSID doesn't seem to work ?:-/)
+
+			// Prepare a query that will fetch a HTML table with the most recently added publications (as formatted citations):
+			$recentAdditionsQueryURL = $databaseBaseURL . "show.php?records=all&submit=Cite&showRows=5&citeOrder=creation-date&client=inc-refbase-1.0&wrapResults=0"; // variable '$databaseBaseURL' is defined in 'ini.inc.php'
+
+			$recentAdditionsResultTable = fetchDataFromURL($recentAdditionsQueryURL); // function 'fetchDataFromURL()' is defined in 'include.inc.php'
+
+			if (!empty($recentAdditionsResultTable))
+			{
+				echo $recentAdditionsResultTable;
+			}
+			else
+			{
+?>
+
+				<a href="show.php?records=all&amp;citeOrder=creation-date"><?php echo $loc["ShowAll"]; ?></a><?php
+			}
+?>
+
+			</div>
+		</td>
+	</tr>
+	<tr>
 		<td colspan="3"><h3><?php echo $loc["about"]; ?></h3></td>
 	</tr>
 	<tr>
 		<td width="15">&nbsp;</td>
 		<td><?php echo $loc["ThisDatabaseIsMaintained"]; ?> <a href="<?php echo $hostInstitutionURL; ?>"><?php echo encodeHTML($hostInstitutionName); ?></a> (<?php echo encodeHTML($hostInstitutionAbbrevName); ?>). <?php echo $loc["You are welcome to send"]; ?> <a href="mailto:<?php echo $feedbackEmail; ?>"><?php echo $loc["feedback address"]; ?></a>. <?php echo $loc["refbaseDesc"]; ?></td>
-		<td width="182" valign="top"><a href="http://www.refbase.net/"><img src="img/refbase_credit.gif" alt="powered by refbase" width="142" height="51" hspace="0" border="0"></a></td>
+		<td width="<?php echo $rightColumnWidth; ?>" valign="top" align="center"><a href="http://www.refbase.net/"><img src="img/refbase_credit.gif" alt="powered by refbase" width="142" height="51" hspace="0" border="0"></a></td>
 	</tr>
 </table><?php
 
