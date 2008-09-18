@@ -254,22 +254,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "thesis",
-	               "thesisName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               false,
-	               "");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "thesis",
+	                    "thesisName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    false,
+	                    "");
 ?>
 
 	</td>
@@ -363,22 +363,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "publication",
-	               "publicationName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "type",
-	               "\"journal\"",
-	               false,
-	               "");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "publication",
+	                    "publicationName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "type",
+	                    "\"journal\"",
+	                    false,
+	                    "");
 ?>
 
 	</td>
@@ -425,22 +425,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "abbrev_journal",
-	               "abbrevJournalName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "type",
-	               "\"journal\"",
-	               false,
-	               "");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "abbrev_journal",
+	                    "abbrevJournalName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "type",
+	                    "\"journal\"",
+	                    false,
+	                    "");
 ?>
 
 	</td>
@@ -545,22 +545,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "series_title",
-	               "seriesTitleName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               false,
-	               "");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "series_title",
+	                    "seriesTitleName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    false,
+	                    "");
 ?>
 
 	</td>
@@ -607,22 +607,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "abbrev_series_title",
-	               "abbrevSeriesTitleName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               false,
-	               "");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "abbrev_series_title",
+	                    "abbrevSeriesTitleName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    false,
+	                    "");
 ?>
 
 	</td>
@@ -709,22 +709,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "publisher",
-	               "publisherName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               false,
-	               "");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "publisher",
+	                    "publisherName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    false,
+	                    "");
 ?>
 
 	</td>
@@ -771,22 +771,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "place",
-	               "placeName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "place",
+	                    "placeName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
@@ -891,22 +891,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "language",
-	               "languageName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "language",
+	                    "languageName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
@@ -953,22 +953,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "summary_language",
-	               "summaryLanguageName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "summary_language",
+	                    "summaryLanguageName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
@@ -1051,22 +1051,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "area",
-	               "areaName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "area",
+	                    "areaName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
@@ -1211,22 +1211,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "location",
-	               "locationName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "location",
+	                    "locationName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
@@ -1305,22 +1305,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "type",
-	               "typeName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               false,
-	               "");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "type",
+	                    "typeName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    false,
+	                    "");
 ?>
 
 	</td>
@@ -1409,22 +1409,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "created_by",
-	               "createdByName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "created_by",
+	                    "createdByName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
@@ -1509,22 +1509,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "modified_by",
-	               "modifiedByName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "modified_by",
+	                    "modifiedByName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
@@ -1620,22 +1620,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "user_keys",
-	               "userKeysName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "user_keys",
+	                    "userKeysName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
@@ -1704,22 +1704,22 @@
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	selectDistinct($connection,
-	               $tableRefs,
-	               "serial",
-	               $tableUserData,
-	               "record_id",
-	               "user_id",
-	               $loginUserID,
-	               "user_groups",
-	               "userGroupsName",
-	               $loc["All"],
-	               "All",
-	               $loc["All"],
-	               "",
-	               "",
-	               true,
-	               " *[,;()] *");
+	echo selectDistinct($connection,
+	                    $tableRefs,
+	                    "serial",
+	                    $tableUserData,
+	                    "record_id",
+	                    "user_id",
+	                    $loginUserID,
+	                    "user_groups",
+	                    "userGroupsName",
+	                    $loc["All"],
+	                    "All",
+	                    $loc["All"],
+	                    "",
+	                    "",
+	                    true,
+	                    " *[,;()] *");
 ?>
 
 	</td>
