@@ -39,11 +39,15 @@
 	// - find all records where the title field contains either 'ecology' or 'diversity' but
 	//   return only three records starting with record number 4:
 	//     opensearch.php?query=title%20any%20ecology%20diversity&startRecord=4&maximumRecords=3
+	//
+	// - ask the server to return JSON-formatted search suggestions for authors whose last names
+	//   begin with either 'Mil' or 'Bel':
+	//     opensearch.php?query=author%20any%20Mil%20Bel&recordSchema=json&operation=suggest
 
 	// By default, 'opensearch.php' will output OpenSearch Atom XML ('recordSchema=atom') if not
-	// specified otherwise in the query. Additionally, 'rss', 'srw_dc', 'srw_mods' and 'html' are
-	// currently supported as response formats. Also note that, opposed to 'sru.php', this script
-	// won't allow you to query any user-specific fields (such as 'cite_key').
+	// specified otherwise in the query. Additionally, 'rss', 'srw_dc', 'srw_mods', 'html' and
+	// 'json' are currently supported as response formats. Also note that, opposed to 'sru.php',
+	// this script won't allow you to query any user-specific fields (such as 'cite_key').
 
 	// For more info on OpenSearch, see:
 	//   <http://opensearch.org/>
@@ -56,12 +60,15 @@
 	//       - currently, 'opensearch.php' does not omit the records list in the response if the OpenSearch query did contain 'maximumRecords=0' (as is the case for an SRU query)
 	//       - finish 'opensearch2xhtml.xsl', and serve it when returning Atom XML
 	//       - finish the form-based query builder (function 'showQueryPage()')
-	//       - what should be done with diagnostics when the client has requested html?
+	//       - what should be done with diagnostics when the client has requested html or json?
 	//       - fix '$citeOrder' issues (see notes in 'rss.php' and below)
 	//       - include OpenSearch elements in RSS & HTML output (see examples at <http://www.opensearch.org/Specifications/OpenSearch/1.1#OpenSearch_response_elements>)
 	//       - it would be nice if users could somehow pass authentication details with the OpenSearch Query
 	//       - rewrite HTML using divs + CSS
 	//       - see also inline comments labeled with "TODO"
+
+	// NOTES: - currently, the JSON response format is only supported when returning search suggestions
+	//          ('operation=suggest'), i.e. you cannot (yet) retrieve full record data in JSON format
 
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password
@@ -77,7 +84,8 @@
 	// --------------------------------------------------------------------
 
 	// Extract the ID of the client from which the query originated:
-	// this identifier is used to identify queries that originated from the refbase command line clients ("cli-refbase-1.1", "cli-refbase_import-1.0") or from a bookmarklet (e.g., "jsb-refbase-1.0")
+	// this identifier is used to identify queries that originated from the refbase command line clients ("cli-refbase-1.1", "cli-refbase_import-1.0"),
+	// from a bookmarklet (e.g., "jsb-refbase-1.0") or from a browser such as Firefox that uses 'opensearch.php' for search suggestions ("sug-refbase_suggest-1.0")
 	// (note that 'client' parameter has to be extracted *before* the call to the 'start_session()' function, since it's value is required by this function)
 	if (isset($_REQUEST['client']))
 		$client = $_REQUEST['client'];
@@ -105,12 +113,12 @@
 
 	// Extract optional parameters passed to the script:
 
-	if (isset($_REQUEST['operation']) AND eregi("^(explain|advanced|CQL)$", $_REQUEST['operation']))
+	if (isset($_REQUEST['operation']) AND eregi("^(explain|suggest|advanced|CQL)$", $_REQUEST['operation']))
 		$operation = $_REQUEST['operation'];
 	else
 		$operation = "";
 
-	if (isset($_REQUEST['recordSchema']) AND !empty($_REQUEST['recordSchema'])) // contains the desired response format; currently supports 'atom', 'rss', 'srw_dc', 'srw_mods' and 'html'
+	if (isset($_REQUEST['recordSchema']) AND !empty($_REQUEST['recordSchema'])) // contains the desired response format; currently supports 'atom', 'rss', 'srw_dc', 'srw_mods', 'html' and 'json'
 		$recordSchema = $_REQUEST['recordSchema'];
 	else
 		$recordSchema = "atom";
@@ -203,6 +211,15 @@
 			$exportStylesheet = "";
 		$citeOrder = "";
 	}
+	elseif (eregi("^json$", $recordSchema)) // if JSON is requested as response format
+	{
+		$exportFormat = "JSON";
+		$displayType = "Export";
+		$exportContentType = "application/json";
+		if ($exportStylesheet == "DEFAULT")
+			$exportStylesheet = "";
+		$citeOrder = "";
+	}
 	else // by default, OpenSearch Atom XML ('atom') is assumed as response format
 	{
 		$exportFormat = "Atom XML";
@@ -216,7 +233,13 @@
 	// -------------------------------------------------------------------------------------------------------------------
 
 	// Parse CQL query:
-	$searchArray = parseCQL("1.1", $cqlQuery); // function 'parseCQL()' is defined in 'webservice.inc.php'
+	$searchArray = parseCQL("1.1", $cqlQuery, $operation); // function 'parseCQL()' is defined in 'webservice.inc.php'
+
+	// Build SQL WHERE clause:
+	$query = ""; // NOTE: although we don't supply a full SQL query here, the variable MUST be named '$query' to have function 'appendToWhereClause()' work correctly
+
+	if (!empty($searchArray))
+		appendToWhereClause($searchArray); // function 'appendToWhereClause()' is defined in 'include.inc.php'
 
 	// -------------------------------------------------------------------------------------------------------------------
 
@@ -235,6 +258,66 @@
 		echo openSearchDescription($exportStylesheet); // function 'openSearchDescription()' is defined in 'opensearch.inc.php'
 	}
 
+	// - if 'opensearch.php' was called with 'operation=suggest' and JSON as the requested response format, we'll return search suggestions that match the given query:
+	//   NOTE: currently, if you specify a multi-item field with 'all' as a relation (as in 'keywords all ...'), only the first search term is used to generate search suggestions
+	//         (though the other search terms will be used to restrict the list of search suggestions to only those where the queried field contains ALL search terms)
+	//   TODO: - should we support the 'maximumRecords' and 'startRecord' URL parameters for search suggestions?
+	//         - search suggestions for the 'location' field (and possibly other fields) should be omitted if the user isn't logged in!
+	elseif (eregi("^suggest$", $operation) AND eregi("^json$", $recordSchema))
+	{
+		// Extract the first field & search pattern from the 'WHERE' clause:
+		// (these will be used to retrieve search suggestions)
+		$searchSuggestionsField = preg_replace("/^[ ()]*(\w+).*/i", "\\1", $query);
+		$searchSuggestionsPattern = preg_replace("/.*? (?:RLIKE|[=<>]+) \"?(.+?)\"?(?=( *\) *?)*( +(AND|OR)\b|$)).*/i", "\\1", $query); // see NOTE above
+
+		if (eregi("^(author|keywords|address|place|editor|language|summary_language|series_editor|area|location|created_by|modified_by|user_keys|user_groups)$", $searchSuggestionsField))
+			$splitValues = true;
+		else
+			$splitValues = false;
+
+		// Produce the list of search suggestions:
+		// (function 'selectDistinct()' is defined in 'include.inc.php')
+		$jsonData = selectDistinct($connection,
+		                           $tableRefs,
+		                           "serial",
+		                           $tableUserData,
+		                           "record_id",
+		                           "user_id",
+		                           $loginUserID,
+		                           $searchSuggestionsField,
+		                           "",
+		                           "",
+		                           "",
+		                           "",
+		                           "serial",
+		                           "\".+\" AND $query", // this is a somewhat hacky workaround that works around current limitations in function 'selectDistinct()'
+		                           $splitValues,
+		                           " *[,;()] *",
+		                           "JSON",
+		                           $searchSuggestionsPattern);
+
+		// Prefix each item with an index name and relation:
+		// 
+		// NOTE: When the user selects a search suggestion in Firefox, Firefox replaces the user-entered
+		//       data in the browser's search field with the chosen search suggestion. This removes any
+		//       CQL index and relation that was entered by the user (e.g. "keywords any ...") and
+		//       'cql.serverChoice' will be searched instead. Since this would lead to unexpected (or zero)
+		//       results, we prefix all search suggestions with the index name and the '=' relation.
+		// 
+		// TODO: This will need to be revised when 'cql.serverChoice' maps to the user's preferred list of
+		//       "main fields". Even better would be if browsers would support alternate query URLs for each
+		//       suggestion in the completion list.
+		if (eregi("^sug", $client)) // e.g. "sug-refbase_suggest-1.0"
+			$jsonData = preg_replace("/(?<=\[\"|\", \")(?!\")/", "$searchSuggestionsField = ", $jsonData);
+
+		// Set the appropriate mimetype & set the character encoding to the one given
+		// in '$contentTypeCharset' (which is defined in 'ini.inc.php'):
+		setHeaderContentType($exportContentType, $contentTypeCharset);
+
+		// Return JSON-formatted search suggestions:
+		echo '["' . $cqlQuery . '", ' . $jsonData . ']'; // e.g.: ["fir", ["firefox", "first choice", "mozilla firefox"]]
+	}
+
 	// - If 'opensearch.php' was called without any recognized parameters, we'll present a form where a user can build a query:
 	elseif (!isset($_REQUEST['query']) AND !isset($_REQUEST['recordSchema']) AND !isset($_REQUEST['maximumRecords']) AND !isset($_REQUEST['startRecord']) AND !isset($_REQUEST['stylesheet']))
 		showQueryPage($operation, $viewType, $showRows, $rowOffset);
@@ -243,8 +326,8 @@
 	elseif (empty($cqlQuery))
 		returnDiagnostic(7, "query"); // required 'query' parameter is missing
 
-	// - Currently, no other schemas than OpenSearch Atom XML, SRW_DC XML, SRW_MODS XML, RSS XML and HTML are supported:
-	elseif (!eregi("^((atom|rss)([ _]?xml)?|srw([ _]?(mods|dc))?([ _]?xml)?|html)$",$recordSchema))
+	// - Currently, no other schemas than OpenSearch Atom XML, SRW_DC XML, SRW_MODS XML, RSS XML, HTML and JSON are supported:
+	elseif (!eregi("^((atom|rss)([ _]?xml)?|srw([ _]?(mods|dc))?([ _]?xml)?|html|json)$",$recordSchema))
 		returnDiagnostic(66, $recordSchema); // unknown record schema
 
 	// -------------------------------------------------------------------------------------------------------------------
@@ -255,12 +338,6 @@
 		// (this session variable is used by functions 'atomCollection()' and 'citeRecords()' (in 'cite_html.php') to re-establish the original OpenSearch/CQL query;
 		//  function 'atomCollection()' uses the OpenSearch/CQL query to output 'opensearch.php' URLs instead of 'show.php' URLs)
 		saveSessionVariable("cqlQuery", $cqlQuery); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-
-		// Build WHERE clause:
-		$query = ""; // NOTE: although we don't supply a full SQL query here, the variable MUST be named '$query' to have function 'appendToWhereClause()' work correctly
-
-		if (!empty($searchArray))
-			appendToWhereClause($searchArray); // function 'appendToWhereClause()' is defined in 'include.inc.php'
 
 		// --------------------------------------------------------------------
 
@@ -294,7 +371,9 @@
 		if (eregi("^srw([ _]?(mods|dc))?([ _]?xml)?$", $recordSchema))
 			// Return SRW diagnostics (i.e. SRW error information) wrapped into SRW XML ('searchRetrieveResponse'):
 			echo srwDiagnostics($diagCode, $diagDetails, $exportStylesheet); // function 'srwDiagnostics()' is defined in 'srwxml.inc.php'
-//		elseif (eregi("html", $recordSchema))
+//		elseif (eregi("^html$", $recordSchema))
+			// TODO!
+//		elseif (eregi("^json$", $recordSchema))
 			// TODO!
 		else
 			// Return OpenSearch diagnostics (i.e. OpenSearch error information) wrapped into OpenSearch Atom XML:
