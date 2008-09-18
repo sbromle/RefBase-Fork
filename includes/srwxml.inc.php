@@ -534,7 +534,7 @@
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "stylesheet"), $databaseBaseURL . "srwmods2html.xsl");
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "contextSet"), "cql");
 		addNewBranch($srwConfigInfoBranch, "default", array("type" => "index"), "cql.serverChoice");
-		addNewBranch($srwConfigInfoBranch, "default", array("type" => "relation"), "any");
+		addNewBranch($srwConfigInfoBranch, "default", array("type" => "relation"), "all");
 
 		// setting:
 		addNewBranch($srwConfigInfoBranch, "setting", array("type" => "sortSchema"), "identifier");
