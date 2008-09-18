@@ -37,11 +37,6 @@
 	// 
 	// Spec:     <http://www.opensearch.org/Specifications/OpenSearch/1.1#OpenSearch_description_document>
 	// See also: <http://developer.mozilla.org/en/docs/Creating_OpenSearch_plugins_for_Firefox>
-	// 
-	// TODO: - add an URL template for 'type="application/x-suggestions+json"' which is
-	//         used by Firefox to specify the URL to use for fetching search suggestions
-	//         (this requires refbase support for JSON for fetching of search suggestions)
-	//         See also: <http://developer.mozilla.org/en/docs/Supporting_search_suggestions_in_search_plugins>
 	function openSearchDescription($exportStylesheet)
 	{
 		global $contentTypeCharset; // these variables are specified in 'ini.inc.php'
@@ -213,6 +208,23 @@
 		             "Url",
 		             array("type"        => "text/html",
 		                   "template"    => $databaseBaseURL . "opensearch.php?query={searchTerms}&amp;startRecord={startIndex?}&amp;maximumRecords={count?}&amp;recordSchema=html",
+		                   "indexOffset" => "1"
+		                  ),
+		             ""
+		            );
+
+		// - URL template for output of JSON-formatted search suggestions:
+		// 
+		//   NOTE: An URL template with 'type="application/x-suggestions+json"' is used by Firefox
+		//         to specify the URL to use for fetching search suggestions in JSON format
+		//         See also: <http://developer.mozilla.org/en/Creating_OpenSearch_plugins_for_Firefox>
+		//                   <http://developer.mozilla.org/en/Supporting_search_suggestions_in_search_plugins>
+		//                   <http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.0>
+		//                   <http://hublog.hubmed.org/archives/001681.html>
+		addNewBranch($openSearchCollection,
+		             "Url",
+		             array("type"        => "application/x-suggestions+json",
+		                   "template"    => $databaseBaseURL . "opensearch.php?query={searchTerms}&amp;startRecord={startIndex?}&amp;maximumRecords={count?}&amp;recordSchema=json&amp;operation=suggest&amp;client=sug-refbase_suggest-1.0",
 		                   "indexOffset" => "1"
 		                  ),
 		             ""
