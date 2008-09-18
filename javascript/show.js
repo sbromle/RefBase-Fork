@@ -63,7 +63,7 @@ var authorNames = new Array(
 // the 'show.php' API: <http://linking.refbase.net/>, <http://bibliographies.refbase.net/>
 function showRefs(query) {
 	if (query == "none") {
-		document.getElementById("includerefs").innerHTML = "References will be listed here.";
+		document.getElementById("includerefs").innerHTML = "<div id='includeprogress'>References will be listed here.</div>";
 	}
 	else {
 		var url = "show.php"; // set URL to your server's 'show.php' script
@@ -136,7 +136,7 @@ function stateChanged() {
 		var response = xmlHTTP.responseText;
 
 		if (!response) {
-			document.getElementById("includerefs").innerHTML = "No data returned!";
+			document.getElementById("includerefs").innerHTML = "<div id='includeprogress'>No data returned!</div>";
 		}
 		else {
 			document.getElementById("includerefs").innerHTML = highlightAuthors(response);
