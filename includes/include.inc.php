@@ -4474,19 +4474,17 @@ EOF;
 
 	// Build properly formatted <option> tag elements from items listed within an array or string (and which -- in the case of strings -- are delimited by '$splitDelim').
 	// The string given in '$prefix' will be used to prefix each of the <option> tags (e.g., use '\t\t' to indent each of the tags by 2 tabs)
-	function buildSelectMenuOptions($sourceStringOrArray, $splitDelim, $prefix, $useArrayKeysAsValues)
+	function buildSelectMenuOptions($sourceData, $splitDelim, $prefix, $useArrayKeysAsValues)
 	{
-		if (is_string($sourceStringOrArray)) // split the string on the specified delimiter (which is interpreted as regular expression!):
-			$itemArray = split($splitDelim, $sourceStringOrArray);
-		else // source data are already provided as array:
-			$itemArray = $sourceStringOrArray;
+		if (is_string($sourceData)) // split the string on the specified delimiter (which is interpreted as regular expression!):
+			$sourceData = split($splitDelim, $sourceData);
 
-		$optionTags = ""; // initialize variable
-
-		// copy each item as option tag element to the end of the '$optionTags' variable:
 		if ($useArrayKeysAsValues)
 		{
-			foreach ($itemArray as $itemID => $item)
+			$optionTags = ""; // initialize variable
+
+			// copy each item as option tag element to the end of the '$optionTags' variable:
+			foreach ($sourceData as $itemID => $item)
 			{
 				if (!empty($item))
 					$optionTags .= "\n$prefix<option value=\"$itemID\">$item</option>";
@@ -4495,10 +4493,7 @@ EOF;
 			}
 		}
 		else
-		{
-			foreach ($itemArray as $item)
-				$optionTags .= "\n$prefix<option>$item</option>";
-		}
+			$optionTags = "\n$prefix<option>" . implode("</option>\n$prefix<option>", $sourceData) . "</option>";
 
 		return $optionTags;
 	}
@@ -4523,22 +4518,26 @@ EOF;
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	function selectDistinct($connection,
-	                        $refsTableName,
-	                        $refsTablePrimaryKey,
-	                        $userDataTableName,
-	                        $userDataTablePrimaryKey,
-	                        $userDataTableUserID,
-	                        $userDataTableUserIDvalue,
-	                        $columnName,
-	                        $pulldownName,
-	                        $additionalOptionDisplay,
-	                        $additionalOption,
-	                        $defaultValue,
-	                        $RestrictToField,
-	                        $RestrictToFieldContents,
-	                        $SplitValues,
-	                        $SplitPattern)
+	// 17. The type of the output format that shall be returned ("HTML" or "JSON")
+	// 18. The POSIX-PATTERN that matches those substrings from the field's contents that shall be included as search suggestions
+	function selectDistinct($connection, // 1.
+	                        $refsTableName, // 2.
+	                        $refsTablePrimaryKey, // 3.
+	                        $userDataTableName, // 4.
+	                        $userDataTablePrimaryKey, // 5.
+	                        $userDataTableUserID, // 6.
+	                        $userDataTableUserIDvalue, // 7.
+	                        $columnName, // 8.
+	                        $pulldownName, // 9.
+	                        $additionalOptionDisplay, // 10.
+	                        $additionalOption, // 11.
+	                        $defaultValue, // 12.
+	                        $RestrictToField, // 13.
+	                        $RestrictToFieldContents, // 14.
+	                        $SplitValues, // 15.
+	                        $SplitPattern, // 16.
+	                        $outputFormat = "HTML", // 17.
+	                        $searchSuggestionsPattern = "") // 18.
 	{
 		$defaultWithinResultSet = FALSE;
 
@@ -4573,7 +4572,10 @@ EOF;
 				$splittedFieldData = split($SplitPattern, $row[$columnName]);
 				// ... copy all array elements to end of '$resultBuffer':
 				foreach($splittedFieldData as $element)
-					$resultBuffer[$i++] = $element;
+					// NOTE: in case of OpenSearch search suggestions, we only include those substrings
+					//       that match the regular expression given in '$searchSuggestionsPattern'
+					if (empty($searchSuggestionsPattern) OR (!empty($searchSuggestionsPattern) AND preg_match("/" . $searchSuggestionsPattern . "/i", $element)))
+						$resultBuffer[$i++] = $element;
 			}
 			else // copy field data (as is) to end of '$resultBuffer':
 				$resultBuffer[$i++] = $row[$columnName];
@@ -4590,37 +4592,32 @@ EOF;
 			}
 		}
 
-		// Start the select widget:
-		echo "\n\t\t<select name=\"$pulldownName\">";
+		if ($outputFormat == "HTML")
+		{
+			// Start the select widget:
+			$outputData = "\n\t\t<select name=\"$pulldownName\">";
 
-		// Is there an additional option?
-		if (isset($additionalOptionDisplay))
-		{
-			// yes, but is it the default option?
-			if ($defaultValue == $additionalOptionDisplay) // show the additional option as selected
-				echo "\n\t\t\t<option value=\"$additionalOption\" selected>$additionalOptionDisplay</option>";
-			else // just show the additional option
-				echo "\n\t\t\t<option value=\"$additionalOption\">$additionalOptionDisplay</option>";
+			$optionTags = ""; // initialize variable
+
+			// Add any additional option element:
+			if (!empty($additionalOptionDisplay) AND !empty($additionalOption))
+				$optionTags .= "\n\t\t\t<option value=\"$additionalOption\">$additionalOptionDisplay</option>";
+
+			// Build correct option tags from the provided database values:
+			$optionTags .= buildSelectMenuOptions($resultBuffer, "", "\t\t\t", false);
+
+			$outputData .= ereg_replace("<option([^>]*)>($defaultValue)</option>", "<option\\1 selected>\\2</option>", $optionTags); // add 'selected' attribute
+
+			$outputData .= "\n\t\t</select>";
 		}
 
-		// Check for a default value:
-		if (isset($defaultValue))
-		{
-			// check if the defaultValue is in the database values
-			foreach ($resultBuffer as $result)
-			{
-				if ($result == $defaultValue) // yes, show as selected
-					echo "\n\t\t\t<option selected>$result</option>";
-				else // no, just show as an option
-					echo "\n\t\t\t<option>$result</option>";
-			}
-		}
-		else // no default value
-		{
-			foreach ($resultBuffer as $result) // show database values as options
-				echo "\n\t\t\t<option>$result</option>";
-		}
-		echo "\n\t\t</select>";
+		elseif ($outputFormat == "JSON")
+			$outputData = '["' . implode('", "', $resultBuffer) . '"]'; // for PHP 5 >= 5.2.0 and UTF-8 data, function 'json_encode()' could be used instead
+
+		else
+			$outputData = "";
+
+		return $outputData;
 	}
 
 	// --------------------------------------------------------------------
