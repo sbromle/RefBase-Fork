@@ -56,7 +56,7 @@
 	// NOTE: we don't provide a full CQL parser here but will (for now) concentrate on a rather limited feature
 	//       set that makes sense in conjunction with refbase. However, future versions should employ far better
 	//       CQL parsing logic.
-	function parseCQL($sruVersion, $sruQuery)
+	function parseCQL($sruVersion, $sruQuery, $operation = "")
 	{
 		// map CQL indexes to refbase field names:
 		$indexNamesArray = mapCQLIndexes();
@@ -70,7 +70,7 @@
 		{
 			// check for presence of context set/index name and any of the main relations:
 			if (!preg_match('/^[^\" <>=]+( +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/', $sruQuery))
-				$sruQuery = "cql.serverChoice any " . $sruQuery; // if no context set/index name and relation was given we'll use 'cql.serverChoice any ' by default
+				$sruQuery = "cql.serverChoice all " . $sruQuery; // if no context set/index name and relation was given we'll use 'cql.serverChoice all ' by default
 
 			// extract the context set:
 			if (preg_match('/^([^\" <>=.]+)\./', $sruQuery))
@@ -136,6 +136,11 @@
 			$searchTerm = preg_replace('/^\"/', '', $searchTerm);
 			$searchTerm = preg_replace('/\"$/', '', $searchTerm);
 
+			// OpenSearch search suggestions ('$operation=suggest'): since CQL matches full words (not sub-strings),
+			// we need to make sure that every search term ends with the '*' masking character:
+			if (eregi("^suggest$", $operation) AND ($mainRelation != "exact"))
+				$searchTerm = preg_replace('/(\w+)\b(?![?*^])/', '\\1*', $searchTerm);
+
 			// escape meta characters (including '/' that is used as delimiter for the PCRE replace functions below and which gets passed as second argument):
 			$searchTerm = preg_quote($searchTerm, "/"); // escape special regular expression characters: . \ + * ? [ ^ ] $ ( ) { } = ! < > | :
 
@@ -145,11 +150,16 @@
 			//       (The expression '\\\\' in the patterns below describes only *one* backslash! -> '\'.
 			//        The reason for this is that before the regex engine can interpret the \\ into \, PHP interprets it.
 			//        Thus, you have to escape your backslashes twice: once for PHP, and once for the regex engine.)
+			// 
+			// more info about masking characters in CQL:  <http://zing.z3950.org/cql/intro.html#6>
+			// more info about word anchoring in CQL:      <http://zing.z3950.org/cql/intro.html#6.1>
 
 			// recognize any anchor at the beginning of a search term (like '^foo'):
+			// (in CQL, a word beginning with ^ must be the first in its field)
 			$searchTerm = preg_replace('/(^| )\\\\\^/', '\\1^', $searchTerm);
 
 			// convert any anchor at the end of a search term (like 'foo^') to the correct MySQL variant ('foo$'):
+			// (in CQL, a word ending with ^ must be the last in its field)
 			$searchTerm = preg_replace('/\\\\\^( |$)/', '$\\1', $searchTerm);
 
 			// recognize any masking ('*' and '?') characters:
