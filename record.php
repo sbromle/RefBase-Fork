@@ -177,6 +177,104 @@
 		$callNumberPrefix = getCallNumberPrefix(); // function 'getCallNumberPrefix()' is defined in 'include.inc.php'
 	}
 
+	// Build HTML elements that allow for auto-completions of text entered by the user:
+	if ($autoCompleteUserInput == "yes")
+	{
+		$authorSuggestElements = buildSuggestElements("authorName", "authorSuggestions", "authorSuggestProgress", "col-author-", "\t\t", "';'"); // function 'buildSuggestElements()' is defined in 'include.inc.php'
+		$titleSuggestElements = buildSuggestElements("titleName", "titleSuggestions", "titleSuggestProgress", "col-title-");
+		$yearSuggestElements = buildSuggestElements("yearNo", "yearSuggestions", "yearSuggestProgress", "col-year-");
+		$publicationSuggestElements = buildSuggestElements("publicationName", "publicationSuggestions", "publicationSuggestProgress", "col-publication-");
+		$abbrevJournalSuggestElements = buildSuggestElements("abbrevJournalName", "abbrevJournalSuggestions", "abbrevJournalSuggestProgress", "col-abbrev_journal-");
+		$volumeSuggestElements = buildSuggestElements("volumeNo", "volumeSuggestions", "volumeSuggestProgress", "col-volume-");
+		$issueSuggestElements = buildSuggestElements("issueNo", "issueSuggestions", "issueSuggestProgress", "col-issue-");
+		$pagesSuggestElements = buildSuggestElements("pagesNo", "pagesSuggestions", "pagesSuggestProgress", "col-pages-");
+		$keywordsSuggestElements = buildSuggestElements("keywordsName", "keywordsSuggestions", "keywordsSuggestProgress", "col-keywords-", "\t\t", "';'");
+		$addressSuggestElements = buildSuggestElements("addressName", "addressSuggestions", "addressSuggestProgress", "col-address-", "\t\t", "';'");
+		$corporateAuthorSuggestElements = buildSuggestElements("corporateAuthorName", "corporateAuthorSuggestions", "corporateAuthorSuggestProgress", "col-corporate_author-");
+		$publisherSuggestElements = buildSuggestElements("publisherName", "publisherSuggestions", "publisherSuggestProgress", "col-publisher-");
+		$placeSuggestElements = buildSuggestElements("placeName", "placeSuggestions", "placeSuggestProgress", "col-place-", "\t\t", "[';',',']");
+		$editorSuggestElements = buildSuggestElements("editorName", "editorSuggestions", "editorSuggestProgress", "col-editor-", "\t\t", "';'");
+		$languageSuggestElements = buildSuggestElements("languageName", "languageSuggestions", "languageSuggestProgress", "col-language-", "\t\t", "';'");
+		$summaryLanguageSuggestElements = buildSuggestElements("summaryLanguageName", "summaryLanguageSuggestions", "summaryLanguageSuggestProgress", "col-summary_language-", "\t\t", "';'");
+		$origTitleSuggestElements = buildSuggestElements("origTitleName", "origTitleSuggestions", "origTitleSuggestProgress", "col-orig_title-");
+		$seriesEditorSuggestElements = buildSuggestElements("seriesEditorName", "seriesEditorSuggestions", "seriesEditorSuggestProgress", "col-series_editor-", "\t\t", "';'");
+		$seriesTitleSuggestElements = buildSuggestElements("seriesTitleName", "seriesTitleSuggestions", "seriesTitleSuggestProgress", "col-series_title-");
+		$abbrevSeriesTitleSuggestElements = buildSuggestElements("abbrevSeriesTitleName", "abbrevSeriesTitleSuggestions", "abbrevSeriesTitleSuggestProgress", "col-abbrev_series_title-");
+		$seriesVolumeSuggestElements = buildSuggestElements("seriesVolumeNo", "seriesVolumeSuggestions", "seriesVolumeSuggestProgress", "col-series_volume-");
+		$seriesIssueSuggestElements = buildSuggestElements("seriesIssueNo", "seriesIssueSuggestions", "seriesIssueSuggestProgress", "col-series_issue-");
+		$editionSuggestElements = buildSuggestElements("editionNo", "editionSuggestions", "editionSuggestProgress", "col-edition-");
+		$issnSuggestElements = buildSuggestElements("issnName", "issnSuggestions", "issnSuggestProgress", "col-issn-");
+		$isbnSuggestElements = buildSuggestElements("isbnName", "isbnSuggestions", "isbnSuggestProgress", "col-isbn-");
+		$mediumSuggestElements = buildSuggestElements("mediumName", "mediumSuggestions", "mediumSuggestProgress", "col-medium-");
+		$areaSuggestElements = buildSuggestElements("areaName", "areaSuggestions", "areaSuggestProgress", "col-area-", "\t\t", "';'");
+		$expeditionSuggestElements = buildSuggestElements("expeditionName", "expeditionSuggestions", "expeditionSuggestProgress", "col-expedition-", "\t\t", "';'");
+		$conferenceSuggestElements = buildSuggestElements("conferenceName", "conferenceSuggestions", "conferenceSuggestProgress", "col-conference-");
+		$notesSuggestElements = buildSuggestElements("notesName", "notesSuggestions", "notesSuggestProgress", "col-notes-", "\t\t", "';'");
+		if ((isset($loginEmail)) AND ($loginEmail == $adminLoginEmail)) // admin logged in
+		{
+			$locationSuggestElements = buildSuggestElements("locationName", "locationSuggestions", "locationSuggestProgress", "col-location-", "\t\t", "';'");
+			$callNumberSuggestElements = buildSuggestElements("callNumberName", "callNumberSuggestions", "callNumberSuggestProgress", "col-call_number-", "\t\t", "[';','@']");
+		}
+		else // user isn't logged in -OR- any normal user is logged in
+		{
+			$locationSuggestElements = "";
+			$callNumberSuggestElements = buildSuggestElements("callNumberNameUserOnly", "callNumberSuggestions", "callNumberSuggestProgress", "col-call_number-", "\t\t", "[';','@']");
+		}
+		$userKeysSuggestElements = buildSuggestElements("userKeysName", "userKeysSuggestions", "userKeysSuggestProgress", "col-user_keys-", "\t\t", "';'");
+		$userNotesSuggestElements = buildSuggestElements("userNotesName", "userNotesSuggestions", "userNotesSuggestProgress", "col-user_notes-", "\t\t", "';'");
+		$userFileSuggestElements = buildSuggestElements("userFileName", "userFileSuggestions", "userFileSuggestProgress", "col-user_file-");
+		$userGroupsSuggestElements = buildSuggestElements("userGroupsName", "userGroupsSuggestions", "userGroupsSuggestProgress", "col-user_groups-", "\t\t", "';'");
+		$citeKeySuggestElements = buildSuggestElements("citeKeyName", "citeKeySuggestions", "citeKeySuggestProgress", "col-cite_key-");
+		$relatedSuggestElements = buildSuggestElements("relatedName", "relatedSuggestions", "relatedSuggestProgress", "col-related-", "\t\t", "';'");
+		$urlSuggestElements = buildSuggestElements("urlName", "urlSuggestions", "urlSuggestProgress", "col-url-");
+		$doiSuggestElements = buildSuggestElements("doiName", "doiSuggestions", "doiSuggestProgress", "col-doi-");
+		$onlineCitationSuggestElements = buildSuggestElements("onlineCitationName", "onlineCitationSuggestions", "onlineCitationSuggestProgress", "col-online_citation-");
+	}
+	else
+	{
+		$authorSuggestElements = "";
+		$titleSuggestElements = "";
+		$yearSuggestElements = "";
+		$publicationSuggestElements = "";
+		$abbrevJournalSuggestElements = "";
+		$volumeSuggestElements = "";
+		$issueSuggestElements = "";
+		$pagesSuggestElements = "";
+		$keywordsSuggestElements = "";
+		$addressSuggestElements = "";
+		$corporateAuthorSuggestElements = "";
+		$publisherSuggestElements = "";
+		$placeSuggestElements = "";
+		$editorSuggestElements = "";
+		$languageSuggestElements = "";
+		$summaryLanguageSuggestElements = "";
+		$origTitleSuggestElements = "";
+		$seriesEditorSuggestElements = "";
+		$seriesTitleSuggestElements = "";
+		$abbrevSeriesTitleSuggestElements = "";
+		$seriesVolumeSuggestElements = "";
+		$seriesIssueSuggestElements = "";
+		$editionSuggestElements = "";
+		$issnSuggestElements = "";
+		$isbnSuggestElements = "";
+		$mediumSuggestElements = "";
+		$areaSuggestElements = "";
+		$expeditionSuggestElements = "";
+		$conferenceSuggestElements = "";
+		$notesSuggestElements = "";
+		$locationSuggestElements = "";
+		$callNumberSuggestElements = "";
+		$userKeysSuggestElements = "";
+		$userNotesSuggestElements = "";
+		$userFileSuggestElements = "";
+		$userGroupsSuggestElements = "";
+		$citeKeySuggestElements = "";
+		$relatedSuggestElements = "";
+		$urlSuggestElements = "";
+		$doiSuggestElements = "";
+		$onlineCitationSuggestElements = "";
+	}
+
 	// --------------------------------------------------------------------
 
 	// CONSTRUCT SQL QUERY:
@@ -994,7 +1092,7 @@
 
 	// (4b) DISPLAY results:
 	// Start <form> and <table> holding the form elements:
-	echo "\n<form enctype=\"multipart/form-data\" action=\"modify.php?proc=1\" method=\"POST\" accept-charset=\"" . $contentTypeCharset . "\">"; // '$contentTypeCharset' is defined in 'ini.inc.php'
+	echo "\n<form enctype=\"multipart/form-data\" action=\"modify.php?proc=1\" method=\"POST\" accept-charset=\"" . $contentTypeCharset . "\" name=\"record\">"; // '$contentTypeCharset' is defined in 'ini.inc.php'
 	echo "\n<input type=\"hidden\" name=\"formType\" value=\"record\">";
 	echo "\n<input type=\"hidden\" name=\"submit\" value=\"" . $addEditButtonTitle . "\">"; // provide a default value for the 'submit' form tag (then, hitting <enter> within a text entry field will act as if the user clicked the 'Add/Edit Record' button)
 	echo "\n<input type=\"hidden\" name=\"recordAction\" value=\"" . $recordAction . "\">";
@@ -1041,18 +1139,22 @@
 	echo "\n<table align=\"center\" border=\"0\" cellpadding=\"5\" cellspacing=\"0\" width=\"600\" summary=\"This table holds a form that offers to add records or edit existing ones\">"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Author"]."</b></td>"
-			. "\n\t<td colspan=\"4\" class=\"mainfieldsbg\">" . fieldError("authorName", $errors) . "<input type=\"text\" name=\"authorName\" value=\"$authorName\" size=\"63\" title=\"". $loc["DescriptionAuthor"]."\"></td>";
+			. "\n\t<td colspan=\"4\" class=\"mainfieldsbg\">"
+			. "\n\t\t" . fieldError("authorName", $errors) . "<input type=\"text\" id=\"authorName\" name=\"authorName\" value=\"$authorName\" size=\"60\" title=\"". $loc["DescriptionAuthor"]."\">" . $authorSuggestElements
+			. "\n\t</td>";
 
 	if ($isEditorCheckBox == "1" OR ereg(" *\(eds?\)$", $authorName)) // if the '$isEditorCheckBox' variable is set to 1 -OR- if 'author' field ends with either " (ed)" or " (eds)"
 		$isEditorCheckBoxIsChecked = " checked"; // mark the 'is Editor' checkbox
 	else
 		$isEditorCheckBoxIsChecked = ""; // don't mark the 'is Editor' checkbox
 
-	echo "\n\t<td align=\"right\" class=\"mainfieldsbg\"><input type=\"checkbox\" name=\"isEditorCheckBox\" value=\"1\"$isEditorCheckBoxIsChecked title=\"". $loc["DescriptionEditorCheckBox"]."\">&nbsp;&nbsp;<b>". $loc["isEditor"]."</b></td>"
+	echo "\n\t<td align=\"right\" class=\"mainfieldsbg\"><input type=\"checkbox\" id=\"isEditorCheckBox\" name=\"isEditorCheckBox\" value=\"1\"$isEditorCheckBoxIsChecked title=\"". $loc["DescriptionEditorCheckBox"]."\">&nbsp;&nbsp;<b>". $loc["isEditor"]."</b></td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Title"]."</b></td>"
-			. "\n\t<td colspan=\"3\" class=\"mainfieldsbg\">" . fieldError("titleName", $errors) . "<input type=\"text\" name=\"titleName\" value=\"$titleName\" size=\"48\" title=\"". $loc["DescriptionTitle"]."\"></td>"
+			. "\n\t<td colspan=\"3\" class=\"mainfieldsbg\">"
+			. "\n\t\t" . fieldError("titleName", $errors) . "<input type=\"text\" id=\"titleName\" name=\"titleName\" value=\"$titleName\" size=\"47\" title=\"". $loc["DescriptionTitle"]."\">" . $titleSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Type"]."</b></td>";
 
 	if (!isset($_SESSION['user_types']))
@@ -1061,7 +1163,7 @@
 		$documentTypeDisabled = "";
 
 	$recordType = "\n\t<td align=\"right\" class=\"mainfieldsbg\">"
-				. "\n\t\t<select name=\"typeName\" title=\"". $loc["DescriptionType"]."\" $documentTypeDisabled>";
+				. "\n\t\t<select id=\"typeName\" name=\"typeName\" title=\"". $loc["DescriptionType"]."\" $documentTypeDisabled>";
 	
 	if (isset($_SESSION['user_types']))
 	{
@@ -1098,38 +1200,56 @@
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Year"]."</b></td>"
-			. "\n\t<td class=\"mainfieldsbg\">" . fieldError("yearNo", $errors) . "<input type=\"text\" name=\"yearNo\" value=\"$yearNo\" size=\"14\" title=\"". $loc["DescriptionYear"]."\"></td>"
+			. "\n\t<td class=\"mainfieldsbg\">"
+			. "\n\t\t" . fieldError("yearNo", $errors) . "<input type=\"text\" id=\"yearNo\" name=\"yearNo\" value=\"$yearNo\" size=\"14\" title=\"". $loc["DescriptionYear"]."\">" . $yearSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Publication"]."</b></td>"
-			. "\n\t<td class=\"mainfieldsbg\">" . fieldError("publicationName", $errors) . "<input type=\"text\" name=\"publicationName\" value=\"$publicationName\" size=\"14\" title=\"". $loc["DescriptionPublicationName"]."\"></td>"
+			. "\n\t<td class=\"mainfieldsbg\">"
+			. "\n\t\t" . fieldError("publicationName", $errors) . "<input type=\"text\" id=\"publicationName\" name=\"publicationName\" value=\"$publicationName\" size=\"14\" title=\"". $loc["DescriptionPublicationName"]."\">" . $publicationSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["JournalAbbr"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"mainfieldsbg\">" . fieldError("abbrevJournalName", $errors) . "<input type=\"text\" name=\"abbrevJournalName\" value=\"$abbrevJournalName\" size=\"14\" title=\"". $loc["DescriptionJournalAbbr"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"mainfieldsbg\">"
+			. "\n\t\t" . fieldError("abbrevJournalName", $errors) . "<input type=\"text\" id=\"abbrevJournalName\" name=\"abbrevJournalName\" value=\"$abbrevJournalName\" size=\"14\" title=\"". $loc["DescriptionJournalAbbr"]."\">" . $abbrevJournalSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Volume"]."</b></td>"
-			. "\n\t<td class=\"mainfieldsbg\">" . fieldError("volumeNo", $errors) . "<input type=\"text\" name=\"volumeNo\" value=\"$volumeNo\" size=\"14\" title=\"". $loc["DescriptionVolume"]."\"></td>"
+			. "\n\t<td class=\"mainfieldsbg\">"
+			. "\n\t\t" . fieldError("volumeNo", $errors) . "<input type=\"text\" id=\"volumeNo\" name=\"volumeNo\" value=\"$volumeNo\" size=\"14\" title=\"". $loc["DescriptionVolume"]."\">" . $volumeSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Issue"]."</b></td>"
-			. "\n\t<td class=\"mainfieldsbg\"><input type=\"text\" name=\"issueNo\" value=\"$issueNo\" size=\"14\" title=\"". $loc["DescriptionIssue"]."\"></td>"
+			. "\n\t<td class=\"mainfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"issueNo\" name=\"issueNo\" value=\"$issueNo\" size=\"14\" title=\"". $loc["DescriptionIssue"]."\">" . $issueSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Pages"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"mainfieldsbg\">" . fieldError("pagesNo", $errors) . "<input type=\"text\" name=\"pagesNo\" value=\"$pagesNo\" size=\"14\" title=\"". $loc["DescriptionPages"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"mainfieldsbg\">"
+			. "\n\t\t" . fieldError("pagesNo", $errors) . "<input type=\"text\" id=\"pagesNo\" name=\"pagesNo\" value=\"$pagesNo\" size=\"14\" title=\"". $loc["DescriptionPages"]."\">" . $pagesSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Keywords"]."</b></td>"
-			. "\n\t<td colspan=\"5\" class=\"otherfieldsbg\"><input type=\"text\" name=\"keywordsName\" value=\"$keywordsName\" size=\"85\" title=\"". $loc["DescriptionKeywords"]."\"></td>"
+			. "\n\t<td colspan=\"5\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"keywordsName\" name=\"keywordsName\" value=\"$keywordsName\" size=\"84\" title=\"". $loc["DescriptionKeywords"]."\">" . $keywordsSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Abstract"]."</b></td>"
-			. "\n\t<td colspan=\"5\" class=\"otherfieldsbg\"><textarea name=\"abstractName\" rows=\"6\" cols=\"83\" title=\"". $loc["DescriptionAbstract"]."\">$abstractName</textarea></td>"
+			. "\n\t<td colspan=\"5\" class=\"otherfieldsbg\"><textarea id=\"abstractName\" name=\"abstractName\" rows=\"6\" cols=\"83\" title=\"". $loc["DescriptionAbstract"]."\">$abstractName</textarea></td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Address"]."</b></td>"
-			. "\n\t<td colspan=\"5\" class=\"otherfieldsbg\"><input type=\"text\" name=\"addressName\" value=\"$addressName\" size=\"85\" title=\"". $loc["DescriptionAdress"]."\"></td>"
+			. "\n\t<td colspan=\"5\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"addressName\" name=\"addressName\" value=\"$addressName\" size=\"84\" title=\"". $loc["DescriptionAdress"]."\">" . $addressSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["CorporateAuthor"]."</b></td>"
-			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\"><input type=\"text\" name=\"corporateAuthorName\" value=\"$corporateAuthorName\" size=\"48\" title=\"". $loc["DescriptionCorporate"]."\"></td>"
+			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"corporateAuthorName\" name=\"corporateAuthorName\" value=\"$corporateAuthorName\" size=\"47\" title=\"". $loc["DescriptionCorporate"]."\">" . $corporateAuthorSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Thesis"]."</b></td>";
 
-	$thesisType = "\n\t<td align=\"right\" class=\"otherfieldsbg\">\n\t\t<select name=\"thesisName\" title=\"". $loc["DescriptionThesis"]."\">\n\t\t\t<option></option>\n\t\t\t<option value=\"Bachelor's thesis\">" . $loc["Bachelor's thesis"] . "</option>\n\t\t\t<option value=\"Master's thesis\">" . $loc["Master's thesis"] . "</option>\n\t\t\t<option value=\"Ph.D. thesis\">" . $loc["Ph.D. thesis"] . "</option>\n\t\t\t<option value=\"Diploma thesis\">" . $loc["Diploma thesis"] . "</option>\n\t\t\t<option value=\"Doctoral thesis\">" . $loc["Doctoral thesis"] . "</option>\n\t\t\t<option value=\"Habilitation thesis\">" . $loc["Habilitation thesis"] . "</option>\n\t\t</select>\n\t</td>";
+	$thesisType = "\n\t<td align=\"right\" class=\"otherfieldsbg\">\n\t\t<select id=\"thesisName\" name=\"thesisName\" title=\"". $loc["DescriptionThesis"]."\">\n\t\t\t<option></option>\n\t\t\t<option value=\"Bachelor's thesis\">" . $loc["Bachelor's thesis"] . "</option>\n\t\t\t<option value=\"Master's thesis\">" . $loc["Master's thesis"] . "</option>\n\t\t\t<option value=\"Ph.D. thesis\">" . $loc["Ph.D. thesis"] . "</option>\n\t\t\t<option value=\"Diploma thesis\">" . $loc["Diploma thesis"] . "</option>\n\t\t\t<option value=\"Doctoral thesis\">" . $loc["Doctoral thesis"] . "</option>\n\t\t\t<option value=\"Habilitation thesis\">" . $loc["Habilitation thesis"] . "</option>\n\t\t</select>\n\t</td>";
 	if (!empty($thesisName))
 		$thesisType = preg_replace("/<option (value=\"" . $thesisName . "\")>/", "<option \\1 selected>", $thesisType);
 
@@ -1137,58 +1257,96 @@
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Publisher"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"publisherName\" value=\"$publisherName\" size=\"14\" title=\"". $loc["DescriptionPublisher"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"publisherName\" name=\"publisherName\" value=\"$publisherName\" size=\"14\" title=\"". $loc["DescriptionPublisher"]."\">" . $publisherSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["PublisherPlace"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\" class=\"otherfieldsbg\"><input type=\"text\" name=\"placeName\" value=\"$placeName\" size=\"14\" title=\"". $loc["DescriptionPublisherPlace"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"placeName\" name=\"placeName\" value=\"$placeName\" size=\"14\" title=\"". $loc["DescriptionPublisherPlace"]."\">" . $placeSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Editor"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"text\" name=\"editorName\" value=\"$editorName\" size=\"14\" title=\"". $loc["DescriptionEditor"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"editorName\" name=\"editorName\" value=\"$editorName\" size=\"14\" title=\"". $loc["DescriptionEditor"]."\">" . $editorSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Language"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\">" . fieldError("languageName", $errors) . "<input type=\"text\" name=\"languageName\" value=\"$languageName\" size=\"14\" title=\"". $loc["DescriptionLanguage"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t" . fieldError("languageName", $errors) . "<input type=\"text\" id=\"languageName\" name=\"languageName\" value=\"$languageName\" size=\"14\" title=\"". $loc["DescriptionLanguage"]."\">" . $languageSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["LanguageSummary"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"summaryLanguageName\" value=\"$summaryLanguageName\" size=\"14\" title=\"". $loc["DescriptionLanguageSummary"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"summaryLanguageName\" name=\"summaryLanguageName\" value=\"$summaryLanguageName\" size=\"14\" title=\"". $loc["DescriptionLanguageSummary"]."\">" . $summaryLanguageSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["TitleOriginal"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"text\" name=\"origTitleName\" value=\"$origTitleName\" size=\"14\" title=\"". $loc["DescriptionTitleOriginal"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"origTitleName\" name=\"origTitleName\" value=\"$origTitleName\" size=\"14\" title=\"". $loc["DescriptionTitleOriginal"]."\">" . $origTitleSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["SeriesEditor"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"seriesEditorName\" value=\"$seriesEditorName\" size=\"14\" title=\"". $loc["DescriptionSeriesEditor"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"seriesEditorName\" name=\"seriesEditorName\" value=\"$seriesEditorName\" size=\"14\" title=\"". $loc["DescriptionSeriesEditor"]."\">" . $seriesEditorSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["TitleSeries"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"seriesTitleName\" value=\"$seriesTitleName\" size=\"14\" title=\"". $loc["DescriptionTitleSeries"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"seriesTitleName\" name=\"seriesTitleName\" value=\"$seriesTitleName\" size=\"14\" title=\"". $loc["DescriptionTitleSeries"]."\">" . $seriesTitleSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["TitleSeriesAbbr"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"text\" name=\"abbrevSeriesTitleName\" value=\"$abbrevSeriesTitleName\" size=\"14\" title=\"". $loc["DescriptionTitleSeriesAbbr"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"abbrevSeriesTitleName\" name=\"abbrevSeriesTitleName\" value=\"$abbrevSeriesTitleName\" size=\"14\" title=\"". $loc["DescriptionTitleSeriesAbbr"]."\">" . $abbrevSeriesTitleSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["SeriesVolume"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"seriesVolumeNo\" value=\"$seriesVolumeNo\" size=\"14\" title=\"". $loc["DescriptionSeriesVolume"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"seriesVolumeNo\" name=\"seriesVolumeNo\" value=\"$seriesVolumeNo\" size=\"14\" title=\"". $loc["DescriptionSeriesVolume"]."\">" . $seriesVolumeSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["SeriesIssue"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"seriesIssueNo\" value=\"$seriesIssueNo\" size=\"14\" title=\"". $loc["DescriptionSeriesIssue"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"seriesIssueNo\" name=\"seriesIssueNo\" value=\"$seriesIssueNo\" size=\"14\" title=\"". $loc["DescriptionSeriesIssue"]."\">" . $seriesIssueSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Edition"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"text\" name=\"editionNo\" value=\"$editionNo\" size=\"14\" title=\"". $loc["DescriptionEdition"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"editionNo\" name=\"editionNo\" value=\"$editionNo\" size=\"14\" title=\"". $loc["DescriptionEdition"]."\">" . $editionSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["ISSN"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"issnName\" value=\"$issnName\" size=\"14\" title=\"". $loc["DescriptionISSN"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"issnName\" name=\"issnName\" value=\"$issnName\" size=\"14\" title=\"". $loc["DescriptionISSN"]."\">" . $issnSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["ISBN"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"isbnName\" value=\"$isbnName\" size=\"14\" title=\"". $loc["DescriptionISBN"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"isbnName\" name=\"isbnName\" value=\"$isbnName\" size=\"14\" title=\"". $loc["DescriptionISBN"]."\">" . $isbnSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Medium"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"text\" name=\"mediumName\" value=\"$mediumName\" size=\"14\" title=\"". $loc["DescriptionMedium"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"mediumName\" name=\"mediumName\" value=\"$mediumName\" size=\"14\" title=\"". $loc["DescriptionMedium"]."\">" . $mediumSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Area"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"areaName\" value=\"$areaName\" size=\"14\" title=\"". $loc["DescriptionArea"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"areaName\" name=\"areaName\" value=\"$areaName\" size=\"14\" title=\"". $loc["DescriptionArea"]."\">" . $areaSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Expedition"]."</b></td>"
-			. "\n\t<td class=\"otherfieldsbg\"><input type=\"text\" name=\"expeditionName\" value=\"$expeditionName\" size=\"14\" title=\"". $loc["DescriptionExpedition"]."\"></td>"
+			. "\n\t<td class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"expeditionName\" name=\"expeditionName\" value=\"$expeditionName\" size=\"14\" title=\"". $loc["DescriptionExpedition"]."\">" . $expeditionSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Conference"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"text\" name=\"conferenceName\" value=\"$conferenceName\" size=\"14\" title=\"". $loc["DescriptionConference"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"conferenceName\" name=\"conferenceName\" value=\"$conferenceName\" size=\"14\" title=\"". $loc["DescriptionConference"]."\">" . $conferenceSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Notes"]."</b></td>"
-			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\"><input type=\"text\" name=\"notesName\" value=\"$notesName\" size=\"48\" title=\"". $loc["DescriptionNotes"]."\"></td>"
+			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"notesName\" name=\"notesName\" value=\"$notesName\" size=\"47\" title=\"". $loc["DescriptionNotes"]."\">" . $notesSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Approved"]."</b></td>";
 
-	$approved = "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"radio\" name=\"approvedRadio\" value=\"yes\" title=\"". $loc["DescriptionApproved"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"approvedRadio\" value=\"no\" title=\"". $loc["DescriptionApproved"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
+	$approved = "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"radio\" id=\"approvedRadioA\" name=\"approvedRadio\" value=\"yes\" title=\"". $loc["DescriptionApproved"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" id=\"approvedRadioB\" name=\"approvedRadio\" value=\"no\" title=\"". $loc["DescriptionApproved"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
 	if ($approvedRadio == "yes")
 		$approved = ereg_replace("name=\"approvedRadio\" value=\"yes\"", "name=\"approvedRadio\" value=\"yes\" checked", $approved);
 	else // ($approvedRadio == "no")
@@ -1198,26 +1356,36 @@
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["Location"]."</b></td>"
-			. "\n\t<td colspan=\"5\" class=\"otherfieldsbg\"><input type=\"text\" name=\"locationName\" value=\"$locationName\" size=\"85\" title=\"". $loc["DescriptionLocation"]."$fieldLockLabel\"$fieldLock></td>"
+			. "\n\t<td colspan=\"5\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"locationName\" name=\"locationName\" value=\"$locationName\" size=\"84\" title=\"". $loc["DescriptionLocation"]."$fieldLockLabel\"$fieldLock>" . $locationSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["CallNumber"]."</b></td>";
 
 	// if the user isn't logged in -OR- any normal user is logged in (not the admin)...
 	if ((!isset($loginEmail)) OR ((isset($loginEmail)) AND ($loginEmail != $adminLoginEmail)))
+	{
 		// ...we just show the user's own call number (if any):
-		echo "\n\t<td colspan=\"3\" class=\"mainfieldsbg\">" . fieldError("callNumberNameUserOnly", $errors) . "<input type=\"text\" name=\"callNumberNameUserOnly\" value=\"$callNumberNameUserOnly\" size=\"48\" title=\"". $loc["DescriptionCallNumber"]."\"></td>";
+		echo "\n\t<td colspan=\"3\" class=\"mainfieldsbg\">"
+				. "\n\t\t" . fieldError("callNumberNameUserOnly", $errors) . "<input type=\"text\" id=\"callNumberNameUserOnly\" name=\"callNumberNameUserOnly\" value=\"$callNumberNameUserOnly\" size=\"47\" title=\"". $loc["DescriptionCallNumber"]."\">" . $callNumberSuggestElements
+				. "\n\t</td>";
+	}
 	else // if the admin is logged in...
+	{
 		// ...we display the full contents of the 'call_number' field:
-		echo "\n\t<td colspan=\"3\" class=\"mainfieldsbg\"><input type=\"text\" name=\"callNumberName\" value=\"$callNumberName\" size=\"48\" title=\"". $loc["DescriptionCallNumberFull"]."\"></td>";
+		echo "\n\t<td colspan=\"3\" class=\"mainfieldsbg\">"
+				. "\n\t\t<input type=\"text\" id=\"callNumberName\" name=\"callNumberName\" value=\"$callNumberName\" size=\"47\" title=\"". $loc["DescriptionCallNumberFull"]."\">" . $callNumberSuggestElements
+				. "\n\t</td>";
+	}
 
 	echo "\n\t<td width=\"74\" class=\"mainfieldsbg\"><b>". $loc["Serial"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"mainfieldsbg\"><input type=\"text\" name=\"serialNo\" value=\"$serialNo\" size=\"14\" title=\"". $loc["DescriptionSerial"]."\" readonly></td>"
+			. "\n\t<td align=\"right\" class=\"mainfieldsbg\"><input type=\"text\" id=\"serialNo\" name=\"serialNo\" value=\"$serialNo\" size=\"14\" title=\"". $loc["DescriptionSerial"]."\" readonly></td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["Marked"]."</b></td>";
 
-	$marked = "\n\t<td class=\"userfieldsbg\"><input type=\"radio\" name=\"markedRadio\" value=\"yes\" title=\"". $loc["DescriptionMarked"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"markedRadio\" value=\"no\" title=\"". $loc["DescriptionMarked"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
+	$marked = "\n\t<td class=\"userfieldsbg\"><input type=\"radio\" id=\"markedRadioA\" name=\"markedRadio\" value=\"yes\" title=\"". $loc["DescriptionMarked"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" id=\"markedRadioB\" name=\"markedRadio\" value=\"no\" title=\"". $loc["DescriptionMarked"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
 	if ($markedRadio == "yes")
 		$marked = ereg_replace("name=\"markedRadio\" value=\"yes\"", "name=\"markedRadio\" value=\"yes\" checked", $marked);
 	else // ($markedRadio == "no")
@@ -1226,14 +1394,14 @@
 	echo "$marked"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["Copy"]."</b></td>";
 	
-	$copy = "\n\t<td class=\"userfieldsbg\">\n\t\t<select name=\"copyName\" title=\"". $loc["DescriptionCopy"]."\">\n\t\t\t<option value=\"true\">". $loc["true"]."</option>\n\t\t\t<option value=\"fetch\">". $loc["fetch"]."</option>\n\t\t\t<option value=\"ordered\">". $loc["ordered"]."</option>\n\t\t\t<option value=\"false\">". $loc["false"]."</option>\n\t\t</select>\n\t</td>";
+	$copy = "\n\t<td class=\"userfieldsbg\">\n\t\t<select id=\"copyName\" name=\"copyName\" title=\"". $loc["DescriptionCopy"]."\">\n\t\t\t<option value=\"true\">". $loc["true"]."</option>\n\t\t\t<option value=\"fetch\">". $loc["fetch"]."</option>\n\t\t\t<option value=\"ordered\">". $loc["ordered"]."</option>\n\t\t\t<option value=\"false\">". $loc["false"]."</option>\n\t\t</select>\n\t</td>";
 	if (!empty($copyName))
 		$copy = preg_replace("/<option(.*?)>" . $loc[$copyName] . "/", "<option\\1 selected>" . $loc[$copyName], $copy);
 	
 	echo "$copy"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["Selected"]."</b></td>";
 
-	$selected = "\n\t<td align=\"right\" class=\"userfieldsbg\"><input type=\"radio\" name=\"selectedRadio\" value=\"yes\" title=\"". $loc["DescriptionSelected"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"selectedRadio\" value=\"no\" title=\"". $loc["DescriptionSelected"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
+	$selected = "\n\t<td align=\"right\" class=\"userfieldsbg\"><input type=\"radio\" id=\"selectedRadioA\" name=\"selectedRadio\" value=\"yes\" title=\"". $loc["DescriptionSelected"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" id=\"selectedRadioB\" name=\"selectedRadio\" value=\"no\" title=\"". $loc["DescriptionSelected"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
 	if ($selectedRadio == "yes")
 		$selected = ereg_replace("name=\"selectedRadio\" value=\"yes\"", "name=\"selectedRadio\" value=\"yes\" checked", $selected);
 	else // ($selectedRadio == "no")
@@ -1243,13 +1411,19 @@
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["UserKeys"]."</b></td>"
-			. "\n\t<td colspan=\"5\" class=\"userfieldsbg\"><input type=\"text\" name=\"userKeysName\" value=\"$userKeysName\" size=\"85\" title=\"". $loc["DescriptionUserKeys"]."\"></td>"
+			. "\n\t<td colspan=\"5\" class=\"userfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"userKeysName\" name=\"userKeysName\" value=\"$userKeysName\" size=\"84\" title=\"". $loc["DescriptionUserKeys"]."\">" . $userKeysSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["UserNotes"]."</b></td>"
-			. "\n\t<td colspan=\"3\" class=\"userfieldsbg\"><input type=\"text\" name=\"userNotesName\" value=\"$userNotesName\" size=\"48\" title=\"". $loc["DescriptionUserNotes"]."\"></td>"
+			. "\n\t<td colspan=\"3\" class=\"userfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"userNotesName\" name=\"userNotesName\" value=\"$userNotesName\" size=\"47\" title=\"". $loc["DescriptionUserNotes"]."\">" . $userNotesSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["UserFile"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"userfieldsbg\"><input type=\"text\" name=\"userFileName\" value=\"$userFileName\" size=\"14\" title=\"". $loc["DescriptionUserFile"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"userfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"userFileName\" name=\"userFileName\" value=\"$userFileName\" size=\"14\" title=\"". $loc["DescriptionUserFile"]."\">" . $userFileSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["UserGroups"]."</b></td>";
@@ -1266,17 +1440,23 @@
 		$userGroupsTitle = $loc["NoPermission"] . $loc["NoPermission_ForUserGroups"];
 	}
 
-	echo "\n\t<td colspan=\"3\" class=\"userfieldsbg\"><input type=\"text\" name=\"userGroupsName\" value=\"$userGroupsName\" size=\"48\"$userGroupsFieldLock title=\"$userGroupsTitle\"></td>"
+	echo "\n\t<td colspan=\"3\" class=\"userfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"userGroupsName\" name=\"userGroupsName\" value=\"$userGroupsName\" size=\"47\"$userGroupsFieldLock title=\"$userGroupsTitle\">" . $userGroupsSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["CiteKey"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"userfieldsbg\"><input type=\"text\" name=\"citeKeyName\" value=\"$citeKeyName\" size=\"14\" title=\"". $loc["DescriptionCiteKey"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"userfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"citeKeyName\" name=\"citeKeyName\" value=\"$citeKeyName\" size=\"14\" title=\"". $loc["DescriptionCiteKey"]."\">" . $citeKeySuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["Related"]."</b></td>"
-			. "\n\t<td colspan=\"5\" class=\"userfieldsbg\"><input type=\"text\" name=\"relatedName\" value=\"$relatedName\" size=\"85\" title=\"". $loc["DescriptionRelated"]."\"></td>"
+			. "\n\t<td colspan=\"5\" class=\"userfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"relatedName\" name=\"relatedName\" value=\"$relatedName\" size=\"84\" title=\"". $loc["DescriptionRelated"]."\">" . $relatedSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["File"]."</b></td>"
-			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\"><input type=\"text\" name=\"fileName\" value=\"$fileName\" size=\"48\" title=\"". $loc["DescriptionFile"]."\"$fieldLock></td>";
+			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\"><input type=\"text\" id=\"fileName\" name=\"fileName\" value=\"$fileName\" size=\"47\" title=\"". $loc["DescriptionFile"]."\"$fieldLock></td>";
 
 	if (isset($_SESSION['user_permissions']) AND ereg("allow_upload", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_upload'...
 	// adjust the title string for the upload button:
@@ -1294,9 +1474,13 @@
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["URL"]."</b></td>"
-			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\"><input type=\"text\" name=\"urlName\" value=\"$urlName\" size=\"48\" title=\"". $loc["DescriptionURL"]."\"></td>"
+			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"urlName\" name=\"urlName\" value=\"$urlName\" size=\"47\" title=\"". $loc["DescriptionURL"]."\">" . $urlSuggestElements
+			. "\n\t</td>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["DOI"]."</b></td>"
-			. "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"text\" name=\"doiName\" value=\"$doiName\" size=\"14\" title=\"". $loc["DescriptionDOI"]."\"></td>"
+			. "\n\t<td align=\"right\" class=\"otherfieldsbg\">"
+			. "\n\t\t<input type=\"text\" id=\"doiName\" name=\"doiName\" value=\"$doiName\" size=\"14\" title=\"". $loc["DescriptionDOI"]."\">" . $doiSuggestElements
+			. "\n\t</td>"
 			. "\n</tr>";
 
 	if ($onlinePublication == "yes") // if the 'online_publication' field value is "yes"
@@ -1306,8 +1490,10 @@
 
 	echo "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\">&nbsp;</td>"
-			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\">\n\t\t<input type=\"checkbox\" name=\"onlinePublicationCheckBox\" value=\"1\"$onlinePublicationCheckBoxIsChecked title=\"". $loc["DescriptionOnlinePublicationCheckbox"]."\">&nbsp;"
-			. "\n\t\t". $loc["Online publication. Cite with this text:"]."&nbsp;<input type=\"text\" name=\"onlineCitationName\" value=\"$onlineCitationName\" size=\"9\" title=\"". $loc["DescriptionOnlinePublicationCitation"]."\">\n\t</td>";
+			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\">\n\t\t<input type=\"checkbox\" id=\"onlinePublicationCheckBox\" name=\"onlinePublicationCheckBox\" value=\"1\"$onlinePublicationCheckBoxIsChecked title=\"". $loc["DescriptionOnlinePublicationCheckbox"]."\">&nbsp;"
+			. "\n\t\t". $loc["Online publication. Cite with this text:"]."&nbsp;"
+			. "\n\t\t<input type=\"text\" id=\"onlineCitationName\" name=\"onlineCitationName\" value=\"$onlineCitationName\" size=\"7\" title=\"". $loc["DescriptionOnlinePublicationCitation"]."\">" . $onlineCitationSuggestElements
+			. "\n\t</td>";
 
 	if (isset($loginEmail)) // if a user is logged in...
 	{
@@ -1322,7 +1508,7 @@
 		else
 			$contributionIDCheckBoxLock = "";
 
-		echo "\n\t<td colspan=\"2\" class=\"otherfieldsbg\">\n\t\t<input type=\"checkbox\" name=\"contributionIDCheckBox\" value=\"1\"$contributionIDCheckBoxIsChecked title=\"". $loc["DescriptionOwnPublication"]."\"$contributionIDCheckBoxLock>&nbsp;"
+		echo "\n\t<td colspan=\"2\" class=\"otherfieldsbg\">\n\t\t<input type=\"checkbox\" id=\"contributionIDCheckBox\" name=\"contributionIDCheckBox\" value=\"1\"$contributionIDCheckBoxIsChecked title=\"". $loc["DescriptionOwnPublication"]."\"$contributionIDCheckBoxLock>&nbsp;"
 				. "\n\t\t". encodeHTML($abbrevInstitution) . " " . $loc["publication"] . "\n\t</td>"; // we make use of the session variable '$abbrevInstitution' here
 	}
 	else
@@ -1339,7 +1525,7 @@
 	echo "\n<tr>"
 			. "\n\t<td width=\"74\">". $loc["Location Field"].":</td>";
 
-	$locationSelector = "\n\t<td colspan=\"3\">\n\t\t<select name=\"locationSelectorName\" title=\"". $loc["DescriptionLocationSelector"]."\">\n\t\t\t<option value=\"don't touch\">". $loc["don't touch"]."</option>\n\t\t\t<option value=\"add\">". $loc["add"]."</option>\n\t\t\t<option value=\"remove\">". $loc["remove"]."</option>\n\t\t</select>&nbsp;&nbsp;\n\t\t". $loc["my name & email address"]."\n\t</td>";
+	$locationSelector = "\n\t<td colspan=\"3\">\n\t\t<select id=\"locationSelectorName\" name=\"locationSelectorName\" title=\"". $loc["DescriptionLocationSelector"]."\">\n\t\t\t<option value=\"don't touch\">". $loc["don't touch"]."</option>\n\t\t\t<option value=\"add\">". $loc["add"]."</option>\n\t\t\t<option value=\"remove\">". $loc["remove"]."</option>\n\t\t</select>&nbsp;&nbsp;\n\t\t". $loc["my name & email address"]."\n\t</td>";
 	if ($recordAction == "edit" AND !empty($locationSelectorName))
 		$locationSelector = preg_replace("/<option(.*?)>" . $loc[$locationSelectorName] . "/", "<option\\1 selected>" . $loc[$locationSelectorName], $locationSelector);
 	elseif ($recordAction == "add")
