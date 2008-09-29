@@ -33,7 +33,8 @@
 		global $defaultStyleSheet;
 		global $printStyleSheet;
 		global $mobileStyleSheet;
-		global $defaultLanguage;
+		global $autoCompleteUserInput;
+		global $useVisualEffects;
 		global $databaseBaseURL;
 		global $databaseKeywords;
 		global $defaultFeedFormat;
@@ -52,7 +53,7 @@
 			echo $additionalMeta;
 ?>
 
-	<meta http-equiv="content-language" content="<?php echo $defaultLanguage; ?>">
+	<meta http-equiv="content-language" content="<?php echo getUserLanguage(); ?>">
 	<meta http-equiv="content-type" content="text/html; charset=<?php echo $contentTypeCharset; ?>">
 	<meta http-equiv="Content-Style-Type" content="text/css"><?php
 
@@ -95,17 +96,26 @@
 	<link rel="unapi-server" type="application/xml" title="unAPI" href="<?php echo $databaseBaseURL; ?>unapi.php">
 	<link rel="search" type="application/opensearchdescription+xml" title="<?php echo encodeHTML($officialDatabaseName); ?>" href="<?php echo $databaseBaseURL; ?>opensearch.php?operation=explain"><?php
 
-		if ($includeJavaScript)
+		if ($includeJavaScript OR ($autoCompleteUserInput == "yes") OR ($useVisualEffects == "yes"))
 		{
-			// ...include a script tag to include common JavaScript functions:
+			// ...include common refbase JavaScript functions:
 ?>
 
 	<script language="JavaScript" type="text/javascript" src="javascript/common.js"></script><?php
 		}
 
+		if (($autoCompleteUserInput == "yes") OR ($useVisualEffects == "yes"))
+		{
+			// ...include the Prototype & script.aculo.us JavaScript frameworks:
+?>
+
+	<script language="JavaScript" type="text/javascript" src="javascript/prototype.js"></script>
+	<script language="JavaScript" type="text/javascript" src="javascript/scriptaculous.js?load=effects,controls"></script><?php
+		}
+
 		if (!empty($includeJavaScriptFile))
 		{
-			// ...include another script tag to include additional JavaScript functions:
+			// ...include additional JavaScript functions:
 ?>
 
 	<script language="JavaScript" type="text/javascript" src="<?php echo $includeJavaScriptFile; ?>"></script><?php
