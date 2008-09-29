@@ -191,15 +191,20 @@
 
 	$userID = "";
 
-	if (preg_match('/^(bib.citekey|cite_key)( +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/', $sruQuery)) // if the given index is a recognized user-specific field
+	if (preg_match('/^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|bib\.citekey|cite_key|related)( +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/', $sruQuery)) // if the given index is a recognized user-specific field
 		$userSpecificIndex = true;
 	else
 		$userSpecificIndex = false;
 
+	if (preg_match('/^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|related)( +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/', $sruQuery)) // if the given index is one of the private fields (i.e. any user-specific field but the 'cite_key' field)
+		$privateIndex = true;
+	else
+		$privateIndex = false;
+
 	// return diagnostic if no authentication token was given while querying a user-specific index:
 	if (empty($authenticationToken) AND $userSpecificIndex)
 	{
-		returnDiagnostic(3, "Querying of user-specific fields requires the 'x-info-2-auth1.0-authenticationToken' parameter (format: 'email=<email_address>')"); // authentication error: 'x-...authenticationToken' parameter is missing but required
+		returnDiagnostic(3, "Querying of user-specific fields requires the 'x-info-2-auth1.0-authenticationToken' parameter (format: 'email=EMAIL_ADDRESS')"); // authentication error: 'x-...authenticationToken' parameter is missing but required
 		exit;
 	}
 	else if (!empty($authenticationToken)) // extract any authentication information that was passed with the query:
@@ -214,7 +219,15 @@
 		// if an unrecognized email address was given while querying a user-specific index:
 		if (empty($userID) AND $userSpecificIndex)
 		{
-			returnDiagnostic(3, "Couldn't map given authentication token to an existing user (expecting format: 'email=<email_address>'"); // authentication error: couldn't map email address to user ID
+			returnDiagnostic(3, "Couldn't map given authentication token to an existing user (expecting format: 'email=EMAIL_ADDRESS')"); // authentication error: couldn't map email address to user ID
+			exit;
+		}
+
+		// if the passed email address could be resolved to a user ID but the current user has no permission to query/view the contents of any private fields for this user ID:
+		// (i.e. if the user isn't logged in OR if the found user ID is not his own)
+		elseif (!empty($userID) AND $privateIndex AND (!isset($_SESSION['loginEmail']) OR (isset($_SESSION['loginEmail']) AND ($loginUserID != $userID)))) // '$loginUserID' is provided as session variable
+		{
+			returnDiagnostic(68, "You have no permission to query or view any private data for the given email address"); // not authorised to request other user's private data
 			exit;
 		}
 	}
@@ -315,7 +328,6 @@
 		// for users who aren't logged in if the query originates from 'sru.php'). For logged in users, the 'verifySQLQuery()' function would add a 'LEFT JOIN...'
 		// statement (if not present) containing the users *own* user ID. By adding the 'LEFT JOIN...' statement explicitly here (which won't get touched by
 		// 'verifySQLQuery()') we allow any user's 'cite_key' field to be queried by every user (e.g., by URLs like: 'sru.php?version=1.1&query=bib.citekey=...&x-info-2-auth1.0-authenticationToken=email=...').
-		// Note that if you enable other user-specific fields in function 'mapCQLIndexes()' (in 'webservice.inc.php') then these fields will be allowed to be queried by everyone as well!
 		if (!empty($userID)) // the 'x-...authenticationToken' parameter was specified containing an email address that could be resolved to a user ID -> include user specific fields
 			$query .= " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = " . quote_smart($userID); // add FROM clause (including the 'LEFT JOIN...' part); '$tableRefs' and '$tableUserData' are defined in 'db.inc.php'
 		else
