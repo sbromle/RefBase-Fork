@@ -98,144 +98,124 @@
 	                                "title"          => $loc["DropDownFieldName_Title"],
 	                                "year"           => $loc["DropDownFieldName_Year"],
 	                                "publication"    => $loc["DropDownFieldName_Publication"],
-	                                "volume_numeric" => $loc["DropDownFieldName_Volume"], // 'volume' should get replaced automatically by 'volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
+	                                "volume_numeric" => $loc["DropDownFieldName_Volume"], // 'volume_numeric' is used instead of 'volume' in the sort dropdown menus
 	                                "pages"          => $loc["DropDownFieldName_Pages"]);
 
 	$dropDownItems3 = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
+	// Build HTML elements that allow for search suggestions for text entered by the user:
+	if ($autoCompleteUserInput == "yes")
+	{
+		$authorSuggestElements = buildSuggestElements("authorName", "authorSuggestions", "authorSuggestProgress", "col-author-"); // function 'buildSuggestElements()' is defined in 'include.inc.php'
+		$titleSuggestElements = buildSuggestElements("titleName", "titleSuggestions", "titleSuggestProgress", "col-title-");
+		$yearSuggestElements = buildSuggestElements("yearNo", "yearSuggestions", "yearSuggestProgress", "col-year-");
+		$publicationSuggestElements = buildSuggestElements("publicationName2", "publicationSuggestions", "publicationSuggestProgress", "col-publication-");
+		$volumeSuggestElements = buildSuggestElements("volumeNo", "volumeSuggestions", "volumeSuggestProgress", "col-volume-");
+		$pagesSuggestElements = buildSuggestElements("pagesNo", "pagesSuggestions", "pagesSuggestProgress", "col-pages-");
+	}
+	else
+	{
+		$authorSuggestElements = "";
+		$titleSuggestElements = "";
+		$yearSuggestElements = "";
+		$publicationSuggestElements = "";
+		$volumeSuggestElements = "";
+		$pagesSuggestElements = "";
+	}
+
 	// (2b) Start <form> and <table> holding the form elements:
 ?>
 
-<form action="search.php" method="GET">
+<form action="search.php" method="GET" name="simpleSearch">
 <input type="hidden" name="formType" value="simpleSearch">
 <input type="hidden" name="showQuery" value="0">
 <table align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds the search form">
 <tr>
 	<th align="left"><?php echo $loc["Show"]; ?></th>
 	<th align="left"><?php echo $loc["Field"]; ?></th>
-	<th align="left">&nbsp;</th>
 	<th align="left"><?php echo $loc["That..."]; ?></th>
 	<th align="left"><?php echo $loc["Searchstring"]; ?></th>
 </tr>
 <tr>
-	<td width="20" valign="middle"><input type="checkbox" name="showAuthor" value="1" checked></td>
+	<td width="20" valign="middle"><input type="checkbox" id="showAuthor" name="showAuthor" value="1" checked></td>
 	<td width="40"><b><?php echo $loc["Author"]; ?>:</b></td>
-	<td width="10">&nbsp;</td>
 	<td width="125">
-		<select name="authorSelector"><?php echo $dropDownItems1; ?>
+		<select id="authorSelector" name="authorSelector"><?php echo $dropDownItems1; ?>
 
 		</select>
 	</td>
-	<td><input type="text" name="authorName" size="42"></td>
+	<td>
+		<input type="text" id="authorName" name="authorName" size="42"><?php echo $authorSuggestElements; ?>
+
+	</td>
 </tr>
 <tr>
-	<td valign="middle"><input type="checkbox" name="showTitle" value="1" checked></td>
+	<td valign="middle"><input type="checkbox" id="showTitle" name="showTitle" value="1" checked></td>
 	<td><b><?php echo $loc["Title"]; ?>:</b></td>
-	<td>&nbsp;</td>
 	<td>
-		<select name="titleSelector"><?php echo $dropDownItems1; ?>
+		<select id="titleSelector" name="titleSelector"><?php echo $dropDownItems1; ?>
 
 		</select>
 	</td>
-	<td><input type="text" name="titleName" size="42"></td>
+	<td>
+		<input type="text" id="titleName" name="titleName" size="42"><?php echo $titleSuggestElements; ?>
+
+	</td>
 </tr>
 <tr>
-	<td valign="middle"><input type="checkbox" name="showYear" value="1" checked></td>
+	<td valign="middle"><input type="checkbox" id="showYear" name="showYear" value="1" checked></td>
 	<td><b><?php echo $loc["Year"]; ?>:</b></td>
-	<td>&nbsp;</td>
 	<td>
-		<select name="yearSelector"><?php echo $dropDownItems1 . $dropDownItems2; ?>
+		<select id="yearSelector" name="yearSelector"><?php echo $dropDownItems1 . $dropDownItems2; ?>
 
 		</select>
 	</td>
-	<td><input type="text" name="yearNo" size="42"></td>
+	<td>
+		<input type="text" id="yearNo" name="yearNo" size="42"><?php echo $yearSuggestElements; ?>
+
+	</td>
 </tr>
 <tr>
-	<td valign="middle"><input type="checkbox" name="showPublication" value="1" checked></td>
+	<td valign="middle"><input type="checkbox" id="showPublication" name="showPublication" value="1" checked></td>
 	<td><b><?php echo $loc["Publication"]; ?>:</b></td>
-	<td align="center"><input type="radio" name="publicationRadio" value="1" checked></td>
 	<td>
-		<select name="publicationSelector"><?php echo $dropDownItems1; ?>
+		<input type="hidden" id="publicationRadioB" name="publicationRadio" value="0">
+		<select id="publicationSelector2" name="publicationSelector2"><?php echo $dropDownItems1; ?>
 
 		</select>
 	</td>
-	<td><?php
-
-	// (3) Run the query on the literature database through the connection:
-	//     (here by use of the 'selectDistinct' function)
-	// Produce the select list
-	// Parameters:
-	// 1: Database connection
-	// 2. Table that contains values
-	// 3. The field name of the table's primary key
-	// 4. Table name of the user data table
-	// 5. The field name within the user data table that corresponds to the field in 3.
-	// 6. The field name of the user ID field within the user data table
-	// 7. The user ID of the currently logged in user (which must be provided as a session variable)
-	// 8. Attribute that contains values
-	// 9. <SELECT> element name
-	// 10. An additional non-database value (display string)
-	// 11. String that gets submitted instead of the display string given in 10.
-	// 12. Optional <OPTION SELECTED>
-	// 13. Restrict query to field... (keep empty if no restriction wanted)
-	// 14. ...where field contents are...
-	// 15. Split field contents into substrings? (yes = true, no = false)
-	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	echo selectDistinct($connection,
-	                    $tableRefs,
-	                    "serial",
-	                    $tableUserData,
-	                    "record_id",
-	                    "user_id",
-	                    $loginUserID,
-	                    "publication",
-	                    "publicationName",
-	                    $loc["All"],
-	                    "All",
-	                    $loc["All"],
-	                    "type",
-	                    "\"journal\"",
-	                    false,
-	                    "");
-?>
+	<td>
+		<input type="text" id="publicationName2" name="publicationName2" size="42"><?php echo $publicationSuggestElements; ?>
 
 	</td>
 </tr>
 <tr>
-	<td>&nbsp;</td>
-	<td align="right"><?php echo $loc["or"]; ?>:</td>
-	<td align="center"><input type="radio" name="publicationRadio" value="0"></td>
-	<td>
-		<select name="publicationSelector2"><?php echo $dropDownItems1; ?>
-
-		</select>
-	</td>
-	<td><input type="text" name="publicationName2" size="42"></td>
-</tr>
-<tr>
-	<td valign="middle"><input type="checkbox" name="showVolume" value="1" checked></td>
+	<td valign="middle"><input type="checkbox" id="showVolume" name="showVolume" value="1" checked></td>
 	<td><b><?php echo $loc["Volume"]; ?>:</b></td>
-	<td>&nbsp;</td>
 	<td>
-		<select name="volumeSelector"><?php echo $dropDownItems1 . $dropDownItems2; ?>
+		<select id="volumeSelector" name="volumeSelector"><?php echo $dropDownItems1 . $dropDownItems2; ?>
 
 		</select>
 	</td>
-	<td><input type="text" name="volumeNo" size="42"></td>
+	<td>
+		<input type="text" id="volumeNo" name="volumeNo" size="42"><?php echo $volumeSuggestElements; ?>
+
+	</td>
 </tr>
 <tr>
-	<td valign="middle"><input type="checkbox" name="showPages" value="1" checked></td>
+	<td valign="middle"><input type="checkbox" id="showPages" name="showPages" value="1" checked></td>
 	<td><b><?php echo $loc["Pages"]; ?>:</b></td>
-	<td>&nbsp;</td>
 	<td>
-		<select name="pagesSelector"><?php echo $dropDownItems1; ?>
+		<select id="pagesSelector" name="pagesSelector"><?php echo $dropDownItems1; ?>
 
 		</select>
 	</td>
-	<td><input type="text" name="pagesNo" size="42"></td>
+	<td>
+		<input type="text" id="pagesNo" name="pagesNo" size="42"><?php echo $pagesSuggestElements; ?>
+
+	</td>
 </tr>
 <tr>
-	<td>&nbsp;</td>
 	<td>&nbsp;</td>
 	<td>&nbsp;</td>
 	<td>&nbsp;</td>
@@ -244,12 +224,10 @@
 <tr>
 	<td>&nbsp;</td>
 	<td valign="top"><b><?php echo $loc["DisplayOptions"]; ?>:</b></td>
-	<td>&nbsp;</td>
-	<td valign="middle"><input type="checkbox" name="showLinks" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowLinks"]; ?></td>
-	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" name="showRows" value="<?php echo $showRows; ?>" size="4" title="<?php echo $loc["DescriptionShowRecordsPerPage"]; ?>">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
+	<td valign="middle"><input type="checkbox" id="showLinks" name="showLinks" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowLinks"]; ?></td>
+	<td valign="middle"><?php echo $loc["ShowRecordsPerPage_Prefix"]; ?>&nbsp;&nbsp;&nbsp;<input type="text" id="showRows" name="showRows" value="<?php echo $showRows; ?>" size="4" title="<?php echo $loc["DescriptionShowRecordsPerPage"]; ?>">&nbsp;&nbsp;&nbsp;<?php echo $loc["ShowRecordsPerPage_Suffix"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="<?php echo $loc["ButtonTitle_Search"]; ?>"></td>
 </tr>
 <tr>
-	<td>&nbsp;</td>
 	<td>&nbsp;</td>
 	<td>&nbsp;</td>
 	<td>&nbsp;</td>
@@ -258,9 +236,8 @@
 <tr>
 	<td>&nbsp;</td>
 	<td>1.&nbsp;<?php echo $loc["sort by"]; ?>:</td>
-	<td>&nbsp;</td>
 	<td>
-		<select name="sortSelector1"><?php
+		<select id="sortSelector1" name="sortSelector1"><?php
 
 $sortSelector1DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems3); // select the 'author' menu entry ...
 echo $sortSelector1DropDownItems;
@@ -269,17 +246,16 @@ echo $sortSelector1DropDownItems;
 		</select>
 	</td>
 	<td>
-		<input type="radio" name="sortRadio1" value="0" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ascending"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<input type="radio" name="sortRadio1" value="1">&nbsp;&nbsp;&nbsp;<?php echo $loc["descending"]; ?>
+		<input type="radio" id="sortRadio1A" name="sortRadio1" value="0" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ascending"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="radio" id="sortRadio1B" name="sortRadio1" value="1">&nbsp;&nbsp;&nbsp;<?php echo $loc["descending"]; ?>
 
 	</td>
 </tr>
 <tr>
 	<td>&nbsp;</td>
 	<td>2.&nbsp;<?php echo $loc["sort by"]; ?>:</td>
-	<td>&nbsp;</td>
 	<td>
-		<select name="sortSelector2"><?php
+		<select id="sortSelector2" name="sortSelector2"><?php
 
 $sortSelector2DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Year"], "<option\\1 selected>" . $loc["DropDownFieldName_Year"], $dropDownItems3); // select the 'year' menu entry ...
 echo $sortSelector2DropDownItems;
@@ -288,17 +264,16 @@ echo $sortSelector2DropDownItems;
 		</select>
 	</td>
 	<td>
-		<input type="radio" name="sortRadio2" value="0">&nbsp;&nbsp;&nbsp;<?php echo $loc["ascending"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<input type="radio" name="sortRadio2" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["descending"]; ?>
+		<input type="radio" id="sortRadio2A" name="sortRadio2" value="0">&nbsp;&nbsp;&nbsp;<?php echo $loc["ascending"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="radio" id="sortRadio2B" name="sortRadio2" value="1" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["descending"]; ?>
 
 	</td>
 </tr>
 <tr>
 	<td>&nbsp;</td>
 	<td>3.&nbsp;<?php echo $loc["sort by"]; ?>:</td>
-	<td>&nbsp;</td>
 	<td>
-		<select name="sortSelector3"><?php
+		<select id="sortSelector3" name="sortSelector3"><?php
 
 $sortSelector3DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Publication"], "<option\\1 selected>" . $loc["DropDownFieldName_Publication"], $dropDownItems3); // select the 'publication' menu entry ...
 echo $sortSelector3DropDownItems;
@@ -307,8 +282,8 @@ echo $sortSelector3DropDownItems;
 		</select>
 	</td>
 	<td>
-		<input type="radio" name="sortRadio3" value="0" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ascending"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<input type="radio" name="sortRadio3" value="1">&nbsp;&nbsp;&nbsp;<?php echo $loc["descending"]; ?>
+		<input type="radio" id="sortRadio3A" name="sortRadio3" value="0" checked>&nbsp;&nbsp;&nbsp;<?php echo $loc["ascending"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="radio" id="sortRadio3B" name="sortRadio3" value="1">&nbsp;&nbsp;&nbsp;<?php echo $loc["descending"]; ?>
 
 	</td>
 </tr>
