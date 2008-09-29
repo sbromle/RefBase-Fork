@@ -199,6 +199,53 @@ div.resultsfooter {
 	font-size: 1em;
 }
 
+.suggestProgress {
+	position: absolute;
+	margin-top: 3px;
+	margin-left: -25px;
+}
+
+.searchSuggestions {
+	background-color: #FFFFFF;
+	border: 1px solid #999999;
+	margin-left: -1px;
+	z-index: 1;
+	text-align: left;
+	font-size: 1em;
+}
+
+.searchSuggestions ul {
+	margin: 0 0 0 -40px;
+	list-style-type: none;
+	font-size: 1em;
+	line-height: 1.3em;
+}
+
+.searchSuggestions li {
+	border-top: 1px solid #999999;
+	padding: 0.15em 0 0.15em 0.5em;
+}
+
+.searchSuggestions .selected {
+	background-color: #DDDDDD;
+}
+
+form[name="record"] .searchSuggestions, form[name="record"] .suggestProgress {
+	font-size: 0.85em;
+}
+
+form[name="show"] .searchSuggestions, form[name="show"] .suggestProgress {
+	font-size: 0.85em;
+}
+
+form[name="simpleSearch"] .searchSuggestions, form[name="simpleSearch"] .suggestProgress {
+	font-size: 0.85em;
+}
+
+#refineresults .searchSuggestions, #refineresults .suggestProgress {
+	font-size: 0.85em;
+}
+
 #queryrefs {
 	margin-top: 1.3em;
 	margin-bottom: -2em;
@@ -395,6 +442,18 @@ div.resultsfooter {
 	display: block;
 	margin-bottom: 0.25em;
 	font-size: 1em;
+}
+
+#refineresults #refineField:lang(en) {
+	width: 16.7em;
+}
+
+#refineresults #refineField:lang(de), #refineresults #refineField:lang(fr) {
+	width: 20.2em;
+}
+
+#refineresults #refineField:lang(cn) {
+	width: 14.1em;
 }
 
 #refineresults #refineOpt, #refineresults #refineSubmit {
