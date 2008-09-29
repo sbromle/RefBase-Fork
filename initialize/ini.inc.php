@@ -158,6 +158,17 @@
 	$faviconImageURL = "img/favicon.ico"; // e.g. "img/favicon.ico"
 
 
+	// Specify whether auto-completions (search suggestions) shall be provided
+	// (via Ajax calls) for user input in text entry fields:
+	$autoCompleteUserInput = "yes"; // possible values: "yes", "no"
+
+
+	// Specify whether visual effects (such as a sliding effect) shall be used
+	// when a user toggles the display of particular GUI sections (e.g. the
+	// Search & Display Options above the search results list):
+	$useVisualEffects = "yes"; // possible values: "yes", "no"
+
+
 	// Defines the default user permissions when adding new users:
 	// Possible values for each of the permission settings: "yes", "no"
 	// Allow a newly created user to:
@@ -657,43 +668,43 @@
 	// disable all access keys, specify an empty array, like: '$accessKeys = array();'
 	$accessKeys = array(
 	                    // page header:
-	                    "home"        => "0", // "Home" link
-	                    "show_all"    => "1", // "Show All" link
-	                    "search"      => "s", // "Simple Search" link
+	                    "home"        => "0", // "Home" link (e.g. "0")
+	                    "show_all"    => "1", // "Show All" link (e.g. "1")
+	                    "search"      => "", // "Simple Search" link (e.g. "s")
 	                    "adv_search"  => "",  // "Advanced Search" link
-	                    "add"         => "a", // "Add Record" link
-	                    "import"      => "i", // "Import" link
-	                    "sql_query"   => "q", // "your query" link
-	                    "save_query"  => "v", // "save" link
-	                    "dups"        => "u", // "dups" link
-	                    "history"     => "y", // "history" link
-	                    "my_refs"     => "7", // "My Refs" link
-	                    "my_opt"      => "8", // "Options" link
-	                    "login"       => "9", // "Login/Logout" link
-	                    "qck_search"  => "f", // text entry field of the "Quick Search" form
+	                    "add"         => "", // "Add Record" link (e.g. "a")
+	                    "import"      => "", // "Import" link (e.g. "i")
+	                    "sql_query"   => "", // "your query" link (e.g. "q")
+	                    "save_query"  => "", // "save" link (e.g. "v")
+	                    "dups"        => "", // "dups" link (e.g. "u")
+	                    "history"     => "", // "history" link (e.g. "y")
+	                    "my_refs"     => "7", // "My Refs" link (e.g. "7")
+	                    "my_opt"      => "8", // "Options" link (e.g. "8")
+	                    "login"       => "9", // "Login/Logout" link (e.g. "9")
+	                    "qck_search"  => "f", // text entry field of the "Quick Search" form (e.g. "f")
 	                    // results header:
-	                    "header"      => ",", // "Search & Display Options" link that toggles visibility of the results header
+	                    "header"      => ",", // "Search & Display Options" link that toggles visibility of the results header (e.g. ",")
 	                    "refine"      => "",  // text entry field of the "Search within Results" form
-	                    "max_rows"    => "r", // "records per page" text entry field of the "Display Options" form
+	                    "max_rows"    => "r", // "records per page" text entry field of the "Display Options" form (e.g. "r")
 	                    // browse links:
-	                    "next"        => "n", // "next results page" link
-	                    "previous"    => "p", // "previous results page" link
-	                    "list"        => "2", // "List View" link
-	                    "cite"        => "3", // "Citations" link
-	                    "details"     => "4", // "Details" link
-	                    "print"       => "5", // "Web/Print View" link
+	                    "next"        => "2", // "next results page" link (e.g. "2" or "n")
+	                    "previous"    => "", // "previous results page" link (e.g. "p")
+	                    "list"        => "3", // "List View" link (e.g. "3")
+	                    "cite"        => "4", // "Citations" link (e.g. "4")
+	                    "details"     => "5", // "Details" link (e.g. "5")
+	                    "print"       => "6", // "Web/Print View" link (e.g. "6")
 	                    // results footer:
-	                    "footer"      => ".", // "Cite, Group & Export Options" link that toggles visibility of the results footer
-	                    "biblio"      => "c", // "Cite" button of the "Save Citations" form
-	                    "export"      => "e", // "Export" button of the "Export Records" form
+	                    "footer"      => ".", // "Cite, Group & Export Options" link that toggles visibility of the results footer (e.g. ".")
+	                    "biblio"      => "", // "Cite" button of the "Save Citations" form (e.g. "c")
+	                    "export"      => "", // "Export" button of the "Export Records" form (e.g. "e")
 	                    // page footer:
 	                    "sql_search"  => "",  // "SQL Search" link
 	                    "lib_search"  => "",  // "Library Search" link
-	                    "show_rec"    => "w", // "Show Record" link
-	                    "extract"     => "x", // "Extract Citations" link
+	                    "show_rec"    => "", // "Show Record" link (e.g. "w")
+	                    "extract"     => "", // "Extract Citations" link (e.g. "x")
 	                    // search pages:
-	                    "search_opt"  => ",", // "Search/Display Options" link that toggles visibility of the search/display options
-	                    "search_help" => ".", // "Help/Examples" link that toggles visibility of the inline help/examples
+	                    "search_opt"  => ",", // "Search/Display Options" link that toggles visibility of the search/display options (e.g. ",")
+	                    "search_help" => ".", // "Help/Examples" link that toggles visibility of the inline help/examples (e.g. ".")
 	                   );
 
 
