@@ -451,10 +451,16 @@
 
 		$dropDownItems2 = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
+		// Build HTML elements that allow for search suggestions for text entered by the user:
+		if ($autoCompleteUserInput == "yes")
+			$suggestElements = buildSuggestElements("recordID", "showSuggestions", "showSuggestProgress", "id-recordIDSelector-"); // function 'buildSuggestElements()' is defined in 'include.inc.php'
+		else
+			$suggestElements = "";
+
 		// Start <form> and <table> holding the form elements:
 ?>
 
-<form action="show.php" method="GET">
+<form action="show.php" method="GET" name="show">
 <input type="hidden" name="formType" value="show">
 <input type="hidden" name="submit" value="<?php echo $loc["ButtonTitle_ShowRecord"]; ?>">
 <input type="hidden" name="showLinks" value="1">
@@ -464,16 +470,19 @@
 	<td width="58" valign="top"><b><?php echo $loc["ShowRecord"]; ?>:</b></td>
 	<td width="10">&nbsp;</td>
 	<td width="<?php echo $recordIDCellWidth; ?>">
-		<select name="recordIDSelector"><?php echo $dropDownItems2; ?>
+		<select id="recordIDSelector" name="recordIDSelector"><?php echo $dropDownItems2; ?>
 
 		</select>
 	</td>
 	<td width="122">
-		<select name="recordConditionalSelector"><?php echo $dropDownItems1; ?>
+		<select id="recordConditionalSelector" name="recordConditionalSelector"><?php echo $dropDownItems1; ?>
 
 		</select>
 	</td>
-	<td><input type="text" name="serial" value="" size="14"></td>
+	<td>
+		<input type="text" id="recordID" name="serial" value="" size="14"><?php echo $suggestElements; ?>
+
+	</td>
 </tr>
 <tr>
 	<td>&nbsp;</td>
