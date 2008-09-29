@@ -145,7 +145,7 @@
 
 			if (!eregi("^cli", $client))
 			{
-				if (eregi(".+extract\.php", $referer)) // if the query was submitted by 'extract.php' (variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php')
+				if (eregi("/extract\.php", $referer)) // if the query was submitted by 'extract.php' (variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php')
 					header("Location: " . $referer); // redirect to calling page
 				else
 					header("Location: index.php"); // redirect to main page ('index.php')
@@ -168,7 +168,7 @@
 		}
 	}
 
-	if ($formType == "sqlSearch" AND eregi(".+/sql_search\.php", $referer))
+	if ($formType == "sqlSearch" AND eregi("/sql_search\.php", $referer))
 	{
 		// NOTES: - currently, we restrict this if clause to requests from 'sql_search.php'
 		//        - note that this if clause is in NO way fool-proof since it won't apply if:
@@ -198,7 +198,7 @@
 
 			if (!eregi("^cli", $client))
 			{
-				if (eregi(".+/sql_search\.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php'
+				if (eregi("/sql_search\.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php'
 					header("Location: " . $referer); // redirect to calling page
 				else
 					header("Location: index.php"); // redirect to main page ('index.php')
@@ -376,7 +376,7 @@
 		$recordsSelectionRadio = "1"; // process ALL records
 
 	// check if the user did mark any checkboxes (and set up variables accordingly, they will be used within the 'displayDetails()', 'generateCitations()' and 'modifyUserGroups()' functions)
-	if (eregi(".+[/_]search\.php", $referer) AND ($recordsSelectionRadio == "0") AND empty($recordSerialsArray)) // the "Selected Records" option was chosen, but NO checkboxes were marked
+	if (eregi("[/_]search\.php", $referer) AND ($recordsSelectionRadio == "0") AND empty($recordSerialsArray)) // the "Selected Records" option was chosen, but NO checkboxes were marked
 		$nothingChecked = true;
 	else // the "All Found Records" option was chosen -OR- the "Selected Records" option was chosen and some checkboxes were marked -OR- the query resulted from another script like 'opensearch.php', 'show.php' or 'rss.php' (which has no checkboxes to mark!)
 		$nothingChecked = false;
@@ -439,7 +439,7 @@
 
 		if (!eregi("^cli", $client))
 		{
-			if (eregi(".+(sql|duplicate)_search\.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php' or 'duplicate_search.php'
+			if (eregi("/(sql|duplicate)_search\.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php' or 'duplicate_search.php'
 				header("Location: " . $referer); // relocate back to the calling page
 			else // if the user didn't come from 'sql_search.php' or 'duplicate_search.php' (e.g., if he attempted to hack parameters of a GET query directly)
 				header("Location: index.php"); // relocate back to the main page
@@ -1975,7 +1975,8 @@
 	//	BUILD RESULTS FOOTER
 	function buildResultsFooter($showRows, $citeStyle, $citeOrder, $displayType, $headerMsg)
 	{
-		global $allowAnonymousGUIExport; // these variables are defined in 'ini.inc.php'
+		global $useVisualEffects; // these variables are defined in 'ini.inc.php'
+		global $allowAnonymousGUIExport;
 		global $displayResultsFooterDefault;
 
 		global $loc; // defined in 'locales/core.php'
@@ -2023,10 +2024,15 @@
 				$resultsFooterInitialToggleText = encodeHTML($resultsFooterToggleText);
 			}
 
+			if ($useVisualEffects == "yes")
+				$toggleVisibilityFunction = "toggleVisibilitySlide";
+			else
+				$toggleVisibilityFunction = "toggleVisibility";
+
 			$ResultsFooterRow = "\n<div class=\"resultsfooter\">";
 
 			$ResultsFooterRow .= "\n<div class=\"showhide\">"
-			                   . "\n\t<a href=\"javascript:toggleVisibility('resultactions','resultsFooterToggleimg','resultsFooterToggletxt','" . rawurlencode($resultsFooterToggleText) . "')\"" . addAccessKey("attribute", "footer") . " title=\"" . $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "footer") . "\">"
+			                   . "\n\t<a href=\"javascript:" . $toggleVisibilityFunction . "('resultactions','resultsFooterToggleimg','resultsFooterToggletxt','" . rawurlencode($resultsFooterToggleText) . "')\"" . addAccessKey("attribute", "footer") . " title=\"" . $loc["LinkTitle_ToggleVisibility"] . addAccessKey("title", "footer") . "\">"
 			                   . "\n\t\t<img id=\"resultsFooterToggleimg\" class=\"toggleimg\" src=\"" . $resultsFooterToggleImage . "\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
 			                   . "\n\t\t<span id=\"resultsFooterToggletxt\" class=\"toggletxt\">" . $resultsFooterInitialToggleText . "</span>"
 			                   . "\n\t</a>"
