@@ -77,7 +77,7 @@
 	$pageLoginStatus = $formVars['pageLoginStatus'];
 
 	// First of all, check if this script was called by something else than 'record.php':
-	if (!ereg(".+/record.php\?.+", $referer))
+	if (!ereg("/record\.php\?.+", $referer))
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'

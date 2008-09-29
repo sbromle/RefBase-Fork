@@ -52,7 +52,7 @@
 	// --------------------------------------------------------------------
 
 	// First of all, check if this script was called by something else than 'user_details.php':
-	if (!eregi(".+/user_details\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+	if (!eregi("/user_details\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'

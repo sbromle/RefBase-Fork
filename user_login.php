@@ -54,7 +54,7 @@
 	// Check if the user is already logged in
 	if (isset($_SESSION['loginEmail']))
 	{
-		if (!eregi("error\.php\?.+|user_login\.php|install\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+		if (!eregi("/(error|user_login|install)\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 			header("Location: " . $referer); // redirect the user to the calling page
 		else
 			header("Location: index.php"); // back to main page
@@ -214,7 +214,7 @@
 			$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
 
-			if (!eregi("error\.php\?.+|user_login\.php|install\.php", $referer))
+			if (!eregi("/(error|user_login|install)\.php", $referer))
 				header("Location: " . $referer); // redirect the user to the calling page
 			else
 				header("Location: index.php"); // back to main page
