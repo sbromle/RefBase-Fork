@@ -114,7 +114,7 @@
 
 <table align="center" border="0" cellpadding="2" cellspacing="5" width="90%" summary="This table explains features, goals and usage of the <?php echo encodeHTML($officialDatabaseName); ?>">
 	<tr>
-		<td colspan="2"><h3><?php echo $loc["RecentAdditions"]; ?></h3></td>
+		<td colspan="2"><h3><?php echo $loc["RecentChanges"]; ?></h3></td>
 		<td width="<?php echo $rightColumnWidth; ?>" valign="bottom" rowspan="2">
 <?php
 if (!isset($_SESSION['loginEmail']))
