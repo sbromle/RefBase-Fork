@@ -57,7 +57,7 @@
 	//       may expose yet another security hole...)
 
 	// First of all, check if this script was called by something else than 'query_manager.php':
-	if (!eregi(".+/query_manager\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+	if (!eregi("/query_manager\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
@@ -264,16 +264,19 @@
 		$affectedRows = ($result ? mysql_affected_rows ($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
 
 		if ($affectedRows == 0) // no rows were affected by the update, i.e., the query must have been deleted in the meantime!
-		// NOTE: MySQL does also return 0 if nothing was changed since identical form data were submitted!
+		// NOTE: Previously, we did return "Warning_SavedQueryDoesNotExistAnymore": "This saved query does not exist anymore".
+		//       However, MySQL does also return 0 if nothing was changed since identical form data were submitted!
 		//       So, if '$affectedRows=0', it would be better to check for the existence of the record and adopt the error message accordingly.
+		//       Currently, we simply return a more generic warning message (the same warning message is returned by 'duplicate_modify.php').
 		{
 			// return an appropriate error message:
-			$HeaderString = returnMsg($loc["Warning_SavedQueryDoesNotExistAnymore"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
+			$HeaderString = returnMsg("Nothing was changed by your query!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
 			// update the 'userQueries' session variable:
 			getUserQueries($loginUserID); // function 'getUserQueries()' is defined in 'include.inc.php'
 
-			header("Location: index.php"); // redirect to main page ('index.php')
+			// Relocate back to the 'Edit Query' form (script 'query_manager.php'):
+			header("Location: " . $_SERVER['HTTP_REFERER']); // w.r.t. to '$_SERVER['HTTP_REFERER']' vs '$referer' see NOTE above
 
 			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		}
