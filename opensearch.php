@@ -24,8 +24,8 @@
 	// Returns an OpenSearch response. Supports the CQL query language, i.e. it allows to
 	// query all global refbase fields (the given index name must match either one of the
 	// 'set.index' names listed in the 'sru.php' explain response or match a refbase field
-	// name directly). If no index name is given the user's preferred list of "main fields"
-	// will be searched by default.
+	// name directly). If no index name is given 'cql.serverChoice' will be searched by
+	// default.
 
 	// Examples for recognized OpenSearch queries:
 	//
@@ -46,8 +46,7 @@
 
 	// By default, 'opensearch.php' will output OpenSearch Atom XML ('recordSchema=atom') if not
 	// specified otherwise in the query. Additionally, 'rss', 'srw_dc', 'srw_mods', 'html' and
-	// 'json' are currently supported as response formats. Also note that, opposed to 'sru.php',
-	// this script won't allow you to query any user-specific fields (such as 'cite_key').
+	// 'json' are currently supported as response formats.
 
 	// For more info on OpenSearch, see:
 	//   <http://opensearch.org/>
@@ -69,6 +68,7 @@
 
 	// NOTES: - currently, the JSON response format is only supported when returning search suggestions
 	//          ('operation=suggest'), i.e. you cannot (yet) retrieve full record data in JSON format
+	//        - ATM, querying of user-specific fields does only work with a user being logged in
 
 	// Incorporate some include files:
 	include 'initialize/db.inc.php'; // 'db.inc.php' is included to hide username and password
@@ -263,21 +263,37 @@
 	//         (though the other search terms will be used to restrict the list of search suggestions to only those where the queried field contains ALL search terms)
 	//   TODO: - should we support the 'maximumRecords' and 'startRecord' URL parameters for search suggestions?
 	//         - search suggestions for the 'location' field (and possibly other fields) should be omitted if the user isn't logged in!
-	elseif (eregi("^suggest$", $operation) AND eregi("^json$", $recordSchema))
+	elseif (eregi("^suggest$", $operation) AND eregi("^(html|json)$", $recordSchema))
 	{
 		// Extract the first field & search pattern from the 'WHERE' clause:
 		// (these will be used to retrieve search suggestions)
 		$searchSuggestionsField = preg_replace("/^[ ()]*(\w+).*/i", "\\1", $query);
 		$searchSuggestionsPattern = preg_replace("/.*? (?:RLIKE|[=<>]+) \"?(.+?)\"?(?=( *\) *?)*( +(AND|OR)\b|$)).*/i", "\\1", $query); // see NOTE above
 
-		if (eregi("^(author|keywords|address|place|editor|language|summary_language|series_editor|area|location|created_by|modified_by|user_keys|user_groups)$", $searchSuggestionsField))
+		if (eregi("^(author|keywords|abstract|address|place|editor|language|summary_language|series_editor|area|expedition|notes|location|call_number|created_by|modified_by|user_keys|user_notes|user_groups|related)$", $searchSuggestionsField))
 			$splitValues = true;
 		else
 			$splitValues = false;
 
+		if (eregi("^(author|editor|series_editor)$", $searchSuggestionsField))
+			$splitPattern = " *[;()/]+ *";
+		elseif (eregi("^(abstract)$", $searchSuggestionsField))
+			$splitPattern = " *[,.()/?!]+ +| +[,.()/?!] *| +- +"; // TODO: can (or should) abstracts be splitted in a better way?
+		elseif (eregi("^(place|notes|location|user_notes|user_groups|related)$", $searchSuggestionsField))
+			$splitPattern = " *[;]+ *";
+		elseif (eregi("^(call_number)$", $searchSuggestionsField))
+			$splitPattern = " *[;@]+ *";
+		else
+			$splitPattern = " *[,;()/]+ *";
+
+		if (eregi("^json$", $recordSchema)) // return data in JSON format
+			$outputFormat = "JSON";
+		else // return data in an unordered HTML list
+			$outputFormat = "HTML UL";
+
 		// Produce the list of search suggestions:
 		// (function 'selectDistinct()' is defined in 'include.inc.php')
-		$jsonData = selectDistinct($connection,
+		$outputData = selectDistinct($connection,
 		                           $tableRefs,
 		                           "serial",
 		                           $tableUserData,
@@ -292,8 +308,8 @@
 		                           "serial",
 		                           "\".+\" AND $query", // this is a somewhat hacky workaround that works around current limitations in function 'selectDistinct()'
 		                           $splitValues,
-		                           " *[,;()] *",
-		                           "JSON",
+		                           $splitPattern,
+		                           $outputFormat,
 		                           $searchSuggestionsPattern);
 
 		// Prefix each item with an index name and relation:
@@ -307,15 +323,17 @@
 		// TODO: This will need to be revised when 'cql.serverChoice' maps to the user's preferred list of
 		//       "main fields". Even better would be if browsers would support alternate query URLs for each
 		//       suggestion in the completion list.
-		if (eregi("^sug", $client)) // e.g. "sug-refbase_suggest-1.0"
-			$jsonData = preg_replace("/(?<=\[\"|\", \")(?!\")/", "$searchSuggestionsField = ", $jsonData);
+		if (eregi("^json$", $recordSchema) AND eregi("^sug", $client)) // e.g. "sug-refbase_suggest-1.0"
+			$outputData = preg_replace("/(?<=\[\"|\", \")(?!\")/", "$searchSuggestionsField = ", $outputData);
 
 		// Set the appropriate mimetype & set the character encoding to the one given
 		// in '$contentTypeCharset' (which is defined in 'ini.inc.php'):
 		setHeaderContentType($exportContentType, $contentTypeCharset);
 
-		// Return JSON-formatted search suggestions:
-		echo '["' . $cqlQuery . '", ' . $jsonData . ']'; // e.g.: ["fir", ["firefox", "first choice", "mozilla firefox"]]
+		if (eregi("^json$", $recordSchema)) // return JSON-formatted search suggestions:
+			echo '["' . $cqlQuery . '", ' . $outputData . ']'; // e.g.: ["fir", ["firefox", "first choice", "mozilla firefox"]]
+		else // return HTML-formatted search suggestions:
+			echo $outputData;
 	}
 
 	// - If 'opensearch.php' was called without any recognized parameters, we'll present a form where a user can build a query:
@@ -348,6 +366,13 @@
 		                              "viewType"         => $viewType,
 		                              "exportStylesheet" => $exportStylesheet
 		                             );
+
+		// NOTE: The 'show.php' script allows anonymous users to query the 'cite_key' field (if a valid 'userID' is included in the query URL).
+		//       However, this requires that the cite key is passed in the 'cite_key' URL parameter. Since 'opensearch.php' uses the 'where'
+		//       parameter to pass its query, anonymous querying of the 'cite_key' field currently does not work for 'opensearch.php'. But
+		//       querying of user-specific fields will work if a user is logged in.
+		if (isset($_SESSION['loginEmail'])) // we only include the 'userID' parameter if the user is logged in
+			$queryParametersArray["userID"] = $loginUserID; // for user-specific fields (such as the 'cite_key' field), 'show.php' requires the 'userID' parameter
 
 		// call 'show.php' (or 'rss.php' in case of RSS XML) with the correct query URL in order to output record details in the requested format:
 		$queryURL = generateURL("show.php", $exportFormat, $queryParametersArray, false, $showRows, $rowOffset, "", $citeOrder); // function 'generateURL()' is defined in 'include.inc.php'
@@ -387,6 +412,8 @@
 	{
 		global $officialDatabaseName; // defined in 'ini.inc.php'
 
+		global $displayType;
+
 		global $loc; // defined in 'locales/core.php'
 
 		global $client;
@@ -401,6 +428,11 @@
 			// Note: though we clear the session variable, the current message is still available to this script via '$HeaderString':
 			deleteSessionVariable("HeaderString"); // function 'deleteSessionVariable()' is defined in 'include.inc.php'
 		}
+
+		// For HTML output, we'll need to reset the value of the '$displayType' variable
+		// (which, by default, is set to "Export"; see above); otherwise, the 'originalDisplayType'
+		// parameter in the 'quickSearch' form of the page header would be incorrectly set to "Export"
+		$displayType = ""; // if '$displayType' is empty, 'show.php' will use the default view that's given in session variable 'userDefaultView'
 
 		// Show the login status:
 		showLogin(); // (function 'showLogin()' is defined in 'include.inc.php')
@@ -443,14 +475,14 @@
 		                                  "abbrev_journal"        => $loc["DropDownFieldName_AbbrevJournal"],
 		                                  "editor"                => $loc["DropDownFieldName_Editor"],
 		                                  "",
-		                                  "volume_numeric"        => $loc["DropDownFieldName_Volume"], // 'volume' should get replaced automatically by 'volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
+		                                  "volume_numeric"        => $loc["DropDownFieldName_Volume"], // 'volume_numeric' is used instead of 'volume' in the sort dropdown menus
 		                                  "issue"                 => $loc["DropDownFieldName_Issue"],
 		                                  "pages"                 => $loc["DropDownFieldName_Pages"],
 		                                  "",
 		                                  "series_title"          => $loc["DropDownFieldName_SeriesTitle"],
 		                                  "abbrev_series_title"   => $loc["DropDownFieldName_AbbrevSeriesTitle"],
 		                                  "series_editor"         => $loc["DropDownFieldName_SeriesEditor"],
-		                                  "series_volume_numeric" => $loc["DropDownFieldName_SeriesVolume"], // 'series_volume' should get replaced automatically by 'series_volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
+		                                  "series_volume_numeric" => $loc["DropDownFieldName_SeriesVolume"], // 'series_volume_numeric' is used instead of 'series_volume' in the sort dropdown menus
 		                                  "series_issue"          => $loc["DropDownFieldName_SeriesIssue"],
 		                                  "",
 		                                  "publisher"             => $loc["DropDownFieldName_Publisher"],
@@ -641,7 +673,7 @@
 	</td>
 </tr>
 </table>
-<table id="searchopt" align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds display options">
+<table id="searchopt" align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds display options" style="display: none;">
 <tr>
 	<td width="120" valign="top">
 		<div class="sect"><b><?php echo $loc["SearchOptions"]; ?>:</b></div>
@@ -676,7 +708,7 @@
 	</td>
 </tr>
 </table>
-<table id="helptxt" align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds some help text and example queries">
+<table id="helptxt" align="center" border="0" cellpadding="0" cellspacing="10" width="95%" summary="This table holds some help text and example queries" style="display: none;">
 <tr>
 	<td width="120" valign="top">
 		<div class="sect"><b><?php echo $loc["Help"]; ?>:</b></div>
