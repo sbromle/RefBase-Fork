@@ -37,20 +37,39 @@ function checkall(val, formpart) {
 // ------------------------------------------------------------------
 
 // Show or hide the element with the given 'id':
-function toggleVisibility(id, imgid, txtid, txt) {
+function toggleVisibility(id, imgid, txtid, txt, upd) {
 	var e = document.getElementById(id);
 	var i = document.getElementById(imgid);
 	var t = document.getElementById(txtid);
-	if(e.style.display == 'block') {
-		e.style.display = 'none';
+	var upd;
+	if (upd === undefined) upd = true;
+	if (e.style.display == 'block' || e.style.display == '') {
+		if (upd) e.style.display = 'none';
 		i.src = 'img/closed.gif';
 		t.innerHTML = txt;
 	}
 	else {
-		e.style.display = 'block';
+		if (upd) e.style.display = 'block';
 		i.src = 'img/open.gif';
 		t.innerHTML = '';
 	}
+}
+
+// ------------------------------------------------------------------
+
+// Show or hide the element with the given 'id' using a slide effect:
+// TODO: figure out how to invoke the changes to the toggle image & text
+//       (done via function 'toggleVisibility()') only *after* the slide
+//       effect has been finished
+// 
+// Requires the Prototype & script.aculo.us JavaScript frameworks:
+//   <http://www.prototypejs.org/> and <http://script.aculo.us/>
+// 
+// More info about 'Effect.toggle':
+//   <http://github.com/madrobby/scriptaculous/wikis/effect-toggle>
+function toggleVisibilitySlide(id, imgid, txtid, txt) {
+	Effect.toggle(id, 'blind', {duration:0.4});
+	toggleVisibility(id, imgid, txtid, txt, false);
 }
 
 // ------------------------------------------------------------------
@@ -84,6 +103,55 @@ function updateAllRecs() {
 		val=false;
 	}
 	toggleRadio('allRecs', 'selRecs', val);
+}
+
+// ------------------------------------------------------------------
+
+// This is the callback function that gets called by the script.aculo.us
+// 'Ajax.Autocompleter'. If it makes sense, this function modifies the suggest
+// query such that the given search term ('entry') is prefixed with a CQL index
+// ('selectedField') and a default relation ('all').
+// 
+// Requires the Prototype & script.aculo.us JavaScript frameworks:
+//   <http://www.prototypejs.org/> and <http://script.aculo.us/>
+// 
+// More info about 'Ajax.Autocompleter':
+//   <http://github.com/madrobby/scriptaculous/wikis/ajax-autocompleter>
+function addCQLIndex(element, entry) {
+	// NOTE: this 'if' block is a hack, see note above function 'buildSuggestElements()'
+	//       in 'include.inc.php'
+	if (entry.match(/^(id|col)-\w+-\w+=/) != null) {
+		if (entry.match(/^id-\w+-\w+=/) != null) {
+			// extract the ID of the HTML form element that contains the selected field:
+			var selectedFieldID = entry.replace(/^id-(\w+)-\w+=.*/, "$1");
+			// get the the name of the field that's currently selected in the
+			// specified HTML form element:
+			var selectedField = document.getElementById(selectedFieldID).value;
+		}
+		else if (entry.match(/^col-\w+-\w+=/) != null) {
+			// extract the column/field name (that was passed literally):
+			var selectedField = entry.replace(/^col-(\w+)-\w+=.*/, "$1");
+		}
+		// re-establish the correct query parameter name & value:
+		entry = entry.replace(/^(id|col)-\w+-/, "");
+	}
+	else
+		var selectedField = "keywords"; // fallback
+	// NOTE: we may need to exclude the 'abstract' index here until there's a smarter
+	//       solution to present search suggestions from the abstract (currently, for
+	//       each match, full or partial sentences from the abstract would be returned)
+	var CQLIndexes = " author title type year publication abbrev_journal volume issue"
+	               + " pages keywords abstract address corporate_author thesis publisher"
+	               + " place editor language summary_language orig_title series_editor"
+	               + " series_title abbrev_series_title series_volume series_issue"
+	               + " edition issn isbn medium area expedition conference notes"
+	               + " approved location call_number serial marked copy selected"
+	               + " user_keys user_notes user_file user_groups cite_key related"
+	               + " file url doi contribution_id online_publication online_citation"
+	               + " orig_record created_by modified_by ";
+	if (CQLIndexes.search("\\b" + selectedField + "\\b") > 0)
+		entry = entry.replace("=", "=" + selectedField + "%20all%20");
+	return entry;
 }
 
 // ------------------------------------------------------------------
