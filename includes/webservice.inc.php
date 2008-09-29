@@ -523,7 +523,7 @@
 		                         "oai.identifier"                => "serial",
 //		                         "oai.datestamp"                 => "modified_date-modified_time", // see TODO note above (same as 'rec.lastModificationDate')
 
-		                         "cql.serverChoice"              => "title", // TODO: the special index 'main_fields' resolves to 'cql.serverChoice', and that, in turn, should resolve to the user's preferred list of "main fields"
+		                         "cql.serverChoice"              => "keywords", // TODO: the special index 'main_fields' should resolve to 'cql.serverChoice', and that, in turn, should resolve to the user's preferred list of "main fields"
 
 		                         "author"                        => "author", // for indexes that have no public context set we simply accept refbase field names
 		                         "title"                         => "title",
@@ -581,14 +581,14 @@
 
 		                         "orig_record"                   => "orig_record",
 
-//		                         "marked"                        => "marked", // querying for user-specific fields requires that the 'x-...authenticationToken' is given in the SRU query
-//		                         "copy"                          => "copy",
-//		                         "selected"                      => "selected",
-//		                         "user_keys"                     => "user_keys",
-//		                         "user_notes"                    => "user_notes",
-//		                         "user_file"                     => "user_file",
-//		                         "user_groups"                   => "user_groups",
-//		                         "related"                       => "related",
+		                         "marked"                        => "marked", // in case of 'sru.php', querying for user-specific fields requires that the 'x-...authenticationToken' is given in the SRU query
+		                         "copy"                          => "copy",// for 'opensearch.php', querying of user-specific fields will only work with a user being logged in
+		                         "selected"                      => "selected",
+		                         "user_keys"                     => "user_keys",
+		                         "user_notes"                    => "user_notes",
+		                         "user_file"                     => "user_file",
+		                         "user_groups"                   => "user_groups",
+		                         "related"                       => "related",
 		                         "cite_key"                      => "cite_key" // currently, only the user-specific 'cite_key' field can be queried by every user using 'sru.php'
 		                        );
 
