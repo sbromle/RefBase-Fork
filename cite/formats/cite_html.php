@@ -30,6 +30,7 @@
 	{
 		global $searchReplaceActionsArray; // these variables are defined in 'ini.inc.php'
 		global $databaseBaseURL;
+		global $useVisualEffects;
 		global $defaultDropDownFieldsEveryone;
 		global $defaultDropDownFieldsLogin;
 		global $defaultCiteStyle;
@@ -191,8 +192,13 @@
 						// Map MySQL field names to localized column names:
 						$fieldNamesArray = mapFieldNames(); // function 'mapFieldNames()' is defined in 'include.inc.php'
 
+						if ($useVisualEffects == "yes")
+							$toggleVisibilityFunction = "toggleVisibilitySlide";
+						else
+							$toggleVisibilityFunction = "toggleVisibility";
+
 						$recordData .= "\n\t\t<div class=\"showhide\">"
-						             . "\n\t\t\t<a href=\"javascript:toggleVisibility('moreinfo" . $row["serial"] . "','toggleimg" . $row["serial"] . "','toggletxt" . $row["serial"] . "','more%20info')\" title=\"" . $loc["LinkTitle_ToggleVisibility"] . "\">"
+						             . "\n\t\t\t<a href=\"javascript:" . $toggleVisibilityFunction . "('moreinfo" . $row["serial"] . "','toggleimg" . $row["serial"] . "','toggletxt" . $row["serial"] . "','more%20info')\" title=\"" . $loc["LinkTitle_ToggleVisibility"] . "\">"
 						             . "<img id=\"toggleimg" . $row["serial"] . "\" class=\"toggleimg\" src=\"" . $baseURL . "img/closed.gif\" alt=\"" . $loc["LinkTitle_ToggleVisibility"] . "\" width=\"9\" height=\"9\" hspace=\"0\" border=\"0\">"
 						             . "</a>"
 						             . "\n\t\t</div>"
