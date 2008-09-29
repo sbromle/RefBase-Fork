@@ -407,6 +407,7 @@
 "readonly"=>"schreibgeschützt",
 "RecallMyQuery"=>"Gesicherte Anfragen",
 "RecentAdditions"=>"Neuzugänge",
+"RecentChanges"=>"Letzte Änderungen",
 "Record"=>"Eintrag",
 "Records"=>"Einträge",
 "record"=>"Eintrag",

@@ -407,6 +407,7 @@
 "readonly"=>"fixe",
 "RecallMyQuery"=>"Revenir à ma recherche",
 "RecentAdditions"=>"Recent Additions",
+"RecentChanges"=>"Recent Changes",
 "Record"=>"Enregistrement",
 "Records"=>"Enregistrements",
 "record"=>"enregistrement",

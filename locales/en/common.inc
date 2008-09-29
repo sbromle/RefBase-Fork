@@ -407,6 +407,7 @@
 "readonly"=>"readonly",
 "RecallMyQuery"=>"Recall My Query",
 "RecentAdditions"=>"Recent Additions",
+"RecentChanges"=>"Recent Changes",
 "Record"=>"Record",
 "Records"=>"Records",
 "record"=>"record",
