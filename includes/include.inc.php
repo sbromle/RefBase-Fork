@@ -503,14 +503,17 @@
 		$recordSerialsString = "&marked[]=" . $recordSerialsString; // prefix also the very first record serial with "&marked[]="
 
 		// based on the refering script we adjust the parameters that get included in the link:
-		if (eregi(".*(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_search|opensearch|query_history|extract|users|user_details|user_receipt)\.php", $scriptURL))
+		if (eregi("/(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_manager|duplicate_search|opensearch|query_history|extract|users|user_details|user_receipt)\.php", $scriptURL))
 			$referer = $scriptURL; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
 									// to re-locate back to these pages after successful login/logout). Logout on 'install.php', 'users.php', 'user_details.php' or 'user_receipt.php' will redirect to 'index.php'.
 
-		elseif (eregi(".*(record|receipt)\.php", $scriptURL))
+		elseif (eregi("/user_options\.php", $scriptURL))
+			$referer = $scriptURL . "?" . "userID=" . $loginUserID;
+
+		elseif (eregi("/(record|receipt)\.php", $scriptURL))
 			$referer = $scriptURL . "?" . "recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg);
 
-		elseif (eregi(".*error\.php", $scriptURL))
+		elseif (eregi("/error\.php", $scriptURL))
 			$referer = $scriptURL . "?" . "errorNo=" . $errorNo . "&errorMsg=" . rawurlencode($errorMsg) . "&headerMsg=" . rawurlencode($headerMsg);
 
 		else
@@ -1912,6 +1915,8 @@
 	// (i.e., generate the "Quick Search" form)
 	function buildQuickSearchElements($query, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType)
 	{
+		global $autoCompleteUserInput; // defined in 'ini.inc.php'
+
 		global $loc; // '$loc' is made globally available in 'core.php'
 
 		global $client;
@@ -1927,6 +1932,12 @@
 			$firstField = preg_replace("/.+ WHERE [ ()]*(\w+).*/i", "\\1", $query);
 		else
 			$firstField = "";
+
+		// build HTML elements that allow for search suggestions for text entered by the user:
+		if ($autoCompleteUserInput == "yes")
+			$suggestElements = buildSuggestElements("quickSearchName", "quickSearchSuggestions", "quickSearchSuggestProgress", "id-quickSearchSelector-", "\t\t\t\t\t\t");
+		else
+			$suggestElements = "";
 
 		// add the "Quick Search" form:
 		$quickSearchForm = <<<EOF
@@ -1972,7 +1983,7 @@ EOF;
 
 						</select>
 						<label for="quickSearchName">$loc[contains]:</label>
-						<input type="text" id="quickSearchName" name="quickSearchName" size="11"$accessKeyAttribute title="$loc[DescriptionEnterSearchString]$accessKeyTitle">
+						<input type="text" id="quickSearchName" name="quickSearchName" size="11"$accessKeyAttribute title="$loc[DescriptionEnterSearchString]$accessKeyTitle">$suggestElements
 					</div>
 					<div id="querySubmit">
 						<input type="submit" value="$loc[ButtonTitle_Search]" title="$loc[DescriptionSearchDB]">
@@ -1991,6 +2002,8 @@ EOF;
 	// (i.e., provide options to refine the search results)
 	function buildRefineSearchElements($href, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $dropDownFieldsArray, $dropDownFieldSelected, $displayType)
 	{
+		global $autoCompleteUserInput; // defined in 'ini.inc.php'
+
 		global $loc; // '$loc' is made globally available in 'core.php'
 
 		global $client;
@@ -2000,6 +2013,12 @@ EOF;
 
 		$accessKeyAttribute = addAccessKey("attribute", "refine");
 		$accessKeyTitle = addAccessKey("title", "refine");
+
+		// build HTML elements that allow for search suggestions for text entered by the user:
+		if ($autoCompleteUserInput == "yes")
+			$suggestElements = buildSuggestElements("refineSearchName", "refineSearchSuggestions", "refineSearchSuggestProgress", "id-refineSearchSelector-", "\t\t\t\t\t");
+		else
+			$suggestElements = "";
 
 		$refineSearchForm = <<<EOF
 		<form action="$href" method="GET" name="refineSearch">
@@ -2031,7 +2050,7 @@ EOF;
 
 					</select>
 					<label for="refineSearchName">$loc[contains]:</label>
-					<input type="text" id="refineSearchName" name="refineSearchName" size="11"$accessKeyAttribute title="$loc[DescriptionEnterSearchString]$accessKeyTitle">
+					<input type="text" id="refineSearchName" name="refineSearchName" size="11"$accessKeyAttribute title="$loc[DescriptionEnterSearchString]$accessKeyTitle">$suggestElements
 				</div>
 				<div id="refineOpt">
 					<input type="checkbox" id="refineSearchExclude" name="refineSearchExclude" value="1" title="$loc[DescriptionExcludeResultsCheckboxRefineResultsForm]">
@@ -2062,9 +2081,10 @@ EOF;
 		global $client;
 
 		if (preg_match("/.+user_groups RLIKE \"[()|^.;* ]+[^;]+?[()|$.;* ]+\"/i", $query)) // if the query does contain a 'WHERE' clause that searches for a particular user group
-			$currentGroup = preg_replace("/.+user_groups RLIKE \"[()|^.;* ]+([^;]+?)[()|$.;* ]+\".*/i", "\\1", $query); // extract the particular group name
+			// TODO: improve the legibility & robustness of the below regex pattern (yes, it's ugly)
+			$currentGroup = preg_replace("/.+user_groups RLIKE \"(?:\[:(?:space|punct):\]|[()|^.;* \]\[])+([^;]+?(?:\[\^\[:space:\]\[:punct:\]\]\*)?)(?:\[:(?:space|punct):\]|[()|$.;* \]\[])+\".*/i", "\\1", $query); // extract the particular group name
 		else
-			$currentGroup = "none";
+			$currentGroup = "";
 
 		// show the 'Show My Groups' form:
 		// - if the admin is logged in and calls 'users.php' (since only the admin will be allowed to call 'users.php', checking '$href' is sufficient here) -OR-
@@ -2131,7 +2151,7 @@ EOF;
 					$optionTags = buildSelectMenuOptions($_SESSION['adminUserGroups'], " *; *", "\t\t\t\t\t\t", false);
 
 				if (!empty($currentGroup)) // if the current SQL query contains a 'WHERE' clause that searches for a particular user group
-					$optionTags = ereg_replace("<option>$currentGroup</option>", "<option selected>$currentGroup</option>", $optionTags); // we select that group by adding the 'selected' parameter to the appropriate <option> tag
+					$optionTags = preg_replace("#<option>(?=$currentGroup</option>)#i", "<option selected>", $optionTags); // we select that group by adding the 'selected' parameter to the appropriate <option> tag
 
 				$groupSearchForm .= $optionTags;
 			}
@@ -2335,6 +2355,34 @@ EOF;
 EOF;
 
 		return $displayOptionsForm;
+	}
+
+	// --------------------------------------------------------------------
+
+	//	BUILD SUGGEST ELEMENTS
+	// (i.e., provide HTML elements that will generate auto-completions or search suggestions for text entered by the user in text entry fields)
+	// requires the Prototype & script.aculo.us JavaScript frameworks: <http://www.prototypejs.org/> and <http://script.aculo.us/>
+	// more info about 'Ajax.Autocompleter': <http://github.com/madrobby/scriptaculous/wikis/ajax-autocompleter>
+	// 
+	// NOTE: I don't know how to pass custom values (such as the CQL index) to the callback function. Therefore, I'm using a dirty hack here where I add
+	//       '$CQLIndex' (i.e. an "id-" prefix plus the ID of the HTML form element that contains the selected field) at the beginning of the query parameter
+	//       ('paramName'). This ID is required by the callback function to fetch the name of the currently selected refbase field.
+	function buildSuggestElements($searchFieldID, $searchSuggestionsID, $suggestProgressID, $CQLIndex, $prefix = "\t\t", $tokens = "''", $frequency = 0.8, $minChars = 2, $callBack = "addCQLIndex", $suggestURL = "opensearch.php", $paramName = "query", $parameters = "operation=suggest&recordSchema=html")
+	{
+		global $contentTypeCharset; // defined in 'ini.inc.php'
+
+		$suggestElements = <<<EOF
+
+$prefix<span id="$suggestProgressID" class="suggestProgress" style="display:none;">...</span>
+$prefix<div id="$searchSuggestionsID" class="searchSuggestions" style="display:none;"></div>
+$prefix<script language="JavaScript" type="text/javascript" charset="$contentTypeCharset">
+$prefix// <![CDATA[
+$prefix	new Ajax.Autocompleter('$searchFieldID','$searchSuggestionsID','$suggestURL',{tokens:$tokens,frequency:$frequency,minChars:$minChars,indicator:'$suggestProgressID',paramName:'$CQLIndex$paramName',parameters:'$parameters',callback:$callBack});
+$prefix// ]]>
+$prefix</script>
+EOF;
+
+		return $suggestElements;
 	}
 
 	// --------------------------------------------------------------------
@@ -3974,6 +4022,27 @@ EOF;
 
 	// --------------------------------------------------------------------
 
+	// Return the current user's preferred interface language:
+	function getUserLanguage()
+	{
+		global $loginUserID; // saved as session variable on login
+
+		global $defaultLanguage; // defined in 'ini.inc.php'
+
+		if (isset($_SESSION['loginEmail'])) // if a user is logged in
+		{
+			// get the preferred language for the current user:
+			$userLanguagesArray = getLanguages($loginUserID);
+			$userLanguage = $userLanguagesArray[0];
+		}
+		else // NO user logged in
+			$userLanguage = $defaultLanguage; // use the default language
+
+		return $userLanguage;
+	}
+
+	// --------------------------------------------------------------------
+
 	// Get all user options for the current user:
 	function getUserOptions($userID)
 	{
@@ -4518,7 +4587,7 @@ EOF;
 	// 14. ...where field contents are...
 	// 15. Split field contents into substrings? (yes = true, no = false)
 	// 16. POSIX-PATTERN to split field contents into substrings (in order to obtain actual values)
-	// 17. The type of the output format that shall be returned ("HTML" or "JSON")
+	// 17. The type of the output format that shall be returned ("HTML SELECT", "HTML UL" or "JSON")
 	// 18. The POSIX-PATTERN that matches those substrings from the field's contents that shall be included as search suggestions
 	function selectDistinct($connection, // 1.
 	                        $refsTableName, // 2.
@@ -4536,7 +4605,7 @@ EOF;
 	                        $RestrictToFieldContents, // 14.
 	                        $SplitValues, // 15.
 	                        $SplitPattern, // 16.
-	                        $outputFormat = "HTML", // 17.
+	                        $outputFormat = "HTML SELECT", // 17.
 	                        $searchSuggestionsPattern = "") // 18.
 	{
 		$defaultWithinResultSet = FALSE;
@@ -4569,16 +4638,23 @@ EOF;
 			if ($SplitValues) // if desired, split field contents into substrings
 			{
 				// split field data on the pattern specified in '$SplitPattern':
-				$splittedFieldData = split($SplitPattern, $row[$columnName]);
+				$splittedFieldData = preg_split("#" . $SplitPattern . "#", $row[$columnName]);
 				// ... copy all array elements to end of '$resultBuffer':
 				foreach($splittedFieldData as $element)
+				{
+					$element = trim($element);
 					// NOTE: in case of OpenSearch search suggestions, we only include those substrings
 					//       that match the regular expression given in '$searchSuggestionsPattern'
-					if (empty($searchSuggestionsPattern) OR (!empty($searchSuggestionsPattern) AND preg_match("/" . $searchSuggestionsPattern . "/i", $element)))
+					if (empty($searchSuggestionsPattern) OR (!empty($searchSuggestionsPattern) AND !empty($element) AND preg_match("/" . $searchSuggestionsPattern . "/i", $element)))
 						$resultBuffer[$i++] = $element;
+				}
 			}
 			else // copy field data (as is) to end of '$resultBuffer':
-				$resultBuffer[$i++] = $row[$columnName];
+			{
+				$element = trim($row[$columnName]);
+				if (empty($searchSuggestionsPattern) OR (!empty($searchSuggestionsPattern) AND !empty($element)))
+					$resultBuffer[$i++] = $element;
+			}
 		}
 
 		if ($SplitValues) // (otherwise, data are already DISTINCT and ORDERed BY!)
@@ -4592,9 +4668,9 @@ EOF;
 			}
 		}
 
-		if ($outputFormat == "HTML")
+		if ($outputFormat == "HTML SELECT")
 		{
-			// Start the select widget:
+			// Start the HTML select widget:
 			$outputData = "\n\t\t<select name=\"$pulldownName\">";
 
 			$optionTags = ""; // initialize variable
@@ -4611,7 +4687,10 @@ EOF;
 			$outputData .= "\n\t\t</select>";
 		}
 
-		elseif ($outputFormat == "JSON")
+		elseif ($outputFormat == "HTML UL") // output data in an unordered HTML list:
+			$outputData = "<ul><li>" . implode("</li><li>", $resultBuffer) . "</li></ul>";
+
+		elseif ($outputFormat == "JSON") // output data in JSON format:
 			$outputData = '["' . implode('", "', $resultBuffer) . '"]'; // for PHP 5 >= 5.2.0 and UTF-8 data, function 'json_encode()' could be used instead
 
 		else
@@ -5362,13 +5441,13 @@ EOF;
 			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "location", true);
 		}
 
-		// supply generic 'WHERE' clause if it didn't exist in the SQL query:
-		if (!eregi(" FROM " . $tableRefs . ".* WHERE ", $sqlQuery))
+		// supply generic 'WHERE' clause if it didn't exist in the SELECT query:
+		if (eregi("^SELECT", $sqlQuery) AND !eregi(" FROM " . $tableRefs . ".* WHERE ", $sqlQuery))
 			$sqlQuery = preg_replace("/(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", " WHERE serial RLIKE \".+\"", $sqlQuery, 1);
 
-		// supply generic 'ORDER BY' clause if it didn't exist in the SQL query:
+		// supply generic 'ORDER BY' clause if it didn't exist in the SELECT query:
 		// TODO: - add a suitable 'ORDER BY' clause for Browse view and if '$citeOrder != "author"'
-		if (!eregi(" FROM " . $tableRefs . ".* ORDER BY ", $sqlQuery) AND ($displayType != "Browse"))
+		if (eregi("^SELECT", $sqlQuery) AND !eregi(" FROM " . $tableRefs . ".* ORDER BY ", $sqlQuery) AND ($displayType != "Browse"))
 			$sqlQuery = preg_replace("/(?= LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", " ORDER BY author, year DESC, publication", $sqlQuery, 1);
 
 		// handle the display & querying of user-specific fields:
