@@ -58,6 +58,8 @@
 	//       CQL parsing logic.
 	function parseCQL($sruVersion, $sruQuery, $operation = "")
 	{
+		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
+
 		// map CQL indexes to refbase field names:
 		$indexNamesArray = mapCQLIndexes();
 
@@ -139,7 +141,7 @@
 			// OpenSearch search suggestions ('$operation=suggest'): since CQL matches full words (not sub-strings),
 			// we need to make sure that every search term ends with the '*' masking character:
 			if (eregi("^suggest$", $operation) AND ($mainRelation != "exact"))
-				$searchTerm = preg_replace('/(\w+)\b(?![?*^])/', '\\1*', $searchTerm);
+				$searchTerm = preg_replace("/([$word]+)(?![?*^])/$patternModifiers", "\\1*", $searchTerm);
 
 			// escape meta characters (including '/' that is used as delimiter for the PCRE replace functions below and which gets passed as second argument):
 			$searchTerm = preg_quote($searchTerm, "/"); // escape special regular expression characters: . \ + * ? [ ^ ] $ ( ) { } = ! < > | :
