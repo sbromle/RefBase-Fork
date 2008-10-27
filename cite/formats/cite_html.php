@@ -20,7 +20,6 @@
 	// version of the 'citeRecords()' function that outputs a reference list from selected records in HTML format.
 	// 
 	// TODO: - use divs + CSS styling (instead of a table-based layout) for _all_ output (not only for 'viewType=Mobile')
-	//       - I18n
 
 	// --------------------------------------------------------------------
 
@@ -92,9 +91,12 @@
 		{
 			foreach ($row as $rowFieldName => $rowFieldValue)
 			{
-				if (!ereg($rowFieldName, "^(author|editor)$")) // we HTML encode higher ASCII chars for all but the author & editor fields. The author & editor fields are excluded here
+				if (!ereg("^(author|editor)$", $rowFieldName)) // we HTML encode higher ASCII chars for all but the author & editor fields. The author & editor fields are excluded here
 					// since these fields must be passed *without* HTML entities to the 'reArrangeAuthorContents()' function (which will then handle the HTML encoding by itself)
 					$row[$rowFieldName] = encodeHTML($row[$rowFieldName]); // HTML encode higher ASCII characters within each of the fields
+
+				if (ereg("^abstract$", $rowFieldName)) // for the 'abstract' field, transform runs of newline ('\n') or return ('\r') characters into a single <br> tag
+					$row[$rowFieldName] = ereg_replace("[\r\n]+", "\n<br>\n", $row[$rowFieldName]);
 
 				// Apply search & replace 'actions' to all fields that are listed in the 'fields' element of the arrays contained in '$searchReplaceActionsArray' (which is defined in 'ini.inc.php'):
 				foreach ($searchReplaceActionsArray as $fieldActionsArray)
@@ -163,7 +165,7 @@
 
 						// - Print a checkbox form element:
 						if (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
-							$recordData .= "\n\t\t<input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"select this record\">";
+							$recordData .= "\n\t\t<input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"" . $loc["selectRecord"] . "\">";
 
 						if (!empty($row["orig_record"]))
 						{
@@ -171,9 +173,9 @@
 								$recordData .= "\n\t\t<br>";
 
 							if ($row["orig_record"] < 0)
-								$recordData .= "\n\t\t<img src=\"" . $baseURL . "img/ok.gif\" alt=\"(original)\" title=\"original record\" width=\"14\" height=\"16\" hspace=\"0\" border=\"0\">";
+								$recordData .= "\n\t\t<img src=\"" . $baseURL . "img/ok.gif\" alt=\"(" . $loc["original"] . ")\" title=\"" . $loc["originalRecord"] . "\" width=\"14\" height=\"16\" hspace=\"0\" border=\"0\">";
 							else // $row["orig_record"] > 0
-								$recordData .= "\n\t\t<img src=\"" . $baseURL . "img/caution.gif\" alt=\"(duplicate)\" title=\"duplicate record\" width=\"5\" height=\"16\" hspace=\"0\" border=\"0\">";
+								$recordData .= "\n\t\t<img src=\"" . $baseURL . "img/caution.gif\" alt=\"(" . $loc["duplicate"] . ")\" title=\"" . $loc["duplicateRecord"] . "\" width=\"5\" height=\"16\" hspace=\"0\" border=\"0\">";
 						}
 
 						// - Add <abbr> block which works as a microformat that allows applications to identify objects on web pages; see <http://unapi.info/specs/> for more info
@@ -218,12 +220,12 @@
 						else
 							$target = "";
 
-						$recordData .= "\n\t\t\t\t<div class=\"permalink\"><a href=\"" . $recordPermaLink . "\"" . $target . " title=\"copy this URL to directly link to this record\">";
+						$recordData .= "\n\t\t\t\t<div class=\"permalink\"><a href=\"" . $recordPermaLink . "\"" . $target . " title=\"" . $loc["LinkTitle_Permalink"] . "\">";
 
 						if (eregi("^Print$", $viewType)) // for print view, we use the URL as link title
 							$recordData .= $recordPermaLink;
 						else
-							$recordData .= "Permanent link";
+							$recordData .= $loc["PermalinkShort"];
 
 						$recordData .= "</a></div>";
 
@@ -237,11 +239,11 @@
 								$userCiteFormatsArray = preg_split("/ *; */", $_SESSION['user_cite_formats'], -1, PREG_SPLIT_NO_EMPTY); // get a list of the user's cite formats (the 'PREG_SPLIT_NO_EMPTY' flag causes only non-empty pieces to be returned)
 
 								$recordData .= "\n\t\t\t\t<div class=\"citelinks\">"
-								             . "&nbsp;|&nbsp;Save citation:";
+								             . "&nbsp;|&nbsp;" . $loc["SaveCitation"] . ":";
 
 								foreach ($userCiteFormatsArray as $citeFormat)
 									if (!eregi("^html$", $citeFormat)) // for now, we exclude the "HTML" cite format (as it's not any different to the regular Citation view HTML output)
-										$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $baseURL . generateURL("show.php", $citeFormat, array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder) . "\" title=\"output record as citation in " . $citeFormat . " format\">" . $citeFormat . "</a>";
+										$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $baseURL . generateURL("show.php", $citeFormat, array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder) . "\" title=\"" . $loc["LinkTitle_SaveCitationFormat_Prefix"] . $citeFormat . $loc["LinkTitle_SaveCitationFormat_Suffix"] . "\">" . $citeFormat . "</a>";
 
 								$recordData .= "\n\t\t\t\t</div>";
 							}
@@ -252,10 +254,10 @@
 								$userExportFormatsArray = preg_split("/ *; */", $_SESSION['user_export_formats'], -1, PREG_SPLIT_NO_EMPTY); // get a list of the user's export formats
 
 								$recordData .= "\n\t\t\t\t<div class=\"exportlinks\">"
-								             . "&nbsp;|&nbsp;Export record:";
+								             . "&nbsp;|&nbsp;" . $loc["ExportRecord"] . ":";
 
 								foreach ($userExportFormatsArray as $exportFormat)
-									$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $baseURL . generateURL("show.php", $exportFormat, array("record" => $row['serial'], "exportType" => "file"), true) . "\" title=\"export record in " . $exportFormat . " format\">" . $exportFormat . "</a>";
+									$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $baseURL . generateURL("show.php", $exportFormat, array("record" => $row['serial'], "exportType" => "file"), true, "", "", $citeStyle) . "\" title=\"" . $loc["LinkTitle_ExportRecordFormat_Prefix"] . $exportFormat . $loc["LinkTitle_ExportRecordFormat_Suffix"] . "\">" . $exportFormat . "</a>";
 
 								$recordData .= "\n\t\t\t\t</div>";
 							}
