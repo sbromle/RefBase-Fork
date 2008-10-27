@@ -126,7 +126,7 @@
 					if (!empty($row['issue']))      // issue
 					{
 						if (!empty($row['volume']))
-							$record .= ", ";
+							$record .= ",";
 
 						$record .= " no. " . $row['issue'];
 					}

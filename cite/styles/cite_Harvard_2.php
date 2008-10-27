@@ -362,7 +362,7 @@
 				if (!empty($row['publisher']))      // publisher
 				{
 					if (!empty($row['place']))
-						$record .= ", ";
+						$record .= ",";
 
 					$record .= " " . $row['publisher'];
 				}
@@ -601,7 +601,7 @@
 					if (!empty($row['publisher']))      // publisher
 					{
 						if (!empty($row['place']))
-							$record .= ", ";
+							$record .= ",";
 
 						$record .= " " . $row['publisher'];
 					}
