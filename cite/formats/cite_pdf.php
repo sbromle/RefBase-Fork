@@ -132,6 +132,10 @@
 			// Remove any colon (":") from end of header message:
 			$headerMsg = trimTextPattern($headerMsg, ":", false, true); // function 'trimTextPattern()' is defined in 'include.inc.php'
 
+			// Decode any HTML entities:
+			// (these may occur in the header message e.g. if the user's preferred display language is not English but German or French, etc)
+			$headerMsg = decodeHTML($contentTypeCharset, $headerMsg); // function 'decodeHTML()' is defined in 'include.inc.php', and '$contentTypeCharset' is defined in 'ini.inc.php'
+
 			// Convert refbase markup in the header message into appropriate PDF markup & entities:
 			$headerMsg = searchReplaceText($transtab_refbase_pdf, $headerMsg, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
 
