@@ -137,9 +137,10 @@ function addCQLIndex(element, entry) {
 	}
 	else
 		var selectedField = "keywords"; // fallback
-	// NOTE: we may need to exclude the 'abstract' index here until there's a smarter
-	//       solution to present search suggestions from the abstract (currently, for
-	//       each match, full or partial sentences from the abstract would be returned)
+	// NOTES: - we may need to exclude the 'abstract' index here until there's a smarter
+	//          solution to present search suggestions from the abstract (currently, for
+	//          each match, full or partial sentences from the abstract will be returned)
+	//        - ATM, the special index 'main_fields' only works for search suggestions
 	var CQLIndexes = " author title type year publication abbrev_journal volume issue"
 	               + " pages keywords abstract address corporate_author thesis publisher"
 	               + " place editor language summary_language orig_title series_editor"
@@ -148,7 +149,7 @@ function addCQLIndex(element, entry) {
 	               + " approved location call_number serial marked copy selected"
 	               + " user_keys user_notes user_file user_groups cite_key related"
 	               + " file url doi contribution_id online_publication online_citation"
-	               + " orig_record created_by modified_by ";
+	               + " orig_record created_by modified_by main_fields ";
 	if (CQLIndexes.search("\\b" + selectedField + "\\b") > 0)
 		entry = entry.replace("=", "=" + selectedField + "%20all%20");
 	return entry;
