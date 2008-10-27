@@ -116,12 +116,12 @@
 			$formVars["databaseStructureFile"] = "./install.sql";
 			
 			// Try to find the 'mysql' command line interpreter:
-			$mysqlLocations = array_unique(array_merge($pathItems, array("/Program Files/MySQL/bin", "/wamp/mysql/bin", "/Program Files/xampp/mysql/bin", "/www/xampp/mysql/bin", "/xampp/mysql/bin", "/apachefriends/xampp/mysql/bin", "/usr/local/mysql/bin", "/usr/local/bin/mysql/bin", "/usr/bin/mysql/bin", "/usr/mysql/bin")));
+			$mysqlLocations = array_unique(array_merge($pathItems, array("/Program Files/MySQL/bin", "/wamp/mysql/bin", "/Program Files/xampp/mysql/bin", "/www/xampp/mysql/bin", "/xampp/mysql/bin", "/apachefriends/xampp/mysql/bin", "/usr/local/mysql/bin", "/usr/local/bin/mysql/bin", "/usr/bin/mysql/bin", "/usr/mysql/bin", "/opt/local/bin/", "/opt/local/lib/mysql4/bin/", "/opt/local/lib/mysql5/bin/")));
 			$mysqlNames = array("mysql", "mysql.exe");
 			$formVars["pathToMYSQL"] = locateFile($mysqlLocations, $mysqlNames, false); // function 'locateFile()' is defined in 'install.inc.php'
 
 			// Try to find the Bibutils programs:
-			$bibutilsLocations = array_unique(array_merge($pathItems, array("/usr/bin", "/usr/local/bin", ".", "./refbase", "./bibutils")));
+			$bibutilsLocations = array_unique(array_merge($pathItems, array("/usr/bin", "/usr/local/bin", "/opt/local/bin/", ".", "./refbase", "./bibutils")));
 			// We'll only check for one program to save time (and because, we currently don't allow the script to have a subset of the functionality provided by Bibutils)
 			$bibutilsNames = array("xml2bib", "xml2bib.exe");
 			$formVars["pathToBibutils"] = locateFile($bibutilsLocations, $bibutilsNames, true);
