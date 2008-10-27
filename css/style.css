@@ -444,15 +444,15 @@ form[name="simpleSearch"] .searchSuggestions, form[name="simpleSearch"] .suggest
 	font-size: 1em;
 }
 
-#refineresults #refineField:lang(en) {
+#refineresults form[action="search.php"] #refineField:lang(en) {
 	width: 16.7em;
 }
 
-#refineresults #refineField:lang(de), #refineresults #refineField:lang(fr) {
+#refineresults form[action="search.php"] #refineField:lang(de), #refineresults form[action="search.php"] #refineField:lang(fr) {
 	width: 20.2em;
 }
 
-#refineresults #refineField:lang(cn) {
+#refineresults form[action="search.php"] #refineField:lang(cn) {
 	width: 14.1em;
 }
 
