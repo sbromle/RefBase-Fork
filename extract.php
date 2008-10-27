@@ -20,6 +20,8 @@
 	// literature cited within a text and build
 	// an appropriate reference list from that.
 
+	// TODO: I18n
+
 
 	// Incorporate some include files:
 	include 'includes/header.inc.php'; // include header
@@ -139,6 +141,7 @@
 			. "\n\t\t\t<option value=\"year\">year</option>"
 			. "\n\t\t\t<option value=\"type\">type</option>"
 			. "\n\t\t\t<option value=\"type-year\">type, year</option>"
+			. "\n\t\t\t<option value=\"creation-date\">date created</option>"
 			. "\n\t\t</select>&nbsp;&nbsp;&nbsp;"
 			. "\n\t\treturn as:&nbsp;&nbsp;"
 			. "\n\t\t<select name=\"citeType\" title=\"choose how your reference list shall be returned\"$citeFormatDisabled>";
