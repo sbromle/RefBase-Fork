@@ -379,19 +379,32 @@ else
 		<td>
 			<div id="includerefs"><?php
 
-			// NOTE: - as an alternative to the below code block, we could also fetch citations via an AJAX event and let the JavaScript functions in file 'javascript/show.js' ' write the results into the '<div id="includerefs">' section;
-			//         to do so:
-			//           1. pass the JavaScript file 'javascript/show.js' as the 6th parameter to the 'displayHTMLhead' function (see above)
-			//           2. call JavaScript function 'showRefs()' via an 'onload' event in the body tag of function 'displayHTMLhead()' in 'includes/header.inc.php':  onload="showRefs('records=all&amp;showRows=5&amp;citeOrder=creation-date')"
-			//              TODO: function 'displayHTMLhead()' should get modified so that it only calls the 'onload' event if necessary/requested
-			// 
-			//       - the above alternative works within the user's current session, i.e. the links section will contain any edit or file links (if the user has appropriate permissions);
-			//         however, the below method (which uses function 'fetchDataFromURL()') does NOT maintain the user's current session (and adding the user's current PHPSESSID doesn't seem to work ?:-/)
+			// Fetch the most recently added publications (as formatted citations), or link to them:
 
-			// Prepare a query that will fetch a HTML table with the most recently added publications (as formatted citations):
-			$recentAdditionsQueryURL = $databaseBaseURL . "show.php?records=all&submit=Cite&showRows=5&citeOrder=creation-date&client=inc-refbase-1.0&wrapResults=0"; // variable '$databaseBaseURL' is defined in 'ini.inc.php'
+			$recentAdditionsResultTable = "";
 
-			$recentAdditionsResultTable = fetchDataFromURL($recentAdditionsQueryURL); // function 'fetchDataFromURL()' is defined in 'include.inc.php'
+			// Get all user permissions for the anonymous user (userID = 0):
+			// NOTE: since function 'fetchDataFromURL()' retrieves citations anonymously (i.e. the
+			//       current user's session is not maintained, see note below), we need to check the
+			//       permissions for the *anonymous* user (userID = 0) here
+			$anonymousUserPermissionsArray = getPermissions(0, "user", false); // function 'getPermissions()' is defined in 'include.inc.php'
+
+			if (isset($_SESSION['user_permissions']) AND ($anonymousUserPermissionsArray["allow_cite"] == "yes")) // if the anonymous user is allowed to output records as citations
+			{
+				// NOTE: - as an alternative to the below code block, we could also fetch citations via an AJAX event and let the JavaScript functions in file 'javascript/show.js' ' write the results into the '<div id="includerefs">' section;
+				//         to do so:
+				//           1. pass the JavaScript file 'javascript/show.js' as the 6th parameter to the 'displayHTMLhead' function (see above)
+				//           2. call JavaScript function 'showRefs()' via an 'onload' event in the body tag of function 'displayHTMLhead()' in 'includes/header.inc.php':  onload="showRefs('records=all&amp;showRows=5&amp;citeOrder=creation-date')"
+				//              TODO: function 'displayHTMLhead()' should get modified so that it only calls the 'onload' event if necessary/requested
+				// 
+				//       - the above alternative works within the user's current session, i.e. the links section will contain any edit or file links (if the user has appropriate permissions);
+				//         however, the below method (which uses function 'fetchDataFromURL()') does NOT maintain the user's current session (and adding the user's current PHPSESSID doesn't seem to work ?:-/)
+
+				// Prepare a query that will fetch a HTML table with the most recently added publications (as formatted citations):
+				$recentAdditionsQueryURL = $databaseBaseURL . "show.php?records=all&submit=Cite&showRows=5&citeOrder=creation-date&client=inc-refbase-1.0&wrapResults=0"; // variable '$databaseBaseURL' is defined in 'ini.inc.php'
+
+				$recentAdditionsResultTable = fetchDataFromURL($recentAdditionsQueryURL); // function 'fetchDataFromURL()' is defined in 'include.inc.php'
+			}
 
 			if (!empty($recentAdditionsResultTable))
 			{
