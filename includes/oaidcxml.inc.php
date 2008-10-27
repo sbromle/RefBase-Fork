@@ -104,6 +104,8 @@
 		global $convertExportDataToUTF8;
 		global $defaultCiteStyle;
 
+		global $citeStyle;
+
 		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		// The array '$transtab_refbase_unicode' contains search & replace patterns for conversion from refbase markup to Unicode entities.
@@ -114,20 +116,24 @@
 
 		// Define inline text markup to generate a plain text citation string:
 		// (to be included within a 'dcterms:bibliographicCitation' element)
-		$markupPatternsArrayPlain = array("bold-prefix"      => "", // NOTE: should we rather keep refbase font-shape markup (like _italic_ and **bold**) for plain text output?
-		                                  "bold-suffix"      => "",
-		                                  "italic-prefix"    => "",
-		                                  "italic-suffix"    => "",
-		                                  "underline-prefix" => "",
-		                                  "underline-suffix" => "",
-		                                  "endash"           => "-",
-		                                  "emdash"           => "-",
-		                                  "ampersand"        => "&",
-		                                  "double-quote"     => '"',
-		                                  "single-quote"     => "'",
-		                                  "less-than"        => "<",
-		                                  "greater-than"     => ">",
-		                                  "newline"          => "\n"
+		$markupPatternsArrayPlain = array("bold-prefix"        => "", // NOTE: should we rather keep refbase font-shape markup (like _italic_ and **bold**) for plain text output?
+		                                  "bold-suffix"        => "",
+		                                  "italic-prefix"      => "",
+		                                  "italic-suffix"      => "",
+		                                  "underline-prefix"   => "",
+		                                  "underline-suffix"   => "",
+		                                  "endash"             => "-",
+		                                  "emdash"             => "-",
+		                                  "ampersand"          => "&",
+		                                  "double-quote"       => '"',
+		                                  "double-quote-left"  => '"',
+		                                  "double-quote-right" => '"',
+		                                  "single-quote"       => "'",
+		                                  "single-quote-left"  => "'",
+		                                  "single-quote-right" => "'",
+		                                  "less-than"          => "<",
+		                                  "greater-than"       => ">",
+		                                  "newline"            => "\n"
 		                                 );
 
 
@@ -177,14 +183,21 @@
 				if (in_array($rowFieldName, $fieldActionsArray['fields']))
 					$row[$rowFieldName] = searchReplaceText($fieldActionsArray['actions'], $rowFieldValue, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
 
-		$citeStyleFile = getStyleFile($defaultCiteStyle); // fetch the name of the citation style file that's associated with the style given in '$defaultCiteStyle' (which, in turn, is defined in 'ini.inc.php')
+		// Fetch the name of the citation style file that's associated with the style given in '$citeStyle':
+		$citeStyleFile = getStyleFile($citeStyle); // function 'getStyleFile()' is defined in 'include.inc.php'
+
+		if (empty($citeStyleFile))
+		{
+			$citeStyle = $defaultCiteStyle; // if the given cite style could not be found, we'll use the default cite style which is defined by the '$defaultCiteStyle' variable in 'ini.inc.php'
+			$citeStyleFile = getStyleFile($citeStyle);
+		}
 
 		// Include the found citation style file *once*:
 		include_once "cite/" . $citeStyleFile;
 
 		// Generate a proper citation for this record, ordering attributes according to the chosen output style & record type:
 		// - Plain text version of citation string:
-		$recordCitationPlain = citeRecord($row, $defaultCiteStyle, "", $markupPatternsArrayPlain, false); // function 'citeRecord()' is defined in the citation style file given in '$citeStyleFile' (which, in turn, must reside in the 'styles' directory of the refbase root directory)
+		$recordCitationPlain = citeRecord($row, $citeStyle, "", $markupPatternsArrayPlain, false); // function 'citeRecord()' is defined in the citation style file given in '$citeStyleFile' (which, in turn, must reside in the 'styles' directory of the refbase root directory)
 
 		//   Convert any refbase markup that remains in the citation string (such as _italic_ or **bold**) to plain text:
 		$recordCitationPlain = searchReplaceText($transtab_refbase_ascii, $recordCitationPlain, true);
@@ -475,7 +488,7 @@
 			{
 				$pages = preg_replace("/^\D*(\d+)( *[$dash]+ *\d+)?.*/i$patternModifiers", "\\1\\2", $row['pages']); // extract page range (if there's any), otherwise just the first number
 				$startPage = preg_replace("/^\D*(\d+).*/i", "\\1", $row['pages']); // extract starting page
-				$endPage = extractDetailsFromField("pages", $pages, "[^0-9]+", "[-1]"); // extract ending page (function 'extractDetailsFromField()' is defined in 'include.inc.php')
+				$endPage = extractDetailsFromField("pages", $pages, "/\D+/", "[-1]"); // extract ending page (function 'extractDetailsFromField()' is defined in 'include.inc.php')
 				// NOTE: To extract the ending page, we'll use function 'extractDetailsFromField()'
 				//       instead of just grabbing a matched regex pattern since it'll also work
 				//       when just a number but no range is given (e.g. when startPage = endPage)
