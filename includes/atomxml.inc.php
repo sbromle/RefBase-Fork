@@ -46,6 +46,9 @@
 		global $contentTypeCharset;
 		global $convertExportDataToUTF8;
 
+		global $citeStyle;
+		global $citeOrder;
+
 		global $query;
 
 		// Individual records are objects and collections of records are strings
@@ -144,31 +147,31 @@
 		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "RSS XML", $queryParametersArray, true, $showRows), "alternate", "RSS XML", "Current query results as RSS feed"); // function 'generateURL()' is defined in 'include.inc.php'
 
 		//   - HTML output for current results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "html", $queryParametersArray, true, $showRows, $rowOffset), "alternate", "html", "Current results page as HTML");
+		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "html", $queryParametersArray, true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "html", "Current results page as HTML");
 
 		//   - SRW_DC XML data for current results page:
 		//     NOTE: A link to SRW_MODS XML is already used with this type!
-//		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "SRW_DC XML", $queryParametersArray, true, $showRows, $rowOffset), "alternate", "SRW_DC XML", "Current results page as SRW_DC XML data");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "SRW_DC XML", $queryParametersArray, true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "SRW_DC XML", "Current results page as SRW_DC XML data");
 
 		//   - SRW_MODS XML data for current results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "SRW_MODS XML", $queryParametersArray, true, $showRows, $rowOffset), "alternate", "SRW_MODS XML", "Current results page as SRW_MODS XML data");
+		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "SRW_MODS XML", $queryParametersArray, true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "SRW_MODS XML", "Current results page as SRW_MODS XML data");
 
 		//   - Atom XML data for current results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $rowOffset), "self", "Atom XML", "Current results page");
+		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $rowOffset, $citeStyle, $citeOrder), "self", "Atom XML", "Current results page");
 
 		//   - Atom XML data for first results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, 0), "first", "Atom XML", "First results page");
+		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, 0, $citeStyle, $citeOrder), "first", "Atom XML", "First results page");
 
 		//   - Atom XML data for previous results page:
 		if ($startIndex > $showRows) // if there are any previous results pages
-			atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $previousOffset), "previous", "Atom XML", "Previous results page");
+			atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $previousOffset, $citeStyle, $citeOrder), "previous", "Atom XML", "Previous results page");
 
 		//   - Atom XML data for next results page:
 		if ($showMaxRow < $rowsFound) // if we are not on the last results page
-			atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $nextOffset), "next", "Atom XML", "Next results page");
+			atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $nextOffset, $citeStyle, $citeOrder), "next", "Atom XML", "Next results page");
 
 		//   - Atom XML data for last results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $lastOffset), "last", "Atom XML", "Last results page");
+		atomLink($atomCollection, $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $lastOffset, $citeStyle, $citeOrder), "last", "Atom XML", "Last results page");
 
 
 		//   B) Other export formats supported by 'show.php':
@@ -176,56 +179,56 @@
 		//   TODO: add links for ADS, ISI and Word XML
 
 		//   - BibTeX data for all results:
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "BibTeX", array("where" => $queryWhereClause), true, $showRows, $rowOffset), "alternate", "BibTeX", "All results as BibTeX data");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "BibTeX", array("where" => $queryWhereClause), true, $showRows, $rowOffset, "", $citeOrder), "alternate", "BibTeX", "All results as BibTeX data");
 
 		//   - Endnote data for all results:
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "Endnote", array("where" => $queryWhereClause), true, $showRows, $rowOffset), "alternate", "Endnote", "All results as Endnote data");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "Endnote", array("where" => $queryWhereClause), true, $showRows, $rowOffset, "", $citeOrder), "alternate", "Endnote", "All results as Endnote data");
 
 		//   - RIS data for all results:
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "RIS", array("where" => $queryWhereClause), true, $showRows, $rowOffset), "alternate", "RIS", "All results as RIS data");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "RIS", array("where" => $queryWhereClause), true, $showRows, $rowOffset, "", $citeOrder), "alternate", "RIS", "All results as RIS data");
 
 		//   - MODS XML data for all results:
 		//     NOTE: A link to SRW_MODS XML is already used with this type!
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "MODS XML", array("where" => $queryWhereClause), true, $showRows, $rowOffset), "alternate", "MODS XML", "All results as MODS XML data");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "MODS XML", array("where" => $queryWhereClause), true, $showRows, $rowOffset, "", $citeOrder), "alternate", "MODS XML", "All results as MODS XML data");
 
 		//   - OAI_DC XML data for all results:
 		//     NOTE: A link to SRW_MODS XML is already used with this type!
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "OAI_DC XML", array("where" => $queryWhereClause), true, $showRows, $rowOffset), "alternate", "OAI_DC XML", "All results as OAI_DC XML data");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "OAI_DC XML", array("where" => $queryWhereClause), true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "OAI_DC XML", "All results as OAI_DC XML data");
 
 		//   - ODF XML data for all results:
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "ODF XML", array("where" => $queryWhereClause, "exportType" => "file"), true, $showRows, $rowOffset), "alternate", "ODF XML", "All results as ODF XML data");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "ODF XML", array("where" => $queryWhereClause, "exportType" => "file"), true, $showRows, $rowOffset, "", $citeOrder), "alternate", "ODF XML", "All results as ODF XML data");
 
 
 		//   C) Citation formats supported by 'show.php':
 		//   NOTE: Citation formats support paging of results via '$showRows' and '$rowOffset' if the 'client' parameter contains a value that starts with "cli"
 
 		//   - RTF citations for current results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "RTF", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset), "alternate", "RTF", "Current results page as citations in RTF format");
+		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "RTF", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "RTF", "Current results page as citations in RTF format");
 
 		//   - PDF citations for current results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "PDF", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset), "alternate", "PDF", "Current results page as citations in PDF format");
+		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "PDF", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "PDF", "Current results page as citations in PDF format");
 
 		//   - LaTeX citations for current results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "LaTeX", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset), "alternate", "LaTeX", "Current results page as citations in LaTeX format");
+		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "LaTeX", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "LaTeX", "Current results page as citations in LaTeX format");
 
 		//   - LaTeX .bbl citations for current results page:
 		//     NOTE: A link to LaTeX citations is already used with this type!
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "LaTeX .bbl", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset), "alternate", "LaTeX .bbl", "Current results page as citations in LaTeX .bbl format");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "LaTeX .bbl", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "LaTeX .bbl", "Current results page as citations in LaTeX .bbl format");
 
 		//   - Markdown citations for current results page:
-		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "Markdown", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset), "alternate", "Markdown", "Current results page as citations in Markdown format");
+		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "Markdown", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "Markdown", "Current results page as citations in Markdown format");
 
 		//   - ASCII citations for current results page:
 		//     (NOTE: A link to Markdown citations is already used with this type!
 		//            Additionally, ASCII output with 'client=cli...' causes text output to be meant as shell response)
-//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "ASCII", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset), "alternate", "ASCII", "Current results page as citations in ASCII format");
+//		atomLink($atomCollection, $databaseBaseURL . generateURL("show.php", "ASCII", array("where" => $queryWhereClause, "client" => "cli-refbase_atom-1.0"), true, $showRows, $rowOffset, $citeStyle, $citeOrder), "alternate", "ASCII", "Current results page as citations in ASCII format");
 
 
 		// - 'id':
 		//   NOTE: is this a valid feed ID?
 		//   TODO: should we rather use a feed ID that conforms to the Tag URI (RFC 4151)? Spec: <http://tools.ietf.org/html/rfc4151>;
 		//         or should we use an ID such as '<id>urn:uuid:60a76c80-d399-11d9-b93C-0003939e0af6</id>' ?
-		addNewBranch($atomCollection, "id", array(), $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $rowOffset)); // function 'addNewBranch()' is defined in 'webservice.inc.php'
+		addNewBranch($atomCollection, "id", array(), $databaseBaseURL . generateURL($baseURL, "Atom XML", $queryParametersArray, true, $showRows, $rowOffset, $citeStyle, $citeOrder)); // function 'addNewBranch()' is defined in 'webservice.inc.php'
 
 
 		// - OpenSearch elements:
@@ -269,20 +272,24 @@
 		if ($showRowsOriginal != 0) // we omit the records list in the response if the OpenSearch query did contain 'maximumRecords=0'
 		{
 			// Define inline text markup to be used by the 'citeRecord()' function:
-			$markupPatternsArray = array("bold-prefix"      => "<b>",
-			                             "bold-suffix"      => "</b>",
-			                             "italic-prefix"    => "<i>",
-			                             "italic-suffix"    => "</i>",
-			                             "underline-prefix" => "<u>",
-			                             "underline-suffix" => "</u>",
-			                             "endash"           => "&#8211;",
-			                             "emdash"           => "&#8212;",
-			                             "ampersand"        => "&amp;", // this ensures correct encoding of ampersands which are inserted into the author string by citation styles such as APA
-			                             "double-quote"     => "&quot;",
-			                             "single-quote"     => "'",
-			                             "less-than"        => "&lt;",
-			                             "greater-than"     => "&gt;",
-			                             "newline"          => "\n<br>\n"
+			$markupPatternsArray = array("bold-prefix"        => "<b>",
+			                             "bold-suffix"        => "</b>",
+			                             "italic-prefix"      => "<i>",
+			                             "italic-suffix"      => "</i>",
+			                             "underline-prefix"   => "<u>",
+			                             "underline-suffix"   => "</u>",
+			                             "endash"             => "&#8211;",
+			                             "emdash"             => "&#8212;",
+			                             "ampersand"          => "&amp;", // this ensures correct encoding of ampersands which are inserted into the author string by citation styles such as APA
+			                             "double-quote"       => "&quot;",
+			                             "double-quote-left"  => "&ldquo;",
+			                             "double-quote-right" => "&rdquo;",
+			                             "single-quote"       => "'",
+			                             "single-quote-left"  => "&lsquo;",
+			                             "single-quote-right" => "&rsquo;",
+			                             "less-than"          => "&lt;",
+			                             "greater-than"       => "&gt;",
+			                             "newline"            => "\n<br>\n"
 			                            );
 
 			$exportArray = array(); // array for individually exported records
@@ -336,6 +343,9 @@
 		global $convertExportDataToUTF8;
 		global $defaultCiteStyle;
 
+		global $citeStyle;
+		global $citeOrder;
+
 		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
 		// The array '$transtab_refbase_unicode' contains search & replace patterns for conversion from refbase markup to Unicode entities.
@@ -355,20 +365,24 @@
 
 		// Define inline text markup to generate a plain text citation string:
 		// (to be included within a 'dcterms:bibliographicCitation' element)
-		$markupPatternsArrayPlain = array("bold-prefix"      => "", // NOTE: should we rather keep refbase font-shape markup (like _italic_ and **bold**) for plain text output?
-		                                  "bold-suffix"      => "",
-		                                  "italic-prefix"    => "",
-		                                  "italic-suffix"    => "",
-		                                  "underline-prefix" => "",
-		                                  "underline-suffix" => "",
-		                                  "endash"           => "-",
-		                                  "emdash"           => "-",
-		                                  "ampersand"        => "&",
-		                                  "double-quote"     => '"',
-		                                  "single-quote"     => "'",
-		                                  "less-than"        => "<",
-		                                  "greater-than"     => ">",
-		                                  "newline"          => "\n"
+		$markupPatternsArrayPlain = array("bold-prefix"        => "", // NOTE: should we rather keep refbase font-shape markup (like _italic_ and **bold**) for plain text output?
+		                                  "bold-suffix"        => "",
+		                                  "italic-prefix"      => "",
+		                                  "italic-suffix"      => "",
+		                                  "underline-prefix"   => "",
+		                                  "underline-suffix"   => "",
+		                                  "endash"             => "-",
+		                                  "emdash"             => "-",
+		                                  "ampersand"          => "&",
+		                                  "double-quote"       => '"',
+		                                  "double-quote-left"  => '"',
+		                                  "double-quote-right" => '"',
+		                                  "single-quote"       => "'",
+		                                  "single-quote-left"  => "'",
+		                                  "single-quote-right" => "'",
+		                                  "less-than"          => "<",
+		                                  "greater-than"       => ">",
+		                                  "newline"            => "\n"
 		                                 );
 
 
@@ -418,7 +432,14 @@
 				if (in_array($rowFieldName, $fieldActionsArray['fields']))
 					$row[$rowFieldName] = searchReplaceText($fieldActionsArray['actions'], $rowFieldValue, true); // function 'searchReplaceText()' is defined in 'include.inc.php'
 
-		$citeStyleFile = getStyleFile($defaultCiteStyle); // fetch the name of the citation style file that's associated with the style given in '$defaultCiteStyle' (which, in turn, is defined in 'ini.inc.php')
+		// Fetch the name of the citation style file that's associated with the style given in '$citeStyle':
+		$citeStyleFile = getStyleFile($citeStyle); // function 'getStyleFile()' is defined in 'include.inc.php'
+
+		if (empty($citeStyleFile))
+		{
+			$citeStyle = $defaultCiteStyle; // if the given cite style could not be found, we'll use the default cite style which is defined by the '$defaultCiteStyle' variable in 'ini.inc.php'
+			$citeStyleFile = getStyleFile($citeStyle);
+		}
 
 		// Include the found citation style file *once*:
 		include_once "cite/" . $citeStyleFile;
@@ -426,14 +447,14 @@
 		// Generate a proper citation for this record, ordering attributes according to the chosen output style & record type:
 		// - Plain text version of citation string:
 		//   (the plain text version of the citation string will be included in the 'dcterms:bibliographicCitation' element which should contain plain text only)
-		$recordCitationPlain = citeRecord($row, $defaultCiteStyle, "", $markupPatternsArrayPlain, false); // function 'citeRecord()' is defined in the citation style file given in '$citeStyleFile' (which, in turn, must reside in the 'styles' directory of the refbase root directory)
+		$recordCitationPlain = citeRecord($row, $citeStyle, "", $markupPatternsArrayPlain, false); // function 'citeRecord()' is defined in the citation style file given in '$citeStyleFile' (which, in turn, must reside in the 'styles' directory of the refbase root directory)
 
 		//   Convert any refbase markup that remains in the citation string (such as _italic_ or **bold**) to plain text:
 		$recordCitationPlain = searchReplaceText($transtab_refbase_ascii, $recordCitationPlain, true);
 
 		// - HTML version of citation string:
 		//   (note that, for output of Atom XML, we do NOT HTML encode higher ASCII characters; thus, the last param in the below function call is 'false')
-		$recordCitation = citeRecord($row, $defaultCiteStyle, "", $markupPatternsArray, false);
+		$recordCitation = citeRecord($row, $citeStyle, "", $markupPatternsArray, false);
 
 		//   Convert any refbase markup that remains in the citation string (such as _italic_ or **bold**) into HTML markup:
 		//   (the HTML version of the citation string will be included in the Atom 'content' element which uses 'type="xhtml"')
@@ -535,7 +556,7 @@
 		//     NOTE: How can we output an 'alternate' link to the HTML citation with the same 'type'?
 		//           But, maybe, this isn't necessary since a client GUI (layered over the Atom XML data) would expose
 		//           the record citation (from the 'content' or 'bibliographicCitation' element) anyhow... ?
-		atomLink($entry, $databaseBaseURL . generateURL("show.php", "html", array("record" => $row['serial']), true), "alternate", "html", "View record in HTML format"); // function 'generateURL()' is defined in 'include.inc.php'
+		atomLink($entry, $databaseBaseURL . generateURL("show.php", "html", array("record" => $row['serial']), true, "", "", $citeStyle), "alternate", "html", "View record in HTML format"); // function 'generateURL()' is defined in 'include.inc.php'
 
 
 		//   B) Export formats
@@ -552,7 +573,7 @@
 		atomLink($entry, $databaseBaseURL . generateURL("show.php", "RIS", array("record" => $row['serial']), true), "alternate", "RIS", "Export record in RIS format");
 
 		//   - Atom XML data for this record:
-		atomLink($entry, $databaseBaseURL . generateURL("show.php", "Atom XML", array("record" => $row['serial']), true), "alternate", "Atom XML", "Export record as Atom XML");
+		atomLink($entry, $databaseBaseURL . generateURL("show.php", "Atom XML", array("record" => $row['serial']), true, "", "", $citeStyle), "alternate", "Atom XML", "Export record as Atom XML");
 
 		//   - MODS XML data for this record:
 		//     NOTE: while we include a link to SRW_MODS XML on feed level, we instead include a link to MODS XML on entry level since the SRW overhead isn't really needed here
@@ -560,14 +581,14 @@
 
 		//   - OAI_DC XML data for this record:
 		//     NOTE: A link to MODS XML is already used with this type!
-//		atomLink($entry, $databaseBaseURL . generateURL("show.php", "OAI_DC XML", array("record" => $row['serial']), true), "alternate", "OAI_DC XML", "Export record as OAI_DC XML");
+//		atomLink($entry, $databaseBaseURL . generateURL("show.php", "OAI_DC XML", array("record" => $row['serial']), true, "", "", $citeStyle), "alternate", "OAI_DC XML", "Export record as OAI_DC XML");
 
 		//   - ODF XML data for this record:
 		atomLink($entry, $databaseBaseURL . generateURL("show.php", "ODF XML", array("record" => $row['serial'], "exportType" => "file"), true), "alternate", "ODF XML", "Export record as ODF XML");
 
 		//   - SRW_DC XML data for this record:
 		//     NOTE: A link to MODS XML is already used with this type!
-//		atomLink($entry, $databaseBaseURL . generateURL("show.php", "SRW_DC XML", array("record" => $row['serial']), true), "alternate", "SRW_DC XML", "Export record as SRW_DC XML");
+//		atomLink($entry, $databaseBaseURL . generateURL("show.php", "SRW_DC XML", array("record" => $row['serial']), true, "", "", $citeStyle), "alternate", "SRW_DC XML", "Export record as SRW_DC XML");
 
 		//   - SRW_MODS XML data for this record:
 		//     NOTE: A link to MODS XML is already used with this type!
@@ -577,24 +598,24 @@
 		//   C) Citation formats:
 
 		//   - RTF citations for this record:
-		atomLink($entry, $databaseBaseURL . generateURL("show.php", "RTF", array("record" => $row['serial']), true), "alternate", "RTF", "Output record as citation in RTF format");
+		atomLink($entry, $databaseBaseURL . generateURL("show.php", "RTF", array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder), "alternate", "RTF", "Output record as citation in RTF format");
 
 		//   - PDF citations for this record:
-		atomLink($entry, $databaseBaseURL . generateURL("show.php", "PDF", array("record" => $row['serial']), true), "alternate", "PDF", "Output record as citation in PDF format");
+		atomLink($entry, $databaseBaseURL . generateURL("show.php", "PDF", array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder), "alternate", "PDF", "Output record as citation in PDF format");
 
 		//   - LaTeX citations for this record:
-		atomLink($entry, $databaseBaseURL . generateURL("show.php", "LaTeX", array("record" => $row['serial']), true), "alternate", "LaTeX", "Output record as citation in LaTeX format");
+		atomLink($entry, $databaseBaseURL . generateURL("show.php", "LaTeX", array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder), "alternate", "LaTeX", "Output record as citation in LaTeX format");
 
 		//   - LaTeX .bbl citations for this record:
 		//     NOTE: A link to a LaTeX citation is already used with this type!
-//		atomLink($entry, $databaseBaseURL . generateURL("show.php", "LaTeX .bbl", array("record" => $row['serial']), true), "alternate", "LaTeX .bbl", "Output record as citation in LaTeX .bbl format");
+//		atomLink($entry, $databaseBaseURL . generateURL("show.php", "LaTeX .bbl", array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder), "alternate", "LaTeX .bbl", "Output record as citation in LaTeX .bbl format");
 
 		//   - Markdown citations for this record:
-		atomLink($entry, $databaseBaseURL . generateURL("show.php", "Markdown", array("record" => $row['serial']), true), "alternate", "Markdown", "Output record as citation in Markdown format");
+		atomLink($entry, $databaseBaseURL . generateURL("show.php", "Markdown", array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder), "alternate", "Markdown", "Output record as citation in Markdown format");
 
 		//   - ASCII citations for this record:
 		//     NOTE: A link to a Markdown citation is already used with this type!
-//		atomLink($entry, $databaseBaseURL . generateURL("show.php", "ASCII", array("record" => $row['serial']), true), "alternate", "ASCII", "Output record as citation in ASCII format");
+//		atomLink($entry, $databaseBaseURL . generateURL("show.php", "ASCII", array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder), "alternate", "ASCII", "Output record as citation in ASCII format");
 
 
 		//   D) Related links:
@@ -843,7 +864,7 @@
 		{
 			$pages = preg_replace("/^\D*(\d+)( *[$dash]+ *\d+)?.*/i$patternModifiers", "\\1\\2", $row['pages']); // extract page range (if there's any), otherwise just the first number
 			$startPage = preg_replace("/^\D*(\d+).*/i", "\\1", $row['pages']); // extract starting page
-			$endPage = extractDetailsFromField("pages", $pages, "[^0-9]+", "[-1]"); // extract ending page (function 'extractDetailsFromField()' is defined in 'include.inc.php')
+			$endPage = extractDetailsFromField("pages", $pages, "/\D+/", "[-1]"); // extract ending page (function 'extractDetailsFromField()' is defined in 'include.inc.php')
 			// NOTE: To extract the ending page, we'll use function 'extractDetailsFromField()'
 			//       instead of just grabbing a matched regex pattern since it'll also work
 			//       when just a number but no range is given (e.g. when startPage = endPage)
