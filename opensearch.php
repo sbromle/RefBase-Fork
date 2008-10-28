@@ -66,7 +66,7 @@
 	//       - rewrite HTML using divs + CSS
 	//       - see also inline comments labeled with "TODO"
 
-	// NOTES: - currently, the JSON response format is only supported when returning search suggestions
+	// NOTES: - Currently, the JSON response format is only supported when returning search suggestions
 	//          ('operation=suggest'), i.e. you cannot (yet) retrieve full record data in JSON format
 	//        - ATM, querying of user-specific fields does only work with a user being logged in
 
@@ -167,6 +167,8 @@
 	else
 		$viewType = "";
 
+	// --------------------------------------------------------------------
+
 	// Set required variables based on the requested response format:
 
 	if (eregi("^srw([ _]?(mods|dc))?([ _]?xml)?$", $recordSchema)) // if SRW XML is requested as response format
@@ -232,6 +234,10 @@
 
 	// -------------------------------------------------------------------------------------------------------------------
 
+	// Handle the special index 'main_fields':
+	if (!(eregi("^suggest$", $operation) AND eregi("^(html|json)$", $recordSchema)) AND (preg_match("/^main_fields( +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/i", $cqlQuery))) // if the 'main_fields' index is used in conjunction with a non-"suggest" operation
+		$cqlQuery = preg_replace("/^main_fields(?= +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/i", "cql.serverChoice", $cqlQuery); // replace 'main_fields' index (which, ATM, is only supported for search suggestions) with 'cql.serverChoice'
+
 	// Parse CQL query:
 	$searchArray = parseCQL("1.1", $cqlQuery, $operation); // function 'parseCQL()' is defined in 'webservice.inc.php'
 
@@ -258,82 +264,15 @@
 		echo openSearchDescription($exportStylesheet); // function 'openSearchDescription()' is defined in 'opensearch.inc.php'
 	}
 
-	// - if 'opensearch.php' was called with 'operation=suggest' and JSON as the requested response format, we'll return search suggestions that match the given query:
-	//   NOTE: currently, if you specify a multi-item field with 'all' as a relation (as in 'keywords all ...'), only the first search term is used to generate search suggestions
-	//         (though the other search terms will be used to restrict the list of search suggestions to only those where the queried field contains ALL search terms)
-	//   TODO: - should we support the 'maximumRecords' and 'startRecord' URL parameters for search suggestions?
-	//         - search suggestions for the 'location' field (and possibly other fields) should be omitted if the user isn't logged in!
+	// - if 'opensearch.php' was called with 'operation=suggest' and HTML (or JSON) as the requested response format,
+	//   we'll return search suggestions that match the 'WHERE' clause given in '$query':
 	elseif (eregi("^suggest$", $operation) AND eregi("^(html|json)$", $recordSchema))
 	{
-		// Extract the first field & search pattern from the 'WHERE' clause:
-		// (these will be used to retrieve search suggestions)
-		$searchSuggestionsField = preg_replace("/^[ ()]*(\w+).*/i", "\\1", $query);
-		$searchSuggestionsPattern = preg_replace("/.*? (?:RLIKE|[=<>]+) \"?(.+?)\"?(?=( *\) *?)*( +(AND|OR)\b|$)).*/i", "\\1", $query); // see NOTE above
-
-		if (eregi("^(author|keywords|abstract|address|place|editor|language|summary_language|series_editor|area|expedition|notes|location|call_number|created_by|modified_by|user_keys|user_notes|user_groups|related)$", $searchSuggestionsField))
-			$splitValues = true;
-		else
-			$splitValues = false;
-
-		if (eregi("^(author|editor|series_editor)$", $searchSuggestionsField))
-			$splitPattern = " *[;()/]+ *";
-		elseif (eregi("^(abstract)$", $searchSuggestionsField))
-			$splitPattern = " *[,.()/?!]+ +| +[,.()/?!] *| +- +"; // TODO: can (or should) abstracts be splitted in a better way?
-		elseif (eregi("^(place|notes|location|user_notes|user_groups|related)$", $searchSuggestionsField))
-			$splitPattern = " *[;]+ *";
-		elseif (eregi("^(call_number)$", $searchSuggestionsField))
-			$splitPattern = " *[;@]+ *";
-		else
-			$splitPattern = " *[,;()/]+ *";
-
-		if (eregi("^json$", $recordSchema)) // return data in JSON format
-			$outputFormat = "JSON";
-		else // return data in an unordered HTML list
-			$outputFormat = "HTML UL";
-
-		// Produce the list of search suggestions:
-		// (function 'selectDistinct()' is defined in 'include.inc.php')
-		$outputData = selectDistinct($connection,
-		                           $tableRefs,
-		                           "serial",
-		                           $tableUserData,
-		                           "record_id",
-		                           "user_id",
-		                           $loginUserID,
-		                           $searchSuggestionsField,
-		                           "",
-		                           "",
-		                           "",
-		                           "",
-		                           "serial",
-		                           "\".+\" AND $query", // this is a somewhat hacky workaround that works around current limitations in function 'selectDistinct()'
-		                           $splitValues,
-		                           $splitPattern,
-		                           $outputFormat,
-		                           $searchSuggestionsPattern);
-
-		// Prefix each item with an index name and relation:
-		// 
-		// NOTE: When the user selects a search suggestion in Firefox, Firefox replaces the user-entered
-		//       data in the browser's search field with the chosen search suggestion. This removes any
-		//       CQL index and relation that was entered by the user (e.g. "keywords any ...") and
-		//       'cql.serverChoice' will be searched instead. Since this would lead to unexpected (or zero)
-		//       results, we prefix all search suggestions with the index name and the '=' relation.
-		// 
-		// TODO: This will need to be revised when 'cql.serverChoice' maps to the user's preferred list of
-		//       "main fields". Even better would be if browsers would support alternate query URLs for each
-		//       suggestion in the completion list.
-		if (eregi("^json$", $recordSchema) AND eregi("^sug", $client)) // e.g. "sug-refbase_suggest-1.0"
-			$outputData = preg_replace("/(?<=\[\"|\", \")(?!\")/", "$searchSuggestionsField = ", $outputData);
-
 		// Set the appropriate mimetype & set the character encoding to the one given
 		// in '$contentTypeCharset' (which is defined in 'ini.inc.php'):
 		setHeaderContentType($exportContentType, $contentTypeCharset);
 
-		if (eregi("^json$", $recordSchema)) // return JSON-formatted search suggestions:
-			echo '["' . $cqlQuery . '", ' . $outputData . ']'; // e.g.: ["fir", ["firefox", "first choice", "mozilla firefox"]]
-		else // return HTML-formatted search suggestions:
-			echo $outputData;
+		echo searchSuggestions($cqlQuery, $query);
 	}
 
 	// - If 'opensearch.php' was called without any recognized parameters, we'll present a form where a user can build a query:
@@ -356,8 +295,6 @@
 		// (this session variable is used by functions 'atomCollection()' and 'citeRecords()' (in 'cite_html.php') to re-establish the original OpenSearch/CQL query;
 		//  function 'atomCollection()' uses the OpenSearch/CQL query to output 'opensearch.php' URLs instead of 'show.php' URLs)
 		saveSessionVariable("cqlQuery", $cqlQuery); // function 'saveSessionVariable()' is defined in 'include.inc.php'
-
-		// --------------------------------------------------------------------
 
 		// Build the correct query URL:
 		// (we skip unnecessary parameters here since function 'generateURL()' and 'show.php' will use their default values for them)
@@ -403,6 +340,131 @@
 		else
 			// Return OpenSearch diagnostics (i.e. OpenSearch error information) wrapped into OpenSearch Atom XML:
 			echo openSearchDiagnostics($diagCode, $diagDetails, $exportStylesheet); // function 'openSearchDiagnostics()' is defined in 'opensearch.inc.php'
+	}
+
+	// -------------------------------------------------------------------------------------------------------------------
+
+	// Return search suggestions that match the 'WHERE' clause given in '$query':
+	// 
+	// NOTE: Currently, if you specify a multi-item field with 'all' as a relation (as in 'keywords all ...'), only the
+	//       first search term is used to generate search suggestions (though the other search terms will be used to
+	//       restrict the list of search suggestions to only those where the queried field contains ALL search terms).
+	// 
+	// TODO: - should we support the 'maximumRecords' and 'startRecord' URL parameters for search suggestions?
+	//       - search suggestions for the 'location' field (and possibly other fields) should be omitted if the user isn't logged in!
+	function searchSuggestions($cqlQuery, $query)
+	{
+		global $recordSchema;
+
+		global $loginUserID;
+		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
+
+		global $connection;
+		global $client;
+
+		// Extract the first field & search pattern from the 'WHERE' clause:
+		// (these will be used to retrieve search suggestions)
+		$origSearchSuggestionsField = preg_replace("/^[ ()]*(\w+).*/i", "\\1", $query);
+		$searchSuggestionsPattern = preg_replace("/.*? (?:RLIKE|[=<>]+) \"?(.+?)\"?(?=( *\) *?)*( +(AND|OR)\b|$)).*/i", "\\1", $query); // see NOTE above
+
+		if (eregi("^main_fields$", $origSearchSuggestionsField)) // fetch search suggestions for all of the user's "main fields"
+			$searchSuggestionsFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
+		else
+			$searchSuggestionsFieldsArray = array($origSearchSuggestionsField); // we only need to fetch search suggestions for one field
+
+		$outputDataArray = array(); // make sure that the buffer variable is empty
+
+		// Retrieve matching search suggestions for each field given in '$searchSuggestionsFieldsArray':
+		foreach ($searchSuggestionsFieldsArray as $searchSuggestionsField)
+		{
+			if (eregi("^main_fields$", $origSearchSuggestionsField))
+				$searchSuggestionsQuery = preg_replace("/\bmain_fields\b/i", $searchSuggestionsField, $query); // replace 'main_fields' (which doesn't exist as SQL field name) with the current field
+			else
+				$searchSuggestionsQuery = $query;
+
+			// Check whether we need to split field values for this field:
+			if (eregi("^(author|keywords|abstract|address|corporate_author|place|editor|language|summary_language|series_editor|area|expedition|notes|location|call_number|created_by|modified_by|user_keys|user_notes|user_groups|related)$", $searchSuggestionsField))
+				$splitValues = true;
+			else
+				$splitValues = false;
+
+			// Define split patterns for this field:
+			if (eregi("^(author|corporate_author|editor|series_editor)$", $searchSuggestionsField))
+				$splitPattern = " *[;()/]+ *";
+			elseif (eregi("^abstract$", $searchSuggestionsField))
+				$splitPattern = "\s*[,.()/?!]+\s+|\s+[,.()/?!]\s*|\s+-\s+"; // TODO: can (or should) abstracts be splitted in a better way?
+			elseif (eregi("^(place|notes|location|user_notes|user_groups|related)$", $searchSuggestionsField))
+				$splitPattern = " *[;]+ *";
+			elseif (eregi("^(call_number)$", $searchSuggestionsField))
+				$splitPattern = " *[;@]+ *";
+			else
+				$splitPattern = " *[,;()/]+ *";
+
+			// Produce the list of search suggestions for this field:
+			// (function 'selectDistinct()' is defined in 'include.inc.php')
+			$searchSuggestionsArray = selectDistinct($connection,
+			                                         $tableRefs,
+			                                         "serial",
+			                                         $tableUserData,
+			                                         "record_id",
+			                                         "user_id",
+			                                         $loginUserID,
+			                                         $searchSuggestionsField,
+			                                         "",
+			                                         "",
+			                                         "",
+			                                         "",
+			                                         "serial",
+			                                         "\".+\" AND $searchSuggestionsQuery", // this is a somewhat hacky workaround that works around current limitations in function 'selectDistinct()'
+			                                         $splitValues,
+			                                         $splitPattern,
+			                                         "ARRAY",
+			                                         $searchSuggestionsPattern,
+			                                         false);
+
+			if (!empty($searchSuggestionsArray))
+			{
+				// Prefix each item with an index name and relation:
+				// 
+				// NOTE: When the user selects a search suggestion in Firefox's search box, Firefox replaces the
+				//       user-entered data in the browser's search field with the chosen search suggestion. This
+				//       removes any CQL index and relation that was entered by the user (e.g. "keywords any ...")
+				//       and 'cql.serverChoice' will be searched instead. Since this would lead to unexpected (or
+				//       zero) results, we prefix all search suggestions with the index name and the '=' relation.
+				// 
+				// TODO: This will need to be revised if 'cql.serverChoice' is mapped to the user's preferred list
+				//       of "main fields". Even better would be if browsers would support alternate query URLs for
+				//       each suggestion in the completion list.
+				if (eregi("^json$", $recordSchema) AND eregi("^sug", $client)) // e.g. "sug-refbase_suggest-1.0"
+					$searchSuggestionsArray = preg_replace('/^/', "$searchSuggestionsField = ", $searchSuggestionsArray);
+
+				$outputDataArray = array_merge($outputDataArray, $searchSuggestionsArray); // append this field's search suggestions to the array of found search suggestions
+			}
+		}
+
+		if (!empty($outputDataArray))
+		{
+			if (eregi("^main_fields$", $origSearchSuggestionsField)) // otherwise, data are already unique and ordered
+			{
+				// Remove duplicate values from array:
+				$outputDataArray = array_unique($outputDataArray);	
+				// Sort in ascending order:
+				sort($outputDataArray);
+			}
+
+			if (eregi("^json$", $recordSchema))
+				$outputData = '"' . implode('", "', $outputDataArray) . '"';
+			else // unordered HTML list
+				$outputData = "<li>" . implode("</li><li>", $outputDataArray) . "</li>";
+		}
+		else
+			$outputData = "";
+
+		if (eregi("^json$", $recordSchema)) // return JSON-formatted search suggestions:
+			return '["' . $cqlQuery . '", [' . $outputData . ']]'; // e.g.: ["fir", ["firefox", "first choice", "mozilla firefox"]]
+
+		else // return HTML-formatted search suggestions:
+			return "<ul>" . $outputData . "</ul>"; // e.g.: <ul><li>firefox</li><li>first choice</li><li>mozilla firefox</li></ul>
 	}
 
 	// -------------------------------------------------------------------------------------------------------------------
