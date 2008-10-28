@@ -19,6 +19,7 @@
 	// This script shows the user a receipt for their user UPDATE or INSERT.
 	// It carries out no database actions and can be bookmarked.
 	// The user must be logged in to view it.
+
 	// TODO: I18n, better separate HTML code from PHP code
 
 
@@ -262,6 +263,18 @@
 		//       function 'showPageHeader()')
 		$mainFieldsArray = getMainFields($userID); // function 'getMainFields()' is defined in 'include.inc.php'
 
+		// Map MySQL field names to localized column names:
+		$fieldNamesArray = mapFieldNames(); // function 'mapFieldNames()' is defined in 'include.inc.php'
+		$localizedMainFieldsArray = array();
+
+		foreach ($mainFieldsArray as $field)
+		{
+			if (isset($fieldNamesArray[$field]))
+				$localizedMainFieldsArray[$field] = $fieldNamesArray[$field];
+			else // no localized field name exists, so we use the original field name
+				$localizedMainFieldsArray[$field] = $field;
+		}
+
 		// Call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- User Receipt", "noindex,nofollow", "Receipt page confirming correct entry of user details and options for the " . encodeHTML($officialDatabaseName), "", false, "", $viewType, array());
 		showPageHeader($HeaderString);
@@ -286,11 +299,11 @@
 				if (isset($_SESSION['loginEmail']) && ($loginEmail == $adminLoginEmail)) // ('$adminLoginEmail' is specified in 'ini.inc.php')
 				{
 					if ($userAction == "Delete")
-						echo "<a href=\"user_removal.php?userID=" . $userID . "\"><img src=\"img/delete.gif\" alt=\"delete\" title=\"delete user\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+						echo "<a href=\"user_removal.php?userID=" . $userID . "\"><img src=\"img/delete.gif\" alt=\"" . $loc["delete"] . "\" title=\"" . $loc["LinkTitle_DeleteUser"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 				}
 
 				if ($userAction != "Delete")
-					echo "<a href=\"user_details.php?userID=" . $userID . "\"><img src=\"img/edit.gif\" alt=\"edit\" title=\"edit details\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+					echo "<a href=\"user_details.php?userID=" . $userID . "\"><img src=\"img/edit.gif\" alt=\"" . $loc["edit"] . "\" title=\"" . $loc["LinkTitle_EditDetails"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
 				echo "</td>\n\t\t</tr>";
 
@@ -388,7 +401,7 @@
 				   . "\n\t\t\t<td align=\"right\">";
 
 				if ((mysql_num_rows($result) == 1) OR ($userID == 0)) // If there's a user associated with this user ID (or if we're supposed to display options/permissions for anyone who isn't logged in)
-					echo "<a href=\"user_options.php?userID=" . $userID . "\"><img src=\"img/options.gif\" alt=\"options\" title=\"edit options\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+					echo "<a href=\"user_options.php?userID=" . $userID . "\"><img src=\"img/options.gif\" alt=\"" . $loc["options"] . "\" title=\"" . $loc["LinkTitle_EditOptions"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
 				echo "</td>\n\t\t</tr>";
 
@@ -503,10 +516,10 @@
 				   . "\n\t\t\t<td>\"Main fields\" searches:</td>"
 				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>";
 
-				if (empty($mainFieldsArray))
+				if (empty($localizedMainFieldsArray))
 					echo "(none)";
 				else
-					echo implode("</li>\n\t\t\t\t\t<li>", $mainFieldsArray);
+					echo implode("</li>\n\t\t\t\t\t<li>", $localizedMainFieldsArray);
 
 				echo "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
 				   . "\n\t\t</tr>";
@@ -574,7 +587,7 @@
 					   . "\n\t\t\t<td align=\"right\">";
 
 					if ((mysql_num_rows($result) == 1) OR ($userID == 0)) // If there's a user associated with this user ID (or if we're supposed to display options/permissions for anyone who isn't logged in)
-						echo "<a href=\"user_options.php?userID=" . $userID . "#permissions\"><img src=\"img/options.gif\" alt=\"permissions\" title=\"edit permissions\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+						echo "<a href=\"user_options.php?userID=" . $userID . "#permissions\"><img src=\"img/options.gif\" alt=\"" . $loc["permissions"] . "\" title=\"" . $loc["LinkTitle_EditPermissions"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
 					echo "</td>\n\t\t</tr>";
 
