@@ -1053,7 +1053,7 @@
 								echo $row[0];
 							else
 								echo $row["serial"];
-							echo "\" title=\"select this record\">";
+							echo "\" title=\"" . $loc["selectRecord"] . "\">";
 						}
 
 						if (!empty($row["orig_record"]))
@@ -1062,9 +1062,9 @@
 								echo "\n\t\t<br>";
 
 							if ($row["orig_record"] < 0)
-								echo "\n\t\t<img src=\"img/ok.gif\" alt=\"(original)\" title=\"original record\" width=\"14\" height=\"16\" hspace=\"0\" border=\"0\">";
+								echo "\n\t\t<img src=\"img/ok.gif\" alt=\"(" . $loc["original"] . ")\" title=\"" . $loc["originalRecord"] . "\" width=\"14\" height=\"16\" hspace=\"0\" border=\"0\">";
 							else // $row["orig_record"] > 0
-								echo "\n\t\t<img src=\"img/caution.gif\" alt=\"(duplicate)\" title=\"duplicate record\" width=\"5\" height=\"16\" hspace=\"0\" border=\"0\">";
+								echo "\n\t\t<img src=\"img/caution.gif\" alt=\"(" . $loc["duplicate"] . ")\" title=\"" . $loc["duplicateRecord"] . "\" width=\"5\" height=\"16\" hspace=\"0\" border=\"0\">";
 						}
 
 						if ($displayType != "Browse")
@@ -1402,7 +1402,7 @@
 									if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
 									{
 										if ($i == 0) // ... print a column with a checkbox if it's the first row of attribute data:
-											$recordData .= "\n\t<td align=\"left\" valign=\"top\" width=\"10\"><input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"select this record\"></td>";
+											$recordData .= "\n\t<td align=\"left\" valign=\"top\" width=\"10\"><input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"" . $loc["selectRecord"] . "\"></td>";
 										else // ... otherwise simply print an empty TD tag:
 											$recordData .= "\n\t<td valign=\"top\" width=\"10\">&nbsp;</td>";
 									}
@@ -1501,7 +1501,7 @@
 													$linkArray[] = "\n\t\t<a href=\"" . $baseURL . "record.php"
 													             . "?serialNo=" . $row["serial"]
 													             . "&amp;recordAction=edit"
-													             . "\"><img src=\"" . $baseURL . "img/edit.gif\" alt=\"edit\" title=\"edit record\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+													             . "\"><img src=\"" . $baseURL . "img/edit.gif\" alt=\"" . $loc["edit"] . "\" title=\"" . $loc["LinkTitle_EditRecord"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
 												// show a link to any corresponding FILE if one of the following conditions is met:
 												// - the variable '$fileVisibility' (defined in 'ini.inc.php') is set to 'everyone'
@@ -1523,19 +1523,19 @@
 															$URLprefix = $filesBaseURL; // use the base URL of the standard files directory as prefix ('$filesBaseURL' is defined in 'ini.inc.php')
 
 														if (eregi("\.pdf$", $row["file"])) // if the 'file' field contains a link to a PDF file
-															$linkArray[] = $prefix . "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"><img src=\"" . $baseURL . "img/file_PDF.gif\" alt=\"pdf\" title=\"download PDF file\" width=\"17\" height=\"17\" hspace=\"0\" border=\"0\"></a>"; // display a PDF file icon as download link
+															$linkArray[] = $prefix . "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"><img src=\"" . $baseURL . "img/file_PDF.gif\" alt=\"" . $loc["pdf"] . "\" title=\"" . $loc["LinkTitle_DownloadPDFFile"] . "\" width=\"17\" height=\"17\" hspace=\"0\" border=\"0\"></a>"; // display a PDF file icon as download link
 														else
-															$linkArray[] = $prefix . "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"><img src=\"" . $baseURL . "img/file.gif\" alt=\"file\" title=\"download file\" width=\"11\" height=\"15\" hspace=\"0\" border=\"0\"></a>"; // display a generic file icon as download link
+															$linkArray[] = $prefix . "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"><img src=\"" . $baseURL . "img/file.gif\" alt=\"" . $loc["file"] . "\" title=\"" . $loc["LinkTitle_DownloadFile"] . "\" width=\"11\" height=\"15\" hspace=\"0\" border=\"0\"></a>"; // display a generic file icon as download link
 													}
 												}
 
 												// generate a link from the URL field:
 												if (!empty($row["url"])) // 'htmlentities()' is used to convert any '&' into '&amp;'
-													$linkArray[] = "\n\t\t<a href=\"" . encodeHTML($row["url"]) . "\"><img src=\"" . $baseURL . "img/www.gif\" alt=\"url\" title=\"goto web page\" width=\"17\" height=\"20\" hspace=\"0\" border=\"0\"></a>";
+													$linkArray[] = "\n\t\t<a href=\"" . encodeHTML($row["url"]) . "\"><img src=\"" . $baseURL . "img/www.gif\" alt=\"" . $loc["url"] . "\" title=\"" . $loc["LinkTitle_GotoWebPage"] . "\" width=\"17\" height=\"20\" hspace=\"0\" border=\"0\"></a>";
 
 												// generate a link from the DOI field:
 												if (!empty($row["doi"]))
-													$linkArray[] = "\n\t\t<a href=\"http://dx.doi.org/" . rawurlencode($row["doi"]) . "\"><img src=\"" . $baseURL . "img/doi.gif\" alt=\"doi\" title=\"goto web page (via DOI)\" width=\"17\" height=\"20\" hspace=\"0\" border=\"0\"></a>";
+													$linkArray[] = "\n\t\t<a href=\"http://dx.doi.org/" . rawurlencode($row["doi"]) . "\"><img src=\"" . $baseURL . "img/doi.gif\" alt=\"" . $loc["doi"] . "\" title=\"" . $loc["LinkTitle_GotoWebPageViaDOI"] . "\" width=\"17\" height=\"20\" hspace=\"0\" border=\"0\"></a>";
 
 												// generate a link from the RELATED field:
 												if (isset($_SESSION['loginEmail'])) // if a user is logged in, show a link to any related records (if available):
@@ -1544,7 +1544,7 @@
 													{
 														$relatedRecordsLink = buildRelatedRecordsLink($row["related"], $userID); // function 'buildRelatedRecordsLink()' is defined in 'include.inc.php'
 
-														$linkArray[] = "\n\t\t<a href=\"" . $baseURL . $relatedRecordsLink . "\"><img src=\"" . $baseURL . "img/related.gif\" alt=\"related\" title=\"display related records\" width=\"19\" height=\"16\" hspace=\"0\" border=\"0\"></a>";
+														$linkArray[] = "\n\t\t<a href=\"" . $baseURL . $relatedRecordsLink . "\"><img src=\"" . $baseURL . "img/related.gif\" alt=\"" . $loc["related"] . "\" title=\"" . $loc["LinkTitle_DisplayRelatedRecords"] . "\" width=\"19\" height=\"16\" hspace=\"0\" border=\"0\"></a>";
 													}
 												}
 
@@ -1563,14 +1563,14 @@
 													$encodedURL = str_replace(" ", "%20", $encodedURL); // ensure that any spaces are also properly urlencoded
 
 													if (!empty($isbnURL))
-														$linkArray[] = "\n\t\t<a href=\"" . $encodedURL . "\"><img src=\"" . $baseURL . "img/isbn.gif\" alt=\"isbn\" title=\"find book details (via ISBN)\" width=\"17\" height=\"20\" hspace=\"0\" border=\"0\"></a>";
+														$linkArray[] = "\n\t\t<a href=\"" . $encodedURL . "\"><img src=\"" . $baseURL . "img/isbn.gif\" alt=\"" . $loc["isbn"] . "\" title=\"" . $loc["LinkTitle_FindBookDetailsViaISBN"] . "\" width=\"17\" height=\"20\" hspace=\"0\" border=\"0\"></a>";
 												}
 
 												// provide a link to an OpenURL resolver:
 												if (!empty($openURLResolver))
 												{
 													$openURL = openURL($row); // function 'openURL()' is defined in 'openurl.inc.php'
-													$linkArray[] = "\n\t\t<a href=\"" . $openURL . "\"><img src=\"" . $baseURL . "img/xref.gif\" alt=\"openurl\" title=\"find record details (via OpenURL)\" width=\"18\" height=\"20\" hspace=\"0\" border=\"0\"></a>";
+													$linkArray[] = "\n\t\t<a href=\"" . $openURL . "\"><img src=\"" . $baseURL . "img/xref.gif\" alt=\"" . $loc["openurl"] . "\" title=\"" . $loc["LinkTitle_FindRecordDetailsViaOpenURL"] . "\" width=\"18\" height=\"20\" hspace=\"0\" border=\"0\"></a>";
 												}
 
 												// insert COinS (ContextObjects in Spans):
@@ -1598,7 +1598,7 @@
 
 					// Print out an URL that links directly to this record:
 					$recordData .= "\n<tr>" // start a new TR (Table Row)
-					             . "\n\t<td colspan=\"$ColspanFields\" align=\"center\" class=\"smaller\"><a href=\"" . $databaseBaseURL . "show.php?record=" . $row["serial"] . "\" title=\"copy this URL to directly link to this record\">Permanent link to this record</a>"
+					             . "\n\t<td colspan=\"$ColspanFields\" align=\"center\" class=\"smaller\"><a href=\"" . $databaseBaseURL . "show.php?record=" . $row["serial"] . "\" title=\"" . $loc["LinkTitle_Permalink"] . "\">" . $loc["PermalinkLong"] . "</a>"
 					             . "<div class=\"unapi\"><abbr class=\"unapi-id\" title=\"" . $databaseBaseURL . "show.php?record=" . $row["serial"] . "\"></abbr></div></td>" // re <abbr> tag see <http://unapi.info/specs/>
 					             . "\n</tr>";
 
@@ -1673,6 +1673,8 @@
 		global $defaultExportFormat;
 
 		global $userOptionsArray;
+
+		global $loc; // '$loc' is made globally available in 'core.php'
 
 		// get all user options for the current user:
 		// (note that '$userOptionsArray' is made globally available)
@@ -1834,7 +1836,7 @@
 
 			if ($exportType == "email")
 				$exportText = "\n\t<p>"
-							. "\n\t\t<a href=\"javascript:history.back()\" title=\"go back to results\">Go Back</a>"
+							. "\n\t\t<a href=\"javascript:history.back()\" title=\"" . $loc["LinkTitle_GoBackToResults"] . "\">" . $loc["Go Back"] . "</a>"
 							. "\n\t</p>"
 							. "\n\t<p>"
 							. "\n\t\t<b>The data below have been sent to <a href=\"mailto:" . $_SESSION['loginEmail'] . "\">" . $_SESSION['loginEmail'] . "</a>:</b>"
@@ -2388,7 +2390,7 @@
 		// Replace WHERE clause:
 		// TODO: maybe make this into a generic function? (compare with function 'extractWHEREclause()' in 'include.inc.php')
 		$duplicateRecordSerialsString = implode("|", $duplicateRecordSerialsArray);
-		$query = preg_replace("/(?<=WHERE )(.+?)(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|[ ;]+(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|FILE)|$)/i", "serial RLIKE \"^(" . $duplicateRecordSerialsString . ")$\"", $query);
+		$query = preg_replace("/(?<=WHERE )(.+?)(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|[ ;]+(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|FILE)\b|$)/i", "serial RLIKE \"^(" . $duplicateRecordSerialsString . ")$\"", $query);
 
 		// Replace any existing ORDER BY clause with the list of columns given in '$selectedFieldsArray':
 		$query = newORDERclause("ORDER BY " . $selectedFieldsString, $query, false);
@@ -4969,6 +4971,9 @@
 				elseif ($citeOrder == "type-year") // sort records first by record type (and thesis type), then by year (descending), then in the usual way:
 					$query .= " ORDER BY type DESC, thesis DESC, year DESC, first_author, author_count, author, title";
 
+				elseif ($citeOrder == "creation-date") // sort records such that newly added/edited records get listed top of the list:
+					$query .= " ORDER BY created_date DESC, created_time DESC, modified_date DESC, modified_time DESC, serial DESC";
+
 				else // if any other or no '$citeOrder' parameter is specified, we supply the default ORDER BY pattern (which is suitable for citation in a journal etc.):
 					$query .= " ORDER BY first_author, author_count, author, year, title";
 			}
@@ -5083,6 +5088,9 @@
 		elseif ($citeOrder == "type-year") // sort records first by record type (and thesis type), then by year (descending), then in the usual way:
 			$query .= " ORDER BY type DESC, thesis DESC, year DESC, first_author, author_count, author, title";
 
+		elseif ($citeOrder == "creation-date") // sort records such that newly added/edited records get listed top of the list:
+			$query .= " ORDER BY created_date DESC, created_time DESC, modified_date DESC, modified_time DESC, serial DESC";
+
 		else // if any other or no '$citeOrder' parameter is specified, we supply the default ORDER BY pattern (which is suitable for citation in a journal etc.):
 			$query .= " ORDER BY first_author, author_count, author, year, title";
 
@@ -5166,7 +5174,7 @@
 
 		else // output found records in List view:
 		{
-			if ($quickSearchSelector == "main fields") // if we're supposed to query all of the "main fields" at once
+			if ($quickSearchSelector == "main_fields") // if we're supposed to query all of the "main fields" at once
 			{
 				$additionalFields = $defaultFieldsListViewMinor; // note that for the "main fields" option, we simply display the default list of columns
 			}
@@ -5202,7 +5210,7 @@
 
 		if ($quickSearchName != "") // if the user typed a search string into the text entry field...
 		{
-			if ($quickSearchSelector == "main fields")
+			if ($quickSearchSelector == "main_fields")
 			{
 				$searchSubArray = array();
 
@@ -5551,6 +5559,8 @@
 	// informs the user that no results were found for the current query/action
 	function nothingFound($nothingChecked)
 	{
+		global $loc; // '$loc' is made globally available in 'core.php'
+
 		global $client;
 
 		if (eregi("^cli", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
@@ -5563,14 +5573,14 @@
 
 			if ($nothingChecked)
 				// Inform the user that no records were selected:
-				$nothingFoundFeedback .= "\n<tr>\n\t<td valign=\"top\">No records selected! Please select one or more records by clicking the appropriate checkboxes.&nbsp;&nbsp;<a href=\"javascript:history.back()\">Go Back</a></td>\n</tr>";
+				$nothingFoundFeedback .= "\n<tr>\n\t<td valign=\"top\">No records selected! Please select one or more records by clicking the appropriate checkboxes.&nbsp;&nbsp;<a href=\"javascript:history.back()\" title=\"" . $loc["LinkTitle_GoBackToResults"] . "\">" . $loc["Go Back"] . "</a></td>\n</tr>";
 			else // $nothingChecked == false (i.e., the user did check some checkboxes) -OR- the query resulted from another script like 'show.php' (which has no checkboxes to mark!)
 			{
 				// Report that nothing was found:
 				$nothingFoundFeedback .= "\n<tr>\n\t<td valign=\"top\">Sorry, but your query didn't produce any results!";
 
 				if (!eregi("^inc", $client))
-					$nothingFoundFeedback .= "&nbsp;&nbsp;<a href=\"javascript:history.back()\">Go Back</a></td>\n</tr>";
+					$nothingFoundFeedback .= "&nbsp;&nbsp;<a href=\"javascript:history.back()\" title=\"" . $loc["LinkTitle_GoBackToResults"] . "\">" . $loc["Go Back"] . "</a></td>\n</tr>";
 			}
 
 			$nothingFoundFeedback .= "\n</table>";
@@ -5594,6 +5604,8 @@
 		global $openURLResolver;
 		global $isbnURLFormat;
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
+
+		global $loc; // '$loc' is made globally available in 'core.php'
 
 		global $client;
 
@@ -5663,7 +5675,7 @@
 				$queryParametersArray["showLinks"] = $showLinks;
 
 			$links .= "\n\t\t<a href=\"" . $baseURL . generateURL("show.php", "html", $queryParametersArray, true) . "\"" . $target . ">"
-			        . "<img src=\"" . $baseURL . "img/details.gif\" alt=\"details\" title=\"show details\" width=\"9\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+			        . "<img src=\"" . $baseURL . "img/details.gif\" alt=\"" . $loc["details"] . "\" title=\"" . $loc["LinkTitle_ShowDetails"] . "\" width=\"9\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
 			// Old code that directly generates a 'search.php' URL which points to Details view for this record:
 //			// Construct the SQL query:
@@ -5686,7 +5698,7 @@
 //			        . "&amp;submit=Display"
 //			        . "&amp;viewType=" . $viewType
 //			        . "\"" . $target . ">"
-//			        . "<img src=\"" . $baseURL . "img/details.gif\" alt=\"details\" title=\"show details\" width=\"9\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+//			        . "<img src=\"" . $baseURL . "img/details.gif\" alt=\"" . $loc["details"] . "\" title=\"" . $loc["LinkTitle_ShowDetails"] . "\" width=\"9\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 		}
 
 		if ((($linkElementCounterLoggedOut > 0) OR (isset($_SESSION['loginEmail']) AND $linkElementCounterLoggedIn > 0)) AND (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])))
@@ -5698,7 +5710,7 @@
 			        . "?serialNo=" . $row["serial"]
 			        . "&amp;recordAction=edit"
 			        . "\"" . $target . ">"
-			        . "<img src=\"" . $baseURL . "img/edit.gif\" alt=\"edit\" title=\"edit record\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+			        . "<img src=\"" . $baseURL . "img/edit.gif\" alt=\"" . $loc["edit"] . "\" title=\"" . $loc["LinkTitle_EditRecord"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
 		if ((($linkElementCounterLoggedOut > 1) OR (isset($_SESSION['loginEmail']) AND $linkElementCounterLoggedIn > 1)) AND (in_array("edit", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_edit", $_SESSION['user_permissions'])))
 		{
@@ -5734,19 +5746,19 @@
 				}
 
 				if (eregi("\.pdf$", $row["file"])) // if the 'file' field contains a link to a PDF file
-					$links .= "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"" . $target . "><img src=\"" . $baseURL . "img/file_PDF.gif\" alt=\"pdf\" title=\"download PDF file\" width=\"17\" height=\"17\" hspace=\"0\" border=\"0\"></a>"; // display a PDF file icon as download link
+					$links .= "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"" . $target . "><img src=\"" . $baseURL . "img/file_PDF.gif\" alt=\"" . $loc["pdf"] . "\" title=\"" . $loc["LinkTitle_DownloadPDFFile"] . "\" width=\"17\" height=\"17\" hspace=\"0\" border=\"0\"></a>"; // display a PDF file icon as download link
 				else
-					$links .= "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"" . $target . "><img src=\"" . $baseURL . "img/file.gif\" alt=\"file\" title=\"download file\" width=\"11\" height=\"15\" hspace=\"0\" border=\"0\"></a>"; // display a generic file icon as download link
+					$links .= "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"" . $target . "><img src=\"" . $baseURL . "img/file.gif\" alt=\"" . $loc["file"] . "\" title=\"" . $loc["LinkTitle_DownloadFile"] . "\" width=\"11\" height=\"15\" hspace=\"0\" border=\"0\"></a>"; // display a generic file icon as download link
 			}
 		}
 
 		// if a DOI number exists for this record, we'll prefer it as link, otherwise we use the URL (if available):
 		// (note, that in List view, we'll use the same icon, no matter if the DOI or the URL is used for the link)
 		if (in_array("doi", $showLinkTypes) AND !empty($row["doi"]))
-			$links .= "\n\t\t<a href=\"http://dx.doi.org/" . rawurlencode($row["doi"]) . "\"" . $target . "><img src=\"" . $baseURL . "img/link.gif\" alt=\"doi\" title=\"goto web page (via DOI)\" width=\"11\" height=\"8\" hspace=\"0\" border=\"0\"></a>";
+			$links .= "\n\t\t<a href=\"http://dx.doi.org/" . rawurlencode($row["doi"]) . "\"" . $target . "><img src=\"" . $baseURL . "img/link.gif\" alt=\"" . $loc["doi"] . "\" title=\"" . $loc["LinkTitle_GotoWebPageViaDOI"] . "\" width=\"11\" height=\"8\" hspace=\"0\" border=\"0\"></a>";
 
 		elseif (in_array("url", $showLinkTypes) AND !empty($row["url"])) // 'htmlentities()' is used to convert any '&' into '&amp;'
-			$links .= "\n\t\t<a href=\"" . encodeHTML($row["url"]) . "\"" . $target . "><img src=\"" . $baseURL . "img/link.gif\" alt=\"url\" title=\"goto web page\" width=\"11\" height=\"8\" hspace=\"0\" border=\"0\"></a>";
+			$links .= "\n\t\t<a href=\"" . encodeHTML($row["url"]) . "\"" . $target . "><img src=\"" . $baseURL . "img/link.gif\" alt=\"" . $loc["url"] . "\" title=\"" . $loc["LinkTitle_GotoWebPage"] . "\" width=\"11\" height=\"8\" hspace=\"0\" border=\"0\"></a>";
 
 		// if an ISBN number exists for the current record, provide a link to an ISBN resolver:
 		elseif (in_array("isbn", $showLinkTypes) AND !empty($isbnURLFormat) AND !empty($row["isbn"]))
@@ -5763,14 +5775,14 @@
 			$encodedURL = str_replace(" ", "%20", $encodedURL); // ensure that any spaces are also properly urlencoded
 
 			if (!empty($isbnURL))
-				$links .= "\n\t\t<a href=\"" . $encodedURL . "\"" . $target . "><img src=\"" . $baseURL . "img/resolve.gif\" alt=\"isbn\" title=\"find book details (via ISBN)\" width=\"11\" height=\"8\" hspace=\"0\" border=\"0\"></a>";
+				$links .= "\n\t\t<a href=\"" . $encodedURL . "\"" . $target . "><img src=\"" . $baseURL . "img/resolve.gif\" alt=\"" . $loc["isbn"] . "\" title=\"" . $loc["LinkTitle_FindBookDetailsViaISBN"] . "\" width=\"11\" height=\"8\" hspace=\"0\" border=\"0\"></a>";
 		}
 
 		// if still no link was generated, we'll provide a link to an OpenURL resolver:
 		elseif (in_array("xref", $showLinkTypes) AND !empty($openURLResolver))
 		{
 			$openURL = openURL($row); // function 'openURL()' is defined in 'openurl.inc.php'
-			$links .= "\n\t\t<a href=\"" . $openURL . "\"" . $target . "><img src=\"" . $baseURL . "img/resolve.gif\" alt=\"openurl\" title=\"find record details (via OpenURL)\" width=\"11\" height=\"8\" hspace=\"0\" border=\"0\"></a>";
+			$links .= "\n\t\t<a href=\"" . $openURL . "\"" . $target . "><img src=\"" . $baseURL . "img/resolve.gif\" alt=\"" . $loc["openurl"] . "\" title=\"" . $loc["LinkTitle_FindRecordDetailsViaOpenURL"] . "\" width=\"11\" height=\"8\" hspace=\"0\" border=\"0\"></a>";
 		}
 
 		// insert COinS (ContextObjects in Spans):
