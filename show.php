@@ -497,7 +497,7 @@
 <tr>
 	<td valign="top"><b><?php echo $loc["Help"]; ?>:</b></td>
 	<td>&nbsp;</td>
-	<td colspan="3" valign="top">This form enables you to directly jump to a particular record and display its record details. Just enter the database serial number for that record and press the 'Show Record' button. (In order to view the database serial number of a particular record, click the <img src="img/details.gif" alt="show details" title="show details" width="9" height="17" hspace="0" border="0" align="top"> icon that's available in any list view next to that record and note the number listed within the 'Serial' field.)</td>
+	<td colspan="3" valign="top">This form enables you to directly jump to a particular record and display its record details. Just enter the database serial number for that record and press the 'Show Record' button. (In order to view the database serial number of a particular record, click the <img src="img/details.gif" alt="<?php echo $loc["details"]; ?>" title="<?php echo $loc["LinkTitle_ShowDetails"]; ?>" width="9" height="17" hspace="0" border="0" align="top"> icon that's available in any list view next to that record and note the number listed within the 'Serial' field.)</td>
 </tr>
 </table>
 </form><?php
