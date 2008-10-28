@@ -285,6 +285,8 @@
 		global $defaultCiteStyle;
 		global $maximumBrowseLinks;
 
+		global $loc; // '$loc' is made globally available in 'core.php'
+
 		if ($rowsFound > 0) // If the query has results ...
 		{
 			// BEGIN RESULTS HEADER --------------------
@@ -412,7 +414,7 @@
 					$HTMLafterLink = "</th>"; // close the table header tag
 					// call the 'buildFieldNameLinks()' function (defined in 'include.inc.php'), which will return a properly formatted table header tag holding the current field's name
 					// as well as the URL encoded query with the appropriate ORDER clause:
-					$tableHeaderLink = buildFieldNameLinks("users.php", $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, "1", $defaultCiteStyle, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", $displayType, "Links", "user_id", "", $viewType);
+					$tableHeaderLink = buildFieldNameLinks("users.php", $query, $newORDER, $result, $i, $showQuery, $showLinks, $rowOffset, $showRows, "1", $defaultCiteStyle, $HTMLbeforeLink, $HTMLafterLink, "sqlSearch", $displayType, $loc["Links"], "user_id", "", $viewType);
 					echo $tableHeaderLink; // print the attribute name as link
 				}
 
@@ -456,18 +458,18 @@
 					echo "\n\t<td valign=\"top\">";
 
 					echo "\n\t\t<a href=\"user_receipt.php?userID=" . $row["user_id"]
-						. "\"><img src=\"img/details.gif\" alt=\"details\" title=\"show details and options\" width=\"9\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
+						. "\"><img src=\"img/details.gif\" alt=\"" . $loc["details"] . "\" title=\"" . $loc["LinkTitle_ShowDetailsAndOptions"] . "\" width=\"9\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
 
 					echo "\n\t\t<a href=\"user_details.php?userID=" . $row["user_id"]
-						. "\"><img src=\"img/edit.gif\" alt=\"edit\" title=\"edit details\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
+						. "\"><img src=\"img/edit.gif\" alt=\"" . $loc["edit"] . "\" title=\"" . $loc["LinkTitle_EditDetails"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
 
 					echo "\n\t\t<a href=\"user_options.php?userID=" . $row["user_id"]
-						. "\"><img src=\"img/options.gif\" alt=\"options\" title=\"edit options\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
+						. "\"><img src=\"img/options.gif\" alt=\"" . $loc["options"] . "\" title=\"" . $loc["LinkTitle_EditOptions"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>&nbsp;&nbsp;";
 
 					$adminUserID = getUserID($adminLoginEmail); // ...get the admin's 'user_id' using his/her 'adminLoginEmail' (function 'getUserID()' is defined in 'include.inc.php')
 					if ($row["user_id"] != $adminUserID) // we only provide a delete link if this user isn't the admin:
 						echo "\n\t\t<a href=\"user_receipt.php?userID=" . $row["user_id"] . "&amp;userAction=Delete"
-							. "\"><img src=\"img/delete.gif\" alt=\"delete\" title=\"delete user\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
+							. "\"><img src=\"img/delete.gif\" alt=\"" . $loc["delete"] . "\" title=\"" . $loc["LinkTitle_DeleteUser"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
 					echo "\n\t</td>";
 				}
