@@ -190,7 +190,7 @@
 		$pagesSuggestElements = buildSuggestElements("pagesNo", "pagesSuggestions", "pagesSuggestProgress", "col-pages-");
 		$keywordsSuggestElements = buildSuggestElements("keywordsName", "keywordsSuggestions", "keywordsSuggestProgress", "col-keywords-", "\t\t", "';'");
 		$addressSuggestElements = buildSuggestElements("addressName", "addressSuggestions", "addressSuggestProgress", "col-address-", "\t\t", "';'");
-		$corporateAuthorSuggestElements = buildSuggestElements("corporateAuthorName", "corporateAuthorSuggestions", "corporateAuthorSuggestProgress", "col-corporate_author-");
+		$corporateAuthorSuggestElements = buildSuggestElements("corporateAuthorName", "corporateAuthorSuggestions", "corporateAuthorSuggestProgress", "col-corporate_author-", "\t\t", "';'");
 		$publisherSuggestElements = buildSuggestElements("publisherName", "publisherSuggestions", "publisherSuggestProgress", "col-publisher-");
 		$placeSuggestElements = buildSuggestElements("placeName", "placeSuggestions", "placeSuggestProgress", "col-place-", "\t\t", "[';',',']");
 		$editorSuggestElements = buildSuggestElements("editorName", "editorSuggestions", "editorSuggestProgress", "col-editor-", "\t\t", "';'");
@@ -654,15 +654,50 @@
 				else
 					$thesisName = "";
 
-				$markedRadio = "";
-				$copyName = "";
-				$selectedRadio = "";
-				$userKeysName = "";
-				$userNotesName = "";
-				$userFileName = "";
-				$userGroupsName = "";
-				$citeKeyName = "";
-				$relatedName = "";
+				if (isset($_REQUEST['marked']))
+					$markedRadio = encodeHTML($_REQUEST['marked']);
+				else
+					$markedRadio = "";
+
+				if (isset($_REQUEST['copy']))
+					$copyName = encodeHTML($_REQUEST['copy']);
+				else
+					$copyName = "";
+
+				if (isset($_REQUEST['selected']))
+					$selectedRadio = encodeHTML($_REQUEST['selected']);
+				else
+					$selectedRadio = "";
+
+				if (isset($_REQUEST['user_keys']))
+					$userKeysName = encodeHTML($_REQUEST['user_keys']);
+				else
+					$userKeysName = "";
+
+				if (isset($_REQUEST['user_notes']))
+					$userNotesName = encodeHTML($_REQUEST['user_notes']);
+				else
+					$userNotesName = "";
+
+				if (isset($_REQUEST['user_file']))
+					$userFileName = encodeHTML($_REQUEST['user_file']);
+				else
+					$userFileName = "";
+
+				if (isset($_REQUEST['user_groups']))
+					$userGroupsName = encodeHTML($_REQUEST['user_groups']);
+				else
+					$userGroupsName = "";
+
+				if (isset($_REQUEST['cite_key']))
+					$citeKeyName = encodeHTML($_REQUEST['cite_key']);
+				else
+					$citeKeyName = "";
+
+				if (isset($_REQUEST['related']))
+					$relatedName = encodeHTML($_REQUEST['related']);
+				else
+					$relatedName = "";
 
 				// NOTE: currently, we only allow for file URLs with full URL paths
 				// 
@@ -1470,7 +1505,7 @@
 		$uploadTitle = $loc["NoPermission"] . $loc["NoPermission_ForFileUpload"]; // similarily, not all browsers will show title strings for disabled buttons (Safari does, Mozilla & Camino do not)
 	}
 
-	echo "\n\t<td valign=\"bottom\" colspan=\"2\" class=\"otherfieldsbg\">" . fieldError("uploadFile", $errors) . "<input type=\"file\" name=\"uploadFile\" size=\"17\"$uploadButtonLock title=\"$uploadTitle\"></td>"
+	echo "\n\t<td valign=\"bottom\" colspan=\"2\" class=\"otherfieldsbg\">" . fieldError("uploadFile", $errors) . "<input type=\"file\" id=\"uploadFile\" name=\"uploadFile\" size=\"17\"$uploadButtonLock title=\"$uploadTitle\"></td>"
 			. "\n</tr>"
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["URL"]."</b></td>"
