@@ -82,9 +82,11 @@
 		"/\\[Omega\\]/"        =>  "&Omega;",
 		"/(?:\"|&quot;)(.+?)(?:\"|&quot;)/" => "&ldquo;\\1&rdquo;",
 		"/ +- +/"              =>  " &#8211; ",
-		"/–/$patternModifiers" =>  "&#8211;"
-		// Note that for UTF-8 based systems, '$patternModifiers' contains the "u" (PCRE_UTF8) pattern modifier which causes PHP/PCRE
-		// to treat pattern strings as UTF-8 (otherwise this conversion pattern would garble UTF-8 characters such as "Ö")
+//		"/–/$patternModifiers" =>  "&#8211;"
+		// Note that for UTF-8 based systems, '$patternModifiers' contains the "u" (PCRE_UTF8) pattern modifier which should cause PHP/PCRE
+		// to treat pattern strings as UTF-8 (otherwise this conversion pattern would garble UTF-8 characters such as "Ö"). However, the
+		// "–" character still seems to cause PREG compilation errors on some UTF8-based systems, which is why the line has been commented
+		// out (it should work fine for a latin1-based system, though).
 
 	);
 

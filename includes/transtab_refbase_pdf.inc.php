@@ -79,7 +79,7 @@
 		"/\\[Psi\\]/"           =>  "Psi",
 		"/\\[Omega\\]/"         =>  "Omega",
 //		"/\"(.+?)\"/"           =>  "/quotedblleft\\1/quotedblright",
-		"/ +- +/"               =>  " – " // endash
+//		"/ +- +/"               =>  " – " // endash (w.r.t. the "–" character, see e.g. note in file 'transtab_refbase_rtf.inc.php')
 
 	);
 
