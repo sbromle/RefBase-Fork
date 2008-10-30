@@ -27,7 +27,7 @@
 #             Further information is available at <http://cli.refbase.net/>
 #             A list of supported import formats is given at <http://import.refbase.net/>
 
-# Version:    1.1
+# Version:    1.2
 
 # Requires:   - a shell with Perl execution capabilities
 #             - the Perl CPAN modules LWP::UserAgent, HTTP::Request::Common, HTTP::Response, HTTP::Cookies and URI::URL
@@ -38,7 +38,7 @@
 
 # --------------------------------------------------------------------------------------------------------------
 
-$version = "1.1";
+$version = "1.2";
 
 # Configure variables:
 
@@ -51,6 +51,7 @@ $version = "1.1";
 				'default' => 'http://beta.refbase.net/',
 				'local'   => 'http://localhost/refs/',
 				'beta'    => 'http://beta.refbase.net/',
+				'beta2'   => 'http://refbase.textdriven.com/beta/',
 				'demo'    => 'http://demo.refbase.net/',
 				'org'     => 'http://www.refbase.org/'
 );
@@ -66,6 +67,15 @@ $version = "1.1";
 
 				# fixed parameters:
 				'client'              => "cli-refbase_import-" . $version # the client ID of this command line utility
+);
+
+%outputParams = (
+				# output options:
+				'citeStyle'           => '',        # -C|--style     => desired citation style, given name must match an entry within the database's MySQL table 'styles' (keep empty to use the database default)
+				'format'              => 'ascii',   # -F|--format    => output format must be 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii', 'ads', 'bibtex', 'endnote', 'isi', 'ris', 'atom', 'mods', 'oai_dc', 'odf', 'srw_dc', 'srw_mods', 'word' or '' (the empty string '' will produce the default 'ascii' output style)
+				'showLinks'           => '1',       # -L|--showlinks => hide/display links column in HTML output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. print any links)
+				'citeOrder'           => 'author',  # -O|--order     => cite order must be 'author', 'year', 'type', 'type-year', 'creation-date' or '' (the empty string '' will produce the default 'author' sort order)
+				'viewType'            => 'web'      # -V|--view      => view type of HTML output; must be 'Web', 'Print', 'Mobile' or '' (the empty string '' will produce the default 'Web' output style)
 );
 
 # Specify the default login credentials for a refbase user account:
@@ -92,8 +102,10 @@ use URI::URL; # more info: <http://search.cpan.org/~gaas/URI-1.35/URI/URL.pm>
 
 # initialize variables:
 $host = $hosts{'default'};
+$format = '';
 
 # Extract options:
+# TODO: use Getopt::Long
 
 # general options:
 if (($ARGV[0] eq '--help') or ($ARGV[0] eq '-h') or ($ARGV[0] eq '')) { &usage (0); } # if the user asked for --help/-h or didn't provide any input, call the 'usage' subroutine
@@ -109,6 +121,13 @@ else {
 		elsif ($_ =~ /^(?:-r|--records)=(.+)$/) { $params{'importRecords'} = $1; }
 		elsif ($_ =~ /^(?:-t|--type)=(.+)$/) { $params{'formType'} = $1; }
 
+		# extract output options:
+		elsif ($_ =~ /^(?:-C|--style)=(.+)$/) { $outputParams{'citeStyle'} = $1; }
+		elsif ($_ =~ /^(?:-F|--format)=(.+)$/) { $outputParams{'format'} = $1; }
+		elsif ($_ =~ /^(?:-L|--showlinks)=(.+)$/) { $outputParams{'showLinks'} = $1; }
+		elsif ($_ =~ /^(?:-O|--order)=(.+)$/) { $outputParams{'citeOrder'} = $1; }
+		elsif ($_ =~ /^(?:-V|--view)=(.+)$/) { $outputParams{'viewType'} = $1; }
+
 		# extract server options:
 		elsif ($_ =~ /^(?:-H|--host)=(.+)$/) { $host = $1; }
 		elsif ($_ =~ /^(?:-P|--password)=(.+)$/) { $loginParams{'loginPassword'} = $1; }
@@ -116,7 +135,7 @@ else {
 
 		# extract file:
 		# (note that if multiple files were given, only the last given file will be honoured)
-		elsif ($_ =~ /^(?!(-[biprtHPU]|--(?:skipbad|import|pmid|arxiv|doi|openurl|records|type|host|password|user))=)([^ ]+)/) { @sourceFile = $2; }
+		elsif ($_ =~ /^(?!(-[biprtCFLOVHPU]|--(?:skipbad|import|pmid|arxiv|doi|openurl|records|type|style|format|showlinks|order|view|host|password|user))=)([^ ]+)/) { @sourceFile = $2; }
 	}
 }
 
@@ -153,6 +172,34 @@ if (exists($hosts{$host})) {
 }
 elsif ($host !~ /^https?:\/\//i) {
 	$host = $hosts{'default'}; # can't resolve given host, reset back to default
+}
+
+# assign correct URL params based on the '-F|--format' option:
+if (exists($outputParams{'format'})) {
+	$format = $outputParams{'format'};
+	if ($format =~ /^(html|rtf|pdf|latex|latex_bbl|markdown|ascii)$/i) {
+		$outputParams{'submit'} = "Cite";
+	}
+	if ($format =~ /^(html|rtf|pdf|latex|latex_bbl|markdown|ascii)$/i) {
+		$format =~ s/^latex_bbl$/LaTeX .bbl/i;
+		$outputParams{'citeType'} = $format;
+	}
+	elsif ($format =~ /^(ads|bibtex|endnote|isi|ris|atom|mods|oai_dc|odf|srw(_dc|_mods)?|word)$/i) {
+		$outputParams{'submit'} = "Export";
+		$outputParams{'exportType'} = "file";
+
+		if ($format =~ /^(ads|bibtex|endnote|isi|ris)$/i) {
+			$outputParams{'exportFormat'} = $format;
+		}
+		elsif ($format =~ /^(atom|mods|oai_dc|odf|srw(_dc|_mods)?|word)$/i) {
+			$outputParams{'exportFormat'} = $format . " xml";
+		}
+	}
+	else {
+		$outputParams{'citeType'} = "ascii";
+	}
+
+	delete($outputParams{'format'});
 }
 
 # construct URL:
@@ -207,8 +254,10 @@ else {
 	if ($location ne '') {
 		if ($location =~ /show.php/) {
 			# display imported records:
-			$location .= "&submit=Cite&citeType=ASCII";
-			if ($location =~ /&headerMsg=(\d+)/i) {
+			foreach $key (keys %outputParams) {
+				$location .= "&" . $key . "=" . $outputParams{$key};
+			}
+			if ($location =~ /&headerMsg=\D*(\d+)/i) {
 				$location .= "&showRows=" . $1;
 			}
 		}
@@ -222,7 +271,8 @@ else {
 		$request = GET $responseURL;
 		$response = $userAgent->request($request); # or use: $response = $userAgent->get($responseURL);
 	}
-	
+
+	binmode STDOUT;
 	print $response->content();
 }
 
@@ -281,36 +331,48 @@ sub usage
 		. "         - For each option, default values can be specified at the top of the script.\n"
 		. "           Current defaults are given in parentheses.\n\n"
 
-		. "General Options:   -h, --help         - display this help text\n"
-		. "                   -v, --version      - display version information\n"
-		. "                   -X, --examples     - display usage examples\n\n"
+		. "General Options:   -h, --help        - display this help text\n"
+		. "                   -v, --version     - display version information\n"
+		. "                   -X, --examples    - display usage examples\n\n"
 
-		. "Import Options:    -b, --skipbad      - skip records with unrecognized data format ('" . $params{'skipBadRecords'} . "')\n"
-		. "                                        possible values: 0, 1\n"
-		. "                   -i, --import       - import all or only some records ('" . $params{'importRecordsRadio'} . "')\n"
-		. "                                        possible values: all, only\n"
-		. "                   -p, --pmid,        - IDs of records to import ('" . $params{'sourceIDs'} . "')\n"
-		. "                       --arxiv,         supported IDs: PubMed ID (PMID), arXiv ID, DOI, OpenURL\n"
-		. "                       --doi,           \n"
-		. "                       --openurl        \n"
-		. "                   -r, --records      - positional numbers and/or ranges of records to import ('" . $params{'importRecords'} . "')\n"
-		. "                                        requires the '--import=only' option\n"
-		. "                   -t, --type         - import type ('" . $params{'formType'} . "')\n"
-		. "                                        possible values: data, id\n\n"
+		. "Import Options:    -b, --skipbad     - skip records with unrecognized data format ('" . $params{'skipBadRecords'} . "')\n"
+		. "                                       possible values: 0, 1\n"
+		. "                   -i, --import      - import all or only some records ('" . $params{'importRecordsRadio'} . "')\n"
+		. "                                       possible values: all, only\n"
+		. "                   -p, --pmid,       - IDs of records to import ('" . $params{'sourceIDs'} . "')\n"
+		. "                       --arxiv,        supported IDs: PubMed ID (PMID), arXiv ID, DOI, OpenURL\n"
+		. "                       --doi,          \n"
+		. "                       --openurl       \n"
+		. "                   -r, --records     - positional numbers and/or ranges of records to import ('" . $params{'importRecords'} . "')\n"
+		. "                                       requires the '--import=only' option\n"
+		. "                   -t, --type        - import type ('" . $params{'formType'} . "')\n"
+		. "                                       possible values: data, id\n\n"
 
-		. "Server Options:    -H, --host         - URL of the refbase database ('" . $host . "')\n"
-		. "                                        defined shortcuts: " . join(', ', sort keys(%hosts)) . "\n"
-		. "                   -P, --password     - password for given '-U, --user' account";
+		. "Output Options:    -C, --style       - citation style ('" . $outputParams{'citeStyle'} . "')\n"
+		. "                   -F, --format      - output format ('" . $outputParams{'format'} . "')\n"
+		. "                                       possible values: html, rtf, pdf, latex, latex_bbl, markdown, ascii,\n"
+		. "                                                        ads, bibtex, endnote, isi, ris, atom, mods, oai_dc,\n"
+		. "                                                        odf, srw_dc, srw_mods, word\n"
+		. "                   -L, --showlinks   - hide/display links column in html output ('" . $outputParams{'showLinks'} . "')\n"
+		. "                                       possible values: 0, 1\n"
+		. "                   -O, --order       - sort order of returned records ('" . $outputParams{'citeOrder'} . "')\n"
+		. "                                       possible values: author, year, type, type-year, creation-date\n"
+		. "                   -V, --view        - view type of html output ('" . $outputParams{'viewType'} . "')\n"
+		. "                                       possible values: web, print, mobile\n\n"
+
+		. "Server Options:    -H, --host        - URL of the refbase database ('" . $host . "')\n"
+		. "                                       defined shortcuts: " . join(', ', sort keys(%hosts)) . "\n"
+		. "                   -P, --password    - password for given '-U, --user' account";
 
 	if ($loginParams{'loginPassword'} ne '') {
-		print "\n                                        (a default pwd has been defined)\n";
+		print "\n                                       (a default pwd has been defined)\n";
 	}
 	else {
 		print " ('')\n";
 	}
 
-	print "                   -U, --user         - login email address of an existing refbase user with\n"
-		. "                                        import permissions ('" . $loginParams{'loginEmail'} . "')\n\n";
+	print "                   -U, --user        - login email address of an existing refbase user with\n"
+		. "                                       import permissions ('" . $loginParams{'loginEmail'} . "')\n\n";
 
 	exit $status;
 }
