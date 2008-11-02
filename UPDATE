@@ -1,6 +1,6 @@
-Please follow the steps below to update an existing refbase-0.8.0 installation
-to refbase-0.9.0. The update script should also be able to update any refbase
-version that was installed from CVS prior to the release of refbase-0.9.0. To
+Please follow the steps below to update an existing refbase installation to
+refbase-0.9.5. The update script should also be able to update any refbase
+version that was installed from SVN prior to the release of refbase-0.9.5. To
 update versions of refbase prior to refbase-0.8.0, please update to
 refbase-0.8.0 first.
 
@@ -8,29 +8,26 @@ refbase-0.8.0 first.
   MySQL database! This can be accomplished by issuing the following command from
   your shell:
 
-    mysqldump DATABASE_NAME -uADMINUSER -p --complete-insert \
-              --opt > refbase-backup.sql
+    mysqldump DATABASE_NAME -uADMINUSER -p --complete-insert --opt > refbase.sql
 
   In the above line, replace DATABASE_NAME with the database name that you've
-  specified for the variable '$databaseName' (in file 'initialize/db.inc.php')
-  for refbase-0.8.0. Similarly, replace ADMINUSER with the name of the
-  administrative user that has full access to the MySQL admin database. As an
-  example, if the variable '$databaseName' is set to "literature" and your
-  administrative user is "root", the above line would read:
+  specified for the variable '$databaseName' (in file 'initialize/db.inc.php').
+  Similarly, replace ADMINUSER with the name of the administrative user that has
+  full access to the refbase MySQL database. As an example, if the variable
+  '$databaseName' is set to "literature" and your administrative user is "root",
+  the above line would read:
 
-    mysqldump literature -uroot -p --complete-insert \
-              --opt > refbase-backup.sql
+    mysqldump literature -uroot -p --complete-insert --opt > refbase.sql
 
   WARNING: If using MySQL 4.1.x, mysqldump's charset conversion may damage data.
-           If necessary, set the charset option to 'latin1' to avoid the
-           conversion. More info is available at <http://backup.refbase.net>
+           If necessary, use the '--default-character-set=latin1' option to avoid
+           the conversion. More info is available at <http://backup.refbase.net>.
 
 - Backup your original configuration files 'initialize/db.inc.php' and
-  'initialize/ini.inc.php'.
+  'initialize/ini.inc.php'. Optionally, you may want to backup all of your
+  existing refbase scripts.
 
-- Optionally backup your refbase-0.8.0 scripts.
-
-- Move all refbase-0.9.0 files to your web directory.
+- Move all refbase-0.9.5 files to your server's web directory.
 
 - Open the file 'initialize/db.inc.php' in a text editor and re-enter the values
   from your old 'db.inc.php' file for the variables '$databaseName', '$username'
@@ -42,7 +39,7 @@ refbase-0.8.0 first.
     <http://SERVER_ADDRESS/PATH_ON_SERVER/update.php>
 
    (where the string 'SERVER_ADDRESS' is replaced by your server name and
-    'PATH_ON_SERVER' is the actual path to your refbase-0.9.0 web directory)
+    'PATH_ON_SERVER' is the actual path to your refbase-0.9.5 web directory)
 
   This should bring up the update form. Edit the contents of all text entry
   fields to match your server setup and supply the MySQL admin password, then
@@ -50,8 +47,8 @@ refbase-0.8.0 first.
 
   WIN32: Be sure to set a password for the MySQL root user.
 
-  This will add the MySQL tables that were added in 0.9.0 and alter existing
-  tables to match the table design used by refbase-0.9.0. A detailed log is
+  This will add the MySQL tables that were added in 0.9.5 and alter existing
+  tables to match the table design used by refbase-0.9.5. A detailed log is
   generated for all performed update actions. Your data should remain untouched
   by this operation.
 
@@ -64,5 +61,5 @@ refbase-0.8.0 first.
   import, export and citation formats are enabled for all of your users within
   the "Display Options" section of the admin interface.
 
-Alternative update procedures are listed at:
-  <http://cvs.refbase.net/>
+See also:
+  <http://update.refbase.net>

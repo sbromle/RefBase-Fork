@@ -1,15 +1,256 @@
 This file presents a summary of the main fixes and enhancements.
-See the 'ChangeLog' or the cvs entries on SourceForge for a detailed history:
-  <http://refbase.cvs.sourceforge.net/refbase/>
+
+See the 'ChangeLog' or the commit messages on SourceForge for a detailed history:
+  <http://refbase.svn.sourceforge.net/viewvc/refbase/>
+
+Following sites list the refbase commit messages in chronological order
+(allowing you to follow the refbase development progress):
+  <http://cia.vc/stats/project/refbase/>
+  <https://www.ohloh.net/projects/refbase/commits>
+
+
+refbase-0.9.5
+-------------
+[11-Nov-2008]
 
   Feature additions
 -------------------
 
-Citation:
+Import/Add Records:
 
-- APA style
+- New resource types: Abstract, Conference Article, Conference Volume, Magazine
+  Article, Manual, Miscellaneous, Newspaper Article, Patent, Report, Software
 
-- MLA Style
+- Import from Endnote XML and SciFinder
+
+- Direct import from arXiv IDs, DOIs and OpenURLs
+
+- Direct upload of references from Bookends <http://www.sonnysoftware.com>
+
+Search/Display:
+
+- Improved interface:
+	- Redesigned main page, page footer/header & forms on results pages
+	- Quick Search form now always available in the page header
+	- Search suggestions for text entered by the user
+	- Forms on results pages can be hidden
+	- Search results can be browsed & searched in three different views:
+	  List view, Citations, Details
+	- Additional record info (keywords, abstract, etc) and links to cite
+	  or export the record can be displayed underneath each citation
+
+- OpenSearch support (which e.g. enables Firefox & IE users to search refbase
+  directly from their browser's toolbar)
+
+- Initial support for searching & managing of duplicate records
+
+- New query history with links to any previous search results
+
+- New customizable "main fields" search option that allows to search across
+  multiple fields at once
+
+- New option to customize the default number of records per page
+
+- Results can be dynamically included in foreign web pages
+
+Export/Citation:
+
+- New export formats: ADS, Atom XML, ISI Web of Science, OAI_DC XML, SRW_DC XML,
+  Word XML
+
+- New citation styles: AMA, APA, Chicago, Harvard (3 variants), MLA, Vancouver
+
+- Output of citations in LaTeX bibliography (.bbl) format
+
+- Cite, group or export ALL found records (instead of just the selected ones)
+
+- For PDF output, US letter is now supported as page format
+
+- The 'headerMsg' URL parameter adds a header to any of the citation formats
+
+- Upon export, links to corresponding files are now included if the export
+  format and user permissions allow so
+
+Localization:
+
+- Added chinese localization
+
+Command Line Clients:
+
+- Added support for all new export formats
+
+- Added new options that allow to append found records to a local BibTeX or
+  MODS/SRW XML file (if they don't yet exist in that file), and update existing
+  records in that file if their modification date on the server is more recent
+
+- Added new option to extract citation IDs from a file and retrieve matching
+  records from refbase (supported file types: .aux, .bbl, .bib, .enw, .ris,
+  .tex, (MODS|SRW|Endnote) .xml)
+
+Miscellaneous:
+
+- Added a refbase extension for MediaWiki which allows to place a serial number
+  within <refbase>...</refbase>' markup tags; metadata for the reference is
+  retrieved from refbase and marked-up according to a MediaWiki citation template
+
+- Added support for the sitemaps.org protocol which allows for better indexing
+  by search engines
+
+- Added unAPI support for the new export formats 'atom', 'oai_dc' and 'srw_dc'
+
+
+  Changes
+---------
+
+Security:
+
+- Introduced measures to better prevent cross-site scripting (XSS) attacks
+
+- For security reasons, HTML tags are now stripped from the 'headerMsg' URL
+  parameter; string formatting can now be done using the refbase markup syntax
+
+Installation/Update:
+
+- Improved support for PHP installations running with 'safe_mode=On'
+
+Import/Add Records:
+
+- The 'edition' field now accepts string values
+
+- After any add/edit/delete action, refbase now includes a link to the last
+  multi-record search results list in the feedback message if the previous query
+  resulted in a single record; Along with other changes, this obviates
+  'receipt.php'
+
+- When importing multiple records, ALL records are now imported by default
+
+- Improved UTF-8 handling on import so that e.g. a best-effort conversion is
+  done for UTF-8 data which are imported into a latin1-based database
+
+- When importing (or exporting) RIS records, the type of thesis (such as
+  "Masters thesis" or "Ph.D. thesis") is now taken from (or exported to) the
+  'U1' field (as is supported by Bibutils v3.35 or greater)
+
+- Upon import, if the given URL actually is a DOI prefixed with
+  <http://dx.doi.org/>, we'll extract the DOI and move it to the 'doi' field
+
+- Improved recognition of PubMed resource types
+
+Search/Display:
+
+- refbase now remembers many more search & display options while navigating or
+  refining the results list
+
+- Changed the HTTP transfer method in most forms from POST to GET; this helps to
+  avoid warnings about re-sending POST data in some browsers (such as Firefox)
+
+- When linking to particular records via 'show.php', one can now use consecutive
+  serial number ranges as values of the 'records' URL parameter; examples:
+  <show.php?records=123-131> or <show.php?records=123-141,145,147,150-152>
+
+- One can now specify 'creation-date' as value for the 'citeOrder' parameter in
+  'show.php' URLs (or the '--order' option of the 'refbase' CLI); this allows to
+  sort records such that newly added/edited records get listed top of the list
+
+- One can now specify 'Mobile' as value for the 'viewType' URL parameter (or the
+  '--view' option of the 'refbase' CLI); this will return results in simple HTML
+  suitable for mobile devices or any postprocessing
+
+- Refined layout of 'user_receipt.php'
+
+- Added many CSS attributes (id/class names) to HTML output where appropriate;
+  this allows to easier refine the CSS styling of the refbase interface
+
+Export/Citation:
+
+- By default, export via the refbase GUI is now enabled for anonymous users
+
+- By default, the SRU formats SRW_DC XML and SRW_MODS XML are now transformed to
+  HTML via XSL stylesheets
+
+- Renamed the Bibutils 'xml2word' command line tool to 'xml2wordbib' according
+  to the name changes in Bibutils v3.40; note that if you're using a Bibutils
+  version prior to Bibutils v3.40, you must revert this change in file
+  'export/bibutils/export_xml2word.php'
+
+- The citation output options (previously located in the results footer) have
+  been moved to the Display Options form of the results header in Citation view
+
+Admin settings:
+
+- The admin can now define any of the supported views (List view, Citations,
+  Details) as the default view
+
+- For each view, the admin can now define whether the results header & footer
+  should be displayed open or closed by default, or whether they should be
+  entirely hidden from the interface
+
+- The admin can now customize the list of fields that are displayed by default
+  in List & Details view; similarly, the list of fields that are available in
+  dropdown menus of the results header can also be customized
+
+- The admin can now define 'accesskey' values which allow for keyboard
+  navigation of the main parts of the refbase interface
+
+- The '$databaseBaseURL' in 'ini.inc.php' is now auto-generated by default
+
+- The refbase logo image files have been updated to the new refbase logo, and
+  the logo URL path & dimensions can now be customized easily via 'ini.inc.php'
+
+- The session/temp dir path can now be specified explicitly in 'ini.inc.php';
+  this allows you to define a custom directory path that's used on your server
+  to save session data and to write any temporary files
+
+Localization:
+
+- Improved internationalization and added many additional localization strings
+
+- Changed or merged some localization strings to allow for better translations
+  to languages such as Spanish or Chinese
+
+Miscellaneous:
+
+- Underline fontshape markup is now supported in various import and citation
+  formats as well as in refbase markup (use: '__underlined text__')
+
+- For the "Extract citations" functionality, refbase now checks whether the
+  extracted serial numbers and cite keys exist in the database and report any
+  missing record identifiers
+
+
+  Bug fixes
+-----------
+
+- Fixed bug that prevented correct directory creation/renaming and/or file
+  upload on some platforms
+
+- Fixed 'preg_match()' compilation errors when importing BibTeX records into a
+  refbase UTF-8 database
+
+- Worked around an error in Internet Explorer when importing single records via
+  the web interface
+
+- When importing PubMed MEDLINE source data, refbase now extracts author
+  information from the 'AU' field if the 'FAU' field is not available
+
+- refbase now converts Endnote XML text style markup into appropriate refbase
+  markup
+
+- Upon RIS import, refbase now makes sure that HTML encoded source data (such as
+  '&auml;', '&#xF6;' or '&#233;') get decoded before import
+
+- Fixed an issue were it wasn't possible to correctly import (or cite) records
+  which contained non-ASCII characters in author's given names
+
+- Records of unrecognized resource type were omitted upon citation output; fixed
+
+- When outputting to LaTeX or RIS, curly brackets are now escaped to avoid
+  incorrect output
+
+- Fixed an error when exporting data to ODF XML and when the user-specific
+  fields were missing from the SQL query
+
+
 
 
 refbase-0.9.0
@@ -117,6 +358,7 @@ Export/Citation:
 
 - refbase now issues a correct error message if the size of the uploaded file
   exceeds 'post_max_size'
+
 
 
 

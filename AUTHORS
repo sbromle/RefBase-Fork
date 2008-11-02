@@ -1,10 +1,10 @@
-This file lists the current members of the refbase development team and other
-contributors.
+This file lists current & previous members of the refbase development team
+and other contributors.
 
 Please avoid sending e-mail with refbase-related questions directly to them;
 your questions are likely to be answered much faster if you post them to one of
-the mailing lists or forums on sourceforge:
-  <http://sourceforge.net/projects/refbase/>
+the mailing lists or forums:
+  <http://support.refbase.net/>
 
 msteffens:Matthias Steffens <refbase@extracts.de>:
  Project manager, lead developer, application engineering & design
@@ -13,11 +13,13 @@ karnesky:Richard Karnesky <karnesky@gmail.com>:
  Project manager, application engineering, MODS XML export, Endnote style,
  COinS, update.php, some bugfixes & docs
 
+Previous developers:
+
 Michael Bartz <michaelbartz@users.sourceforge.net>:
- Project manager, application design
+ Advisor
 
 wendebaum:Jochen Wendebaum <wendebaum@users.sourceforge.net>:
- Localization, german translation
+ Internationalization, german localization
 
 Daniel Stepputtis <antedon@users.sourceforge.net>:
  Documentation & general support
@@ -29,6 +31,10 @@ Thanks to:
 
 - Oleksandr Moskalenko <oleksa@users.sourceforge.net>:
   Troubleshooting and patch for directory renaming
+
+- Yibiao Bai <mountangellib@gmail.com> and Yong Fan, Shanxi Agricultural
+  University Library, China:
+  Chinese localization.
 
 - Chris Putnam <cdputnam@scripps.edu>:
   Developer of Bibutils, a set of command line programs that interconvert
@@ -43,9 +49,24 @@ Thanks to:
   Developer of the module-free pdf-PHP class that allows to dynamically create
   PDF documents with PHP. <http://www.ros.co.nz/pdf>
 
+- Ryan Parman and Geoffrey Sneddon:
+  Developers of the SimplePie PHP class that allows to manage RSS and Atom feeds
+  with PHP. <http://simplepie.org>
+
+- Thomas Fuchs and contributors:
+  Developers of the script.aculo.us JavaScript framework. <http://script.aculo.us>
+
+- Sam Stephenson and contributors:
+  Developers of the Prototype JavaScript framework. <http://www.prototypejs.org/>
+
 - nijel and garvinhicking of the phpMyAdmin project:
   Developers of zip.inc.php, which is used to zip OpenDocument files.
   <http://www.phpmyadmin.net>
+
+- Ryan Thrash:
+  Developer of the "Simple Rounded Corner CSS Boxes".
+  <http://www.modxcms.com/simple-rounded-corner-css-boxes.html>
+  see also the ThrashBox online generator at <http://www.spiffybox.com/>
 
 - Hugh E. Williams and David Lane, authors of the book "Web Database Applications
   with PHP and MySQL", published by O'Reilly & Associates, whose example code

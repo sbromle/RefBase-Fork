@@ -2,34 +2,35 @@ How to install?
 ---------------
 - You'll need a web server and an existing PHP and MySQL installation.
   If you require help on installation of these packages please visit
-  <http://httpd.apache.org/>, <http://www.php.net/> and
-  <http://www.mysql.com/>.
+  <http://httpd.apache.org>, <http://php.net> and <http://mysql.com>.
 
-- Move all refbase-0.9.0 files to your web directory.
+- Move all refbase-0.9.5 files to your web directory.
 
 - Open the file 'initialize/db.inc.php' in a text editor and edit the values of
   the variables '$databaseName', '$username' and '$password' to fit your needs.
-  (Note that you'll be able to use the refbase package without modifying
+  (Note that you might be able to use the refbase package without modifying
    these variables, but we highly recommend not to use the default values!)
 
 - Now, open a web browser and access the 'install.php' script by typing:
 
     <http://SERVER_ADDRESS/PATH_ON_SERVER/install.php>
-       
+
   (where the string 'SERVER_ADDRESS' is replaced by your server name and
-   'PATH_ON_SERVER' is the actual path to your refbase-0.9.0 web directory)
+   'PATH_ON_SERVER' is the actual path to your refbase-0.9.5 web directory)
 
   This should bring up the install form. Edit the contents of all text entry
   fields to match your server setup and supply the MySQL admin password, then
-  click the 'Install' button to install the database.
+  click the 'Install' button to complete the installation process.
 
   WIN32: Be sure to set a password for the MySQL root user. The path to MySQL
          is probably '/Program Files/MySQL/bin/mysql.exe' or
          '/wamp/mysql/bin/mysql.exe', depending on how you installed MySQL.
 
 Solutions for known problems and general troubleshooting tips are given at:
-  <http://wiki.refbase.net/index.php/Installation-Troubleshooting>
-  <http://wiki.refbase.net/index.php/Troubleshooting>
+  <http://troubleshooting.refbase.net>
+
+See also:
+  <http://requirements.refbase.net>
   <http://install.refbase.net>
 
 
@@ -39,10 +40,10 @@ How to setup your own admin user?
 - After you've successfully installed the database (see above), open the main
   page ('index.php') and login with:
 
-    email address  =  user@refbase.net
-    password       =  start
+    Email     =  user@refbase.net
+    Password  =  start
 
-  You should see now a welcome message at the top right corner of the page
+  You should now see a welcome message at the top right corner of the page
   confirming your successful login.
 
 - Click on 'Add User' which should bring up an empty form. At a minimum, you
@@ -61,6 +62,9 @@ How to setup your own admin user?
 - You can now delete the initial user by choosing 'Manage Users' and clicking
   the appropriate trash icon. (However, we recommend to keep this user until
   you've explored the example records that come with the database)
+
+See also:
+  <http://adduser.refbase.net>
 
 
 
@@ -86,9 +90,9 @@ Import Options
 --------------
 refbase offers batch import of records via the web interface ('import.php') or
 the command line ('contrib/command_line/refbase_import'). These scripts allow to
-import records from various common bibliographic formats (Endnote tagged text,
-RIS, RefWorks, BibTeX, Copac or MODS XML) as well as from online databases (ISI
-Web of Science, PubMed (MEDLINE & XML) and Cambridge Scientific Abstracts).
+import records from various common bibliographic formats (BibTeX, Copac, Endnote
+(tagged text & XML), MODS XML, RefWorks, RIS or SciFinder) as well as from online
+databases (CSA Illumina, ISI Web of Science or PubMed (MEDLINE & XML)).
 
 If you're coming from Endnote you may want to try out the Endnote style file and
 PHP script that's included with refbase. This style file and PHP script allows
@@ -136,27 +140,27 @@ for direct upload into your newly created MySQL tables:
   Note that if you're going to use the mysqlimport data import program the data
   file *must* be named 'refs.txt'.
 
+See also:
+  <http://import.refbase.net>
+
 
 
 Skins
 -----
 refbase ships with alternative skins to change the appearance of the program.
-These are in the 'contrib/skins' directory.  You can replace your
-'includes/header.inc.php', 'includes/footer.inc.php' with these.  You may also
+These are in the 'contrib/skins' directory. You can replace your
+'includes/header.inc.php', 'includes/footer.inc.php' with these. You may also
 need to copy files to the 'css' directory.
 
-Please contribute other skins to <info@refbase.net>
+Please contribute other skins to <info@refbase.net>.
 
 
 
 Extensions for other software
 -----------------------------
 In 'contribs/mediawiki', there is an extension for MediaWiki to more easily
-include reference information from refbase in a wiki page.  This will also allow
+include reference information from refbase in a wiki page. This will also allow
 you to use Wikipedia's citation templates, which may have an appearance that you
 like or might be easier for you (and the other users of your wiki) to customize.
 
 
-
-See also:
-  <http://import.refbase.net>

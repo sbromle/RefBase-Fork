@@ -1,8 +1,8 @@
 We are aware of the following problems, bugs and/or limitations:
 
-- The simple and advanced search forms employ lots of dynamic drop-down menus to
-  ease user entry of data. This works well for small databases (<10,000
-  records) but may cause significant speed problems for larger databases!
+- The advanced search form employs lots of dynamic drop-down menus to ease user
+  entry of data. This works well for small databases (<10,000 records) but may
+  cause significant speed problems for larger databases!
 
 - There's no support for transactions. This means that multiple users will be
   able to edit the same record at the same time. This will usually cause the
@@ -15,4 +15,8 @@ We are aware of the following problems, bugs and/or limitations:
 - The process of internationalization and localization has not been completed
   yet.
 
-- There are some referrer-related bugs (particularly in unapi and show.php).
+- Working simultaneously in different browser windows or tabs may cause some
+  unexpected results (due to referrer-related issues). You can avoid problems if
+  you reload the current browser window/tab before doing anything else in that
+  window/tab.
+

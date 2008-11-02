@@ -1,4 +1,4 @@
-refbase 0.9.0 README
+refbase 0.9.5 README
 ====================
 
 About refbase
@@ -10,22 +10,28 @@ About refbase
   EVERYONE
     - search the database using different search forms
     - search within results
-    - browse found records and view selected records in detail
+    - browse found records and sort results by any database field
+    - view results in different views (list view, citations, details,
+      print view)
+    - display results in different citation styles & output formats
+    - export selected records to XML (Atom, MODS, OAI_DC, ODF) and (via
+      the GPLed Bibutils programs) to ADS, BibTeX, EndNote, ISI, RIS and
+      Word XML
     - display rich text (i.e., italics, super/sub-script, greek letters)
     - extract citations from a text & build an appropriate reference list
-    - track queries using RSS
-    - a print-friendly view
-    - display selected records in different citation styles & output formats
-    - a webservice that allows clients to access a refbase database using a
-      standard query syntax and retrieve results in structured XML format
+    - track additions via RSS and generate custom RSS feeds from searches
+    - web services (SRU & OpenSearch) that allow clients to access a
+      refbase database using a standard query syntax and retrieve results
+      in structured XML format
+    - dissemination of bibliographic data via standard methods (COinS &
+      unAPI) allowing clients to automatically discover and extract data
+      from refbase
     - search a refbase online database from the command line and retrieve
       results in various export & citation formats
   LOGGED IN USERS
     - user-specific fields which are stored individually for each user
-    - display or search within only the user's own literature
-    - export selected records to MODS XML, ODF XML and (via the GPLed bibutils
-      programs) to BibTeX, EndNote, and RIS
-    - import of records from common bibliographic formats and online databases
+    - import of records from common bibliographic formats and online
+      databases via the web interface or the command line
     - automatic email announcements for newly added records
     - save and recall search queries
     - adding records to user-specific groups
@@ -45,13 +51,13 @@ Requirements
 ------------
   refbase requires:
   - a web server (like the Apache HTTP Server <http://httpd.apache.org/>)
-  - PHP <http://www.php.net/> (version 4.1.0 or greater) with enabled
-    session support
+  - PHP <http://www.php.net/> (version 4.4.0 or greater) with enabled
+    session support & installed PHP MySQL module
   - MySQL <http://www.mysql.com/> (version 4.1.x or greater required for
     Unicode support)
   
-  - for Endnote/RIS/Bibtex export and Endnote/Bibtex import:
-    bibutils <http://www.scripps.edu/~cdputnam/software/bibutils/bibutils.html>
+  - for import and export of various formats (e.g., Endnote & BibTeX):
+    Bibutils <http://www.scripps.edu/~cdputnam/software/bibutils/>
     (version 3.21 or greater)
 
   More detailed information is available at:

@@ -1,22 +1,87 @@
 Suggestions for improving refbase:
 
+- Open up the refbase group (aka tagging) mechanism so that groups can be made
+  public, group-specific or private.
+
+- Improved search capabilities which, e.g., allow for 'OR' searches and/or a
+  Google-like search syntax. One possible solution might be to offer support for
+  the Contextual Query Language (CQL) across the entire interface. More flexible
+  handling of accented characters and umlauts would be also desirable.
+
+- Offer means to auto-detect duplicates on import, link duplicate entries with
+  their original ones and allow users to migrate their user-specific data from a
+  duplicate record to the original. It would be also nice if duplicate records
+  could be hidden from the interface.
+
+- Improve the installation process so that the web-based installer works with
+  more server setups (including installation on shared hosts), and allows to set
+  important config options via the web interface.
+
+- More user-specific and record-specific rights management.
+
+- Provide additional citation styles, preferably via the use of a plugin
+  mechanism which would make it easy to add or edit citation styles. Support for
+  the Citation Style Language (CSL) would be desirable.
+
 - Increase number of supported resource types and allow users to add their own
   types. A hierarchical system with basic fallback types would be desirable.
 
-- Provide additional citation formats, preferably via the use of a plugin
-  mechanism which would make it easy to add your own citation styles.
+- Provide a machine-readable interface (API) that not only allows clients to
+  query a refbase database and retrieve results in a structured format, but that
+  also allows to modify any database information.
 
-- Improved search capabilities which, e.g., allow for 'OR' searches and/or a
-  Google-like search syntax. More flexible handling of accented characters and
-  umlauts would be also desirable.
+- Provide better integration with desktop reference managers so that users could
+  search an online refbase database from within their desktop application, or
+  upload (and eventually synch) records to a refbase server directly from within
+  their desktop application.
+
+- Upon add/edit, offer to auto-fill empty fields based on information available
+  in other fields/records/tables or via web services. Eventually, such a system
+  could also be used to validate data that were entered/imported by the user.
+
+- Simplify manual data input by providing record type specific forms. These
+  forms could guide a user by only showing (or at least indicating) those fields
+  that are required for a particular record type (like journal articles, book
+  chapters or whole books).
+
+- Allow users to upload multiple files per record.
+
+- Allow users to specify multiple URLs for the same record, and eventually
+  provide a customizable system for auto-generation of links (based on the
+  record's metadata).
+
+- Store record identifiers from foreign repositories (e.g. arXiv.org or
+  PubMed.gov) in some dedicated field(s), which would allow to easily
+  auto-generate links back to these repositories.
+
+- Implement the OAI Protocol for Metadata Harvesting which would provide (yet
+  another) standard way for software to retrieve information from refbase.
+
+- More localizations, i.e. translations of the refbase interface into other
+  languages.
 
 - Cross-site searches (both through other copies of refbase and through other
   bibliographic databases).
 
-- More user-specific and record-specific rights management.
+- Refactor for more code reuse (share more between cite/list/details views,
+  etc.), and eventually modularize the code to allow for other RDBMS, custom
+  database schemes and/or a plugin mechanism.
+
+- Provide better interface customization via a templating/skin mechanism and/or
+  improved CSS styling.
+
+- Allow the admin to add any custom fields and/or alter the layout of available
+  fields.
+
+- More embedding of citation metadata in HTML pages in a machine-readable form
+  (such as embedded RDF or microformats) which may be processed by clients.
 
 - Improved export through both revisions to the current MODS XML/bibutils system
   and through adding more native export options which wouldn't require bibutils.
+
+- User customization: provide a user-specific preferences page where one could
+  specify the default view and the default columns that are visible in query
+  results or the default fields that are visible in particular search forms.
 
 - Easier import of bibliographic data from web sources via bookmarklets and/or
   scrapers.
@@ -25,42 +90,9 @@ Suggestions for improving refbase:
   be allowed for a particular record and where notes would be searchable, and
   could be made public, group-specific or private.
 
-- Open up the refbase group (aka tagging) mechanism so that groups can be made
-  public, group-specific or private.
-
-- Implement auto-completion mechanisms for authors, keywords, groups, etc.
-
-- Provide a machine-readable interface in form of an API that allows clients to
-  query a refbase database, retrieve results in a structured format and modify
-  any database information.
-
-- More embedding of citation metadata in HTML pages in a machine-readable form
-  (such as embedded RDF or microformats) which may be processed by clients.
-
-- User customization: provide a user-specific preferences page where one can
-  specify the default columns that are visible in query results or the default
-  fields that are visible in particular search forms.
-
-- Simplify manual data input by providing record type specific forms. These
-  forms could guide a user by only showing those fields that are required for a
-  particular record type (like journal articles, book chapters or whole books).
-
-- Validation of data entered/imported by the user.
-
-- Important configuration settings should be made available via the web
-  interface upon installation or update.
-
-- Provide better interface customization via a templating mechanism and/or
-  improved CSS styling.
-
-- Offer the user means for handling duplicate database entries.
+- Enable remembering of marked records across different requests.
 
 - Provide an administrative interface to deleted records.
 
-- Enable remembering of marked records across different requests.
-
-- Refactor for more code reuse (share more between cite/list/details views,
-  break out all javascript to separate files, etc.).
-
 A more detailed list of planned feature additions is given at:
-  <http://wiki.refbase.net/index.php/Planned_feature_additions>
+  <http://additions.refbase.net>
