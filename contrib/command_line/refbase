@@ -53,9 +53,10 @@ $version = "1.2.1";
 #          all other keys can be freely chosen
 #        - by default, the server labeled with key 'default' will be queried
 %hosts = (
-				'default' => 'http://polaris.ipoe.uni-kiel.de/refs/',
+				'default' => 'http://beta.refbase.net/',
 				'local'   => 'http://localhost/refs/',
 				'beta'    => 'http://beta.refbase.net/',
+				'beta2'   => 'http://refbase.textdriven.com/beta/',
 				'demo'    => 'http://demo.refbase.net/',
 				'org'     => 'http://www.refbase.org/'
 );
@@ -91,7 +92,7 @@ $version = "1.2.1";
 				'updateRecords'   => '0',       # -B|--update    => update existing records in '-A, --append' file; must be '0' (=no) or '1' (=yes)
 				'citeStyle'       => '',        # -C|--style     => desired citation style, given name must match an entry within the database's MySQL table 'styles' (keep empty to use the database default)
 				'extractFile'     => '',        # -E|--extract   => file from which citations will be extracted
-				'format'          => 'ascii',   # -F|--format    => output format must be 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii', 'bibtex', 'endnote', 'ris', 'isi', 'atom', 'mods', 'oai_dc', 'odf', 'srw_dc', 'srw_mods', 'word' or '' (the empty string '' will produce the default 'ascii' output style)
+				'format'          => 'ascii',   # -F|--format    => output format must be 'html', 'rtf', 'pdf', 'latex', 'latex_bbl', 'markdown', 'ascii', 'ads', 'bibtex', 'endnote', 'isi', 'ris', 'atom', 'mods', 'oai_dc', 'odf', 'srw_dc', 'srw_mods', 'word' or '' (the empty string '' will produce the default 'ascii' output style)
 				'showLinks'       => '1',       # -L|--showlinks => hide/display links column in HTML output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. print any links)
 				'citeOrder'       => 'author',  # -O|--order     => cite order must be 'author', 'year', 'type', 'type-year', 'creation-date' or '' (the empty string '' will produce the default 'author' sort order)
 				'showQuery'       => '0',       # -Q|--showquery => hide/display SQL query in ASCII output; must be '0', '1', or '' (the empty string '' will produce the default output style, i.e. not showing the SQL query)
@@ -225,6 +226,7 @@ $updateRecords = 0;
 );
 
 # Extract options:
+# TODO: use Getopt::Long
 
 # general options:
 if (($ARGV[0] eq '--help') or ($ARGV[0] eq '-h') or ($ARGV[0] eq '')) { &usage (0); } # if the user asked for --help/-h or didn't provide any input, call the 'usage' subroutine
@@ -309,11 +311,11 @@ if (exists($params{'format'})) {
 		$format =~ s/^latex_bbl$/LaTeX .bbl/i;
 		$params{'citeType'} = $format;
 	}
-	elsif ($format =~ /^(bibtex|endnote|ris|isi|atom|mods|oai_dc|odf|srw(_dc|_mods)?|word)$/i) {
+	elsif ($format =~ /^(ads|bibtex|endnote|isi|ris|atom|mods|oai_dc|odf|srw(_dc|_mods)?|word)$/i) {
 		$params{'submit'} = "Export";
 		$params{'exportType'} = "file";
 
-		if ($format =~ /^(bibtex|endnote|ris|isi)$/i) {
+		if ($format =~ /^(ads|bibtex|endnote|isi|ris)$/i) {
 			$params{'exportFormat'} = $format;
 		}
 		elsif ($format =~ /^(atom|mods|oai_dc|odf|srw(_dc|_mods)?|word)$/i) {
@@ -539,6 +541,12 @@ elsif (defined($appendFile)) { # if an '$appendFile' was given print results to 
 
 	$resultsString = $response->content();
 
+	# TODO: it would be better to use function 'splitRecs' to check whether there
+	#       were any results returned for the given format
+	if ($resultsString =~ /^Nothing found!\n+/i) {
+		$resultsString = '';
+	}
+
 	if (($resultsString eq '') || (($format =~ /^(mods|srw(_mods)?)$/i) && ($resultsString !~ /<mods[ >]/i))) {
 		print "There are no records that need to be added to file '" . $appendFile . "'.\n\n";
 	}
@@ -548,6 +556,7 @@ elsif (defined($appendFile)) { # if an '$appendFile' was given print results to 
 }
 
 else { # print results to STDOUT:
+	binmode STDOUT;
 	print $response->content();
 }
 
@@ -1040,8 +1049,8 @@ sub usage
 		. "                                       supported file types: " . join(', ', sort keys(%citeIDPatterns)) . "\n"
 		. "                   -F, --format      - output format ('" . $params{'format'} . "')\n"
 		. "                                       possible values: html, rtf, pdf, latex, latex_bbl, markdown, ascii,\n"
-		. "                                                        bibtex, endnote, ris, isi, atom, mods, oai_dc, odf,\n"
-		. "                                                        srw_dc, srw_mods, word\n"
+		. "                                                        ads, bibtex, endnote, isi, ris, atom, mods, oai_dc,\n"
+		. "                                                        odf, srw_dc, srw_mods, word\n"
 		. "                   -L, --showlinks   - hide/display links column in html output ('" . $params{'showLinks'} . "')\n"
 		. "                                       possible values: 0, 1\n"
 		. "                   -O, --order       - sort order of returned records ('" . $params{'citeOrder'} . "')\n"
