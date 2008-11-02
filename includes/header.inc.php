@@ -189,7 +189,6 @@
 		// -------------------------------------------------------
 ?>
 
-			<!--&nbsp;|&nbsp;<a href="help.php" title="display help">Help</a>-->
 		</span>
 	</td>
 	<td class="small" valign="bottom" rowspan="2" align="right">

@@ -112,14 +112,14 @@
 	                                  "abbrev_journal"        => $loc["DropDownFieldName_AbbrevJournal"],
 	                                  "editor"                => $loc["DropDownFieldName_Editor"],
 	                                  "",
-	                                  "volume_numeric"        => $loc["DropDownFieldName_Volume"], // 'volume' should get replaced automatically by 'volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
+	                                  "volume_numeric"        => $loc["DropDownFieldName_Volume"], // 'volume_numeric' is used instead of 'volume' in the sort dropdown menus
 	                                  "issue"                 => $loc["DropDownFieldName_Issue"],
 	                                  "pages"                 => $loc["DropDownFieldName_Pages"],
 	                                  "",
 	                                  "series_title"          => $loc["DropDownFieldName_SeriesTitle"],
 	                                  "abbrev_series_title"   => $loc["DropDownFieldName_AbbrevSeriesTitle"],
 	                                  "series_editor"         => $loc["DropDownFieldName_SeriesEditor"],
-	                                  "series_volume_numeric" => $loc["DropDownFieldName_SeriesVolume"], // 'series_volume' should get replaced automatically by 'series_volume_numeric' (in function 'buildFieldNameLinks()') but it doesn't ?:-/
+	                                  "series_volume_numeric" => $loc["DropDownFieldName_SeriesVolume"], // 'series_volume_numeric' is used instead of 'series_volume' in the sort dropdown menus
 	                                  "series_issue"          => $loc["DropDownFieldName_SeriesIssue"],
 	                                  "",
 	                                  "publisher"             => $loc["DropDownFieldName_Publisher"],

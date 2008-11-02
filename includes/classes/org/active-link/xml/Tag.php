@@ -2,9 +2,9 @@
 
 /* Workaround by Richard Karnesky (refbase) for if ctype_alpha is missing */
 if(! function_exists('ctype_alpha')) {
-  function ctype_alpha($string) {
-    return (!preg_match('|[^\pL]|', $string));
-  }
+	function ctype_alpha($string) {
+		return (!preg_match('|[^\pL]|', $string));
+	}
 }
 
 /*

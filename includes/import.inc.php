@@ -1030,11 +1030,11 @@
 											"UR"  =>  "url", // URL (URL addresses can be entered individually, one per tag or multiple addresses can be entered on one line using a semi-colon as a separator)
 											"L1"  =>  "file", // Link to PDF (same syntax rules as for "UR")
 		//									"L2"  =>  "", // Link to Full-text (same syntax rules as for "UR")
-		//									"L3"  =>  "related", // Related Records (NOTE: import into user-specific fields is NOT supported yet!)
+		//									"L3"  =>  "related", // Related Records (this mapping would require some postprocessing of the field value so that it's suitable for the 'related' field)
 		//									"L4"  =>  "", // Image(s)
 
 											"N1"  =>  "notes", // Notes
-											"ID"  =>  "call_number", // Reference ID (NOTE: alternatively, we could map 'ID' to the user-specific 'cite_key' field which would copy the contents of the 'ID' field to the 'cite_key' field of the currently logged-in user)
+											"ID"  =>  "call_number", // Reference ID (NOTE: if no other field gets mapped to the 'cite_key' field, the contents of the 'call_number' field will be also copied to the 'cite_key' field of the currently logged-in user)
 
 		//									"M1"  =>  "", // Miscellaneous 1
 		//									"M2"  =>  "", // Miscellaneous 2
@@ -1051,7 +1051,7 @@
 		//									""    =>  "approved",
 		//									""    =>  "orig_record",
 
-		//									"RP"  =>  "copy", // Reprint status (valid values: "IN FILE", "NOT IN FILE", "ON REQUEST (MM/DD/YY)") (NOTE: import into user-specific fields is NOT supported yet!)
+		//									"RP"  =>  "copy", // Reprint status (valid values: "IN FILE", "NOT IN FILE", "ON REQUEST (MM/DD/YY)") (this mapping would require some postprocessing of the field value so that it's suitable for the 'copy' field)
 		//									"AV"  =>  "", // Availability
 										);
 
@@ -1643,12 +1643,12 @@
 											"LK"  =>  "url", // Links
 											"UL"  =>  "url", // URL
 		//									""    =>  "file", // Link to PDF
-		//									""    =>  "related", // Related Records (NOTE: import into user-specific fields is NOT supported yet!)
+		//									""    =>  "related", // Related Records
 
 											"NO"  =>  "notes", // Notes
-											"ID"  =>  "call_number", // Reference Identifier
+											"ID"  =>  "call_number", // Reference Identifier (NOTE: if no other field gets mapped to the 'cite_key' field, the contents of the 'call_number' field will be also copied to the 'cite_key' field of the currently logged-in user)
 											"CN"  =>  "notes", // Call Number (if 'ID' would be mapped to 'cite_key', contents of this field could go into the 'call_number' field)
-											"IP"  =>  "notes", // Identifying Phrase (NOTE: contents of this field should probably better go into 'cite_key' but import into user-specific fields is NOT supported yet!)
+											"IP"  =>  "notes", // Identifying Phrase (NOTE: should we rather put the contents of this field into the 'cite_key' field?)
 
 		//									"U1"  =>  "", // User definable 1
 		//									"U2"  =>  "", // User definable 2
@@ -1662,7 +1662,7 @@
 		//									""    =>  "approved",
 		//									""    =>  "orig_record",
 
-		//									""    =>  "copy", // Reprint status (valid values: "IN FILE", "NOT IN FILE", "ON REQUEST (MM/DD/YY)") (NOTE: import into user-specific fields is NOT supported yet!)
+		//									""    =>  "copy", // Reprint status
 											"AV"  =>  "notes", // Availability
 
 		//									"AN"  =>  "", // Accession Number
@@ -1929,7 +1929,7 @@
 		//									""                                =>  "doi", // Digital Object Identifier
 											"URL"                             =>  "url", // URL
 		//									""                                =>  "file", // Link to PDF
-		//									""                                =>  "related", // Related Records (NOTE: import into user-specific fields is NOT supported yet!)
+		//									""                                =>  "related", // Related Records
 
 		//									""                                =>  "call_number", // Call Number
 											"Chemical Abstracts Number(CAN)"  =>  "notes", // Chemical Abstracts Number(CAN)
@@ -1940,7 +1940,7 @@
 		//									""                                =>  "approved",
 		//									""                                =>  "orig_record",
 
-		//									""                                =>  "copy", // Reprint status (NOTE: import into user-specific fields is NOT supported yet!)
+		//									""                                =>  "copy", // Reprint status
 
 		//									"Copyright"                       =>  "", // Copyright
 		//									"Database"                        =>  "", // Database
@@ -2626,8 +2626,6 @@
 		//     the correct call number prefix of the currently logged-in user (e.g. 'IPÖ @ msteffens @ ')
 		//
 		//   - the serial number(s) will be assigned automatically and returned by the 'addRecords()' function in form of an array
-		//
-		//   - currently, it is not possible to add anything to the 'user_data' table
 
 		return $importDataArray;
 	}

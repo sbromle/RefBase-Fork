@@ -17,7 +17,8 @@
 	//             $Revision$
 
 	// This is a translation table for conversion from ISO-8859-1 to LaTeX entities. It contains a list of substitution strings for 'ISO-8859-1 West European' characters,
-	// which can be used with the 'T1' font encoding. Uses commands from the 'textcomp' package. Adopted from 'transtab' by Markus Kuhn
+	// which can be used with the 'T1' font encoding. Uses commands from the 'textcomp' package.
+	// Adopted from 'transtab' by Markus Kuhn
 	// (transtab.utf v1.8 2000-10-12 11:01:28+01 mgk25 Exp); see <http://www.cl.cam.ac.uk/~mgk25/unicode.html> for more info about Unicode and transtab.
 
 	$transtab_latin1_latex = array(

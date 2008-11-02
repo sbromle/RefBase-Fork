@@ -17,9 +17,9 @@
 	//             $Revision$
 
 	// This is an import format file (which must reside within the 'import/' sub-directory of your refbase root directory). It contains a version of the
-  // 'importRecords()' function that imports records from 'CrossRef "unixref XML"'-formatted data
-  // i.e. that from their OpenURL server:
-  // http://www.crossref.org/openurl/?noredirect=true&format=unixref&id=doi%3A10.1103%2FPhysRev.47.777
+	// 'importRecords()' function that imports records from 'CrossRef "unixref XML"'-formatted data
+	// i.e. that from their OpenURL server:
+	// http://www.crossref.org/openurl/?noredirect=true&format=unixref&id=doi%3A10.1103%2FPhysRev.47.777
 
 	// --------------------------------------------------------------------
 

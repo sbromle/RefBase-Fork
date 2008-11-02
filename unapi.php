@@ -101,7 +101,7 @@
 	// - 'latex' => return as LaTeX data with mime type 'application/x-latex'
 	// - 'markdown' => return as Markdown TEXT data with mime type 'text/plain'
 	// - 'text' or 'ascii' => return as ASCII TEXT data with mime type 'text/plain'
-	// TODO: add 'ISI', 'ODF XML' and 'Word XML'
+	// TODO: add 'ADS', 'ISI', 'ODF XML' and 'Word XML'
 	if (isset($_REQUEST['format']) AND eregi("^(BibTeX|Endnote|RIS|Atom( XML)?|MODS( XML)?|(OAI_)?DC( XML)?|SRW( XML|_MODS|_DC)?|html|RTF|PDF|LaTeX|Markdown|ASCII|TEXT)$", $_REQUEST['format']))
 		$unapiFormat = $_REQUEST['format'];
 	else
