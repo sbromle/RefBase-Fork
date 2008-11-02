@@ -1061,7 +1061,7 @@
 		$atomCollection->addXMLBranch($authorBranch);
 
 		// - 'generator', 'icon', 'logo':
-		addNewBranch($atomCollection, "generator", array("uri" => "http://www.refbase.net/", "version" => "0.9.1"), "Web Reference Database (http://refbase.sourceforge.net)");
+		addNewBranch($atomCollection, "generator", array("uri" => "http://www.refbase.net/", "version" => "0.9.5"), "Web Reference Database (http://refbase.sourceforge.net)");
 		addNewBranch($atomCollection, "icon", array(), $databaseBaseURL . $faviconImageURL);
 		addNewBranch($atomCollection, "logo", array(), $databaseBaseURL . $logoImageURL);
 
