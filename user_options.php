@@ -219,7 +219,7 @@
 	else // if '$userID == 0' which indicates a user not being logged in
 	{
 		$languagesArray = array($defaultLanguage); // for a user who's not logged in, we fall back to the default language (defined in 'ini.inc.php')
-		$fieldDisabled = " disabled"; // disable some fields if the user isn't logged in (in which case the display language, no. of records per page & the "main fields" search option will be taken from global variables in 'ini.inc.php')
+		$fieldDisabled = " disabled"; // disable some fields if the user isn't logged in (in which case the display language, no. of records per page, show auto-completions & the "main fields" search option will be taken from global variables in 'ini.inc.php')
 	}
 
 	$languageOptionTags = buildSelectMenuOptions($languagesArray, " *; *", "\t\t\t", false); // build properly formatted <option> tag elements from language items returned by function 'getLanguages()'
@@ -229,6 +229,21 @@
 	// Get the default number of records per page preferred by the current user:
 	// 'records_per_page' option:
 	$recordsPerPage = getDefaultNumberOfRecords($userID); // function 'getDefaultNumberOfRecords()' is defined in 'include.inc.php'
+
+	// Get the user's preference for displaying auto-completions:
+	// 'show_auto_completions' option:
+	$showAutoCompletions = getPrefAutoCompletions($userID); // function 'getPrefAutoCompletions()' is defined in 'include.inc.php'
+
+	if ($showAutoCompletions == "yes")
+	{
+		$showAutoCompletionsChecked = " checked";
+		$dontShowAutoCompletionsChecked = "";
+	}
+	else
+	{
+		$showAutoCompletionsChecked = "";
+		$dontShowAutoCompletionsChecked = " checked";
+	}
 
 	// Get all reference types that are available (admin logged in) or which were enabled for the current user (normal user logged in):
 	$typeOptionTags = returnFormatsStylesTypesAsOptionTags($userID, "type", ""); // function 'returnFormatsStylesTypesAsOptionTags()' is defined in 'include.inc.php'
@@ -368,6 +383,14 @@
 	<td><?php echo fieldError("recordsPerPageNo", $errors); ?>
 
 		<input type="text" name="recordsPerPageNo" value="<?php echo encodeHTML($recordsPerPage); ?>" size="5"<?php echo $fieldDisabled; ?>>
+	</td>
+</tr>
+<tr>
+	<td align="left"></td>
+	<td align="left">Show auto-completions:</td>
+	<td>
+		<input type="radio" name="showAutoCompletionsRadio" value="yes"<?php echo $showAutoCompletionsChecked . $fieldDisabled; ?>>&nbsp;&nbsp;yes
+		&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="showAutoCompletionsRadio" value="no"<?php echo $dontShowAutoCompletionsChecked . $fieldDisabled; ?>>&nbsp;&nbsp;no
 	</td>
 </tr>
 <tr>

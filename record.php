@@ -178,7 +178,7 @@
 	}
 
 	// Build HTML elements that allow for auto-completions of text entered by the user:
-	if ($autoCompleteUserInput == "yes")
+	if ($_SESSION['userAutoCompletions'] == "yes")
 	{
 		$authorSuggestElements = buildSuggestElements("authorName", "authorSuggestions", "authorSuggestProgress", "col-author-", "\t\t", "';'"); // function 'buildSuggestElements()' is defined in 'include.inc.php'
 		$titleSuggestElements = buildSuggestElements("titleName", "titleSuggestions", "titleSuggestProgress", "col-title-");

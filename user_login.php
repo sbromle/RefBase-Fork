@@ -199,6 +199,10 @@
 			// and save it to the session variable 'userRecordsPerPage':
 			getDefaultNumberOfRecords($row2["user_id"]); // function 'getDefaultNumberOfRecords()' is defined in 'include.inc.php'
 
+			// Get the user's preference for displaying auto-completions
+			// and save it to the session variable 'userAutoCompletions':
+			getPrefAutoCompletions($row2["user_id"]); // function 'getPrefAutoCompletions()' is defined in 'include.inc.php'
+
 			// Get the list of "main fields" for the current user
 			// and save the list of fields as comma-delimited string to the session variable 'userMainFields':
 			getMainFields($row2["user_id"]); // function 'getMainFields()' is defined in 'include.inc.php'

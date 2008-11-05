@@ -263,6 +263,10 @@
 		//       function 'showPageHeader()')
 		$mainFieldsArray = getMainFields($userID); // function 'getMainFields()' is defined in 'include.inc.php'
 
+		// Get the user's preference for displaying auto-completions:
+		// (see note for '$mainFieldsArray' which also applies here) 
+		$showAutoCompletions = getPrefAutoCompletions($userID); // function 'getPrefAutoCompletions()' is defined in 'include.inc.php'
+
 		// Map MySQL field names to localized column names:
 		$fieldNamesArray = mapFieldNames(); // function 'mapFieldNames()' is defined in 'include.inc.php'
 		$localizedMainFieldsArray = array();
@@ -423,6 +427,12 @@
 				echo "\n\t\t<tr valign=\"top\">"
 				   . "\n\t\t\t<td>Show records per page:</td>"
 				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>" . $recordsPerPage . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
+				   . "\n\t\t</tr>";
+
+				// show the user's preference for displaying auto-completions:
+				echo "\n\t\t<tr valign=\"top\">"
+				   . "\n\t\t\t<td>Show auto-completions:</td>"
+				   . "\n\t\t\t<td>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>" . $loc[$showAutoCompletions] . "</li>\n\t\t\t\t</ul>\n\t\t\t</td>"
 				   . "\n\t\t</tr>";
 
 				if ($loginEmail == $adminLoginEmail) // if the admin is logged in

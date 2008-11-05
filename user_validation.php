@@ -561,6 +561,7 @@
 	{
 		saveSessionVariable("userLanguage", $defaultLanguage); // '$defaultLanguage' is defined in 'ini.inc.php'
 		saveSessionVariable("userRecordsPerPage", $defaultUserOptions['records_per_page']); // '$defaultUserOptions' is defined in 'ini.inc.php'
+		saveSessionVariable("userAutoCompletions", $defaultUserOptions['show_auto_completions']);
 		saveSessionVariable("userMainFields", $defaultUserOptions['main_fields']);
 	}
 

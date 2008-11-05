@@ -385,11 +385,13 @@
 		if ($userID != 0)
 		{
 			$recordsPerPage = $formVars["recordsPerPageNo"];
+			$showAutoCompletions = $formVars["showAutoCompletionsRadio"];
 			$mainFieldsString = implode(", ", $formVars["mainFieldsSelector"]); // join array of the user's preferred main fields using a comma (and whitespace) as separator
 		}
-		else // the 'recordsPerPageNo' and 'mainFieldsSelector' form elements are disabled for anonymous users ('userID=0'), so we load the defaults:
+		else // the 'recordsPerPageNo', 'showAutoCompletionsRadio' and 'mainFieldsSelector' form elements are disabled for anonymous users ('userID=0'), so we load the defaults:
 		{
 			$recordsPerPage = getDefaultNumberOfRecords(0); // function 'getDefaultNumberOfRecords()' is defined in 'include.inc.php'
+			$showAutoCompletions = getPrefAutoCompletions(0); // function 'getPrefAutoCompletions()' is defined in 'include.inc.php'
 			$mainFieldsString = implode(", ", getMainFields(0)); // function 'getMainFields()' is defined in 'include.inc.php'
 		}
 
@@ -415,6 +417,7 @@
 			              . ", use_custom_text_citation_format = " . quote_smart($formVars["use_custom_text_citation_format"])
 			              . ", text_citation_format = " . quote_smart($formVars["text_citation_format"])
 			              . ", records_per_page = " . quote_smart($recordsPerPage)
+			              . ", show_auto_completions = " . quote_smart($showAutoCompletions)
 			              . ", main_fields = " . quote_smart($mainFieldsString)
 			              . " WHERE user_id = " . quote_smart($userID);
 
@@ -430,6 +433,7 @@
 			              . ", use_custom_text_citation_format = " . quote_smart($formVars["use_custom_text_citation_format"])
 			              . ", text_citation_format = " . quote_smart($formVars["text_citation_format"])
 			              . ", records_per_page = " . quote_smart($recordsPerPage)
+			              . ", show_auto_completions = " . quote_smart($showAutoCompletions)
 			              . ", main_fields = " . quote_smart($mainFieldsString)
 			              . ", user_id = " . quote_smart($userID)
 			              . ", option_id = NULL"; // inserting 'NULL' into an auto_increment PRIMARY KEY attribute allocates the next available key value
@@ -451,8 +455,9 @@
 
 		// Note: the user's types/styles/formats will be written to their corresponding session variables in function 'getVisibleUserFormatsStylesTypes()'
 		//       which will be called by the following receipt page ('user_receipt.php') anyhow, so we won't call the function here...
-		//       The same is true for the user's preferred number of records per page and the list of "main fields" which will be saved to session variables
-		//       from within 'user_receipt.php' thru functions 'getMainFields()' and 'getDefaultNumberOfRecords()', respectively.
+		//       The same is true for the user's preferred number of records per page, the user's pref setting to show auto-completions and for the
+		//       list of "main fields" which will be saved to session variables from within 'user_receipt.php' thru functions 'getMainFields()',
+		//       'getDefaultNumberOfRecords()' and 'getPrefAutoCompletions()', respectively.
 	}
 
 	// Clear the 'errors' and 'formVars' session variables so a future <form> is blank:

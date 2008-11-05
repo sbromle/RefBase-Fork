@@ -105,7 +105,8 @@
 			// NOTE: As an exception, for anyone who isn't logged in, we don't load the default number of records from option
 			//       'records_per_page' in table 'user_options', but instead use the value given in variable '$defaultNumberOfRecords'
 			//       in 'ini.inc.php'. Similarly, if the user isn't logged in, the list of "main fields" is taken from variable
-			//       '$defaultMainFields' in 'ini.inc.php' and not from option 'main_fields' in table 'user_options.
+			//       '$defaultMainFields' in 'ini.inc.php' and not from option 'main_fields' in table 'user_options. Same holds true
+			//       for variable '$autoCompleteUserInput' vs. option 'show_auto_completions'.
 		{
 			// Get all export formats that were selected by the admin to be visible if a user isn't logged in
 			// and (if some formats were found) save them as semicolon-delimited string to the session variable 'user_export_formats':
@@ -134,6 +135,10 @@
 			// Get the default number of records per page preferred by the current user
 			// and save it to the session variable 'userRecordsPerPage':
 			getDefaultNumberOfRecords(0);
+
+			// Get the user's preference for displaying auto-completions
+			// and save it to the session variable 'userAutoCompletions':
+			getPrefAutoCompletions(0);
 
 			// Get the list of "main fields" for the current user
 			// and save the list of fields as comma-delimited string to the session variable 'userMainFields':
@@ -1955,7 +1960,6 @@
 	function buildQuickSearchElements($query, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType)
 	{
 		global $tableRefs; // defined in 'db.inc.php'
-		global $autoCompleteUserInput; // defined in 'ini.inc.php'
 
 		global $loc; // '$loc' is made globally available in 'core.php'
 
@@ -1977,7 +1981,7 @@
 			$firstField = "";
 
 		// build HTML elements that allow for search suggestions for text entered by the user:
-		if ($autoCompleteUserInput == "yes")
+		if ($_SESSION['userAutoCompletions'] == "yes")
 			$suggestElements = buildSuggestElements("quickSearchName", "quickSearchSuggestions", "quickSearchSuggestProgress", "id-quickSearchSelector-", "\t\t\t\t\t\t");
 		else
 			$suggestElements = "";
@@ -2045,8 +2049,6 @@ EOF;
 	// (i.e., provide options to refine the search results)
 	function buildRefineSearchElements($href, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $dropDownFieldsArray, $dropDownFieldSelected, $displayType)
 	{
-		global $autoCompleteUserInput; // defined in 'ini.inc.php'
-
 		global $loc; // '$loc' is made globally available in 'core.php'
 
 		global $client;
@@ -2058,7 +2060,7 @@ EOF;
 		$accessKeyTitle = addAccessKey("title", "refine");
 
 		// build HTML elements that allow for search suggestions for text entered by the user:
-		if (($href == "search.php") AND ($autoCompleteUserInput == "yes"))
+		if (($href == "search.php") AND ($_SESSION['userAutoCompletions'] == "yes"))
 			$suggestElements = buildSuggestElements("refineSearchName", "refineSearchSuggestions", "refineSearchSuggestProgress", "id-refineSearchSelector-", "\t\t\t\t\t");
 		else
 			$suggestElements = "";
@@ -4195,6 +4197,8 @@ EOF;
 
 	// Get the list of "main fields" preferred by the current user:
 	// and save the list of fields as comma-delimited string to the session variable 'userMainFields'
+	// TODO: Make *one* generic function that can replace functions 'getMainFields()',
+	//       'getDefaultNumberOfRecords()' and 'getPrefAutoCompletions()'
 	function getMainFields($userID)
 	{
 		global $loginEmail;
@@ -4320,6 +4324,8 @@ EOF;
 	// --------------------------------------------------------------------
 
 	// Get the default number of records per page preferred by the current user:
+	// TODO: Make *one* generic function that can replace functions 'getMainFields()',
+	//       'getDefaultNumberOfRecords()' and 'getPrefAutoCompletions()'
 	function getDefaultNumberOfRecords($userID)
 	{
 		global $loginEmail;
@@ -4344,10 +4350,46 @@ EOF;
 
 		// We'll only update the appropriate session variable if either a normal user is logged in -OR- the admin is logged in and views his own user options page
 		if (($loginEmail != $adminLoginEmail) OR (($loginEmail == $adminLoginEmail) && ($userID == getUserID($loginEmail))))
-			// Write the list of fields into a session variable:
+			// Write results into a session variable:
 			saveSessionVariable("userRecordsPerPage", $showRows);
 
 		return $showRows;
+	}
+
+
+	// --------------------------------------------------------------------
+
+	// Get the user's preference for displaying auto-completions:
+	// TODO: Make *one* generic function that can replace functions 'getMainFields()',
+	//       'getDefaultNumberOfRecords()' and 'getPrefAutoCompletions()'
+	function getPrefAutoCompletions($userID)
+	{
+		global $loginEmail;
+
+		global $adminLoginEmail; // these variables are defined in 'ini.inc.php'
+		global $autoCompleteUserInput;
+
+		$userOptionsArray = array(); // initialize array variable
+
+		// Get all user options for the current user:
+		// note that if the user isn't logged in (userID=0), we don't load the pref setting from option
+		// 'show_auto_completions' in table 'user_options' (where 'user_id = 0'). Instead, we'll take
+		// the setting from variable '$autoCompleteUserInput' in 'ini.inc.php'.
+		if ($userID != 0)
+			$userOptionsArray = getUserOptions($userID);
+
+		// Extract the setting which defines whether auto-completions shall be displayed for text entered by the user:
+		if (!empty($userOptionsArray) AND !empty($userOptionsArray['show_auto_completions']))
+			$showAutoCompletions = $userOptionsArray['show_auto_completions']; // honour the logged in user's preference for displaying auto-completions (if not empty or NULL)
+		else
+			$showAutoCompletions = $autoCompleteUserInput; // by default, we take the pref setting from the global variable '$autoCompleteUserInput'
+
+		// We'll only update the appropriate session variable if either a normal user is logged in -OR- the admin is logged in and views his own user options page
+		if (($loginEmail != $adminLoginEmail) OR (($loginEmail == $adminLoginEmail) && ($userID == getUserID($loginEmail))))
+			// Write results into a session variable:
+			saveSessionVariable("userAutoCompletions", $showAutoCompletions);
+
+		return $showAutoCompletions;
 	}
 
 	// --------------------------------------------------------------------

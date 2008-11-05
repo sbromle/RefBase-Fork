@@ -66,6 +66,9 @@
 	// Get the default number of records per page preferred by the current user:
 	$showRows = $_SESSION['userRecordsPerPage'];
 
+	// Get the user's preference for displaying auto-completions:
+	$showAutoCompletions = $_SESSION['userAutoCompletions'];
+
 	// Show the login status:
 	showLogin(); // (function 'showLogin()' is defined in 'include.inc.php')
 
@@ -104,7 +107,7 @@
 	$dropDownItems3 = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 	// Build HTML elements that allow for search suggestions for text entered by the user:
-	if ($autoCompleteUserInput == "yes")
+	if ($_SESSION['userAutoCompletions'] == "yes")
 	{
 		$authorSuggestElements = buildSuggestElements("authorName", "authorSuggestions", "authorSuggestProgress", "col-author-"); // function 'buildSuggestElements()' is defined in 'include.inc.php'
 		$titleSuggestElements = buildSuggestElements("titleName", "titleSuggestions", "titleSuggestProgress", "col-title-");

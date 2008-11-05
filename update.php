@@ -315,6 +315,7 @@
 					. "use_custom_text_citation_format ENUM('no','yes') NOT NULL, "
 					. "text_citation_format VARCHAR(255), "
 					. "records_per_page SMALLINT(5) UNSIGNED DEFAULT NULL, "
+					. "show_auto_completions ENUM('yes','no') NOT NULL, "
 					. "main_fields TEXT, "
 					. "INDEX (user_id))";
 
@@ -342,8 +343,12 @@
 		$properties = "SMALLINT(5) UNSIGNED DEFAULT NULL AFTER text_citation_format";
 		$resultArray["Table 'user_options': added field 'records_per_page'"] = addColumnIfNotExists("records_per_page", $tableUserOptions, $properties);
 
+		// Add field 'show_auto_completions' to table 'user_options'
+		$properties = "ENUM('yes','no') NOT NULL AFTER records_per_page";
+		$resultArray["Table 'user_options': added field 'show_auto_completions'"] = addColumnIfNotExists("show_auto_completions", $tableUserOptions, $properties);
+
 		// Add field 'main_fields' to table 'user_options'
-		$properties = "TEXT AFTER records_per_page";
+		$properties = "TEXT AFTER show_auto_completions";
 		$resultArray["Table 'user_options': added field 'main_fields'"] = addColumnIfNotExists("main_fields", $tableUserOptions, $properties);
 
 		// Add field 'allow_browse_view' to table 'user_permissions'

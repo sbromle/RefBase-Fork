@@ -33,7 +33,6 @@
 		global $defaultStyleSheet;
 		global $printStyleSheet;
 		global $mobileStyleSheet;
-		global $autoCompleteUserInput;
 		global $useVisualEffects;
 		global $databaseBaseURL;
 		global $databaseKeywords;
@@ -96,7 +95,7 @@
 	<link rel="unapi-server" type="application/xml" title="unAPI" href="<?php echo $databaseBaseURL; ?>unapi.php">
 	<link rel="search" type="application/opensearchdescription+xml" title="<?php echo encodeHTML($officialDatabaseName); ?>" href="<?php echo $databaseBaseURL; ?>opensearch.php?operation=explain"><?php
 
-		if ($includeJavaScript OR ($autoCompleteUserInput == "yes") OR ($useVisualEffects == "yes"))
+		if ($includeJavaScript OR ($_SESSION['userAutoCompletions'] == "yes") OR ($useVisualEffects == "yes"))
 		{
 			// ...include common refbase JavaScript functions:
 ?>
@@ -104,7 +103,7 @@
 	<script language="JavaScript" type="text/javascript" src="javascript/common.js"></script><?php
 		}
 
-		if (($autoCompleteUserInput == "yes") OR ($useVisualEffects == "yes"))
+		if (($_SESSION['userAutoCompletions'] == "yes") OR ($useVisualEffects == "yes"))
 		{
 			// ...include the Prototype & script.aculo.us JavaScript frameworks:
 ?>

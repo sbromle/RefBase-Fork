@@ -554,6 +554,7 @@ CREATE TABLE `user_options` (
   `use_custom_text_citation_format` enum('no','yes') NOT NULL default 'no',
   `text_citation_format` varchar(255) default NULL,
   `records_per_page` smallint(5) unsigned default NULL,
+  `show_auto_completions` enum('yes','no') NOT NULL default 'yes',
   `main_fields` text,
   PRIMARY KEY  (`option_id`),
   KEY `user_id` (`user_id`)

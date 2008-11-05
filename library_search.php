@@ -67,6 +67,9 @@
 	// Get the default number of records per page preferred by the current user:
 	$showRows = $_SESSION['userRecordsPerPage'];
 
+	// Get the user's preference for displaying auto-completions:
+	$showAutoCompletions = $_SESSION['userAutoCompletions'];
+
 	// Show the login status:
 	showLogin(); // (function 'showLogin()' is defined in 'include.inc.php')
 

@@ -123,8 +123,8 @@
 
 
 	// The number of records that's returned by default:
-	// Note that this setting also controls how many records will be returned by default for RSS, SRU and
-	// CLI queries.
+	// Note that this setting also controls how many records will be returned by default for RSS, OpenSearch,
+	// SRU and CLI queries.
 	$defaultNumberOfRecords = 5;
 
 
@@ -159,7 +159,7 @@
 
 
 	// Specify whether auto-completions (search suggestions) shall be provided
-	// (via Ajax calls) for user input in text entry fields:
+	// by default (via Ajax calls) for user input in text entry fields:
 	$autoCompleteUserInput = "yes"; // possible values: "yes", "no"
 
 
@@ -340,6 +340,9 @@
 
 	                            // the user's preferred number of records that's returned by default:
 	                            "records_per_page"                => "5", // e.g. "5"
+
+	                            // the user's preference for displaying auto-completions:
+	                            "show_auto_completions"           => "yes", // possible values: "yes", "no"
 
 	                            // the user's preferred list of "main fields" (that will be used instead of the
 	                            // default list of "main fields" provided in '$defaultMainFields', see above):

@@ -45,6 +45,7 @@
 		deleteSessionVariable("userLanguage"); // clear the user's preferred language
 		deleteSessionVariable("userDefaultView"); // clear the user's default view setting
 		deleteSessionVariable("userRecordsPerPage"); // clear the user's preferred number of records per page
+		deleteSessionVariable("userAutoCompletions"); // clear the user's preference for displaying auto-completions
 		deleteSessionVariable("userMainFields"); // clear the user's preferred list of "main fields"
 		deleteSessionVariable("lastLogin"); // clear the user's last login date & time
 
