@@ -452,7 +452,7 @@
 		$dropDownItems2 = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t", true); // function 'buildSelectMenuOptions()' is defined in 'include.inc.php'
 
 		// Build HTML elements that allow for search suggestions for text entered by the user:
-		if ($autoCompleteUserInput == "yes")
+		if ($_SESSION['userAutoCompletions'] == "yes")
 			$suggestElements = buildSuggestElements("recordID", "showSuggestions", "showSuggestProgress", "id-recordIDSelector-"); // function 'buildSuggestElements()' is defined in 'include.inc.php'
 		else
 			$suggestElements = "";
@@ -480,7 +480,7 @@
 		</select>
 	</td>
 	<td>
-		<input type="text" id="recordID" name="serial" value="" size="14"><?php echo $suggestElements; ?>
+		<input type="text" id="recordID" name="serial" value="" size="24"><?php echo $suggestElements; ?>
 
 	</td>
 </tr>
