@@ -600,12 +600,16 @@
       //   corporate
       //   (we treat a 'corporate_author' similar to how Bibutils converts the BibTeX
       //   'organization' field to MODS XML, i.e., we add a separate name element with
-      //    a 'type="corporate"' attribute and an 'author' role)
+      //    a 'type="corporate"' attribute and an 'author' role (or a 'degree grantor'
+      //    role in case of theses))
       if (!empty($row['corporate_author'])) {
         $nameBranch = new XMLBranch("name");
         $nameBranch->setTagAttribute("type", "corporate");
         $nameBranch->setTagContent($row['corporate_author'], "name/namePart");
-        $nameBranch->setTagContent("author", "name/role/roleTerm");
+        if (empty($row['thesis']))
+          $nameBranch->setTagContent("author", "name/role/roleTerm");
+        else // thesis
+          $nameBranch->setTagContent("degree grantor", "name/role/roleTerm");
         $nameBranch->setTagAttribute("authority", "marcrelator", "name/role/roleTerm");
         $nameBranch->setTagAttribute("type", "text", "name/role/roleTerm");
         $record->addXMLBranch($nameBranch);
@@ -798,7 +802,10 @@
         $nameBranch = new XMLBranch("name");
         $nameBranch->setTagAttribute("type", "corporate");
         $nameBranch->setTagContent($row['corporate_author'], "name/namePart");
-        $nameBranch->setTagContent("author", "name/role/roleTerm");
+        if (empty($row['thesis']))
+          $nameBranch->setTagContent("author", "name/role/roleTerm");
+        else // thesis
+          $nameBranch->setTagContent("degree grantor", "name/role/roleTerm");
         $nameBranch->setTagAttribute("authority", "marcrelator", "name/role/roleTerm");
         $nameBranch->setTagAttribute("type", "text", "name/role/roleTerm");
         $related->addXMLBranch($nameBranch);
