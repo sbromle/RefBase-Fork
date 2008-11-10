@@ -168,6 +168,8 @@ Export/Citation:
 - By default, the SRU formats SRW_DC XML and SRW_MODS XML are now transformed to
   HTML via XSL stylesheets
 
+- Mods XML exports include file links that Zotero is able to download
+
 - Renamed the Bibutils 'xml2word' command line tool to 'xml2wordbib' according
   to the name changes in Bibutils v3.40; note that if you're using a Bibutils
   version prior to Bibutils v3.40, you must revert this change in file
