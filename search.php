@@ -2065,10 +2065,10 @@
 					$citeFormatDisabled = "";
 
 				$ResultsFooterRow .= "\n\t<fieldset id=\"citerefs\">"
+				                   . "\n\t\t<legend>Save Citations:</legend>"
 				                   . "\n\t\t<input type=\"hidden\" name=\"citeStyle\" value=\"" . rawurlencode($citeStyle) . "\">"
 				                   . "\n\t\t<input type=\"hidden\" name=\"citeOrder\" value=\"$citeOrder\">"
 				                   . "\n\t\t<input type=\"hidden\" name=\"headerMsg\" value=\"" . rawurlencode($headerMsg) . "\">"
-				                   . "\n\t\t<legend>Save Citations:</legend>"
 				                   . "\n\t\t<label for=\"citeType\">Format:</label>"
 				                   . "\n\t\t<select id=\"citeType\" name=\"citeType\" title=\"choose how your reference list shall be returned\"$citeStyleDisabled$citeFormatDisabled>";
 
@@ -2155,8 +2155,8 @@
 					$exportFormatDisabled = "";
 
 				$ResultsFooterRow .= "\n\t<fieldset id=\"exportrefs\">"
-				                   . "\n\t\t<input type=\"hidden\" name=\"exportType\" value=\"file\">"
 				                   . "\n\t\t<legend>Export Records:</legend>"
+				                   . "\n\t\t<input type=\"hidden\" name=\"exportType\" value=\"file\">"
 				                   . "\n\t\t<label for=\"exportFormat\">Format:</label>"
 				                   . "\n\t\t<select id=\"exportFormat\" name=\"exportFormat\" title=\"choose the export format for your references\"$exportFormatDisabled>";
 

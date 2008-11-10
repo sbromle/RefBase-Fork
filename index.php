@@ -127,8 +127,8 @@ if (!isset($_SESSION['loginEmail']))
 				<div class="boxBody">
 					<form action="user_login.php" method="POST" name="login">
 						<fieldset>
-							<input type="hidden" name="referer" value="index.php">
 							<legend><?php echo $loc["Login"]; ?>:</legend>
+							<input type="hidden" name="referer" value="index.php">
 							<div id="loginUser">
 								<div id="loginUserLabel">
 									<label for="loginEmail"><?php echo $loc["Email"]; ?>:</label>
@@ -167,10 +167,10 @@ elseif (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions'])
 				<div class="boxBody">
 					<form action="search.php" method="GET" name="groupSearch">
 						<fieldset>
+							<legend><?php echo $loc["ShowMyGroup"]; ?>:</legend>
 							<input type="hidden" name="formType" value="groupSearch">
 							<input type="hidden" name="showQuery" value="0">
 							<input type="hidden" name="showLinks" value="1">
-							<legend><?php echo $loc["ShowMyGroup"]; ?>:</legend>
 							<div id="groupSelect">
 								<label for="groupSearchSelector"><?php echo $loc["My"]; ?>:</label>
 								<select name="groupSearchSelector"<?php echo $groupSearchDisabled; ?>><?php
@@ -333,10 +333,10 @@ if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND
 				<div class="boxBody">
 					<form action="queries.php" method="GET" name="querySearch">
 						<fieldset>
+							<legend><?php echo $loc["RecallMyQuery"]; ?>:</legend>
 							<input type="hidden" name="formType" value="querySearch">
 							<input type="hidden" name="showQuery" value="0">
 							<input type="hidden" name="showLinks" value="1">
-							<legend><?php echo $loc["RecallMyQuery"]; ?>:</legend>
 							<div id="recallSelect">
 								<label for="querySearchSelector"><?php echo $loc["Query"]; ?>:</label>
 								<select name="querySearchSelector"<?php echo $querySearchDisabled; ?>><?php

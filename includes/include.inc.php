@@ -1990,6 +1990,7 @@
 		$quickSearchForm = <<<EOF
 			<form action="search.php" method="GET" name="quickSearch">
 				<fieldset>
+					<legend>$loc[QuickSearch]:</legend>
 					<input type="hidden" name="formType" value="quickSearch">
 					<input type="hidden" name="originalDisplayType" value="$displayType">
 					<input type="hidden" name="sqlQuery" value="$queryURL">
@@ -1999,7 +2000,6 @@
 					<input type="hidden" name="client" value="$encodedClient">
 					<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
 					<input type="hidden" name="citeOrder" value="$citeOrder">
-					<legend>$loc[QuickSearch]:</legend>
 					<div id="queryField">
 						<label for="quickSearchSelector">$loc[Field]:</label>
 						<select id="quickSearchSelector" name="quickSearchSelector" title="$loc[DescriptionSelectFieldQuickSearchForm]">
@@ -2068,6 +2068,7 @@ EOF;
 		$refineSearchForm = <<<EOF
 		<form action="$href" method="GET" name="refineSearch">
 			<fieldset>
+				<legend>$loc[SearchWithinResults]:</legend>
 				<input type="hidden" name="formType" value="refineSearch">
 				<input type="hidden" name="submit" value="$loc[ButtonTitle_Search]">
 				<input type="hidden" name="originalDisplayType" value="$displayType">
@@ -2078,7 +2079,6 @@ EOF;
 				<input type="hidden" name="client" value="$encodedClient">
 				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
 				<input type="hidden" name="citeOrder" value="$citeOrder">
-				<legend>$loc[SearchWithinResults]:</legend>
 				<div id="refineField">
 					<label for="refineSearchSelector">$loc[Field]:</label>
 					<select id="refineSearchSelector" name="refineSearchSelector" title="$loc[DescriptionSelectFieldRefineResultsForm]">
@@ -2172,6 +2172,7 @@ EOF;
 			$groupSearchForm = <<<EOF
 		<form action="$href" method="GET" name="groupSearch">
 			<fieldset>
+				<legend>$formLegend</legend>
 				<input type="hidden" name="formType" value="groupSearch">
 				<input type="hidden" name="originalDisplayType" value="$displayType">
 				<input type="hidden" name="sqlQuery" value="$queryURL">
@@ -2181,7 +2182,6 @@ EOF;
 				<input type="hidden" name="client" value="$encodedClient">
 				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
 				<input type="hidden" name="citeOrder" value="$citeOrder">
-				<legend>$formLegend</legend>
 				<div id="groupSelect">
 					<label for="groupSearchSelector">$dropdownLabel</label>
 					<select id="groupSearchSelector" name="groupSearchSelector" title="$groupSearchSelectorTitle"$groupSearchDisabled>
@@ -2308,6 +2308,7 @@ EOF;
 		$displayOptionsForm = <<<EOF
 		<form action="$href" method="GET" name="displayOptions">
 			<fieldset>
+				<legend>$loc[DisplayOptions]:</legend>
 				<input type="hidden" name="formType" value="displayOptions">
 				<input type="hidden" name="submit" value="$submitValue">
 				<input type="hidden" name="originalDisplayType" value="$displayType">
@@ -2320,7 +2321,6 @@ EOF;
 				<input type="hidden" name="citeStyle" value="$encodedCiteStyle">
 				<input type="hidden" name="citeOrder" value="$citeOrder">
 				<input type="hidden" name="headerMsg" value="$encodedHeaderMsg">
-				<legend>$loc[DisplayOptions]:</legend>
 				<div id="optMain">
 					<div id="$selectorDivID">
 						<label for="$selectorID">$selectorLabel</label>
