@@ -1268,7 +1268,7 @@
 		// Display the newly added record:
 		header("Location: show.php?record=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg));
 	}
-	elseif ($recordAction == "delet")
+	elseif (($recordAction == "delet") AND !empty($oldMultiRecordQuery))
 	{
 		// Generate a 'search.php' URL that points to the last multi-record query:
 		$oldMultiRecordQueryURL = generateURL("search.php", "html", $oldMultiRecordQuery, false);
@@ -1276,7 +1276,7 @@
 		// Display the previous search results:
 		header("Location: $oldMultiRecordQueryURL");
 	}
-	elseif (!empty($oldQuery))
+	elseif (($recordAction != "delet") AND !empty($oldQuery))
 	{
 		// Remove any previous 'headerMsg' parameter from the saved query URL:
 		unset($oldQuery["headerMsg"]);

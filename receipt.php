@@ -113,7 +113,8 @@
 	$sqlQuery = rawurlencode($sqlQuery);
 
 	// Generate a 'search.php' URL that points to the formerly displayed results page:
-	$oldMultiRecordQueryURL = generateURL("search.php", "html", $oldMultiRecordQuery, true); // function 'generateURL()' is defined in 'include.inc.php'
+	if (!empty($oldMultiRecordQuery))
+		$oldMultiRecordQueryURL = generateURL("search.php", "html", $oldMultiRecordQuery, true); // function 'generateURL()' is defined in 'include.inc.php'
 
 
 	// Build a TABLE, containing one ROW and DATA tag:
@@ -137,7 +138,7 @@
 	if ((isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions']) AND ($recordAction != "delet")) || !empty($oldMultiRecordQuery))
 		echo "\n\t\t&nbsp;&nbsp;-OR-&nbsp;&nbsp;";
 
-		echo "\n\t\t<a href=\"index.php\">Goto " . encodeHTML($officialDatabaseName) . " Home</a>"; // we include the link to the home page here so that "Choose how to proceed:" never stands without any link to go
+	echo "\n\t\t<a href=\"index.php\">Goto " . encodeHTML($officialDatabaseName) . " Home</a>"; // we include the link to the home page here so that "Choose how to proceed:" never stands without any link to go
 
 	echo "\n\t</td>"
 	   . "\n</tr>"
