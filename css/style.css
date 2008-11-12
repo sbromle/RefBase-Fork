@@ -287,7 +287,7 @@ form[name="simpleSearch"] .searchSuggestions, form[name="simpleSearch"] .suggest
 #userlogin #loginUserLabel {
 	display: inline;
 	position: relative;
-	left: -2.4em;
+	left: -3.5em;
 	font-size: 1em;
 }
 
@@ -302,12 +302,12 @@ form[name="simpleSearch"] .searchSuggestions, form[name="simpleSearch"] .suggest
 #userlogin #loginPwdLabel {
 	display: inline;
 	position: relative;
-	left: -0.35em;
+	left: -1.45em;
 	font-size: 1em;
 }
 
 #userlogin #loginPwdLabel:lang(de) {
-	left: -0.7em;
+	left: -1.75em;
 }
 
 #userlogin #loginPwdLabel:lang(fr) {
