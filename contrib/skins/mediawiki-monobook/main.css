@@ -167,17 +167,6 @@ dd {
     margin-bottom: .1em;
 }
 
-fieldset {
-    border: 1px solid #2f6fab;
-    margin: 1em 0 1em 0;
-    padding: 0 1em 1em;
-    line-height: 1.5em;
-}
-legend {
-    background: white;
-    padding: .5em;
-    font-size: 95%;
-}
 form {
     border: none;
     margin: 0;
@@ -1224,3 +1213,565 @@ li#ca-unrestrict a {
 	color: white !important;
 	background-color: #ba0000 !important;
 }
+
+/* refbase-0.9.5 */
+.resultviews { 
+  display: inline; 
+  font-size: 0.85em; 
+} 
+     
+.activeview { 
+  display: inline; 
+  font-size: 1em; 
+} 
+         
+.leftview { 
+  display: inline; 
+  font-size: 1em; 
+} 
+             
+.middleview { 
+  display: inline; 
+  font-size: 1em; 
+} 
+                   
+.rightview { 
+  display: inline; 
+  font-size: 1em; 
+}
+
+.toggleprint {
+  position: relative;
+  top: 3px;
+}
+
+#accountinfo {
+  font-size: 1.25em;
+}
+
+#accountdetails {
+  font-size: 1em;
+}
+
+#accountopt {
+  font-size: 1em;
+}
+
+#accountperm {
+  font-size: 1em;
+}
+
+#accountdetails ul, #accountopt ul, #accountperm ul {
+  position: relative;
+  top: -0.8em;
+  list-style-type: none;
+  font-size: 0.85em;
+  line-height: 1.3em;
+}
+
+/* Begin ThrashBox code (modified slightly for use with refbase)
+   Credit: Simple Rounded Corner CSS Boxes by Ryan Thrash
+   see <http://www.modxcms.com/simple-rounded-corner-css-boxes.html>
+   and the ThrashBox online generator <http://www.spiffybox.com/>
+*/
+/* set the image to use and establish the lower-right position */
+.box, .boxBody, .boxHead, .boxHead h3 {
+  background: transparent url(../img/rounded_box.png) no-repeat bottom right;
+}
+.box {
+  /* intended total box width - padding-right(next) */
+/*  width: 200px !important; */
+  /* IE Win = width - padding */
+/*  width: 185px; */
+/*  padding-right: 5px;  the gap on the right edge of the image (not content padding) */
+  margin: 0 auto; /* use to position the box */
+}
+
+/* set the top-right image */
+.boxHead {
+  background-position: top right; margin-right: -5px; /* pull the right image over on top of border */
+  padding-right: 15px; /* right-image-gap + right-inside padding */
+}
+
+/* set the top-left image */
+.boxHead h3 {
+  background-position: top left;
+  margin: 0; /* reset main site styles*/
+  border: 0; /* ditto */
+  padding: 10px 0 10px 15px; /* padding-left = image gap + interior padding ... no padding-right */
+  height: auto !important; height: 1%; /* IE Holly Hack */
+}
+
+/* set the lower-left corner image */
+.boxBody {
+  background-position: bottom left;
+  margin-right: 0; /* interior-padding right */
+  padding: 0 0 1px 5px; /* mirror .boxHead right/left */
+}
+
+/* font styling */
+.boxHead h3 {
+  color: #222222;
+}
+/* End ThrashBox code */
+
+/*RAK*/
+
+hr.results { 
+  width: 100%; 
+  background-color: #DEDEDE; 
+  height: 1px; 
+  border: 0; 
+} 
+ 
+div.resultsheader { 
+  margin: 1.2em 3.3em 0.9em 3.3em; 
+} 
+ 
+hr.resultsheader, hr.resultsfooter { 
+  width: 93%; 
+  background-color: #DEDEDE; 
+  height: 1px; 
+  border: 0; 
+} 
+ 
+div.resultsfooter { 
+  margin: 1.2em 3.3em 0.9em 3.3em; 
+}
+
+.suggestProgress { 
+  position: absolute; 
+  margin-top: 3px; 
+} 
+ 
+.searchSuggestions { 
+  background-color: #FFFFFF; 
+  border: 1px solid #999999; 
+  margin-left: -1px; 
+  z-index: 1; 
+  text-align: left; 
+  font-size: 1em; 
+} 
+ 
+.searchSuggestions ul { 
+  margin: 0 0 0 0px; 
+  list-style-type: none; 
+  font-size: 1em; 
+  line-height: 1.3em; 
+} 
+ 
+.searchSuggestions li { 
+  border-top: 1px solid #999999; 
+  padding: 0.15em 0 0.15em 0.5em; 
+} 
+ 
+.searchSuggestions .selected { 
+  background-color: #DDDDDD; 
+} 
+
+form[name="record"] .searchSuggestions, form[name="record"] .suggestProgress {
+  font-size: 0.85em;
+}
+
+form[name="show"] .searchSuggestions, form[name="show"] .suggestProgress {
+  font-size: 0.85em;
+}
+
+form[name="simpleSearch"] .searchSuggestions, form[name="simpleSearch"] .suggestProgress {
+  font-size: 0.85em;
+}
+
+#refineresults .searchSuggestions, #refineresults .suggestProgress {
+  font-size: 0.85em;
+}
+
+#queryrefs {
+  margin-top: 1.3em;
+  margin-bottom: -2em;
+  margin-right: -11px;
+  font-size: 1em;
+}
+
+#queryrefs fieldset {
+  border: none;
+}
+
+fieldset {
+  -moz-border-radius: 8px; border-radius: px;
+  padding:0.2em;
+}
+
+#queryrefs legend, #queryrefs #queryField label { 
+  display: none;
+}
+
+#queryrefs #queryField, #queryrefs #querySubmit {
+  display: inline;
+  font-size: 1em;
+}
+
+#userlogin, #userlogin .boxBody {
+  margin-bottom: -1.1em;
+  font-size: 1em;
+}
+
+
+#userlogin legend {
+  display: none;
+}
+
+#userlogin #loginSubmit input[type=submit] {
+  margin-top: 0.6em;
+}
+
+#recentlinks {
+  margin-left: -15px;
+  font-size: 1em;
+}
+
+#includerefs {
+  margin-left: -22px;
+  font-size: 1.25em;
+}
+
+#includeprogress, #includerefs > a {
+  margin-left: 30px;
+  font-size: 0.8em;
+}
+
+#includeprogress > img {
+  position: relative;
+  top: 3px;
+  left: 5px;
+}
+
+#showgroupmain {
+  margin-bottom: 1.25em;
+  font-size: 1em;
+}
+
+#showgroupmain fieldset {
+  border: none;
+}
+
+#showgroupmain legend, #showgroupmain #groupSelect label {
+  display: none;
+}
+
+#showgroupmain #groupSubmit input[type=submit] {
+  margin-top: 0.6em;
+}
+#recallquerymain {
+  margin-top: -0.9em;
+  font-size: 1em;
+}
+
+#recallquerymain fieldset {
+  border: none;
+}
+
+#recallquerymain legend, #recallquerymain #recallSelect label {
+  display: none;
+}
+
+#recallquerymain #recallSubmit input[type=submit] {
+  margin-top: 0.6em;
+}
+
+#resultoptions {
+  margin-left: 20px;
+  text-align: center;
+  font-size: 1em;
+}
+
+#resultoptions legend {
+  color: #000000;
+  font-style: italic;
+  text-align: left;
+}
+
+#resultoptions label {
+  margin-left: 0.15em;
+}
+
+#resultoptions form {
+  display: inline;
+}
+
+#resultoptions fieldset {
+  display: inline;
+  border: none;
+  text-align: left;
+}
+
+#showgroup {
+  display: inline;
+  margin-right: 1.1em;
+  font-size: 1em;
+}
+
+#showgroup #groupSelect {
+  font-size: 1em;
+}
+
+#showgroup #groupSubmit {
+  margin-top: 0.25em;
+  font-size: 1em;
+}
+#showgroup #groupSelect label, #refineresults #refineField label, #displayopt #optShowHideField label {
+  display: none;
+}
+
+#refineresults {
+  display: inline;
+  font-size: 1em;
+}
+
+#refineresults #refineField {
+  display: block;
+  margin-bottom: 0.25em;
+  font-size: 1em;
+}
+
+#refineresults form[action="search.php"] #refineField:lang(en) {
+  width: 16.7em;
+}
+
+#refineresults form[action="search.php"] #refineField:lang(de), #refineresults form[action="search.php"] #refineField:lang(fr) {
+  width: 20.2em;
+}
+
+#refineresults form[action="search.php"] #refineField:lang(cn) {
+  width: 14.1em;
+}
+
+#refineresults #refineOpt, #refineresults #refineSubmit {
+  display: inline;
+  font-size: 1em;
+}
+
+#displayopt {
+  display: inline;
+  margin-left: 1.1em;
+  font-size: 1em;
+}
+
+#displayopt #optMain {
+  font-size: 1em;
+}
+
+#displayopt #optShowHideField, #displayopt #optCiteStyle, #displayopt #optSubmit {
+  display: inline;
+  font-size: 1em;
+}
+
+#displayopt #optOther {
+  margin-top: 0.25em;
+  font-size: 1em;
+}
+
+#displayopt #optCiteOrder, #displayopt #optRecsPerPage {
+  display: inline;
+  font-size: 1em;
+}
+
+#displayopt #optCiteOrder {
+  margin-right: 0.4em;
+}
+.viewnav {
+  font-size: 0.75em;
+}
+
+#columns {
+  position: relative;
+  left: 4px;
+}
+
+#details {
+  position: relative;
+  left: 4px;
+}
+
+#citations {
+  position: relative;
+  left: 4px;
+}
+
+.citation {
+
+}
+
+.citation .showhide {
+  margin-top: 0.4em;
+}
+
+.citation .moreinfo {
+  margin-left: 1.25em;
+  font-size: 1em;
+}
+
+.citation .moreinfo > * {
+  margin-bottom: 0.4em;
+  font-size: 0.85em;
+  color: #333333;
+  line-height: 1.3em;
+/*
+  max-width: 700px;
+*/
+}
+.citation .moreinfo .reflinks {
+  margin-top: 0.8em;
+/*
+  max-width: none;
+*/
+}
+
+.citation .moreinfo .reflinks > * {
+  display: inline;
+  font-size: 1em;
+}
+#queryhistory {
+  margin-left: 2.6em;
+  margin-right: 2.6em;
+  margin-bottom: 1.75em;
+}
+
+#currentquery, #previousqueries {
+  margin-top: 1.2em;
+  font-size: 1em;
+}
+
+#queryhistory .even, #queryhistory .odd {
+  margin-top: 0.25em;
+  margin-left: 1.2em;
+  margin-right: 1.2em;
+  font-size: 1em;
+}
+
+.examples {
+  font-size: 1em;
+}
+
+.links {
+
+}
+
+.sect {
+  padding-top: 2px;
+  font-size: 1em;
+}
+
+.even {
+  background-color: #FFFFFF;
+  padding: 5px;
+}
+
+.odd {
+  background-color: #F4F4F4;
+  padding: 5px;
+}
+#queryform {
+
+}
+
+#resultactions {
+  margin-left: 20px;
+  text-align: center;
+  font-size: 1em;
+}
+
+#resultactions input, #resultactions select {
+  margin-left: 0.5em;
+}
+
+#resultactions legend {
+  color: #000000;
+  font-style: italic;
+  text-align: left;
+}
+
+#resultactions label {
+  margin-left: 0.15em;
+}
+
+#resultactions fieldset {
+  display: inline;
+  margin-left: 1.5em;
+  border: none;
+  vertical-align: top;
+  text-align: left;
+}
+
+#selectresults {
+  margin-bottom: 0.75em;
+  font-size: 1em;
+  text-align: left;
+}
+
+#selectresults input#selRecs {
+  margin-left: 1.5em;
+}
+
+#citerefs {
+  font-size: 1em;
+}
+
+#citerefs input[type=submit], #exportrefs input[type=submit] {
+  display: block;
+  margin-top: 0.6em;
+  margin-left: 0.25em;
+}
+
+#citerefs label, #exportrefs label {
+  display: none;
+}
+
+#citerefs select, #exportrefs select {
+  margin-left: 0.25em;
+}
+#grouprefs {
+  font-size: 1em;
+}
+
+#grouprefs #myGroup {
+  display: block;
+  margin-bottom: 0.25em;
+  font-size: 1em;
+}
+
+#grouprefs #newGroup, #grouprefs #addRemoveGroup {
+  display: inline;
+  font-size: 1em;
+}
+
+#exportrefs {
+  font-size: 1em;
+}
+
+#searchopt {
+  display: none;
+}
+
+#helptxt {
+  display: none;
+}
+
+#helptxt .even {
+  margin-left: -5px;
+  margin-top: -3px;
+}
+
+#helptxt .odd {
+  margin-left: -5px;
+}
+
+.toggleimg {
+
+}
+
+.toggletxt {
+  display: inline;
+  margin-left: 5px;
+  font-size: 1em;
+}
+

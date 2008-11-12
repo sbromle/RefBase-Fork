@@ -48,8 +48,7 @@
           <ul>
 
             <li id="ca-talk"
-               class="selected"        ><a href="index.php">References</a></li><li id="search"
-                       ><a href="simple_search.php" title="search the main fields of the database">Simple Search</a></li>
+               class="selected"        ><a href="index.php">References</a></li><li id="search"><a href="simple_search.php" title="search the main fields of the database">Simple Search</a></li>
                 <li><a href="advanced_search.php" title="search all fields of the database">Advanced Search</a></li>
 <?php
 
@@ -62,6 +61,9 @@
                 <LI id="ca-watch"><a href="record.php?recordAction=add" title="add a record to the database">Add Record</a>
                 <?php
                 }
+                else {?>
+  <LI id="ca-watch"><a href="/refbase-svn/record.php?recordAction=add" title="add a suggested record to the database">Add Record (suggest)</a> 
+                <?php }
 
                 // -------------------------------------------------------
                 if (isset($_SESSION['user_permissions']) AND ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
@@ -71,8 +73,11 @@
 
                 <LI><a href="import.php" title="import records">Import</a>
                 <?php
-                }
+                } else {
 ?>
+<LI><a href="/refbase-svn/import.php" title="import suggested records">Import (suggest)</a> 
+                <?php
+                }?>
                        </ul>
         </div>
 
@@ -95,40 +100,45 @@ url(../skins/common/images/wiki.png);"
             href="../index.php/Seidman_Group"
             title="Seidman Group"></a>
 </div>
-<div class="portlet" id="p-nav">
-          <h5>Navigation</h5>
-<div class="pBody">
+    <div class='portlet' id='p-Seidman_Group'>
+    <h5>Seidman Group</h5>
+    <div class='pBody'>
 
-<ul>
-              <li id="Seidman"><a
-href="/index.php/Seidman_Group">Seidman Group</a>
-              <ul>
-                <li id="Tools"><a
-href="/index.php/Category:Tools">Instruments</a></li>
-                <li id="Research"><a
-href="/index.php/Category:Research">Research</a></li>
-                <li id="People"><a
-href="/index.php/Category:People">People</a></li>
-                <li id="Calendar"><a
-href="http://arc.nucapt.northwestern.edu/phpicalendar/">Calendar</a></li>
+      <ul>
+        <li id="n-Seidman-Group"><a href="/Seidman_Group">Seidman Group</a></li>
+        <li id="n-Research"><a href="/Category:Research">Research</a></li>
+        <li id="n-People"><a href="/Category:People">People</a></li>
+      </ul>
+    </div>
+  </div>
 
-              <li id="References"><a
-href="http://arc.nucapt.northwestern.edu/refbase/">References</a></li>
-              <li id="Visit"><a href="http://arc.nucapt.northwestern.edu/Visit">Visit</a></li>
-              </ul></li>
-              <li id="n-recentchanges"><a
-href="/index.php/Special:Recentchanges">Recent changes</a></li>
-              <li id="n-randompage"><a
-href="/index.php/Special:Randompage">Random page</a></li>
-            </ul>
-          </div>
-        </div>
+    <div class='portlet' id='p-NUCAPT'>
+    <h5>NUCAPT</h5>
+    <div class='pBody'>
+      <ul>
+        <li id="n-Instruments"><a href="/Category:Tools">Instruments</a></li>
+        <li id="n-Calendar"><a href="http://arc.nucapt.northwestern.edu/phpicalendar">Calendar</a></li>
+        <li id="n-Visit"><a href="/Visit">Visit</a></li>
 
+      </ul>
+    </div>
+  </div>
+    <div class='portlet' id='p-Atom-Probe_Tomography'>
+    <h5>Atom-Probe Tomography</h5>
+    <div class='pBody'>
+      <ul>
+        <li id="n-References"><a href="http://arc.nucapt.northwestern.edu/refbase">References</a></li>
+
+        <li id="n-AtomProbe-mailing-list"><a href="http://arc.nucapt.northwestern.edu/mailman/listinfo/atomprobe">AtomProbe mailing list</a></li>
+      </ul>
+    </div>
+  </div>
 
 
 <div class="portlet" id="p-tb">
           <h5>Search</h5>
           <div class="pBody">
+<?php echo buildQuickSearchElements($query, $queryURL, $showQuery, $showLinks, $showRows, $citeStyle, $citeOrder, $displayType); ?>
             <ul>
                 <li><a href="simple_search.php" title="search the main fields of the database">Simple Search</a>
                 <li><a href="advanced_search.php" title="search all fields of the database">Advanced Search</a>
@@ -151,7 +161,7 @@ href="/index.php/Special:Randompage">Random page</a></li>
 
         </div></div>
         <div class="portlet" id="p-tc">
-          <h5>Tools</h5>
+          <h5>Toolbox</h5>
           <div class="pBody">
             <ul>
 <?php
@@ -208,9 +218,7 @@ href="/index.php/Special:Randompage">Random page</a></li>
 
       <div class="visualClear"></div>
       <div id="footer">
-    <div id="f-poweredbyico"><a href="http://www.refbase.net/"><img
-src="img/refbase_credit.gif" alt="refbase"
-/></a></div>            <ul id="f-list">
+    <div id="f-poweredbyico"><a href="http://www.refbase.net/"><img src="img/refbase_credit.gif" alt="refbase"></a></div><ul id="f-list">
 <li><? echo date('j M Y'); ?></li>
                           <li id="f-about"><a 
 href="/index.php/Seidman_Group" title="Seidman Group">NUCAPT: Northwestern University Center for Atom-Probe Tomography</a></li>                                                                                                    </ul>
