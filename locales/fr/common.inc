@@ -386,7 +386,7 @@
 "ModifiedDate"=>"Modifié Date",
 "ModifiedTime"=>"Modifié Heure",
 "Modifier"=>"Modifié par",
-"MostRecentPublications"=>"Most recent publications",
+"MostRecentPublications"=>"Most recently added publications",
 "Monographs"=>"Monographs",
 "my"=>"my",
 "My"=>"My",

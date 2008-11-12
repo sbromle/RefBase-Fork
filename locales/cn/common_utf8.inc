@@ -386,7 +386,7 @@
 "ModifiedDate"=>"修改日期",
 "ModifiedTime"=>"修改时间",
 "Modifier"=>"修改者",
-"MostRecentPublications"=>"Most recent publications",
+"MostRecentPublications"=>"Most recently added publications",
 "Monographs"=>"专著",
 "my"=>"my",
 "My"=>"My",
