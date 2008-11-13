@@ -30,7 +30,7 @@
 
 # Requires:   - a shell with Perl execution capabilities
 #             - the Perl CPAN modules LWP::UserAgent, HTTP::Request::Common, HTTP::Response, HTTP::Cookies and URI::URL
-#             - access to a refbase database (refbase-0.9.0 or greater, refbase-0.9.1 required for '-A|--append' and '-B|--update' mode)
+#             - access to a refbase database (refbase-0.9.0 or greater, refbase-0.9.5 required for '-A|--append' and '-B|--update' mode)
 
 # Limits:     - Currently, this utility supports search & retrieve, but does not support update actions such as add, edit or delete.
 #             - This script is currently just an interface to 'show.php', which for example does not support arbitrary sort orders.
