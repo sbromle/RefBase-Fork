@@ -280,42 +280,21 @@ form[name="simpleSearch"] .searchSuggestions, form[name="simpleSearch"] .suggest
 }
 
 #userlogin #loginUser, #userlogin #loginPwd {
-	text-align: right;
 	font-size: 1em;
 }
 
-#userlogin #loginUserLabel {
-	display: inline;
-	position: relative;
-	left: -3.5em;
+#userlogin #loginUserLabel, #userlogin #loginPwdLabel {
+	display: inline-block;
+	width: 6.5em;
 	font-size: 1em;
 }
 
-#userlogin #loginUserLabel:lang(fr) {
-	left: -4.0em;
+#userlogin #loginUserLabel:lang(fr), #userlogin #loginPwdLabel:lang(fr) {
+	width: 7.2em;
 }
 
-#userlogin #loginUserLabel:lang(cn) {
-	left: -1em;
-}
-
-#userlogin #loginPwdLabel {
-	display: inline;
-	position: relative;
-	left: -1.45em;
-	font-size: 1em;
-}
-
-#userlogin #loginPwdLabel:lang(de) {
-	left: -1.75em;
-}
-
-#userlogin #loginPwdLabel:lang(fr) {
-	left: 0em;
-}
-
-#userlogin #loginPwdLabel:lang(cn) {
-	left: -1.5em;
+#userlogin #loginUserLabel:lang(cn), #userlogin #loginPwdLabel:lang(cn) {
+	width: 4.5em;
 }
 
 #userlogin #loginUserInput, #userlogin #loginPwdInput {
@@ -323,12 +302,13 @@ form[name="simpleSearch"] .searchSuggestions, form[name="simpleSearch"] .suggest
 }
 
 #userlogin #loginEmail:lang(fr), #userlogin #loginPassword:lang(fr) {
-	width: 7.7em;
+	width: 7.2em;
 }
 
 #userlogin #loginEmail:lang(cn), #userlogin #loginPassword:lang(cn) {
-	width: 11em;
+	width: 10.4em;
 }
+
 #userlogin #loginSubmit input[type=submit] {
 	margin-top: 0.6em;
 }
