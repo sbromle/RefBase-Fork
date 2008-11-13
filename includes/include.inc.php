@@ -51,6 +51,8 @@
 	// Start a session:
 	function start_session($updateUserFormatsStylesTypesPermissions)
 	{
+		global $defaultMainFields; // defined in 'ini.inc.php'
+
 		global $loginEmail;
 		global $loginUserID;
 		global $loginFirstName;
@@ -99,7 +101,8 @@
 			$lastLogin = $_SESSION['lastLogin'];
 		}
 		elseif ($updateUserFormatsStylesTypesPermissions)
-			// if the user isn't logged in we set the available export formats, citation styles, document types and permissions to
+		{
+			// If the user isn't logged in we set the available export formats, citation styles, document types and permissions to
 			// the defaults which are specified in the 'formats', 'styles', 'types' and 'user_permissions' tables for 'user_id = 0'.
 			// (a 'user_id' of zero is used within these tables to indicate the default settings if the user isn't logged in)
 			// NOTE: As an exception, for anyone who isn't logged in, we don't load the default number of records from option
@@ -107,7 +110,7 @@
 			//       in 'ini.inc.php'. Similarly, if the user isn't logged in, the list of "main fields" is taken from variable
 			//       '$defaultMainFields' in 'ini.inc.php' and not from option 'main_fields' in table 'user_options. Same holds true
 			//       for variable '$autoCompleteUserInput' vs. option 'show_auto_completions'.
-		{
+
 			// Get all export formats that were selected by the admin to be visible if a user isn't logged in
 			// and (if some formats were found) save them as semicolon-delimited string to the session variable 'user_export_formats':
 			getVisibleUserFormatsStylesTypes(0, "format", "export");
@@ -143,6 +146,16 @@
 			// Get the list of "main fields" for the current user
 			// and save the list of fields as comma-delimited string to the session variable 'userMainFields':
 			getMainFields(0);
+		}
+		else // if ($updateUserFormatsStylesTypesPermissions == false)
+		{
+			// The scripts 'error.php', 'install.php' & 'update.php' use 'start_session(false);' so that they execute without errors
+			// when there isn't any database yet. However, function 'buildQuickSearchElements()' (which builds the "Quick Search" form
+			// in the page header) requires the session variable 'userMainFields' to be present. So we take the list of "main fields"
+			// directly from the global variable '$defaultMainFields' and save it as session variable (we cannot use function
+			// 'getMainFields()' here since this would require database access):
+			if (!isset($_SESSION['userMainFields']))
+				saveSessionVariable("userMainFields", $defaultMainFields);
 		}
 
 		// Set the referrer:
@@ -1981,7 +1994,7 @@
 			$firstField = "";
 
 		// build HTML elements that allow for search suggestions for text entered by the user:
-		if ($_SESSION['userAutoCompletions'] == "yes")
+		if (isset($_SESSION['userAutoCompletions']) AND ($_SESSION['userAutoCompletions'] == "yes"))
 			$suggestElements = buildSuggestElements("quickSearchName", "quickSearchSuggestions", "quickSearchSuggestProgress", "id-quickSearchSelector-", "\t\t\t\t\t\t");
 		else
 			$suggestElements = "";
@@ -2060,7 +2073,7 @@ EOF;
 		$accessKeyTitle = addAccessKey("title", "refine");
 
 		// build HTML elements that allow for search suggestions for text entered by the user:
-		if (($href == "search.php") AND ($_SESSION['userAutoCompletions'] == "yes"))
+		if (($href == "search.php") AND (isset($_SESSION['userAutoCompletions']) AND ($_SESSION['userAutoCompletions'] == "yes")))
 			$suggestElements = buildSuggestElements("refineSearchName", "refineSearchSuggestions", "refineSearchSuggestProgress", "id-refineSearchSelector-", "\t\t\t\t\t");
 		else
 			$suggestElements = "";
