@@ -15,12 +15,12 @@
 #             $Author$
 #             $Revision$
 
-# This MySQL database structure file will update any refbase v0.8.0 database to v0.9.1
+# This MySQL database structure file will update any refbase v0.8.0 database to v0.9.5
 
 # IMPORTANT: - If possible, use 'update.php' instead of this file to update an
 #              existing refbase installation (v0.8.0 or above), please see the
 #              'UPDATE' file for further information.
-#            - Do NOT use this file in an attempt to update refbase v0.9.0 to v0.9.1,
+#            - Do NOT use this file in an attempt to update refbase v0.9.0 to v0.9.5,
 #              please use 'update.php' instead.
 
 # --------------------------------------------------------
@@ -232,9 +232,9 @@ INSERT INTO `user_options` VALUES (1, 0, 'yes', 'yes', 'no', 'no', '<:authors:><
 # alter table `user_permissions`
 #
 
-ALTER TABLE `user_permissions` ADD COLUMN `allow_browse_view` ENUM('yes', 'no') NOT NULL AFTER `allow_print_view`;
+ALTER TABLE `user_permissions` ADD COLUMN `allow_browse_view` ENUM('yes', 'no') NOT NULL DEFAULT 'yes' AFTER `allow_print_view`;
 
-ALTER TABLE `user_permissions` ADD COLUMN `allow_list_view` ENUM('yes', 'no') NOT NULL AFTER `allow_upload`;
+ALTER TABLE `user_permissions` ADD COLUMN `allow_list_view` ENUM('yes', 'no') NOT NULL DEFAULT 'yes' AFTER `allow_upload`;
 
 #
 # update table `user_permissions`
