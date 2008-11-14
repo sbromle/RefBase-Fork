@@ -283,9 +283,13 @@ form[name="simpleSearch"] .searchSuggestions, form[name="simpleSearch"] .suggest
 	font-size: 1em;
 }
 
+/* NOTE: Support for the 'inline-block' display type was added in Firefox 3.
+         A JavaScript work-around that works for Firefox 2 users is given at:
+         <http://www.alistapart.com/articles/prettyaccessibleforms>
+*/
 #userlogin #loginUserLabel, #userlogin #loginPwdLabel {
 	display: inline-block;
-	width: 6.5em;
+	width: 5em;
 	font-size: 1em;
 }
 
