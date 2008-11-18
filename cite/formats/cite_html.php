@@ -276,7 +276,7 @@
 					if (eregi("^Mobile$", $viewType))
 						$recordData .= "\n\t<div class=\"links\">";
 					else
-						$recordData .= "\n\t<td class=\"links\" valign=\"top\" width=\"38\">";
+						$recordData .= "\n\t<td class=\"links\" valign=\"top\" width=\"42\">";
 
 					// Print out available links:
 					// for Citation view, we'll use the '$showLinkTypesInCitationView' array that's defined in 'ini.inc.php'
