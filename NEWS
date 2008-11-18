@@ -11,7 +11,7 @@ Following sites list the refbase commit messages in chronological order
 
 refbase-0.9.5
 -------------
-[11-Nov-2008]
+[19-Nov-2008]
 
   Feature additions
 -------------------
@@ -168,7 +168,7 @@ Export/Citation:
 - By default, the SRU formats SRW_DC XML and SRW_MODS XML are now transformed to
   HTML via XSL stylesheets
 
-- Mods XML exports include file links that Zotero is able to download
+- MODS XML exports include file links that Zotero is able to download
 
 - Renamed the Bibutils 'xml2word' command line tool to 'xml2wordbib' according
   to the name changes in Bibutils v3.40; note that if you're using a Bibutils
