@@ -134,7 +134,7 @@ if (!isset($_SESSION['loginEmail']))
 									<label for="loginEmail"><?php echo $loc["Email"]; ?>:</label>
 								</div>
 								<div id="loginUserInput">
-									<input type="text" id="loginEmail" name="loginEmail" size="12">
+									<input type="text" id="loginEmail" name="loginEmail">
 								</div>
 							</div>
 							<div id="loginPwd">
@@ -142,7 +142,7 @@ if (!isset($_SESSION['loginEmail']))
 									<label for="loginPassword"><?php echo $loc["Password"]; ?>:</label>
 								</div>
 								<div id="loginPwdInput">
-									<input type="password" id="loginPassword" name="loginPassword" size="12">
+									<input type="password" id="loginPassword" name="loginPassword">
 								</div>
 							</div>
 							<div id="loginSubmit">
