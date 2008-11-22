@@ -1,3 +1,154 @@
+2008-11-18 21:13  Matthias Steffens <refbase@extracts.de>
+
+	* /trunk, /trunk/NEWS, /trunk/cite/formats/cite_html.php,
+	  /trunk/contrib/command_line/refbase,
+	  /trunk/contrib/skins/mediawiki-monobook/footer.inc.php,
+	  /trunk/contrib/skins/mediawiki-monobook/header.inc.php,
+	  /trunk/contrib/skins/mediawiki-monobook/main.css,
+	  /trunk/css/style.css, /trunk/includes/header.inc.php,
+	  /trunk/includes/include.inc.php, /trunk/index.php,
+	  /trunk/install.sql, /trunk/install_utf8.sql,
+	  /trunk/locales/cn/common_utf8.inc, /trunk/locales/en/common.inc,
+	  /trunk/locales/en/common_utf8.inc, /trunk/locales/fr/common.inc,
+	  /trunk/locales/fr/common_utf8.inc, /trunk/modify.php,
+	  /trunk/receipt.php, /trunk/record.php, /trunk/search.php,
+	  /trunk/show.php, /trunk/simple_search.php, /trunk/update.php,
+	  /trunk/update.sql:
+	  merged bleeding-edge branch changes r1320 into the trunk
+
+2008-11-18 20:45  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/NEWS:
+	  updated refbase-0.9.5 release date and changed case for "Mods" to "MODS"
+
+2008-11-18 20:35  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/cite/formats/cite_html.php:
+	  increased width of the Links column to allow for correct wrapping of link
+	  icons in Firefox (icon arrangement may need to be readdressed in the
+	  future)
+
+2008-11-18 15:07  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/css/style.css,
+	  /branches/bleeding-edge/index.php:
+	  for the login form, the widths of the labels & input fields are now
+	  defined via CSS only, and the widths are now specified as percentages;
+	  this should work better across multiple browsers & platforms
+
+2008-11-14 14:43  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/css/style.css:
+	  * decreased width of the login labels so that the labels & their text
+	    entry fields get also printed on a single line for Firefox on Ubuntu
+	  * added a comment for Firefox 2 users about a work-around for the missing
+	    support for the 'inline-block' display type
+
+2008-11-13 23:31  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/contrib/skins/mediawiki-monobook/header.inc.php,
+	  /branches/bleeding-edge/includes/header.inc.php,
+	  /branches/bleeding-edge/includes/include.inc.php,
+	  /branches/bleeding-edge/record.php,
+	  /branches/bleeding-edge/show.php,
+	  /branches/bleeding-edge/simple_search.php:
+	  when there wasn't any database yet, this could generate "undefined index"
+	  warnings due to missing session variables; fixed
+
+2008-11-13 21:08  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/contrib/command_line/refbase:
+	  just updated the refbase version number in a comment ("0.9.1" -> "0.9.5")
+
+2008-11-13 21:05  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/update.php,
+	  /branches/bleeding-edge/update.sql:
+	  tables 'user_options' & 'user_permissions': brought the field creation
+	  statements inline with those in 'install.sql'
+
+2008-11-13 18:20  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/css/style.css:
+	  simplified & improved the CSS styling of the login form (form labels
+	  should now be correctly aligned flush left in Firefox)
+
+2008-11-12 10:08  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/css/style.css:
+	  adjust positioning for the labels in the login form
+
+2008-11-12 09:55  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/locales/cn/common_utf8.inc,
+	  /branches/bleeding-edge/locales/fr/common.inc,
+	  /branches/bleeding-edge/locales/fr/common_utf8.inc:
+	  changes from 'locales/en/': denote that publications on index are recently
+	  _added_ (to differentiate from those that are recently published)
+
+2008-11-12 03:44  Richard Karnesky <karnesky@gmail.com>
+
+	* /branches/bleeding-edge/contrib/skins/mediawiki-monobook/footer.inc.php,
+	  /branches/bleeding-edge/contrib/skins/mediawiki-monobook/main.css:
+	  Update MediaWiki-Monobook skin
+
+2008-11-12 03:40  Richard Karnesky <karnesky@gmail.com>
+
+	* /branches/bleeding-edge/index.php:
+	  Shorten length of Email and Password fields in login form, to fit on
+	  Firefox-3/Linux.  "Email:" and "Password:" are still not flush with one
+	  another, but this would require a CSS change.
+
+2008-11-11 19:57  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/modify.php,
+	  /branches/bleeding-edge/receipt.php:
+	  fixed/improved feedback behaviour after a record has been deleted
+
+2008-11-10 19:44  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/install_utf8.sql:
+	  the 'INSERT INTO user_options' statement was missing values for the new
+	  'show_auto_completions' column; fixed
+
+2008-11-10 19:41  Matthias Steffens <refbase@extracts.de>
+
+	* /branches/bleeding-edge/install.sql,
+	  /branches/bleeding-edge/update.sql:
+		
+	  the 'INSERT INTO user_options' statement was missing values for the new
+	  'show_auto_completions' column; fixed
+
+2008-11-10 02:28  Richard Karnesky <karnesky@gmail.com>
+
+	* /branches/bleeding-edge/NEWS:
+	  Remark on file links in MODS XML output (as it improves Zotero
+	  integration)
+
+2008-11-10 02:25  Richard Karnesky <karnesky@gmail.com>
+
+	* /branches/bleeding-edge/locales/en/common.inc,
+	  /branches/bleeding-edge/locales/en/common_utf8.inc:
+	  Denote that publications on index are recently _added_ (to differentiate
+	  from those that are recently published)
+
+2008-11-10 01:05  Richard Karnesky <karnesky@gmail.com>
+
+	* /branches/bleeding-edge/includes/include.inc.php,
+	  /branches/bleeding-edge/index.php,
+	  /branches/bleeding-edge/search.php:
+	  Move legend above hidden input in all fieldsets to allow for validation.
+
+2008-11-07 20:39  Richard Karnesky <karnesky@gmail.com>
+
+	* /branches/bleeding-edge/ChangeLog, /trunk/ChangeLog:
+	  Whitespace fixes to ChangeLog.
+
+2008-11-07 20:30  Richard Karnesky <karnesky@gmail.com>
+
+	* /branches/bleeding-edge/ChangeLog, /trunk/ChangeLog:
+	  Update ChangeLog
+
 2008-11-07 16:38  Matthias Steffens <refbase@extracts.de>
 
 	* /trunk, /trunk/advanced_search.php,
