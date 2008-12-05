@@ -36,6 +36,9 @@ Thanks to:
   University Library, China:
   Chinese localization.
 
+- Alexander Belozerov <alexander.belozerov@gmail.com>:
+  Russian localization.
+
 - Chris Putnam <cdputnam@scripps.edu>:
   Developer of Bibutils, a set of command line programs that interconvert
   between various bibliography formats using a common XML intermediate.

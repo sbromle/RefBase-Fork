@@ -119,7 +119,7 @@
 
 
 	// The default interface language:
-	$defaultLanguage = "en"; // possible values: "en", "de", "fr", or "cn"
+	$defaultLanguage = "en"; // possible values: "en", "de", "fr", "cn", or "ru"
 
 
 	// The number of records that's returned by default:

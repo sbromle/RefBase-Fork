@@ -110,7 +110,8 @@ INSERT INTO `formats` VALUES (1, 'MODS XML', 'import', 'true', 'bibutils/import_
 
 INSERT INTO `languages` VALUES (NULL, 'fr', 'true', '3'),
 (NULL, 'es', 'false', '4'),
-(NULL, 'cn', 'true', '5');
+(NULL, 'cn', 'true', '5'),
+(NULL, 'ru', 'true', '6');
 
 UPDATE `languages` SET `language_enabled` = 'true' WHERE `language_name` = 'de';
 
