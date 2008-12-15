@@ -15,7 +15,7 @@
 	// Modified:   $Date$
 	//             $Author$
 	//             $Revision$
-
+  //
 	// This script shows the admin a list of all user entries available within the 'users' table.
 	// User data will be shown in the familiar column view, complete with links to show a user's
 	// details and add, edit or delete a user.
@@ -421,6 +421,15 @@
 			// Finish the row
 			echo "\n</tr>";
 			// END RESULTS HEADER ----------------------
+
+        // display default user
+        echo "<tr class=\"odd\">";
+        echo "<td align=\"left\" valign=\"top\" width=\"10\"><input DISABLED type=\"checkbox\"</td>";
+        echo "<td valign=\"top\"colspan=2>Account options for anyone who isn't logged in</td>";
+        echo "<td valign=\"top\">-</td><td valign=\"top\">-</td><td valign=\"top\">-</td><td valign=\"top\">-</td>";
+        echo "<td><a href=\"user_options.php?userID=0". "\"><img src=\"img/options.gif\" alt=\""
+        . $loc["options"] . "\" title=\"" . $loc["LinkTitle_EditOptions"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a></td>";
+        echo "</tr>";
 
 			// BEGIN RESULTS DATA COLUMNS --------------
 			for ($rowCounter=0; (($rowCounter < $showRows) && ($row = @ mysql_fetch_array($result))); $rowCounter++)
