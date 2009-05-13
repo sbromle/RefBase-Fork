@@ -80,6 +80,10 @@
       // 'urlencode()' differs from 'rawurlencode() (i.e., RFC1738 encoding)
       // in that spaces are encoded as plus (+) signs
       $coKey = ereg_replace("au[0-9]*", "au", $coKey);
+
+      // While COinS does not specify encoding, most javascript tools assume that it is UTF-8
+      if (mb_detect_encoding($coValue) != "UTF-8" || !(mb_check_encoding($coValue,"UTF-8")))
+        $coValue = utf8_encode($coValue);
       $coins .= "&amp;" . $coKey . "=" . urlencode($coValue);
     }
 
