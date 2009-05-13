@@ -86,6 +86,7 @@
         $coValue = utf8_encode($coValue);
       $coins .= "&amp;" . $coKey . "=" . urlencode($coValue);
     }
+    $coins .= "%26ctx_enc%3Dinfo%3Aofi%2Fenc%3AUTF-8";
 
     $coinsSpan = "<span class=\"Z3988\" title=\"" . $coins . "\"></span>";
 
