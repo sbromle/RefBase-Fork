@@ -2809,6 +2809,52 @@
 
 	// --------------------------------------------------------------------
 
+  function fetchDOIsFromPubMed($itemArray, $sourceFormat = "CrossRef XML")
+  {
+    global $errors;
+
+    $sourceText = "";
+
+    $pmidArray = array();
+    $failedIDs = array();
+
+    if (!empty($itemArray))
+    {
+      $itemArray = array_unique($itemArray);
+
+      foreach ($itemArray as $item)
+      {
+        $sourceURL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+                   . "?db=pubmed"
+                   . "&retmax=1"
+                   . "&field=doi"
+                   . "&term=" . $item;
+
+        $esearchText = fetchDataFromURL($sourceURL);
+
+        $xml = new SimpleXMLElement($esearchText);
+
+        if ($xml->Count != 1 || (isset($xml->ErrorList->PhraseNotFound) && !empty($xml->ErrorList->PhraseNotFound)))
+          $failedIDs[] = $item;
+        else
+          $pmidArray[] = $xml->IdList->Id[0];
+      }
+    }
+
+    if (!empty($failedIDs))
+    {
+      $failedIDs = array_merge($failedIDS, $pmidArray);
+    }
+    else
+    {
+      list($errors, $sourceText) = fetchDataFromPubMed($pmidArray);
+    }
+
+    return array($errors, $sourceText, $failedIDs);
+  }
+
+	// --------------------------------------------------------------------
+
 	// This function tries to fetch record metadata from CrossRef.org for all DOIs or
 	// OpenURLs given in '$itemArray':
 	// (for '$sourceFormat', only "CrossRef XML", i.e. the CrossRef "unixref XML" format,

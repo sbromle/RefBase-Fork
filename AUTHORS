@@ -32,6 +32,9 @@ Thanks to:
 - Oleksandr Moskalenko <oleksa@users.sourceforge.net>:
   Troubleshooting and patch for directory renaming
 
+- Nicholaus Lance Hepler <nhelper@gmail.com>:
+  Patch to retrieve information from PubMed before CrossRef
+
 - Yibiao Bai <mountangellib@gmail.com> and Yong Fan, Shanxi Agricultural
   University Library, China:
   Chinese localization.

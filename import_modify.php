@@ -378,12 +378,22 @@
 			// Split on any whitespace between DOIs/OpenURLs:
 			$idArray = preg_split("/\s+/", $sourceIDs, -1, PREG_SPLIT_NO_EMPTY);
 
-			// Fetch record metadata from CrossRef.org for all given DOIs/OpenURLs:
-			list($errors, $sourceText) = fetchDataFromCrossRef($idArray, $sourceFormat); // function 'fetchDataFromCrossRef()' is defined in 'import.inc.php'
+			if (preg_match("#10\.\d{4}/\S+?(?=$|\s)#i", $sourceIDs))
+			{
+				list($errors, $sourceText, $idArray) = fetchDOIsFromPubMed($idArray);
+			}
 
-			// In case of a latin1-based database, attempt to convert UTF-8 data to refbase markup & latin1:
-			if (($contentTypeCharset == "ISO-8859-1") AND (detectCharacterEncoding($sourceText) == "UTF-8"))
-				$sourceText = convertToCharacterEncoding("ISO-8859-1", "TRANSLIT", $sourceText, "UTF-8");
+			if (!empty($idArray))
+			{
+				// Fetch record metadata from CrossRef.org for all given DOIs/OpenURLs:
+				list($errors, $sourceText) = fetchDataFromCrossRef($idArray, $sourceFormat); // function 'fetchDataFromCrossRef()' is defined in 'import.inc.php'
+
+				// In case of a latin1-based database, attempt to convert UTF-8 data to refbase markup & latin1:
+				if (($contentTypeCharset == "ISO-8859-1") AND (detectCharacterEncoding($sourceText) == "UTF-8"))
+					$sourceText = convertToCharacterEncoding("ISO-8859-1", "TRANSLIT", $sourceText, "UTF-8");
+			}
+			else
+				$sourceFormat = "Pubmed Medline";
 		}
 	}
 
