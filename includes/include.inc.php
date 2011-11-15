@@ -2019,7 +2019,7 @@
 EOF;
 
 		// build correct option tags:
-		$userMainFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
+		$userMainFieldsArray = preg_split("/ *, */", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
 
 		$dropDownFieldNameArray = array("main_fields" => $loc["DropDownFieldName_MainFields"]);
 
@@ -2696,7 +2696,7 @@ EOF;
 	function splitAndMerge($splitDelim, $joinDelim, $sourceString)
 	{
 		// split the string on the specified delimiter (which is interpreted as regular expression!):
-		$piecesArray = split($splitDelim, $sourceString);
+		$piecesArray = preg_split("/$splitDelim/", $sourceString);
 
 		// re-join the array with the specified separator:
 		$newString = implode($joinDelim, $piecesArray);
@@ -2752,7 +2752,7 @@ EOF;
 	{
 		global $alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower, $print, $punct, $space, $upper, $word, $patternModifiers; // defined in 'transtab_unicode_charset.inc.php' and 'transtab_latin1_charset.inc.php'
 
-		$authorsArray = split($oldBetweenAuthorsDelim, $authorContents); // get a list of all authors for this record
+		$authorsArray = preg_split("/$oldBetweenAuthorsDelim/", $authorContents); // get a list of all authors for this record
 
 		$authorCount = count($authorsArray); // check how many authors we have to deal with
 		$newAuthorContents = ""; // this variable will hold the final author string
@@ -2766,7 +2766,7 @@ EOF;
 
 		for ($i=0; $i < $authorCount; $i++)
 		{
-			$singleAuthorArray = split($oldAuthorsInitialsDelim, $authorsArray[$i]); // for each author, extract author name & initials to separate list items
+			$singleAuthorArray = preg_split("/$oldAuthorsInitialsDelim/", $authorsArray[$i]); // for each author, extract author name & initials to separate list items
 
 			if (!$familyNameFirst) // if the family name comes *after* the given name (or initials) in the source string, put array elements in reverse order:
 				$singleAuthorArray = array_reverse($singleAuthorArray); // (Note: this only works, if the array has only *two* elements, i.e., one containing the author's name and one holding the initials!)
@@ -2856,11 +2856,11 @@ EOF;
 	//        4. contents of the author field
 	function extractAuthorsLastName($oldBetweenAuthorsDelim, $oldAuthorsInitialsDelim, $authorPosition, $authorContents)
 	{
-		$authorsArray = split($oldBetweenAuthorsDelim, $authorContents); // get a list of all authors for this record
+		$authorsArray = preg_split("/$oldBetweenAuthorsDelim/", $authorContents); // get a list of all authors for this record
 
 		$authorPosition = ($authorPosition-1); // php array elements start with "0", so we decrease the authors position by 1
 		$singleAuthor = $authorsArray[$authorPosition]; // for the author in question, extract the full author name (last name & initials)
-		$singleAuthorArray = split($oldAuthorsInitialsDelim, $singleAuthor); // then, extract author name & initials to separate list items
+		$singleAuthorArray = preg_split("/$oldAuthorsInitialsDelim/", $singleAuthor); // then, extract author name & initials to separate list items
 		$singleAuthorsLastName = $singleAuthorArray[0]; // extract this author's last name into a new variable
 
 		return $singleAuthorsLastName;
@@ -2878,11 +2878,11 @@ EOF;
 	//        4. contents of the author field
 	function extractAuthorsGivenName($oldBetweenAuthorsDelim, $oldAuthorsInitialsDelim, $authorPosition, $authorContents)
 	{
-		$authorsArray = split($oldBetweenAuthorsDelim, $authorContents); // get a list of all authors for this record
+		$authorsArray = preg_split("/$oldBetweenAuthorsDelim/", $authorContents); // get a list of all authors for this record
 
 		$authorPosition = ($authorPosition-1); // php array elements start with "0", so we decrease the authors position by 1
 		$singleAuthor = $authorsArray[$authorPosition]; // for the author in question, extract the full author name (last name & initials/given name)
-		$singleAuthorArray = split($oldAuthorsInitialsDelim, $singleAuthor); // then, extract author name & initials/given name to separate list items
+		$singleAuthorArray = preg_split("/$oldAuthorsInitialsDelim/", $singleAuthor); // then, extract author name & initials/given name to separate list items
 		if (!empty($singleAuthorArray[1]))
 			$singleAuthorsGivenName = $singleAuthorArray[1]; // extract this author's initials/given name into a new variable
 		else
@@ -2903,7 +2903,7 @@ EOF;
 		if (empty($placeholderString))
 			$placeholderString = $fallbackPlaceholderString; // if, for some odd reason, an empty placeholder string was given, we'll use the placeholder(s) given in '$fallbackPlaceholderString'
 
-		$placeholderPartsArray = split("[<>]", $placeholderString); // split placeholder string into its individual components
+		$placeholderPartsArray = preg_split("/[<>]/", $placeholderString); // split placeholder string into its individual components
 
 		$convertedPlaceholderArray = array(); // initialize array variable which will hold the transformed placeholder parts
 
@@ -3493,7 +3493,7 @@ EOF;
 		$queriesArray = array(); // this array will hold all sub-queries that were extracted from the 'related' field
 
 		// split the source string on any semi-colon ";" (optionally surrounded by whitespace) which works as our main delimiter:
-		$relatedFieldArray = split(" *; *", $relatedFieldString);
+		$relatedFieldArray = preg_split("/ *; */", $relatedFieldString);
 
 		foreach ($relatedFieldArray as $relatedFieldArrayElement)
 			{
@@ -3677,7 +3677,7 @@ EOF;
 				$rowUserGroupsString = trimTextPattern($row["user_groups"], "( *; *)+", true, true);
 
 				// split the contents of the 'user_groups' field on the specified delimiter (which is interpreted as regular expression!):
-				$rowUserGroupsArray = split(" *; *", $rowUserGroupsString);
+				$rowUserGroupsArray = preg_split("/ *; */", $rowUserGroupsString);
 
 				$userGroupsArray = array_merge($userGroupsArray, $rowUserGroupsArray); // append this row's group names to the array of found user groups
 			}
@@ -4238,7 +4238,7 @@ EOF;
 			// Write the list of fields into a session variable:
 			saveSessionVariable("userMainFields", $userMainFieldsString);
 
-		$userMainFieldsArray = split(" *, *", $userMainFieldsString); // split the string of fields into its individual fields
+		$userMainFieldsArray = preg_split("/ *, */", $userMainFieldsString); // split the string of fields into its individual fields
 
 		return $userMainFieldsArray;
 	}
@@ -4269,7 +4269,7 @@ EOF;
 		global $abbrevInstitution;
 
 		// we use session variables to construct a correct call number prefix:
-		$loginEmailArray = split("@", $loginEmail); // split the login email address at '@'
+		$loginEmailArray = preg_split("/@/", $loginEmail); // split the login email address at '@'
 		$loginEmailUserName = $loginEmailArray[0]; // extract the user name (which is the first element of the array '$loginEmailArray')
 		$callNumberPrefix = $abbrevInstitution . " @ " . $loginEmailUserName;
 
@@ -4719,7 +4719,7 @@ EOF;
 	function buildSelectMenuOptions($sourceData, $splitDelim, $prefix, $useArrayKeysAsValues)
 	{
 		if (is_string($sourceData)) // split the string on the specified delimiter (which is interpreted as regular expression!):
-			$sourceData = split($splitDelim, $sourceData);
+			$sourceData = preg_split("/$splitDelim/", $sourceData);
 
 		if ($useArrayKeysAsValues)
 		{
@@ -5804,12 +5804,12 @@ EOF;
 	function generateUNIXTimeStamp($date = "", $time = "")
 	{
 		if (!empty($date))
-			$dateArray = split("-", $date); // split MySQL-formatted date string (e.g. "2004-09-27") into its pieces (year, month, day)
+			$dateArray = preg_split("/-/", $date); // split MySQL-formatted date string (e.g. "2004-09-27") into its pieces (year, month, day)
 		else
 			$dateArray = array(date('Y'), date('m'), date('d')); // use current year, month & day
 
 		if (!empty($time))
-			$timeArray = split(":", $time); // split MySQL-formatted time string (e.g. "23:58:23") into its pieces (hours, minutes, seconds)
+			$timeArray = preg_split("/:/", $time); // split MySQL-formatted time string (e.g. "23:58:23") into its pieces (hours, minutes, seconds)
 		else
 			$timeArray = array(date('H'), date('i'), date('s')); // use current hour, minute & second
 
@@ -6250,7 +6250,7 @@ EOF;
 		// split field values on the given delimiter:
 		for ($i=0; $row = @ mysql_fetch_array($result); $i++)
 		{
-			$fieldSubValuesArray = split($delim, $row[$fieldName]); // split field contents on '$delim'
+			$fieldSubValuesArray = preg_split("/$delim/", $row[$fieldName]); // split field contents on '$delim'
 			foreach ($fieldSubValuesArray as $fieldSubValue)
 			{
 //				// NOTE: we include empty values so that any Browse view query will also display the number of records where the given field is empty
