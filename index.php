@@ -64,7 +64,7 @@
 	// (appropriate <link...> tags will be included in the HTML header for every URL specified)
 	$rssURLArray = array();
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_rss_feeds/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
 	{
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
@@ -83,7 +83,7 @@
 	// Adjust the width of the right-hand column according to the calling user agent:
 	// NOTE: strictly, this isn't really necessary but it helps to achieve a similar appearance of the login form on Firefox/Gecko & Safari/WebKit browsers (with all supported GUI languages)
 	// TODO: figure out a better way (which isn't based on user agent sniffing); the problem could also be avoided by simply stacking <input> fields & their labels on top of each other
-	if (isset($_SERVER['HTTP_USER_AGENT']) AND eregi("AppleWebKit", $_SERVER['HTTP_USER_AGENT']))
+	if (isset($_SERVER['HTTP_USER_AGENT']) AND preg_match("/AppleWebKit/i", $_SERVER['HTTP_USER_AGENT']))
 		$rightColumnWidth = "215";
 	else
 		$rightColumnWidth = "225";
@@ -153,7 +153,7 @@ if (!isset($_SESSION['loginEmail']))
 				</div>
 			</div><?php
 	}
-elseif (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', show the 'Show My Groups' form:
+elseif (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_user_groups/", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', show the 'Show My Groups' form:
 	{
 		if (!isset($_SESSION['userGroups']))
 			$groupSearchDisabled = " disabled"; // disable the 'Show My Groups' form if the session variable holding the user's groups isnt't available
@@ -245,7 +245,7 @@ else
 			</div>
 		</td>
 	</tr><?php
-if (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_browse_view'...
+if (isset($_SESSION['user_permissions']) AND preg_match("/allow_browse_view/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_browse_view'...
 	{
 ?>
 
@@ -256,7 +256,7 @@ if (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION
 		</td>
 		<td width="<?php echo $rightColumnWidth; ?>" valign="top">
 <?php
-if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions'])))
+if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_browse_view/", $_SESSION['user_permissions'])))
 	{
 ?>
 			<h5><?php echo $loc["BrowseMyRefs"]; ?>:</h5><?php
@@ -280,7 +280,7 @@ else
 		</td>
 		<td width="<?php echo $rightColumnWidth; ?>" valign="top">
 <?php
-if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_browse_view", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_browse_view', show the 'Browse My Refs' form:
+if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_browse_view/", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_browse_view', show the 'Browse My Refs' form:
 	{
 ?>
 			<form action="search.php" method="GET">
@@ -291,7 +291,7 @@ if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND
 				<input type="hidden" name="showRows" value="10">
 				<select name="browseFieldSelector"><?php
 
-$browseMyRefsDropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems2); // select the 'author' menu entry ...
+$browseMyRefsDropDownItems = preg_replace("/<option([^>]*)>/" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems2); // select the 'author' menu entry ...
 echo $browseMyRefsDropDownItems;
 ?>
 
@@ -319,7 +319,7 @@ else
 		</td>
 		<td width="<?php echo $rightColumnWidth; ?>" valign="top" rowspan="2">
 <?php
-if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_queries", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_queries', show the 'Recall My Query' form:
+if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_user_queries/", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_queries', show the 'Recall My Query' form:
 	{
 		if (!isset($_SESSION['userQueries']))
 			$querySearchDisabled = " disabled"; // disable the 'Recall My Query' form if the session variable holding the user's queries isn't available
