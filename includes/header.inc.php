@@ -75,7 +75,7 @@
 	<link rel="stylesheet" href="<?php echo $defaultStyleSheet; ?>" type="text/css" title="CSS Definition"><?php
 		}
 
-		if (!empty($rssURLArray) AND isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if some RSS URLs were specified AND the 'user_permissions' session variable contains 'allow_rss_feeds'...
+		if (!empty($rssURLArray) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_rss_feeds/", $_SESSION['user_permissions'])) // if some RSS URLs were specified AND the 'user_permissions' session variable contains 'allow_rss_feeds'...
 		{
 			foreach ($rssURLArray as $rssURL)
 			{
@@ -168,7 +168,7 @@
 			<a href="advanced_search.php"<?php echo addAccessKey("attribute", "adv_search"); ?> title="<?php echo $loc["LinkTitle_AdvancedSearch"] . addAccessKey("title", "adv_search"); ?>"><?php echo $loc["AdvancedSearch"]; ?></a><?php
 
 		// -------------------------------------------------------
-		if (isset($_SESSION['user_permissions']) AND ereg("allow_add", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
+		if (isset($_SESSION['user_permissions']) AND preg_match("/allow_add/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
 		{
 		// ... include a link to 'record.php?recordAction=add...':
 ?>
@@ -177,7 +177,7 @@
 		}
 
 		// -------------------------------------------------------
-		if (isset($_SESSION['user_permissions']) AND ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
+		if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_import|allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
 		{
 		// ... include a link to 'import.php':
 ?>
