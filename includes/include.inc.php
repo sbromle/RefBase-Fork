@@ -2036,8 +2036,10 @@ EOF;
 
 		if (!empty($firstField) AND in_array($firstField, $userMainFieldsArray)) // if the first field from the 'WHERE' clause is one of the main fields
 			$quickSearchForm .= preg_replace("/<option([^>]* value=\"$firstField\")/", "<option\\1 selected", $optionTags); // we select that field by adding the 'selected' parameter to the appropriate <option> tag
-		else
-			$quickSearchForm .= preg_replace("/<option([^>]*)>/" . $loc["DropDownFieldName_MainFields"], "<option\\1 selected>" . $loc["DropDownFieldName_MainFields"], $optionTags); // select the 'main fields' menu entry ...
+		else {
+		  $tmpstr = "<option([^>]*)>" . $loc["DropDownFieldName_MainFields"];
+			$quickSearchForm .= preg_replace("/$tmpstr/", "<option\\1 selected>" . $loc["DropDownFieldName_MainFields"], $optionTags); // select the 'main fields' menu entry ...
+		}
 
 		$quickSearchForm .= <<<EOF
 
