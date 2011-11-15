@@ -35,7 +35,7 @@
 
 		// --- BEGIN TYPE = JOURNAL ARTICLE / MAGAZINE ARTICLE / NEWSPAPER ARTICLE --------------------------------------------------------------
 
-		if (ereg("^(Journal Article|Magazine Article|Newspaper Article)$", $row['type']))
+		if (preg_match("/^(Journal Article|Magazine Article|Newspaper Article)$/", $row['type']))
 			{
 				if (!empty($row['author']))      // author
 					{
@@ -78,7 +78,7 @@
 						                                  ", et al.", // 15.
 						                                  $encodeHTML); // 16.
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -115,7 +115,7 @@
 							$record .= " ";
 
 						$record .= $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 					}
 
@@ -129,7 +129,7 @@
 				elseif (!empty($row['publication']))      // publication (= journal) name
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $row['publication'] . $markupPatternsArray["italic-suffix"];
 
-				if (ereg("^(Journal Article|Magazine Article)$", $row['type'])) // for journal and magazine articles, volume and issue information is printed after the publication name
+				if (preg_match("/^(Journal Article|Magazine Article)$/", $row['type'])) // for journal and magazine articles, volume and issue information is printed after the publication name
 				{
 					if (!empty($row['abbrev_journal']) || !empty($row['publication']))
 						$record .= ", ";
@@ -191,13 +191,13 @@
 					}
 				}
 
-				if (!ereg("\. *$", $record) && !($row['online_publication'] == "yes" && (!empty($row['doi']) || !empty($row['url'])))) // if the string doesn't end with a period or a DOI/URL
+				if (!preg_match("/\. *$/", $record) && !($row['online_publication'] == "yes" && (!empty($row['doi']) || !empty($row['url'])))) // if the string doesn't end with a period or a DOI/URL
 					$record .= ".";
 			}
 
 		// --- BEGIN TYPE = ABSTRACT / BOOK CHAPTER / CONFERENCE ARTICLE ------------------------------------------------------------------------
 
-		elseif (ereg("^(Abstract|Book Chapter|Conference Article)$", $row['type']))
+		elseif (preg_match("/^(Abstract|Book Chapter|Conference Article)$/", $row['type']))
 			{
 				if (!empty($row['author']))      // author
 					{
@@ -240,7 +240,7 @@
 						                                  ", et al.", // 15.
 						                                  $encodeHTML); // 16.
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -260,7 +260,7 @@
 							$record .= " ";
 
 						$record .= $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 					}
 
@@ -309,14 +309,14 @@
 						                                  $encodeHTML); // 16.
 
 						$record .= " In " . $editor . " (";
-						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
+						if (preg_match("/^[^;\r\n]+(;[^;\r\n]+)+$/", $row['editor'])) // there are at least two editors (separated by ';')
 							$record .= "Eds.";
 						else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
 							$record .= "Ed.";
 						$record .= "),";
 					}
 
-				$publication = ereg_replace("[ \r\n]*\(Eds?:[^\)\r\n]*\)", "", $row['publication']);
+				$publication = preg_replace("/[ \r\n]*\(Eds?:[^\)\r\n]*\)/", "", $row['publication']);
 				if (!empty($publication))      // publication
 				{
 					if (empty($row['editor']))
@@ -370,7 +370,11 @@
 
 				if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
 				{
-					if (!ereg("[?!.][ " . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					//if (!preg_match("/[?!.][ " . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
+					//if (!preg_match("/[?!.][<\/i>]*$/", $record))
+					$tmpstr = "[?!.][ " . $markupPatternsArray["italic-suffix"] . "]*$";
+					$tmpstr = "<\/i>";
+					if (!preg_match("/$tmpstr/", $record))
 						$record .= ".";
 
 					$record .= " ";
@@ -405,18 +409,18 @@
 						$record .= " " . $row['publisher'];
 					}
 
-				if (!ereg("\. *$", $record))
+				if (!preg_match("/\. *$/", $record))
 					$record .= ".";
 			}
 
 		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / JOURNAL / MANUAL / MANUSCRIPT / MAP / MISCELLANEOUS / PATENT / REPORT / SOFTWARE ---
 
-		else // if (ereg("Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software", $row['type']))
+		else // if (preg_match("/Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software/", $row['type']))
 			// note that this also serves as a fallback: unrecognized resource types will be formatted similar to whole books
 			{
 				if (!empty($row['author']))      // author
 					{
-						$author = ereg_replace("[ \r\n]*\(eds?\)", "", $row['author']);
+						$author = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['author']);
 
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -460,12 +464,12 @@
 						// if the author is actually the editor of the resource we'll append ', ed' (or ', eds') to the author string:
 						// [to distinguish editors from authors in the 'author' field, the 'modify.php' script does append ' (ed)' or ' (eds)' if appropriate,
 						//  so we're just checking for these identifier strings here. Alternatively, we could check whether the editor field matches the author field]
-						if (ereg("[ \r\n]*\(ed\)", $row['author'])) // single editor
+						if (preg_match("/[ \r\n]*\(ed\)/", $row['author'])) // single editor
 							$author = $author . " (Ed.).";
-						elseif (ereg("[ \r\n]*\(eds\)", $row['author'])) // multiple editors
+						elseif (preg_match("/[ \r\n]*\(eds\)/", $row['author'])) // multiple editors
 							$author = $author . " (Eds.).";
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -490,7 +494,7 @@
 							$record .= $markupPatternsArray["italic-prefix"] . $row['title'] . $markupPatternsArray["italic-suffix"];
 					}
 
-				if (!empty($row['editor']) && !ereg("[ \r\n]*\(eds?\)", $row['author']))      // editor (if different from author, see note above regarding the check for ' (ed)' or ' (eds)')
+				if (!empty($row['editor']) && !preg_match("/[ \r\n]*\(eds?\)/", $row['author']))      // editor (if different from author, see note above regarding the check for ' (ed)' or ' (eds)')
 					{
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -535,7 +539,7 @@
 							$record .= " ";
 
 						$record .= " (" . $editor . ", ";
-						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
+						if (preg_match("/^[^;\r\n]+(;[^;\r\n]+)+$/", $row['editor'])) // there are at least two editors (separated by ';')
 							$record .= "Eds.";
 						else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
 							$record .= "Ed.";
@@ -544,7 +548,7 @@
 
 				if (!empty($row['edition']) || !empty($row['volume']))
 				{
-					if (!empty($row['author']) || !empty($row['year']) || !empty($row['title']) || (!empty($row['editor']) && !ereg("[ \r\n]*\(eds?\)", $row['author'])))
+					if (!empty($row['author']) || !empty($row['year']) || !empty($row['title']) || (!empty($row['editor']) && !preg_match("/[ \r\n]*\(eds?\)/", $row['author'])))
 						$record .= " ";
 
 					$record .= "(";
@@ -590,7 +594,7 @@
 				}
 				else // add series info, thesis info, and publisher & place
 				{
-					if ((!empty($row['title']) && !ereg("[?!.]$", $row['title'])) || (!empty($row['editor']) && !ereg("[ \r\n]*\(eds?\)", $row['author'])) || !empty($row['edition']) || !empty($row['volume']))
+					if ((!empty($row['title']) && !preg_match("/[?!.]$/", $row['title'])) || (!empty($row['editor']) && !preg_match("/[ \r\n]*\(eds?\)/", $row['author'])) || !empty($row['edition']) || !empty($row['volume']))
 						$record .= ".";
 
 					if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
@@ -644,7 +648,7 @@
 				{
 					if (!empty($row['online_citation']))      // online_citation
 					{
-						if (!ereg("\. *$", $record))
+						if (!preg_match("/\. *$/", $record))
 							$record .= ".";
 
 						$record .= " " . $row['online_citation'];
@@ -652,7 +656,7 @@
 
 					if (!empty($row['doi']) || !empty($row['url']))
 					{
-						if (!ereg("\. *$", $record))
+						if (!preg_match("/\. *$/", $record))
 							$record .= ".";
 
 						if ($row['type'] == "Software")
@@ -682,7 +686,7 @@
 					}
 				}
 
-				if (!ereg("\. *$", $record) && !(($row['online_publication'] == "yes" || $row['type'] == "Software") && !empty($row['url']))) // if the string doesn't end with a period or no URL/DOI was given
+				if (!preg_match("/\. *$/", $record) && !(($row['online_publication'] == "yes" || $row['type'] == "Software") && !empty($row['url']))) // if the string doesn't end with a period or no URL/DOI was given
 					$record .= ".";
 			}
 

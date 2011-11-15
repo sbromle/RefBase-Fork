@@ -39,7 +39,7 @@
 
     $openURL = $resolver;
 
-    if (!ereg("\?", $resolver))
+    if (!preg_match("/\?/", $resolver))
       $openURL .= "?";
     else
       $openURL .= "&amp;";
@@ -47,8 +47,8 @@
     $openURL .= "ctx_ver=Z39.88-2004";
 
     foreach ($co as $coKey => $coValue) {
-      $coKey = ereg_replace("rft.", "", $coKey);
-      $coKey = ereg_replace("au[0-9]*", "au", $coKey);
+      $coKey = preg_replace("/rft./", "", $coKey);
+      $coKey = preg_replace("/au[0-9]*/", "au", $coKey);
       $openURL .= "&amp;" . $coKey . "=" . rawurlencode($coValue);
     }
 
@@ -61,11 +61,11 @@
     // 'dissertation' is compatible with the 1.0 spec, but not the 0.1 spec
     if (!empty($row['thesis']))
       $fmt .= "dissertation";
-    elseif (ereg("Journal", $row['type']))
+    elseif (preg_match("/Journal/", $row['type']))
       $fmt .= "journal";
-    elseif (ereg("Patent", $row['type']))
+    elseif (preg_match("/Patent/", $row['type']))
       $fmt .= "patent";
-    elseif (ereg("Book", $row['type']))
+    elseif (preg_match("/Book/", $row['type']))
       $fmt .= "book";
     // 'dc' (dublin core) is compatible with the 1.0 spec, but not the 0.1 spec.
     // We default to this, as it is the most generic type.
@@ -79,7 +79,7 @@
     foreach ($co as $coKey => $coValue) {
       // 'urlencode()' differs from 'rawurlencode() (i.e., RFC1738 encoding)
       // in that spaces are encoded as plus (+) signs
-      $coKey = ereg_replace("au[0-9]*", "au", $coKey);
+      $coKey = preg_replace("/au[0-9]*/", "au", $coKey);
 
       // While COinS does not specify encoding, most javascript tools assume that it is UTF-8
       if (mb_detect_encoding($coValue) != "UTF-8" || !(mb_check_encoding($coValue,"UTF-8")))
@@ -120,7 +120,7 @@
     $co = array();
 
     // rfr_id
-    $co["rfr_id"] = "info:sid/" . ereg_replace("http://", "", $databaseBaseURL);
+    $co["rfr_id"] = "info:sid/" . preg_replace("/http:\/\//", "", $databaseBaseURL);
 
     // genre (type)
     if (isset($row['type'])) {
@@ -195,7 +195,7 @@
     // spage, epage, tpages (pages)
     // NOTE: lifted from modsxml.inc.php--should throw some into a new include file
     if (!empty($row['pages'])) {
-      if (ereg("[0-9] *- *[0-9]", $row['pages'])) {
+      if (preg_match("/[0-9] *- *[0-9]/", $row['pages'])) {
         list($pagestart, $pageend) = preg_split('/\s*[-]\s*/', $row['pages']);
         if ($pagestart < $pageend) {
           $co["rft.spage"] = $pagestart;
@@ -220,7 +220,7 @@
       if (!empty($aufirst))
         $co["rft.aufirst"] = $aufirst;
       // TODO: cleanup and put this function in include.inc.php?
-      $authorcount = count(split(" *; *", $author));
+      $authorcount = count(preg_split("/ *; */", $author));
       for ($i=0; $i < $authorcount-1; $i++){
         $aul = extractAuthorsLastName(" *; *", " *, *", $i+2, $author);
         $auf = extractAuthorsGivenName(" *; *", " *, *", $i+2, $author);

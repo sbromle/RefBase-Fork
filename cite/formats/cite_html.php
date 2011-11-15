@@ -49,13 +49,13 @@
 
 		// First, initialize some variables that we'll need later on
 		// Calculate the number of all visible columns (which is needed as colspan value inside some TD tags)
-		if ($showLinks == "1" && eregi("^(type|type-year|year)$", $citeOrder)) // in citation layout, we simply set it to a fixed value (either '1' or '2', depending on the values of '$showLinks' and '$citeOrder')
+		if ($showLinks == "1" && preg_match("/^(type|type-year|year)$/i", $citeOrder)) // in citation layout, we simply set it to a fixed value (either '1' or '2', depending on the values of '$showLinks' and '$citeOrder')
 			$NoColumns = 2; // first column: literature citation, second column: 'display details' link
 		else
 			$NoColumns = 1;
 
 		 // If the results footer is displayed, we increase the colspan value by 1 to account for the checkbox column:
-		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+		if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 			$NoColumns++;
 
 		// Initialize array variables:
@@ -91,12 +91,12 @@
 		{
 			foreach ($row as $rowFieldName => $rowFieldValue)
 			{
-				if (!ereg("^(author|editor)$", $rowFieldName)) // we HTML encode higher ASCII chars for all but the author & editor fields. The author & editor fields are excluded here
+				if (!preg_match("/^(author|editor)$/", $rowFieldName)) // we HTML encode higher ASCII chars for all but the author & editor fields. The author & editor fields are excluded here
 					// since these fields must be passed *without* HTML entities to the 'reArrangeAuthorContents()' function (which will then handle the HTML encoding by itself)
 					$row[$rowFieldName] = encodeHTML($row[$rowFieldName]); // HTML encode higher ASCII characters within each of the fields
 
-				if (ereg("^abstract$", $rowFieldName)) // for the 'abstract' field, transform runs of newline ('\n') or return ('\r') characters into a single <br> tag
-					$row[$rowFieldName] = ereg_replace("[\r\n]+", "\n<br>\n", $row[$rowFieldName]);
+				if (preg_match("/^abstract$/", $rowFieldName)) // for the 'abstract' field, transform runs of newline ('\n') or return ('\r') characters into a single <br> tag
+					$row[$rowFieldName] = preg_replace("/[\r\n]+/", "\n<br>\n", $row[$rowFieldName]);
 
 				// Apply search & replace 'actions' to all fields that are listed in the 'fields' element of the arrays contained in '$searchReplaceActionsArray' (which is defined in 'ini.inc.php'):
 				foreach ($searchReplaceActionsArray as $fieldActionsArray)
@@ -113,9 +113,9 @@
 			if (!empty($record)) // unless the record buffer is empty...
 			{
 				// Print any section heading(s):
-				if (eregi("year|type", $citeOrder))
+				if (preg_match("/year|type/i", $citeOrder))
 				{
-					if (eregi("^Mobile$", $viewType))
+					if (preg_match("/^Mobile$/i", $viewType))
 					{
 						$headingPrefix = "\n<div class=\"sect\">";
 
@@ -141,14 +141,14 @@
 				else
 					$rowClass = "odd";
 
-				if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+				if (preg_match("/^(cli|inc)/i", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
 					$baseURL = $databaseBaseURL;
 				else
 					$baseURL = "";
 
 				$recordPermaLink = $databaseBaseURL . "show.php?record=" . $row["serial"]; // generate a permanent link for the current record
 
-				if (eregi("^Mobile$", $viewType))
+				if (preg_match("/^Mobile$/i", $viewType))
 				{
 					$recordData .= "\n<div class=\"" . $rowClass . "\">"
 					             . "\n\t<div class=\"citation\">" . $record . "</div>";
@@ -159,7 +159,7 @@
 
 					// Print a column with a checkbox:
 					// Note: we omit the results footer in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
-					if ((!eregi("^Print$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+					if ((!preg_match("/^Print$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 					{
 						$recordData .= "\n\t<td align=\"center\" valign=\"top\" width=\"10\">";
 
@@ -215,14 +215,14 @@
 						$recordData .= "\n\t\t\t<div class=\"reflinks\">";
 
 						// - Print the record's permanent URL:
-						if (eregi("^inc", $client)) // we open links in a new browser window if refbase data are included somewhere else:
+						if (preg_match("/^inc/i", $client)) // we open links in a new browser window if refbase data are included somewhere else:
 							$target = " target=\"_blank\"";
 						else
 							$target = "";
 
 						$recordData .= "\n\t\t\t\t<div class=\"permalink\"><a href=\"" . $recordPermaLink . "\"" . $target . " title=\"" . $loc["LinkTitle_Permalink"] . "\">";
 
-						if (eregi("^Print$", $viewType)) // for print view, we use the URL as link title
+						if (preg_match("/^Print$/i", $viewType)) // for print view, we use the URL as link title
 							$recordData .= $recordPermaLink;
 						else
 							$recordData .= $loc["PermalinkShort"];
@@ -231,10 +231,10 @@
 
 						// - Print additional links to cite/export the current record:
 						//   Note: we omit the additional links in print view ('viewType=Print')
-						if (!eregi("^Print$", $viewType))
+						if (!preg_match("/^Print$/i", $viewType))
 						{
 							// -- Print cite links:
-							if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions']) AND isset($_SESSION['user_cite_formats']))
+							if (isset($_SESSION['user_permissions']) AND preg_match("/allow_cite/", $_SESSION['user_permissions']) AND isset($_SESSION['user_cite_formats']))
 							{
 								$userCiteFormatsArray = preg_split("/ *; */", $_SESSION['user_cite_formats'], -1, PREG_SPLIT_NO_EMPTY); // get a list of the user's cite formats (the 'PREG_SPLIT_NO_EMPTY' flag causes only non-empty pieces to be returned)
 
@@ -242,14 +242,14 @@
 								             . "&nbsp;|&nbsp;" . $loc["SaveCitation"] . ":";
 
 								foreach ($userCiteFormatsArray as $citeFormat)
-									if (!eregi("^html$", $citeFormat)) // for now, we exclude the "HTML" cite format (as it's not any different to the regular Citation view HTML output)
+									if (!preg_match("/^html$/i", $citeFormat)) // for now, we exclude the "HTML" cite format (as it's not any different to the regular Citation view HTML output)
 										$recordData .= "\n\t\t\t\t\t&nbsp;<a href=\"" . $baseURL . generateURL("show.php", $citeFormat, array("record" => $row['serial']), true, "", "", $citeStyle, $citeOrder) . "\" title=\"" . $loc["LinkTitle_SaveCitationFormat_Prefix"] . $citeFormat . $loc["LinkTitle_SaveCitationFormat_Suffix"] . "\">" . $citeFormat . "</a>";
 
 								$recordData .= "\n\t\t\t\t</div>";
 							}
 
 							// -- Print export links:
-							if (isset($_SESSION['user_permissions']) AND ereg("allow_export|allow_batch_export", $_SESSION['user_permissions']) AND isset($_SESSION['user_export_formats']))
+							if (isset($_SESSION['user_permissions']) AND preg_match("/allow_export|allow_batch_export/", $_SESSION['user_permissions']) AND isset($_SESSION['user_export_formats']))
 							{
 								$userExportFormatsArray = preg_split("/ *; */", $_SESSION['user_export_formats'], -1, PREG_SPLIT_NO_EMPTY); // get a list of the user's export formats
 
@@ -273,7 +273,7 @@
 				// Display the regular links column:
 				if ($showLinks == "1")
 				{
-					if (eregi("^Mobile$", $viewType))
+					if (preg_match("/^Mobile$/i", $viewType))
 						$recordData .= "\n\t<div class=\"links\">";
 					else
 						$recordData .= "\n\t<td class=\"links\" valign=\"top\" width=\"42\">";
@@ -284,13 +284,13 @@
 					// (for links of type DOI/URL/ISBN/XREF, only one link will be printed; order of preference: DOI, URL, ISBN, XREF)
 					$recordData .= printLinks($showLinkTypesInCitationView, $row, $showQuery, $showLinks, $wrapResults, $userID, $viewType, $orderBy); // function 'printLinks()' is defined in 'search.php'
 
-					if (eregi("^Mobile$", $viewType))
+					if (preg_match("/^Mobile$/i", $viewType))
 						$recordData .= "\n\t</div>";
 					else
 						$recordData .= "\n\t</td>";
 				}
 
-				if (eregi("^Mobile$", $viewType))
+				if (preg_match("/^Mobile$/i", $viewType))
 					$recordData .= "\n</div>";
 				else
 					$recordData .= "\n</tr>";
@@ -301,10 +301,10 @@
 		// OUTPUT RESULTS:
 
 		// Note: we omit the results header, browse links & query form for CLI clients, and when outputting only a partial document structure ('wrapResults=0')
-		if (!eregi("^cli", $client) AND ($wrapResults != "0"))
+		if (!preg_match("/^cli/i", $client) AND ($wrapResults != "0"))
 		{
 			// Note: we also omit the results header in print/mobile view ('viewType=Print' or 'viewType=Mobile')
-			if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
+			if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
 			{
 				// Extract the first field from the 'WHERE' clause:
 				if (preg_match("/ WHERE [ ()]*(\w+)/i", $query))
@@ -367,7 +367,7 @@
 			$BrowseLinks = buildBrowseLinks("search.php", $query, $NoColumns, $rowsFound, $showQuery, $showLinks, $showRows, $rowOffset, $previousOffset, $nextOffset, $wrapResults, $maximumBrowseLinks, "sqlSearch", "Cite", $citeStyle, $citeOrder, $orderBy, $headerMsg, $viewType);
 			$htmlData .= $BrowseLinks;
 
-			if (eregi("^Mobile$", $viewType))
+			if (preg_match("/^Mobile$/i", $viewType))
 			{
 				// Extract the original OpenSearch/CQL query that was saved by 'opensearch.php' as a session variable:
 				if (isset($_SESSION['cqlQuery']))
@@ -389,7 +389,7 @@
 						   . "\n\t</form>"
 						   . "\n</div>";
 			}
-			elseif ((!eregi("^Print$", $viewType)) AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+			elseif ((!preg_match("/^Print$/i", $viewType)) AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 			{
 				// Include the 'queryResults' form:
 				$htmlData .= "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
@@ -408,7 +408,7 @@
 		}
 
 		// Output query results:
-		if (eregi("^Mobile$", $viewType))
+		if (preg_match("/^Mobile$/i", $viewType))
 		{
 			$htmlData .= "\n<div id=\"citations\" class=\"results\">"
 			           . $recordData
@@ -423,7 +423,7 @@
 
 		// Append the footer:
 		// Note: we omit the results footer & browse links in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
-		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0"))
+		if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0"))
 		{
 			// Again, insert the (already constructed) BROWSE LINKS
 			// (i.e., a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages)
@@ -432,7 +432,7 @@
 			// Build a results footer with form elements to cite, group or export all/selected records:
 			if (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 			{
-				if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_cite|allow_user_groups|allow_export|allow_batch_export)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_cite", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
+				if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND preg_match("/(allow_cite|allow_user_groups|allow_export|allow_batch_export)/", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND preg_match("/allow_cite/", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
 					// ...Insert a divider line (which separates the results data from the forms in the footer):
 					$htmlData .= "\n<hr class=\"resultsfooter\" align=\"center\">";
 
@@ -441,7 +441,7 @@
 			}
 		}
 
-		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+		if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 		{
 			// Finish the form:
 			$htmlData .= "\n</form>";

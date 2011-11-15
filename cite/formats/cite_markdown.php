@@ -83,7 +83,7 @@
 
 		// For CLI queries, we'll allow paging thru the result set, i.e. we honour the values of the CLI options '-S|--start' ('$rowOffset')
 		// and '-R|--rows' ('$showRows') ('$rowOffset' and '$showRows' are re-assigned in function 'seekInMySQLResultsToOffset()' in 'include.inc.php')
-		if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
+		if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
 			$showMaxRows = $showRows; // show only rows up to the value given in '$showRows'
 		else
 			$showMaxRows = $rowsFound; // otherwise show all rows
@@ -109,7 +109,7 @@
 			if (!empty($record)) // unless the record buffer is empty...
 			{
 				// Print any section heading(s):
-				if (eregi("year|type", $citeOrder))
+				if (preg_match("/year|type/i", $citeOrder))
 				{
 					$headingPrefix = "";
 					$headingSuffix = "";

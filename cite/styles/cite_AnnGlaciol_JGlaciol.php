@@ -30,7 +30,7 @@
 
 		// --- BEGIN TYPE = JOURNAL ARTICLE / MAGAZINE ARTICLE / NEWSPAPER ARTICLE --------------------------------------------------------------
 
-		if (ereg("^(Journal Article|Magazine Article|Newspaper Article)$", $row['type']))
+		if (preg_match("/^(Journal Article|Magazine Article|Newspaper Article)$/", $row['type']))
 			{
 				if (!empty($row['author']))      // author
 					{
@@ -73,7 +73,7 @@
 						                                  " " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 15.
 						                                  $encodeHTML); // 16.
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -93,7 +93,7 @@
 							$record .= " ";
 
 						$record .= $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 					}
 
@@ -150,13 +150,13 @@
 					}
 				}
 
-				if (!ereg("\.\)? *$", $record))
+				if (!preg_match("/\.\)? *$/", $record))
 					$record .= ".";
 			}
 
 		// --- BEGIN TYPE = ABSTRACT / BOOK CHAPTER / CONFERENCE ARTICLE ------------------------------------------------------------------------
 
-		elseif (ereg("^(Abstract|Book Chapter|Conference Article)$", $row['type']))
+		elseif (preg_match("/^(Abstract|Book Chapter|Conference Article)$/", $row['type']))
 			{
 				if (!empty($row['author']))      // author
 					{
@@ -199,7 +199,7 @@
 						                                  " " . $markupPatternsArray["italic-prefix"] . "and __NUMBER_OF_AUTHORS__ others" . $markupPatternsArray["italic-suffix"], // 15.
 						                                  $encodeHTML); // 16.
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -219,7 +219,7 @@
 							$record .= " ";
 
 						$record .= $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 					}
 
@@ -268,13 +268,13 @@
 						                                  $encodeHTML); // 16.
 
 						$record .= " " . $markupPatternsArray["italic-prefix"] . "In" . $markupPatternsArray["italic-suffix"] . " " . $editor;
-						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
+						if (preg_match("/^[^;\r\n]+(;[^;\r\n]+)+$/", $row['editor'])) // there are at least two editors (separated by ';')
 							$record .= ", " . $markupPatternsArray["italic-prefix"] . "eds" . $markupPatternsArray["italic-suffix"] . ".";
 						else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
 							$record .= ", " . $markupPatternsArray["italic-prefix"] . "ed" . $markupPatternsArray["italic-suffix"] . ".";
 					}
 
-				$publication = ereg_replace("[ \r\n]*\(Eds?:[^\)\r\n]*\)", "", $row['publication']);
+				$publication = preg_replace("/[ \r\n]*\(Eds?:[^\)\r\n]*\)/", "", $row['publication']);
 				if (!empty($publication))      // publication
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $publication . $markupPatternsArray["italic-suffix"] . ".";
 
@@ -297,7 +297,7 @@
 					$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"]); // function 'formatPageInfo()' is defined in 'cite.inc.php'
 				}
 
-				if (!ereg("\. *$", $record))
+				if (!preg_match("/\. *$/", $record))
 					$record .= ".";
 
 				if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
@@ -326,12 +326,12 @@
 
 		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / JOURNAL / MANUAL / MANUSCRIPT / MAP / MISCELLANEOUS / PATENT / REPORT / SOFTWARE ---
 
-		else // if (ereg("Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software", $row['type']))
+		else // if (preg_match("/Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software/", $row['type']))
 			// note that this also serves as a fallback: unrecognized resource types will be formatted similar to whole books
 			{
 				if (!empty($row['author']))      // author
 					{
-						$author = ereg_replace("[ \r\n]*\(eds?\)", "", $row['author']);
+						$author = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['author']);
 
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -375,12 +375,12 @@
 						// if the author is actually the editor of the resource we'll append ', ed' (or ', eds') to the author string:
 						// [to distinguish editors from authors in the 'author' field, the 'modify.php' script does append ' (ed)' or ' (eds)' if appropriate,
 						//  so we're just checking for these identifier strings here. Alternatively, we could check whether the editor field matches the author field]
-						if (ereg("[ \r\n]*\(ed\)", $row['author'])) // single editor
+						if (preg_match("/[ \r\n]*\(ed\)/", $row['author'])) // single editor
 							$author = $author . ", " . $markupPatternsArray["italic-prefix"] . "ed" . $markupPatternsArray["italic-suffix"];
-						elseif (ereg("[ \r\n]*\(eds\)", $row['author'])) // multiple editors
+						elseif (preg_match("/[ \r\n]*\(eds\)/", $row['author'])) // multiple editors
 							$author = $author . ", " . $markupPatternsArray["italic-prefix"] . "eds" . $markupPatternsArray["italic-suffix"];
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -400,7 +400,7 @@
 							$record .= " ";
 
 						$record .= $markupPatternsArray["italic-prefix"] . $row['title'] . $markupPatternsArray["italic-suffix"];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 					}
 
@@ -430,7 +430,7 @@
 //							$record .= formatPageInfo($row['pages'], $markupPatternsArray["endash"]); // function 'formatPageInfo()' is defined in 'cite.inc.php'
 //						}
 
-						if (!ereg("\. *$", $record))
+						if (!preg_match("/\. *$/", $record))
 							$record .= ".";
 					}
 

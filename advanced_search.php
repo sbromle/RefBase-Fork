@@ -1141,7 +1141,7 @@
 	// - the variable '$fileVisibility' (defined in 'ini.inc.php') is set to 'everyone'
 	// - the variable '$fileVisibility' is set to 'login' AND the user is logged in
 	// - the variable '$fileVisibility' is set to 'user-specific' AND the 'user_permissions' session variable contains 'allow_download'
-	if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))))
+	if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions']))))
 	{
 ?>
 
@@ -1806,7 +1806,7 @@
 	<td>
 		<select name="sortSelector1"><?php
 
-$sortSelector1DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems3); // select the 'author' menu entry ...
+$sortSelector1DropDownItems = preg_replace("/<option([^>]*)>/" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems3); // select the 'author' menu entry ...
 echo $sortSelector1DropDownItems . $dropDownItems4;
 ?>
 
@@ -1825,7 +1825,7 @@ echo $sortSelector1DropDownItems . $dropDownItems4;
 	<td>
 		<select name="sortSelector2"><?php
 
-$sortSelector2DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Year"], "<option\\1 selected>" . $loc["DropDownFieldName_Year"], $dropDownItems3); // select the 'year' menu entry ...
+$sortSelector2DropDownItems = preg_replace("/<option([^>]*)>/" . $loc["DropDownFieldName_Year"], "<option\\1 selected>" . $loc["DropDownFieldName_Year"], $dropDownItems3); // select the 'year' menu entry ...
 echo $sortSelector2DropDownItems . $dropDownItems4;
 ?>
 
@@ -1844,7 +1844,7 @@ echo $sortSelector2DropDownItems . $dropDownItems4;
 	<td>
 		<select name="sortSelector3"><?php
 
-$sortSelector3DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Publication"], "<option\\1 selected>" . $loc["DropDownFieldName_Publication"], $dropDownItems3); // select the 'publication' menu entry ...
+$sortSelector3DropDownItems = preg_replace("/<option([^>]*)>/" . $loc["DropDownFieldName_Publication"], "<option\\1 selected>" . $loc["DropDownFieldName_Publication"], $dropDownItems3); // select the 'publication' menu entry ...
 echo $sortSelector3DropDownItems . $dropDownItems4;
 ?>
 

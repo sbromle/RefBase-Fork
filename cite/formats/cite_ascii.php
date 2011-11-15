@@ -85,7 +85,7 @@
 
 		// For CLI queries, we'll allow paging thru the result set, i.e. we honour the values of the CLI options '-S|--start' ('$rowOffset')
 		// and '-R|--rows' ('$showRows') ('$rowOffset' and '$showRows' are re-assigned in function 'seekInMySQLResultsToOffset()' in 'include.inc.php')
-		if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
+		if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
 			$showMaxRows = $showRows; // show only rows up to the value given in '$showRows'
 		else
 			$showMaxRows = $rowsFound; // otherwise show all rows
@@ -111,7 +111,7 @@
 			if (!empty($record)) // unless the record buffer is empty...
 			{
 				// Print any section heading(s):
-				if (eregi("year|type", $citeOrder))
+				if (preg_match("/year|type/i", $citeOrder))
 				{
 					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, "", "", "", "\n\n", "", "\n\n"); // function 'generateSectionHeading()' is defined in 'cite.inc.php'
 
@@ -119,7 +119,7 @@
 				}
 
 				// Write plain TEXT paragraph:
-				if (eregi("^cli", $client)) // when outputting results to a command line client, we'll prefix the record with it's serial number (and it's user-specific cite key, if available)
+				if (preg_match("/^cli/i", $client)) // when outputting results to a command line client, we'll prefix the record with it's serial number (and it's user-specific cite key, if available)
 				{
 					// This is a stupid hack that maps the names of the '$row' array keys to those used
 					// by the '$formVars' array (which is required by function 'generateCiteKey()')
@@ -143,7 +143,7 @@
 			}
 		}
 
-		if (eregi("^cli", $client)) // when outputting results to a command line client, we'll append some info about the number of rows displayed/found, the database name/URL and optionally display the SQL query
+		if (preg_match("/^cli/i", $client)) // when outputting results to a command line client, we'll append some info about the number of rows displayed/found, the database name/URL and optionally display the SQL query
 		{
 			// Calculate the maximum result number on each page:
 			if (($rowOffset + $showRows) < $rowsFound)
@@ -158,7 +158,7 @@
 
 			$rowsFoundInfo = ($rowOffset + 1) . "-" . $showMaxRow . " of " . $rowsFound . $footerInfoPart; // prints e.g. "1-5 of 23 records found"
 
-			$rowsFoundDelimiter = ereg_replace(".", "-", $rowsFoundInfo); // generate a line of hyphens which has the same length as the string in '$rowsFoundInfo' (e.g. "-----------------------")
+			$rowsFoundDelimiter = preg_replace("/./", "-", $rowsFoundInfo); // generate a line of hyphens which has the same length as the string in '$rowsFoundInfo' (e.g. "-----------------------")
 
 			$plainTextData .= $rowsFoundDelimiter . "\n" . $rowsFoundInfo . "\n\n"; // append info about rows displayed/found
 

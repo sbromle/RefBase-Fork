@@ -75,7 +75,7 @@
 
 		// For CLI queries, we'll allow paging thru the result set, i.e. we honour the values of the CLI options '-S|--start' ('$rowOffset')
 		// and '-R|--rows' ('$showRows') ('$rowOffset' and '$showRows' are re-assigned in function 'seekInMySQLResultsToOffset()' in 'include.inc.php')
-		if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
+		if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
 			$showMaxRows = $showRows; // show only rows up to the value given in '$showRows'
 		else
 			$showMaxRows = $rowsFound; // otherwise show all rows
@@ -87,7 +87,7 @@
 
 		// NOTE: the "Vancouver" & "Harvard 1" citation styles make use of the '\ul' command which requires '\usepackage{soul}'
 		// TODO: figure out a better logic when to include the '\usepackage{soul}' statement (or should we simply always include it?)
-		if (eregi("^(Vancouver|Harvard 1)$", $citeStyle))
+		if (preg_match("/^(Vancouver|Harvard 1)$/i", $citeStyle))
 			$latexData .= "\\usepackage{soul}\n";
 
 		if ($contentTypeCharset == "UTF-8")
@@ -123,7 +123,7 @@
 			            . "\\maketitle\n\n";
 		}
 
-		if (!eregi("type|year", $citeOrder))
+		if (!preg_match("/type|year/i", $citeOrder))
 			$latexData .= "\\begin{thebibliography}{" . $showMaxRows . "}\n\n";
 
 
@@ -147,7 +147,7 @@
 			if (!empty($record)) // unless the record buffer is empty...
 			{
 				// Print any section heading(s):
-				if (eregi("year|type", $citeOrder))
+				if (preg_match("/year|type/i", $citeOrder))
 				{
 					list($yearsArray, $typeTitlesArray, $sectionHeading) = generateSectionHeading($yearsArray, $typeTitlesArray, $row, $citeOrder, "", "", "\\section*{", "}\n\n", "\\subsection*{", "}\n\n"); // function 'generateSectionHeading()' is defined in 'cite.inc.php'
 
@@ -161,7 +161,7 @@
 					$recordEncoded = searchReplaceText($transtab_latin1_latex, $record, false);
 
 				// Write LaTeX paragraph:
-				if (!eregi("type|year", $citeOrder))
+				if (!preg_match("/type|year/i", $citeOrder))
 				{
 					// This is a stupid hack that maps the names of the '$row' array keys to those used
 					// by the '$formVars' array (which is required by function 'generateCiteKey()')
@@ -187,7 +187,7 @@
 			}
 		}
 
-		if (!eregi("type|year", $citeOrder))
+		if (!preg_match("/type|year/i", $citeOrder))
 			$latexData .= "\\end{thebibliography}\n\n";
 
 		$latexData .= "\\end{document}\n\n";

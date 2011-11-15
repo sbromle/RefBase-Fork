@@ -58,7 +58,7 @@
 	<td class="small" align="center"><?php
 
 		// -------------------------------------------------------
-		if (isset($_SESSION['user_permissions']) AND ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
+		if (isset($_SESSION['user_permissions']) AND preg_match("/allow_sql_search/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
 		{
 		// ... include a link to 'sql_search.php':
 ?>
@@ -78,7 +78,7 @@
 		}
 
 		// -------------------------------------------------------
-		if (isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_details_view'...
+		if (isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_details_view'...
 		{
 		// ... include a link to 'show.php':
 ?>
@@ -88,7 +88,7 @@
 		}
 
 		// -------------------------------------------------------
-		if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite'...
+		if (isset($_SESSION['user_permissions']) AND preg_match("/allow_cite/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite'...
 		{
 		// ... include a link to 'extract.php':
 ?>

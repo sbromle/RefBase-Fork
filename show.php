@@ -68,7 +68,7 @@
 	// Note that for 'show.php' we don't accept any other display types than '', 'List', 'Display', 'Cite', 'Export' and 'Browse',
 	// if any other types were specified, we'll use the default view that's given in session variable 'userDefaultView'. Also note
 	// that the display type is changed further down below.
-	if (!empty($displayType) AND !eregi("^(List|Display|Cite|Export|Browse)$", $displayType))
+	if (!empty($displayType) AND !preg_match("/^(List|Display|Cite|Export|Browse)$/i", $displayType))
 		$displayType = "";
 
 	// Extract the view type requested by the user (either 'Mobile', 'Print', 'Web' or ''):
@@ -88,7 +88,7 @@
 	else
 		$showLinks = "1"; // show the links column by default
 
-	if (isset($_REQUEST['showRows']) AND ereg("^[0-9]+$", $_REQUEST['showRows'])) // NOTE: we cannot use "^[1-9]+[0-9]*$" here since 'maximumRecords=0' is used in 'opensearch.php' queries to return just the number of found records (and not the full record data)
+	if (isset($_REQUEST['showRows']) AND preg_match("/^[0-9]+$/", $_REQUEST['showRows'])) // NOTE: we cannot use "^[1-9]+[0-9]*$" here since 'maximumRecords=0' is used in 'opensearch.php' queries to return just the number of found records (and not the full record data)
 		$showRows = $_REQUEST['showRows']; // contains the desired number of search results (OpenSearch equivalent: '{count}')
 	else
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
@@ -121,7 +121,7 @@
 	// - 'Markdown' => return citations as Markdown TEXT data with mime type 'text/plain'
 	// - 'ASCII' => return citations as TEXT data with mime type 'text/plain'
 	// - 'LaTeX .bbl' => return citations as LaTeX .bbl file (for use with LaTeX/BibTeX) with mime type 'application/x-latex'
-	if (isset($_REQUEST['citeType']) AND eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $_REQUEST['citeType']))
+	if (isset($_REQUEST['citeType']) AND preg_match("/^(html|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$/i", $_REQUEST['citeType']))
 		$citeType = $_REQUEST['citeType'];
 	else
 		$citeType = "html";
@@ -138,7 +138,7 @@
 	// - 'rss' => return data with mime type 'application/rss+xml'
 	// - 'file' => return data as downloadable file
 	// - 'email' => send data as email (to the user's login email address)
-	if (isset($_REQUEST['exportType']) AND eregi("^(text|html|xml|rss|file|email)$", $_REQUEST['exportType']))
+	if (isset($_REQUEST['exportType']) AND preg_match("/^(text|html|xml|rss|file|email)$/i", $_REQUEST['exportType']))
 		$exportType = $_REQUEST['exportType']; // get export type
 	else
 		$exportType = "html";
@@ -197,13 +197,13 @@
 	if (isset($_REQUEST['records']))
 	{
 		// if the 'records' parameter is given, it's value must be either 'all' or any number(s) (or number ranges such as "123-141") delimited by any other characters than digits or hyphens:
-		if (eregi("^all$", $_REQUEST['records']))
+		if (preg_match("/^all$/i", $_REQUEST['records']))
 		{
 			// '.../show.php?records=all' is effectively a more nice looking variant of 'show.php?serial=%2E%2B&recordConditionalSelector=contains':
 			$serial = ".+"; // show all records
 			$recordConditionalSelector = "contains";
 		}
-		elseif (ereg("[0-9]", $_REQUEST['records'])) // show all records whose serial numbers match the given numbers (or number ranges)
+		elseif (preg_match("/[0-9]/", $_REQUEST['records'])) // show all records whose serial numbers match the given numbers (or number ranges)
 		{
 			// split on any character that's not a digit or a hyphen ("-"):
 			$recordSerialsArray = preg_split("/[^\d-]+/", $_REQUEST['records']);
@@ -259,7 +259,7 @@
 	else
 		$author = "";
 
-	if (isset($_REQUEST['without']) AND eregi("^dups$", $_REQUEST['without'])) // if given only 'dups' is currently recognized as value
+	if (isset($_REQUEST['without']) AND preg_match("/^dups$/i", $_REQUEST['without'])) // if given only 'dups' is currently recognized as value
 		$without = $_REQUEST['without']; // check whether duplicate records should be excluded ("without=dups" -> exclude duplicate records)
 	else
 		$without = "";
@@ -345,7 +345,7 @@
 	else								// IMPORTANT: We treat any 'call_number' query as specific to every user, i.e. a user can only query his own call numbers.
 		$callNumber = "";
 
-	if (isset($_REQUEST['userID']) AND ereg("^[0-9]+$", $_REQUEST['userID']))
+	if (isset($_REQUEST['userID']) AND preg_match("/^[0-9]+$/", $_REQUEST['userID']))
 		$userID = $_REQUEST['userID']; // when searching user specific fields (like the 'selected' or 'marked' field), this parameter specifies the user's user ID.
 									// I.e., the 'userID' parameter does only make sense when specified together with either the 'selected' or the 'marked' parameter. As an example,
 	else							// "show.php?author=...&selected=yes&userID=2" will show every record where the user who's identified by user ID "2" has set the selected bit to "yes".
@@ -531,7 +531,7 @@
 
 		$additionalFields = "";
 
-		if (eregi("^Cite$", $displayType))
+		if (preg_match("/^Cite$/i", $displayType))
 		{
 			// Note that the if clause below is very weak since it will break if "Text Citation" gets renamed or translated (when localized).
 			// Problem: The above mentioned 'verifySQLQuery()' function requires that 'selected' is the only user-specific field present in the SELECT or WHERE clause of the SQL query.
@@ -542,13 +542,13 @@
 			if (!empty($userID)) // if the 'userID' parameter was specified...
 				$additionalFields = "cite_key"; // add user-specific fields which are required in Citation view
 		}
-		elseif (!eregi("^Display$", $displayType)) // List view or Browse view
+		elseif (!preg_match("/^Display$/i", $displayType)) // List view or Browse view
 		{
 			if (!empty($recordIDSelector)) // if a record identifier (either 'serial', 'call_number' or 'cite_key') was entered via the 'show.php' web form
 				$additionalFields = escapeSQL($recordIDSelector); // display the appropriate column
 		}
 
-		if ((eregi("^Display$", $displayType)) AND (isset($_SESSION['lastDetailsViewQuery']))) // get SELECT clause from any previous Details view query:
+		if ((preg_match("/^Display$/i", $displayType)) AND (isset($_SESSION['lastDetailsViewQuery']))) // get SELECT clause from any previous Details view query:
 			$query = "SELECT " . extractSELECTclause($_SESSION['lastDetailsViewQuery']); // function 'extractSELECTclause()' is defined in 'include.inc.php'
 		else // generate new SELECT clause:
 			$query = buildSELECTclause($displayType, $showLinks, $additionalFields, false, false, "", $browseByField); // function 'buildSELECTclause()' is defined in 'include.inc.php'
@@ -571,12 +571,12 @@
 		if (!empty($serial)) // if the 'record' parameter is present:
 		{
 			// first, check if the user is allowed to display any record details:
-			if (eregi("^Display$", $displayType) AND isset($_SESSION['user_permissions']) AND !ereg("allow_details_view", $_SESSION['user_permissions'])) // no, the 'user_permissions' session variable does NOT contain 'allow_details_view'...
+			if (preg_match("/^Display$/i", $displayType) AND isset($_SESSION['user_permissions']) AND !preg_match("/allow_details_view/", $_SESSION['user_permissions'])) // no, the 'user_permissions' session variable does NOT contain 'allow_details_view'...
 			{
 				// return an appropriate error message:
 				$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForDisplayDetails"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-				if (!eregi("^cli", $client))
+				if (!preg_match("/^cli/i", $client))
 					header("Location: show.php"); // redirect back to 'show.php'
 
 				exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -717,7 +717,7 @@
 		{
 			$query .= connectConditionals();
 
-			if (eregi("^dups$", $without))
+			if (preg_match("/^dups$/i", $without))
 				$query .= " (orig_record IS NULL OR orig_record < 0)";
 		}
 
@@ -874,20 +874,20 @@
 
 		// If, for some odd reason, 'records=all' was passed together with other parameters (such as in '.../show.php?records=all&author=steffens') we'll remove again
 		// the generic WHERE clause part (i.e. ' serial RLIKE ".+"') from the query since its superfluous and would confuse other features (such as the "Seach within Results" functionality):
-		if (eregi('WHERE serial RLIKE "\.\+" AND', $query))
-			$query = eregi_replace('WHERE serial RLIKE "\.\+" AND', 'WHERE', $query); // remove superfluous generic WHERE clause
+		if (preg_match('/WHERE serial RLIKE "\.\+" AND/i', $query))
+			$query = preg_replace('/WHERE serial RLIKE "\.\+" AND/', 'WHERE', $query); // remove superfluous generic WHERE clause
 
-		elseif (eregi("WHERE$", $query)) // if still no WHERE clause was added (which is the case for URLs like 'show.php?submit=Browse&by=author')
+		elseif (preg_match("/WHERE$/i", $query)) // if still no WHERE clause was added (which is the case for URLs like 'show.php?submit=Browse&by=author')
 			$query .= " serial RLIKE \".+\""; // add generic WHERE clause
 
 
 		// Build GROUP BY clause:
-		if (eregi("^Browse$", $displayType))
+		if (preg_match("/^Browse$/i", $displayType))
 			$query .= " GROUP BY " . escapeSQL($browseByField); // for Browse view, group records by the chosen field
 
 
 		// Build ORDER BY clause:
-		if (eregi("^Browse$", $displayType))
+		if (preg_match("/^Browse$/i", $displayType))
 		{
 			$query .= " ORDER BY records DESC, " . escapeSQL($browseByField);
 		}
@@ -912,7 +912,7 @@
 
 				else // supply the default ORDER BY clause:
 				{
-					if (eregi("^Cite$", $displayType))
+					if (preg_match("/^Cite$/i", $displayType))
 						$query .= " ORDER BY first_author, author_count, author, year, title";
 					else
 						$query .= " ORDER BY author, year DESC, publication";

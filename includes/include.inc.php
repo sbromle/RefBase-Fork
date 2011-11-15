@@ -36,6 +36,24 @@
 	else // we assume "ISO-8859-1" by default
 		include_once 'includes/transtab_latin1_charset.inc.php'; // include latin1 character case conversion tables
 
+	// ----------------- Create wrapper to avoid deprecated ergi (etc) -----------
+	function eregi0($a,$b)
+	{
+		return (preg_match("/$a/i",$b));
+	}
+	function ereg0($a,$b)
+	{
+		return (preg_match("/$a/",$b));
+	}
+	function eregi_replace0($a,$b)
+	{
+		return (preg_replace("/$a/i",$b));
+	}
+	function ereg_replace0($a,$b)
+	{
+		return (preg_replace("/$a/",$b));
+	}
+
 	// --------------------------------------------------------------------
 
 	// Untaint user data:
@@ -5637,12 +5655,12 @@ EOF;
 		}
 
 		// supply generic 'WHERE' clause if it didn't exist in the SELECT query:
-		if (preg_match("/^SELECT/i", $sqlQuery) AND !preg_match("/ FROM /i" . $tableRefs . ".* WHERE ", $sqlQuery))
+		if (preg_match("/^SELECT/i", $sqlQuery) AND !preg_match("/ FROM " . $tableRefs . ".* WHERE /", $sqlQuery))
 			$sqlQuery = preg_replace("/(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", " WHERE serial RLIKE \".+\"", $sqlQuery, 1);
 
 		// supply generic 'ORDER BY' clause if it didn't exist in the SELECT query:
 		// TODO: - add a suitable 'ORDER BY' clause for Browse view and if '$citeOrder != "author"'
-		if (preg_match("/^SELECT/i", $sqlQuery) AND !preg_match("/ FROM /i" . $tableRefs . ".* ORDER BY ", $sqlQuery) AND ($displayType != "Browse"))
+		if (preg_match("/^SELECT/i", $sqlQuery) AND !preg_match("/ FROM " . $tableRefs . ".* ORDER BY /", $sqlQuery) AND ($displayType != "Browse"))
 			$sqlQuery = preg_replace("/(?= LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", " ORDER BY author, year DESC, publication", $sqlQuery, 1);
 
 		// handle the display & querying of user-specific fields:
@@ -5749,7 +5767,7 @@ EOF;
 		// note that, upon multiple warnings, only the last warning message will be displayed
 
 		// if the given '$field' is part of the SELECT or ORDER BY statement...
-		if (preg_match("/(SELECT |ORDER BY |, *)/i" . $field, $sqlQuery))
+		if (preg_match("/(SELECT |ORDER BY |, *)" . $field . "/i", $sqlQuery))
 		{
 			// if the 'SELECT' clause contains '$field':
 			if ($issueWarning AND (preg_match("/SELECT(.(?!FROM))+?" . $field . "/i", $sqlQuery)))
@@ -5759,8 +5777,8 @@ EOF;
 				$HeaderString = returnMsg("Display of '" . $field . "' field was omitted!", "warning", "strong", "HeaderString");
 			}
 
-			$sqlQuery = preg_replace("/(SELECT|ORDER BY) /i" . $field . "( DESC)?", "\\1 ", $sqlQuery); // ...delete '$field' from beginning of 'SELECT' or 'ORDER BY' clause
-			$sqlQuery = preg_replace("/, */i" . $field . "( DESC)?", "", $sqlQuery); // ...delete any other occurrences of '$field' from 'SELECT' or 'ORDER BY' clause
+			$sqlQuery = preg_replace("/(SELECT|ORDER BY) " . $field . "( DESC)?/", "\\1 ", $sqlQuery); // ...delete '$field' from beginning of 'SELECT' or 'ORDER BY' clause
+			$sqlQuery = preg_replace("/, *" . $field . "( DESC)?/i", "", $sqlQuery); // ...delete any other occurrences of '$field' from 'SELECT' or 'ORDER BY' clause
 			$sqlQuery = preg_replace("/(SELECT|ORDER BY) *, */i", "\\1 ", $sqlQuery); // ...remove any field delimiters that directly follow the 'SELECT' or 'ORDER BY' terms
 
 			$sqlQuery = preg_replace("/SELECT *(?=FROM)/i", buildSELECTclause("", "", "", false, false) . " ", $sqlQuery); // ...supply generic 'SELECT' clause if it did ONLY contain the given '$field'
@@ -5768,7 +5786,7 @@ EOF;
 		}
 
 		// if the given '$field' is part of the WHERE clause...
-		if (preg_match("/WHERE.+/i" . $field, $sqlQuery)) // this simple pattern works since we have already stripped any instance(s) of the given '$field' from the ORDER BY clause
+		if (preg_match("/WHERE.+" . $field . "/", $sqlQuery)) // this simple pattern works since we have already stripped any instance(s) of the given '$field' from the ORDER BY clause
 		{
 			// Note: in the patterns below we'll attempt to account for parentheses but this won't catch all cases!
 			$sqlQuery = preg_replace("/WHERE( *\( *?)* *" . $field . ".+?(?= (AND|OR)\b| ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", "WHERE\\1", $sqlQuery); // ...delete '$field' from 'WHERE' clause
@@ -6129,9 +6147,9 @@ EOF;
 
 		// Define inline text markup to be used by the 'citeRecord()' function:
 		$markupPatternsArray = array("bold-prefix"      => "<b>",
-		                             "bold-suffix"      => "</b>",
+		                             "bold-suffix"      => "<\/b>",
 		                             "italic-prefix"    => "<i>",
-		                             "italic-suffix"    => "</i>",
+		                             "italic-suffix"    => "</\i>",
 		                             "underline-prefix" => "<u>",
 		                             "underline-suffix" => "</u>",
 		                             "endash"           => "&#8211;",
