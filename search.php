@@ -112,12 +112,12 @@
 	// we need to check if the user is allowed to view records with the specified display type:
 	if ($displayType == "List")
 	{
-		if (isset($_SESSION['user_permissions']) AND !ereg("allow_list_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_list_view'...
+		if (isset($_SESSION['user_permissions']) AND !preg_match("/allow_list_view/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_list_view'...
 		{
 			// return an appropriate error message:
 			$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForDisplayColumns"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-			if (!eregi("^cli", $client))
+			if (!preg_match("/^cli/i", $client))
 				header("Location: index.php"); // redirect to main page ('index.php')
 
 			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -125,12 +125,12 @@
 	}
 	elseif ($displayType == "Display")
 	{
-		if (isset($_SESSION['user_permissions']) AND !ereg("allow_details_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_details_view'...
+		if (isset($_SESSION['user_permissions']) AND !preg_match("/allow_details_view/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_details_view'...
 		{
 			// return an appropriate error message:
 			$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForDisplayDetails"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-			if (!eregi("^cli", $client))
+			if (!preg_match("/^cli/i", $client))
 				header("Location: index.php"); // redirect to main page ('index.php')
 
 			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -138,14 +138,14 @@
 	}
 	elseif ($displayType == "Cite")
 	{
-		if (isset($_SESSION['user_permissions']) AND !ereg("allow_cite", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_cite'...
+		if (isset($_SESSION['user_permissions']) AND !preg_match("/allow_cite/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_cite'...
 		{
 			// return an appropriate error message:
 			$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForCite"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-			if (!eregi("^cli", $client))
+			if (!preg_match("/^cli/i", $client))
 			{
-				if (eregi("/extract\.php", $referer)) // if the query was submitted by 'extract.php' (variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php')
+				if (preg_match("/\/extract\.php/i", $referer)) // if the query was submitted by 'extract.php' (variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php')
 					header("Location: " . $referer); // redirect to calling page
 				else
 					header("Location: index.php"); // redirect to main page ('index.php')
@@ -156,19 +156,19 @@
 	}
 	elseif ($displayType == "Export")
 	{
-		if (isset($_SESSION['user_permissions']) AND !ereg("(allow_export|allow_batch_export)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_export' or 'allow_batch_export'...
+		if (isset($_SESSION['user_permissions']) AND !preg_match("/(allow_export|allow_batch_export)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_export' or 'allow_batch_export'...
 		{
 			// return an appropriate error message:
 			$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForExport"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-			if (!eregi("^cli", $client))
+			if (!preg_match("/^cli/i", $client))
 				header("Location: index.php"); // redirect to main page ('index.php')
 
 			exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		}
 	}
 
-	if ($formType == "sqlSearch" AND eregi("/sql_search\.php", $referer))
+	if ($formType == "sqlSearch" AND preg_match("/\/sql_search\.php/i", $referer))
 	{
 		// NOTES: - currently, we restrict this if clause to requests from 'sql_search.php'
 		//        - note that this if clause is in NO way fool-proof since it won't apply if:
@@ -191,14 +191,14 @@
 		// TODO: is there a way to disallow manual SQL searches (if the user has no permission to do so) which still allows searches from
 		//       'opensearch.php' & 'show.php' etc and which does not rely on any passed referrer?
 
-		if (isset($_SESSION['user_permissions']) AND !ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_sql_search'...
+		if (isset($_SESSION['user_permissions']) AND !preg_match("/allow_sql_search/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_sql_search'...
 		{
 			// return an appropriate error message:
 			$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForSQL"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-			if (!eregi("^cli", $client))
+			if (!preg_match("/^cli/i", $client))
 			{
-				if (eregi("/sql_search\.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php'
+				if (preg_match("/\/sql_search\.php/i", $referer)) // if the sql query was entered in the form provided by 'sql_search.php'
 					header("Location: " . $referer); // redirect to calling page
 				else
 					header("Location: index.php"); // redirect to main page ('index.php')
@@ -220,7 +220,7 @@
 		$sqlQuery = $_REQUEST['sqlQuery'];
 	else
 		$sqlQuery = "";
-	if (ereg("%20", $sqlQuery)) // if '$sqlQuery' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
+	if (preg_match("/%20/", $sqlQuery)) // if '$sqlQuery' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
 		$sqlQuery = rawurldecode($sqlQuery); // URL decode SQL query (it was URL encoded before incorporation into hidden tags of the 'groupSearch', 'refineSearch', 'displayOptions' and 'queryResults' forms to avoid any HTML syntax errors)
 											// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
 											//       But, opposed to that, URL encoded data that are included within a form by means of a hidden form tag will *NOT* get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
@@ -235,7 +235,7 @@
 	else
 		$showLinks = "1"; // show the links column by default
 
-	if (isset($_REQUEST['showRows']) AND ereg("^[0-9]+$", $_REQUEST['showRows'])) // NOTE: we cannot use "^[1-9]+[0-9]*$" here since 'maximumRecords=0' is used in 'opensearch.php' and 'sru.php' queries to return just the number of found records (and not the full record data)
+	if (isset($_REQUEST['showRows']) AND preg_match("/^[0-9]+$/", $_REQUEST['showRows'])) // NOTE: we cannot use "^[1-9]+[0-9]*$" here since 'maximumRecords=0' is used in 'opensearch.php' and 'sru.php' queries to return just the number of found records (and not the full record data)
 		$showRows = $_REQUEST['showRows'];
 	else
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
@@ -246,9 +246,9 @@
 		//       This was done, so that the correct offset could be re-applied after the user pressed either of the 'Add' or 'Remove' buttons.
 		//       However, '$rowOffset' MUST NOT be set if the user clicked the 'Display' or 'Cite' button within the 'queryResults' form!
 		//       Therefore, we'll trap this case here:
-		if (($formType != "queryResults") OR ($formType == "queryResults" AND !ereg("^(Display|Cite)$", $displayType)))
+		if (($formType != "queryResults") OR ($formType == "queryResults" AND !preg_match("/^(Display|Cite)$/", $displayType)))
 			$rowOffset = $_REQUEST['rowOffset'];
-		else // if ($formType == "queryResults" AND ereg("^(Display|Cite)$", $displayType))
+		else // if ($formType == "queryResults" AND preg_match("/^(Display|Cite)$/", $displayType))
 			$rowOffset = 0;
 	}
 	else
@@ -264,7 +264,7 @@
 		$citeStyle = $_REQUEST['citeStyle']; // get the cite style chosen by the user (only occurs in 'extract.php' form and in query result lists)
 	else
 		$citeStyle = $defaultCiteStyle; // if no cite style was given, we'll use the default cite style which is defined by the '$defaultCiteStyle' variable in 'ini.inc.php'
-	if (ereg("%20", $citeStyle)) // if '$citeStyle' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
+	if (preg_match("/%20/", $citeStyle)) // if '$citeStyle' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
 		$citeStyle = rawurldecode($citeStyle); // ...URL decode 'citeStyle' statement (it was URL encoded before incorporation into a hidden tag of the 'sqlSearch' form to avoid any HTML syntax errors)
 													// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
 													//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
@@ -273,25 +273,25 @@
 		$exportFormat = $_REQUEST['exportFormat']; // get the export format style chosen by the user (only occurs in 'extract.php' form and in query result lists)
 	else
 		$exportFormat = $defaultExportFormat; // if no export format was given, we'll use the default export format which is defined by the '$defaultExportFormat' variable in 'ini.inc.php'
-	if (ereg("%20", $exportFormat)) // if '$exportFormat' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
+	if (preg_match("/%20/", $exportFormat)) // if '$exportFormat' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
 		$exportFormat = rawurldecode($exportFormat); // ...URL decode 'exportFormat' statement (it was URL encoded before incorporation into a hidden tag of the 'sqlSearch' form to avoid any HTML syntax errors)
 													// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
 													//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
 	// Standardize XML export format names:
 	// NOTE: the below regex patterns are potentially too lax and might cause misbehaviour in case any custom export formats have been added
-	if (eregi("^Atom", $exportFormat))
+	if (preg_match("/^Atom/i", $exportFormat))
 		$exportFormat = "Atom XML";
-	elseif (eregi("^MODS", $exportFormat))
+	elseif (preg_match("/^MODS/i", $exportFormat))
 		$exportFormat = "MODS XML";
-	elseif (eregi("^(OAI_)?DC", $exportFormat))
+	elseif (preg_match("/^(OAI_)?DC/i", $exportFormat))
 		$exportFormat = "OAI_DC XML";
-	elseif (eregi("^ODF", $exportFormat))
+	elseif (preg_match("/^ODF/i", $exportFormat))
 		$exportFormat = "ODF XML";
-	elseif (eregi("^SRW_DC", $exportFormat))
+	elseif (preg_match("/^SRW_DC/i", $exportFormat))
 		$exportFormat = "SRW_DC XML";
-	elseif (eregi("^SRW", $exportFormat))
+	elseif (preg_match("/^SRW/i", $exportFormat))
 		$exportFormat = "SRW_MODS XML";
-	elseif (eregi("^Word", $exportFormat))
+	elseif (preg_match("/^Word/i", $exportFormat))
 		$exportFormat = "Word XML";
 
 	if (isset($_REQUEST['citeOrder']))
@@ -307,7 +307,7 @@
 	// - 'Markdown' => return citations as Markdown TEXT data with mime type 'text/plain'
 	// - 'ASCII' => return citations as TEXT data with mime type 'text/plain'
 	// - 'LaTeX .bbl' => return citations as LaTeX .bbl file (for use with LaTeX/BibTeX) with mime type 'application/x-latex'
-	if (isset($_REQUEST['citeType']) AND eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $_REQUEST['citeType']) AND !eregi("^(Add|Remove)$", $displayType)) // we always return HTML if the user clicked either the 'Add' or the 'Remove' button
+	if (isset($_REQUEST['citeType']) AND preg_match("/^(html|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$/i", $_REQUEST['citeType']) AND !preg_match("/^(Add|Remove)$/i", $displayType)) // we always return HTML if the user clicked either the 'Add' or the 'Remove' button
 		$citeType = $_REQUEST['citeType'];
 	else
 		$citeType = "html";
@@ -319,7 +319,7 @@
 	// - 'rss' => return data with mime type 'application/rss+xml'
 	// - 'file' => return data as downloadable file
 	// - 'email' => send data as email (to the user's login email address)
-	if (isset($_REQUEST['exportType']) AND eregi("^(text|html|xml|rss|file|email)$", $_REQUEST['exportType']))
+	if (isset($_REQUEST['exportType']) AND preg_match("/^(text|html|xml|rss|file|email)$/i", $_REQUEST['exportType']))
 		$exportType = $_REQUEST['exportType'];
 	else
 		$exportType = "html";
@@ -333,7 +333,7 @@
 		$orderBy = $_REQUEST['orderBy']; // extract the current ORDER BY parameter so that it can be re-applied when displaying details (only occurs in query result lists)
 	else
 		$orderBy = "";
-	if (ereg("%20", $orderBy)) // if '$orderBy' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
+	if (preg_match("/%20/", $orderBy)) // if '$orderBy' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
 		$orderBy = rawurldecode($orderBy); // ...URL decode 'orderBy' statement (it was URL encoded before incorporation into a hidden tag of the 'queryResults' form to avoid any HTML syntax errors)
 										// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
 										//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
@@ -348,7 +348,7 @@
 						//       publications can include the appropriate owner information (it will show up as header message)
 	else
 		$headerMsg = "";
-	if (ereg("%20", $headerMsg)) // if '$headerMsg' still contains URL encoded data... ('%20' is the URL encoded form of a space, see notes above!)
+	if (preg_match("/%20/", $headerMsg)) // if '$headerMsg' still contains URL encoded data... ('%20' is the URL encoded form of a space, see notes above!)
 		$headerMsg = rawurldecode($headerMsg); // ...URL decode 'headerMsg' statement (it was URL encoded before incorporation into a hidden tag of the 'displayOptions' form to avoid any HTML syntax errors)
 
 	if (!empty($headerMsg))
@@ -376,7 +376,7 @@
 		$recordsSelectionRadio = "1"; // process ALL records
 
 	// check if the user did mark any checkboxes (and set up variables accordingly, they will be used within the 'displayDetails()', 'generateCitations()' and 'modifyUserGroups()' functions)
-	if (eregi("[/_]search\.php", $referer) AND ($recordsSelectionRadio == "0") AND empty($recordSerialsArray)) // the "Selected Records" option was chosen, but NO checkboxes were marked
+	if (preg_match("/[\/_]search\.php/i", $referer) AND ($recordsSelectionRadio == "0") AND empty($recordSerialsArray)) // the "Selected Records" option was chosen, but NO checkboxes were marked
 		$nothingChecked = true;
 	else // the "All Found Records" option was chosen -OR- the "Selected Records" option was chosen and some checkboxes were marked -OR- the query resulted from another script like 'opensearch.php', 'show.php' or 'rss.php' (which has no checkboxes to mark!)
 		$nothingChecked = false;
@@ -409,7 +409,7 @@
 	//		 GRANT SELECT,INSERT,UPDATE,DELETE ON MYSQL_DATABASE_NAME_GOES_HERE.* TO MYSQL_USER_NAME_GOES_HERE@localhost IDENTIFIED BY 'MYSQL_PASSWORD_GOES_HERE';
 
 	// if the SQL query isn't build from scratch but is accepted from user input (which is the case for the forms 'sqlSearch', 'duplicateSearch' and 'refineSearch'):
-	if (!empty($sqlQuery) AND eregi("(sql|duplicate|refine)Search", $formType)) // the user used 'sql_search.php', 'duplicate_search.php' -OR- the "Search within Results" form above the query results list (that was produced by 'search.php')
+	if (!empty($sqlQuery) AND preg_match("/(sql|duplicate|refine)Search/i", $formType)) // the user used 'sql_search.php', 'duplicate_search.php' -OR- the "Search within Results" form above the query results list (that was produced by 'search.php')
 	{
 		if ((!isset($loginEmail)) OR ((isset($loginEmail)) AND ($loginEmail != $adminLoginEmail))) // if the user isn't logged in -OR- any normal user is logged in...
 		{
@@ -417,7 +417,7 @@
 			$forbiddenSQLCommandsArray = array("DROP DATABASE", "DROP TABLE"); // the refbase MySQL user shouldn't have permissions for these commands anyhow, but by listing & checking for them here, we can return a more appropriate error message
 
 			// ...and the user did use anything other than a SELECT query:
-			if (!eregi("^SELECT", $sqlQuery) OR eregi(join("|", $forbiddenSQLCommandsArray), $sqlQuery))
+			if (!preg_match("/^SELECT/i", $sqlQuery) OR preg_match("/" . join("|", $forbiddenSQLCommandsArray) . "/i", $sqlQuery))
 			{
 				$notPermitted = true;
 				$HeaderString = $loc["NoPermission_ForSQLOtherThanSELECT"] . "!";
@@ -437,9 +437,9 @@
 		// return an appropriate error message:
 		$HeaderString = returnMsg($HeaderString, "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-		if (!eregi("^cli", $client))
+		if (!preg_match("/^cli/i", $client))
 		{
-			if (eregi("/(sql|duplicate)_search\.php", $referer)) // if the sql query was entered in the form provided by 'sql_search.php' or 'duplicate_search.php'
+			if (preg_match("/\/(sql|duplicate)_search\.php/i", $referer)) // if the sql query was entered in the form provided by 'sql_search.php' or 'duplicate_search.php'
 				header("Location: " . $referer); // relocate back to the calling page
 			else // if the user didn't come from 'sql_search.php' or 'duplicate_search.php' (e.g., if he attempted to hack parameters of a GET query directly)
 				header("Location: index.php"); // relocate back to the main page
@@ -550,9 +550,9 @@
 	// --------------------------------------------------------------------
 
 	// this is to support the '$fileVisibilityException' feature from 'ini.inc.php':
-	if (eregi("^SELECT", $query) AND ($displayType != "Browse") AND !empty($fileVisibilityException) AND !preg_match("/SELECT.+$fileVisibilityException[0].+FROM/i", $query)) // restrict adding of columns to SELECT queries (so that 'DELETE FROM refs ...' statements won't get modified as well);
+	if (preg_match("/^SELECT/i", $query) AND ($displayType != "Browse") AND !empty($fileVisibilityException) AND !preg_match("/SELECT.+$fileVisibilityException[0].+FROM/i", $query)) // restrict adding of columns to SELECT queries (so that 'DELETE FROM refs ...' statements won't get modified as well);
 	{
-		$query = eregi_replace("(, orig_record)?(, serial)?(, file, url, doi, isbn, type)? FROM $tableRefs", ", $fileVisibilityException[0]\\1\\2\\3 FROM $tableRefs",$query); // add column that's given in '$fileVisibilityException'
+		$query = preg_replace("/(, orig_record)?(, serial)?(, file, url, doi, isbn, type)? FROM $tableRefs/i", ", $fileVisibilityException[0]\\1\\2\\3 FROM $tableRefs",$query); // add column that's given in '$fileVisibilityException'
 		$addCounterMax = 1; // this will ensure that the added column won't get displayed within the 'displayColumns()' and 'displayDetails()' functions
 	}
 	else
@@ -587,21 +587,21 @@
 	// (4a) DISPLAY header:
 	// First, build the appropriate SQL query in order to embed it into the 'your query' URL:
 	if ($showLinks == "1")
-		$query = eregi_replace(", file, url, doi, isbn, type FROM $tableRefs"," FROM $tableRefs",$query); // strip 'file', 'url', 'doi', 'isbn' & 'type columns from SQL query
+		$query = preg_replace("/, file, url, doi, isbn, type FROM $tableRefs/i"," FROM $tableRefs",$query); // strip 'file', 'url', 'doi', 'isbn' & 'type columns from SQL query
 
-	$query = eregi_replace(", serial FROM $tableRefs"," FROM $tableRefs",$query); // strip 'serial' column from SQL query
+	$query = preg_replace("/, serial FROM $tableRefs/i"," FROM $tableRefs",$query); // strip 'serial' column from SQL query
 
-	$query = eregi_replace(", orig_record FROM $tableRefs"," FROM $tableRefs",$query); // strip 'orig_record' column from SQL query
+	$query = preg_replace("/, orig_record FROM $tableRefs/i"," FROM $tableRefs",$query); // strip 'orig_record' column from SQL query
 
 	if (!empty($fileVisibilityException))
-		$query = eregi_replace(", $fileVisibilityException[0] FROM $tableRefs"," FROM $tableRefs",$query); // strip column that's given in '$fileVisibilityException' (defined in 'ini.inc.php')
+		$query = preg_replace("/, $fileVisibilityException[0] FROM $tableRefs/"," FROM $tableRefs",$query); // strip column that's given in '$fileVisibilityException' (defined in 'ini.inc.php')
 
-	if (ereg("(simple|advanced|library|quick)Search", $formType)) // if $formType is "simpleSearch", "advancedSearch", "librarySearch" or "quickSearch" and there is more than one WHERE clause (indicated by '...AND...'):
-		$query = eregi_replace('WHERE serial RLIKE "\.\+" AND','WHERE',$query); // strip first WHERE clause (which was added only due to an internal workaround)
+	if (preg_match("/(simple|advanced|library|quick)Search/", $formType)) // if $formType is "simpleSearch", "advancedSearch", "librarySearch" or "quickSearch" and there is more than one WHERE clause (indicated by '...AND...'):
+		$query = preg_replace('/WHERE serial RLIKE "\.\+" AND/i','WHERE',$query); // strip first WHERE clause (which was added only due to an internal workaround)
 
 	$queryURL = rawurlencode($query); // URL encode SQL query
 
-	if (!eregi("^SELECT", $query)) // for queries other than SELECT queries (e.g. UPDATE, DELETE or INSERT queries that were executed by the admin via use of 'sql_search.php')
+	if (!preg_match("/^SELECT/i", $query)) // for queries other than SELECT queries (e.g. UPDATE, DELETE or INSERT queries that were executed by the admin via use of 'sql_search.php')
 		$affectedRows = ($result ? mysql_affected_rows ($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
 
 	// If the previous query (which is stored in the 'oldQuery' session variable) is different
@@ -628,7 +628,7 @@
 	// Second, save the generated query to a session variable:
 	// NOTE: we exclude queries for export formats & citation formats other than HTML
 	//       (otherwise the history list would contain links to non-HTML content such as RTF or BibTeX files)
-	if (($displayType != "Export") AND eregi("^html$", $citeType))
+	if (($displayType != "Export") AND preg_match("/^html$/i", $citeType))
 	{
 		$queryParametersArray = array("sqlQuery"         => $query,
 		                              "client"           => $client,
@@ -660,14 +660,14 @@
 	// If the current result set contains multiple records, we save the generated query URL to yet another session variable:
 	// (after a record has been successfully added/edited/deleted, this query will be included as a link ["Display previous search results"] in the feedback header message
 	//  if the SQL query in 'oldQuery' is different from that one stored in 'oldMultiRecordQuery', i.e. if 'oldQuery' points to a single record)
-	if (($rowsFound > 1) AND ($displayType != "Export") AND eregi("^html$", $citeType)) // as above, we exclude queries for export formats & citation formats other than HTML
+	if (($rowsFound > 1) AND ($displayType != "Export") AND preg_match("/^html$/i", $citeType)) // as above, we exclude queries for export formats & citation formats other than HTML
 		saveSessionVariable("oldMultiRecordQuery", $queryParametersArray);
 
 	// Fourth, setup an array of arrays holding URL and title information for all RSS/Atom feeds available on this page:
 	// (appropriate <link...> tags will be included in the HTML header for every URL specified)
 	$rssURLArray = array();
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_rss_feeds/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
 	{
 		// ...extract the 'WHERE' clause from the SQL query to include it within the feed URL:
 		$queryWhereClause = extractWHEREclause($query); // function 'extractWHEREclause()' is defined in 'include.inc.php'
@@ -696,7 +696,7 @@
 		}
 		else // provide the default message:
 		{
-			if (eregi("^SELECT", $query)) // for SELECT queries:
+			if (preg_match("/^SELECT/i", $query)) // for SELECT queries:
 			{
 				if ($rowsFound == 1)
 				{
@@ -715,7 +715,7 @@
 
 				$HeaderStringPart .= "found matching ";
 
-				if (isset($_SESSION['user_permissions']) AND ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
+				if (isset($_SESSION['user_permissions']) AND preg_match("/allow_sql_search/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
 					// ...generate a link to 'sql_search.php' with a custom SQL query that matches the current result set & display options:
 					$HeaderString = $HeaderStringPart
 					              . "<a href=\"sql_search.php?customQuery=1"
@@ -733,7 +733,7 @@
 				// add query links:
 				$queryLinksArray = array();
 
-				if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_queries", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_queries'...
+				if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_user_queries/", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_queries'...
 				{
 					// ...we'll show a link to save the current query:
 					$queryLinksArray[] = "<a href=\"query_manager.php?customQuery=1"
@@ -748,7 +748,7 @@
 					                   . "\"" . addAccessKey("attribute", "save_query") . " title=\"save your current query" . addAccessKey("title", "save_query") . "\">save</a>";
 				}
 
-				if (isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
+				if (isset($_SESSION['user_permissions']) AND preg_match("/allow_rss_feeds/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_rss_feeds'...
 				{
 					// ...we'll display a link that will generate a dynamic RSS feed for the current query:
 					$queryLinksArray[] = "<a href=\"" . $rssURL . "\" title=\"track newly added records matching your current query by subscribing to this RSS feed\">RSS</a>";
@@ -824,11 +824,11 @@
 	// Now, show the login status:
 	showLogin(); // function 'showLogin()' is defined in 'include.inc.php'
 
-	if (!eregi("^cli", $client) AND ($wrapResults != "0") AND (!(($displayType == "Cite") AND (!eregi("^html$", $citeType))) OR ($rowsFound == 0))) // we exclude the HTML page header for citation formats other than HTML if something was found
+	if (!preg_match("/^cli/i", $client) AND ($wrapResults != "0") AND (!(($displayType == "Cite") AND (!preg_match("/^html$/i", $citeType))) OR ($rowsFound == 0))) // we exclude the HTML page header for citation formats other than HTML if something was found
 	{
 		// Then, call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Query Results", "index,follow", "Results from the " . encodeHTML($officialDatabaseName), "", true, "", $viewType, $rssURLArray);
-		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^inc", $client))) // Note: we omit the visible header in print/mobile view ('viewType=Print' or 'viewType=Mobile') and for include mechanisms!
+		if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^inc/i", $client))) // Note: we omit the visible header in print/mobile view ('viewType=Print' or 'viewType=Mobile') and for include mechanisms!
 			showPageHeader($HeaderString);
 	}
 
@@ -867,10 +867,10 @@
 
 		global $client;
 
-		if (eregi(".+LIMIT *[0-9]+",$query)) // query does contain the 'LIMIT' parameter
-			$orderBy = eregi_replace(".+ORDER BY (.+) LIMIT.+","\\1",$query); // extract 'ORDER BY'... parameter (without including any 'LIMIT' parameter)
+		if (preg_match("/.+LIMIT *[0-9]+/i",$query)) // query does contain the 'LIMIT' parameter
+			$orderBy = preg_replace("/.+ORDER BY (.+) LIMIT.+/i","\\1",$query); // extract 'ORDER BY'... parameter (without including any 'LIMIT' parameter)
 		else // query does not contain the 'LIMIT' parameter
-			$orderBy = eregi_replace(".+ORDER BY (.+)","\\1",$query); // extract 'ORDER BY'... parameter
+			$orderBy = preg_replace("/.+ORDER BY (.+)/i","\\1",$query); // extract 'ORDER BY'... parameter
 
 		if (($formType != "queryResults") OR (($formType == "queryResults") AND !($nothingChecked))) // some checkboxes were marked within the 'queryResults' form (or the request stems from a different script without checkboxes)
 		{
@@ -906,10 +906,10 @@
 
 
 				// Note: we omit the results header, browse links & query form for CLI clients, and when outputting only a partial document structure ('wrapResults=0')
-				if (!eregi("^cli", $client) AND ($wrapResults != "0"))
+				if (!preg_match("/^cli/i", $client) AND ($wrapResults != "0"))
 				{
 					// Note: we also omit the results header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
-					if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
+					if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
 					{
 						if ($displayType == "Browse")
 							$selectedField = preg_replace("/^SELECT (\w+).*/i","\\1", $query); // extract the field that's currently used in Browse view (so that we can re-select it in the drop-downs of the 'refineSearch' and 'displayOptions' forms)
@@ -963,7 +963,7 @@
 
 
 					// 4) Start a FORM
-					if ((!eregi("^Print$", $viewType)) AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+					if ((!preg_match("/^Print$/i", $viewType)) AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 					{
 						echo "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
 						   . "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
@@ -988,7 +988,7 @@
 				echo "\n<tr>";
 
 				// ... print a marker ('x') column (which will hold the checkboxes within the results part)
-				if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
+				if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
 					echo "\n\t<th align=\"left\" valign=\"top\">&nbsp;</th>";
 
 				// for each of the attributes in the result set...
@@ -1041,7 +1041,7 @@
 					echo "\n<tr class=\"" . $rowClass . "\">";
 
 					// ... print a column with a checkbox
-					if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
+					if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
 					{
 						echo "\n\t<td align=\"center\" valign=\"top\" width=\"10\">";
 
@@ -1085,8 +1085,8 @@
 
 						if (!empty($row[$i]))
 						{
-							if (ereg("^(thesis|approved|marked|copy|selected)$", $orig_fieldname)) // for the fields 'thesis', 'approved', 'marked', 'copy' and 'selected', we'll use localized field values (e.g., in case of german we display 'ja' instead of 'yes', etc)
-								$encodedRowAttribute = ereg_replace(".+", $loc[$row[$i]], $row[$i]); // note that the locales in '$loc' are already HTML encoded
+							if (preg_match("/^(thesis|approved|marked|copy|selected)$/i", $orig_fieldname)) // for the fields 'thesis', 'approved', 'marked', 'copy' and 'selected', we'll use localized field values (e.g., in case of german we display 'ja' instead of 'yes', etc)
+								$encodedRowAttribute = preg_replace("/.+/", $loc[$row[$i]], $row[$i]); // note that the locales in '$loc' are already HTML encoded
 							else
 								$encodedRowAttribute = encodeHTML($row[$i]); // HTML encode higher ASCII characters (we write the data into a new variable since we still need unencoded data when including them into a link for Browse view)
 						}
@@ -1123,7 +1123,7 @@
 					{
 						// ...extract the 'WHERE' clause from the SQL query to include it within the link URL:
 						$queryWhereClause = extractWHEREclause($query); // function 'extractWHEREclause()' is defined in 'include.inc.php'
-						$queryWhereClause = eregi_replace('^serial RLIKE "\.\+"','',$queryWhereClause); // strip generic WHERE clause if present
+						$queryWhereClause = preg_replace('/^serial RLIKE "\.\+"/i','',$queryWhereClause); // strip generic WHERE clause if present
 
 						// Construct the SQL query:
 						// TODO: build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
@@ -1171,7 +1171,7 @@
 
 				// BEGIN RESULTS FOOTER --------------------
 				// Note: we omit the results footer, browse links & query form in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
-				if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0"))
+				if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0"))
 				{
 					// Again, insert the (already constructed) BROWSE LINKS
 					// (i.e., a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages)
@@ -1180,7 +1180,7 @@
 					// Build a results footer with form elements to cite, group or export all/selected records:
 					if (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 					{
-						if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_cite|allow_user_groups|allow_export|allow_batch_export)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_cite|allow_export|allow_batch_export", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
+						if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND preg_match("/(allow_cite|allow_user_groups|allow_export|allow_batch_export)/", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND preg_match("/allow_cite|allow_export|allow_batch_export/", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
 							// ...Insert a divider line (which separates the results data from the forms in the footer):
 							echo "\n<hr class=\"resultsfooter\" align=\"center\" width=\"93%\">";
 
@@ -1192,7 +1192,7 @@
 				// END RESULTS FOOTER ----------------------
 
 				// Finally, finish the form
-				if ((!eregi("^Print$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+				if ((!preg_match("/^Print$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 					echo "\n</form>";
 			}
 			else
@@ -1265,10 +1265,10 @@
 
 
 				// Note: we omit the results header, browse links & query form for CLI clients, and when outputting only a partial document structure ('wrapResults=0')
-				if (!eregi("^cli", $client) AND ($wrapResults != "0"))
+				if (!preg_match("/^cli/i", $client) AND ($wrapResults != "0"))
 				{
 					// Note: we also omit the results header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
-					if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
+					if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!isset($displayResultsHeaderDefault[$displayType]) OR (isset($displayResultsHeaderDefault[$displayType]) AND ($displayResultsHeaderDefault[$displayType] != "hidden"))))
 					{
 						// Extract the first field from the 'WHERE' clause:
 						if (preg_match("/ WHERE [ ()]*(\w+)/i", $query))
@@ -1329,7 +1329,7 @@
 
 
 					// 4) Start a FORM
-					if ((!eregi("^Print$", $viewType)) AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+					if ((!preg_match("/^Print$/i", $viewType)) AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 					{
 						echo "\n<form action=\"search.php\" method=\"GET\" name=\"queryResults\">"
 						   . "\n<input type=\"hidden\" name=\"formType\" value=\"queryResults\">"
@@ -1354,7 +1354,7 @@
 				echo "\n<tr>";
 
 				// ... print a marker ('x') column (which will hold the checkboxes within the results part)
-				if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
+				if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
 					echo "\n\t<th align=\"left\" valign=\"top\">&nbsp;</th>";
 
 				// ... print a record header
@@ -1395,11 +1395,11 @@
 							$orig_fieldname = getMySQLFieldInfo($result, $i, "name"); // function 'getMySQLFieldInfo()' is defined in 'include.inc.php'
 
 							// for all the fields specified (-> all fields to the left):
-							if (ereg("^(author|title|year|volume|corporate_author|address|keywords|abstract|publisher|language|series_editor|series_volume|issn|area|notes|location|call_number|marked|user_keys|user_notes|user_groups|created_date|modified_date)$", $orig_fieldname))
+							if (preg_match("/^(author|title|year|volume|corporate_author|address|keywords|abstract|publisher|language|series_editor|series_volume|issn|area|notes|location|call_number|marked|user_keys|user_notes|user_groups|created_date|modified_date)$/", $orig_fieldname))
 								{
 									$recordData .= "\n<tr>"; // ...start a new TABLE row
 
-									if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
+									if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0")) // Note: we omit the marker column in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
 									{
 										if ($i == 0) // ... print a column with a checkbox if it's the first row of attribute data:
 											$recordData .= "\n\t<td align=\"left\" valign=\"top\" width=\"10\"><input type=\"checkbox\" onclick=\"updateAllRecs();\" name=\"marked[]\" value=\"" . $row["serial"] . "\" title=\"" . $loc["selectRecord"] . "\"></td>";
@@ -1410,12 +1410,12 @@
 
 							// ... and print out each of the ATTRIBUTE NAMES:
 							// in that row as a bold link...
-							if (ereg("^(author|title|type|year|publication|abbrev_journal|volume|issue|pages|call_number|serial)$", $orig_fieldname)) // print a colored background (grey, by default)
+							if (preg_match("/^(author|title|type|year|publication|abbrev_journal|volume|issue|pages|call_number|serial)$/", $orig_fieldname)) // print a colored background (grey, by default)
 								{
 									$HTMLbeforeLink = "\n\t<td valign=\"top\" width=\"75\" class=\"mainfieldsbg\"><b>"; // start the (bold) TD tag
 									$HTMLafterLink = "</b></td>"; // close the (bold) TD tag
 								}
-							elseif (ereg("^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key)$", $orig_fieldname)) // print a colored background (light orange, by default) for all the user specific fields
+							elseif (preg_match("/^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key)$/", $orig_fieldname)) // print a colored background (light orange, by default) for all the user specific fields
 								{
 									$HTMLbeforeLink = "\n\t<td valign=\"top\" width=\"75\" class=\"userfieldsbg\"><b>"; // start the (bold) TD tag
 									$HTMLafterLink = "</b></td>"; // close the (bold) TD tag
@@ -1431,41 +1431,41 @@
 
 							// print the ATTRIBUTE DATA:
 							// first, calculate the correct colspan value for all the fields specified:
-							if (ereg("^(author|address|keywords|abstract|location|user_keys)$", $orig_fieldname))
+							if (preg_match("/^(author|address|keywords|abstract|location|user_keys)$/", $orig_fieldname))
 								$ColspanFields = 5; // supply an appropriate colspan value
-							elseif (ereg("^(title|corporate_author|notes|call_number|user_notes|user_groups)$", $orig_fieldname))
+							elseif (preg_match("/^(title|corporate_author|notes|call_number|user_notes|user_groups)$/", $orig_fieldname))
 								$ColspanFields = 3; // supply an appropriate colspan value
 
 							// then, start the TD tag, for all the fields specified:
-							if (ereg("^(author|title|corporate_author|address|keywords|abstract|notes|location|call_number|user_keys|user_notes|user_groups)$", $orig_fieldname)) // WITH colspan attribute:
-								if (ereg("^(author|title|call_number)$", $orig_fieldname)) // print a colored background (grey, by default)
+							if (preg_match("/^(author|title|corporate_author|address|keywords|abstract|notes|location|call_number|user_keys|user_notes|user_groups)$/", $orig_fieldname)) // WITH colspan attribute:
+								if (preg_match("/^(author|title|call_number)$/", $orig_fieldname)) // print a colored background (grey, by default)
 									$recordData .= "\n\t<td valign=\"top\" colspan=\"$ColspanFields\" class=\"mainfieldsbg\">"; // ...with colspan attribute & appropriate value
-								elseif (ereg("^(user_keys|user_notes|user_file|user_groups)$", $orig_fieldname)) // print a colored background (light orange, by default) for all the user specific fields
+								elseif (preg_match("/^(user_keys|user_notes|user_file|user_groups)$/", $orig_fieldname)) // print a colored background (light orange, by default) for all the user specific fields
 									$recordData .= "\n\t<td valign=\"top\" colspan=\"$ColspanFields\" class=\"userfieldsbg\">"; // ...with colspan attribute & appropriate value
 								else // no colored background (by default)
 									$recordData .= "\n\t<td valign=\"top\" colspan=\"$ColspanFields\" class=\"otherfieldsbg\">"; // ...with colspan attribute & appropriate value
 
 							else // for all other fields WITHOUT colspan attribute:
-								if (ereg("^(type|year|publication|abbrev_journal|volume|issue|pages|serial)$", $orig_fieldname)) // print a colored background (grey, by default)
+								if (preg_match("/^(type|year|publication|abbrev_journal|volume|issue|pages|serial)$/", $orig_fieldname)) // print a colored background (grey, by default)
 									$recordData .= "\n\t<td valign=\"top\" class=\"mainfieldsbg\">"; // ...without colspan attribute
-								elseif (ereg("^(marked|copy|selected|user_file|cite_key)$", $orig_fieldname)) // print a colored background (light orange, by default) for all the user specific fields
+								elseif (preg_match("/^(marked|copy|selected|user_file|cite_key)$/", $orig_fieldname)) // print a colored background (light orange, by default) for all the user specific fields
 									$recordData .= "\n\t<td valign=\"top\" class=\"userfieldsbg\">"; // ...without colspan attribute
 								else // no colored background (by default)
 									$recordData .= "\n\t<td valign=\"top\" class=\"otherfieldsbg\">"; // ...without colspan attribute
 
-							if (ereg("^(author|title|year)$", $orig_fieldname)) // print author, title & year fields in bold
+							if (preg_match("/^(author|title|year)$/", $orig_fieldname)) // print author, title & year fields in bold
 								$recordData .= "<b>";
 
 							if (!empty($row[$i]))
 							{
-								if (ereg("^(thesis|approved|marked|copy|selected)$", $orig_fieldname)) // for the fields 'thesis', 'approved', 'marked', 'copy' and 'selected', we'll use localized field values (e.g., in case of german we display 'ja' instead of 'yes', etc)
-									$row[$i] = ereg_replace(".+", $loc[$row[$i]], $row[$i]); // note that the locales in '$loc' are already HTML encoded
+								if (preg_match("/^(thesis|approved|marked|copy|selected)$/", $orig_fieldname)) // for the fields 'thesis', 'approved', 'marked', 'copy' and 'selected', we'll use localized field values (e.g., in case of german we display 'ja' instead of 'yes', etc)
+									$row[$i] = preg_replace("/.+/", $loc[$row[$i]], $row[$i]); // note that the locales in '$loc' are already HTML encoded
 								else
 									$row[$i] = encodeHTML($row[$i]); // HTML encode higher ASCII characters
 							}
 
-							if (ereg("^abstract$", $orig_fieldname)) // for the 'abstract' field, transform newline ('\n') characters into <br> tags
-								$row[$i] = ereg_replace("\n", "<br>", $row[$i]);
+							if (preg_match("/^abstract$/i", $orig_fieldname)) // for the 'abstract' field, transform newline ('\n') characters into <br> tags
+								$row[$i] = preg_replace("/\n/", "<br>", $row[$i]);
 
 							// apply search & replace 'actions' to all fields that are listed in the 'fields' element of the arrays contained in '$searchReplaceActionsArray' (which is defined in 'ini.inc.php'):
 							foreach ($searchReplaceActionsArray as $fieldActionsArray)
@@ -1474,20 +1474,20 @@
 
 							$recordData .= $row[$i]; // print the attribute data
 
-							if (ereg("^(author|title|year)$", $orig_fieldname))
+							if (preg_match("/^(author|title|year)$/", $orig_fieldname))
 								$recordData .= "</b>";
 
 							$recordData .= "</td>"; // finish the TD tag
 
 							// for all the fields specified (-> all fields to the right):
-							if (ereg("^(author|type|abbrev_journal|pages|thesis|address|keywords|abstract|editor|orig_title|abbrev_series_title|edition|medium|conference|approved|location|serial|selected|user_keys|user_file|cite_key|created_by|modified_by)$", $orig_fieldname))
+							if (preg_match("/^(author|type|abbrev_journal|pages|thesis|address|keywords|abstract|editor|orig_title|abbrev_series_title|edition|medium|conference|approved|location|serial|selected|user_keys|user_file|cite_key|created_by|modified_by)$/", $orig_fieldname))
 								{
 									if ($showLinks == "1")
 										{
 											// ...embed appropriate links (if available):
 											if ($i == 0) // ... print a column with links if it's the first row of attribute data:
 											{
-												if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+												if (preg_match("/^(cli|inc)/i", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
 													$baseURL = $databaseBaseURL;
 												else
 													$baseURL = "";
@@ -1496,7 +1496,7 @@
 
 												$linkArray = array(); // initialize array variable that will hold all available links
 
-												if (isset($_SESSION['user_permissions']) AND ereg("allow_edit", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_edit'...
+												if (isset($_SESSION['user_permissions']) AND preg_match("/allow_edit/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_edit'...
 													// ... display a link that opens the edit form for this record:
 													$linkArray[] = "\n\t\t<a href=\"" . $baseURL . "record.php"
 													             . "?serialNo=" . $row["serial"]
@@ -1508,21 +1508,21 @@
 												// - the variable '$fileVisibility' is set to 'login' AND the user is logged in
 												// - the variable '$fileVisibility' is set to 'user-specific' AND the 'user_permissions' session variable contains 'allow_download'
 												// - the array variable '$fileVisibilityException' (defined in 'ini.inc.php') contains a pattern (in array element 1) that matches the contents of the field given (in array element 0)
-												if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
+												if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
 												{
 													if (!empty($row["file"]))// if the 'file' field is NOT empty
 													{
-														if (isset($_SESSION['user_permissions']) AND ereg("allow_edit", $_SESSION['user_permissions']))
+														if (isset($_SESSION['user_permissions']) AND preg_match("/allow_edit/", $_SESSION['user_permissions']))
 															$prefix = "&nbsp;";
 														else
 															$prefix = "";
 
-														if (ereg("^(https?|ftp|file)://", $row["file"])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
+														if (preg_match("/^(https?|ftp|file):\/\//", $row["file"])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
 															$URLprefix = ""; // we don't alter the URL given in the 'file' field
 														else // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
 															$URLprefix = $filesBaseURL; // use the base URL of the standard files directory as prefix ('$filesBaseURL' is defined in 'ini.inc.php')
 
-														if (eregi("\.pdf$", $row["file"])) // if the 'file' field contains a link to a PDF file
+														if (preg_match("/\.pdf$/i", $row["file"])) // if the 'file' field contains a link to a PDF file
 															$linkArray[] = $prefix . "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"><img src=\"" . $baseURL . "img/file_PDF.gif\" alt=\"" . $loc["pdf"] . "\" title=\"" . $loc["LinkTitle_DownloadPDFFile"] . "\" width=\"17\" height=\"17\" hspace=\"0\" border=\"0\"></a>"; // display a PDF file icon as download link
 														else
 															$linkArray[] = $prefix . "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"><img src=\"" . $baseURL . "img/file.gif\" alt=\"" . $loc["file"] . "\" title=\"" . $loc["LinkTitle_DownloadFile"] . "\" width=\"11\" height=\"15\" hspace=\"0\" border=\"0\"></a>"; // display a generic file icon as download link
@@ -1591,7 +1591,7 @@
 								}
 						}
 
-					if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0")) // supply an appropriate colspan value
+					if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0")) // supply an appropriate colspan value
 						$ColspanFields = $NoColumns;
 					else // print view, CLI client, or partial document structure (i.e., no marker column)
 						$ColspanFields = ($NoColumns - 1);
@@ -1623,7 +1623,7 @@
 
 				// BEGIN RESULTS FOOTER --------------------
 				// Note: we omit the results footer, browse links & query form in print/mobile view ('viewType=Print' or 'viewType=Mobile'), for CLI clients, and when outputting only a partial document structure ('wrapResults=0')!
-				if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0"))
+				if ((!preg_match("/^(Print|Mobile)$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0"))
 				{
 					// Again, insert the (already constructed) BROWSE LINKS
 					// (i.e., a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages)
@@ -1632,7 +1632,7 @@
 					// Build a results footer with form elements to cite, group or export all/selected records:
 					if (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 					{
-						if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_cite|allow_user_groups|allow_export|allow_batch_export)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_cite|allow_export|allow_batch_export", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
+						if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND preg_match("/(allow_cite|allow_user_groups|allow_export|allow_batch_export)/", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND preg_match("/allow_cite|allow_export|allow_batch_export/", $_SESSION['user_permissions'])))) // if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
 							// ...Insert a divider line (which separates the results data from the forms in the footer):
 							echo "\n<hr class=\"resultsfooter\" align=\"center\" width=\"93%\">";
 
@@ -1644,7 +1644,7 @@
 				// END RESULTS FOOTER ----------------------
 
 				// Finally, finish the form
-				if ((!eregi("^Print$", $viewType)) AND (!eregi("^cli", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
+				if ((!preg_match("/^Print$/i", $viewType)) AND (!preg_match("/^cli/i", $client)) AND ($wrapResults != "0") AND (!isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden"))))
 					echo "\n</form>";
 			}
 			else
@@ -1696,13 +1696,13 @@
 		$exportText = exportRecords($result, $rowOffset, $showRows, $exportStylesheet, $displayType); // function 'exportRecords()' is defined in the export format file given in '$exportFormatFile' (which, in turn, must reside in the 'export' directory of the refbase root directory)
 
 		// adjust the mime type and return exported data based on the key given in '$exportType':
-		if (eregi("text", $exportType))
+		if (preg_match("/text/i", $exportType))
 			$exportContentType = "text/plain";
 
-		elseif (eregi("^(html|email)$", $exportType))
+		elseif (preg_match("/^(html|email)$/i", $exportType))
 			$exportContentType = "text/html";
 
-		elseif (eregi("xml", $exportType))
+		elseif (preg_match("/xml/i", $exportType))
 		{
 			// NOTE: Firefox >=2.x, Safari >=2.x and IE >=7.x break client-side XSL for RSS and Atom feeds!
 			//       See e.g.: <http://decafbad.com/blog/2006/11/02/firefox-20-breaks-client-side-xsl-for-rss-and-atom-feeds>
@@ -1718,49 +1718,49 @@
 			//       If the content type is set to 'application/atom+xml', Firefox 2 and Safari 2 will always apply their own default
 			//       XSLT stylesheet and ignore any client-side XSL transformation!
 
-			if (eregi("Atom", $exportFormat) AND empty($exportStylesheet))
+			if (preg_match("/Atom/i", $exportFormat) AND empty($exportStylesheet))
 				$exportContentType = "application/atom+xml"; // NOTE: using Safari 3 on OS X 10.4, this seems to cause misbehavior; Firefox seems to work fine, though
 			else
 				$exportContentType = "application/xml";
 		}
 
-		elseif (eregi("rss", $exportType))
+		elseif (preg_match("/rss/i", $exportType))
 			$exportContentType = "application/rss+xml";
 
-		elseif (eregi("file", $exportType)) // attempt to set mime type & download file name according to the chosen export format:
+		elseif (preg_match("/file/i", $exportType)) // attempt to set mime type & download file name according to the chosen export format:
 		{
 			$exportContentType = "text/plain"; // set the default mime type
 
 			// Note that we do some "quick'n dirty" guessing for some export formats here (e.g., we assume/require that an XML export format name
 			// contains 'XML' within its name!). This is in NO way fool proof and should be handled in a better way!
-			if (eregi("XML", $exportFormat)) // if the export format name contains 'XML'
+			if (preg_match("/XML/i", $exportFormat)) // if the export format name contains 'XML'
 			{
-				if (eregi("Atom", $exportFormat)) // if the export format name contains 'Atom'
+				if (preg_match("/Atom/i", $exportFormat)) // if the export format name contains 'Atom'
 					$exportContentType = "application/atom+xml"; // see note above
 				else
 					$exportContentType = "application/xml";
 
-				if (eregi("Atom", $exportFormat)) // if the export format name contains 'Atom'
+				if (preg_match("/Atom/i", $exportFormat)) // if the export format name contains 'Atom'
 					$exportFileName = "atom_export.xml";
 
-				elseif (eregi("SRW_DC", $exportFormat)) // if the export format name contains 'SRW_DC'
+				elseif (preg_match("/SRW_DC/i", $exportFormat)) // if the export format name contains 'SRW_DC'
 					$exportFileName = "srw_dc_export.xml";
 
-				elseif (eregi("SRW_MODS", $exportFormat)) // if the export format name contains 'SRW_MODS'
+				elseif (preg_match("/SRW_MODS/i", $exportFormat)) // if the export format name contains 'SRW_MODS'
 					$exportFileName = "srw_mods_export.xml";
 
-				elseif (eregi("SRW", $exportFormat)) // if the export format name contains 'SRW' (fallback)
+				elseif (preg_match("/SRW/i", $exportFormat)) // if the export format name contains 'SRW' (fallback)
 					$exportFileName = "srw_export.xml";
 
-				elseif (eregi("^MODS", $exportFormat)) // if the export format name starts with 'MODS' (NOTE: the regex pattern must not match "SRW_MODS XML")
+				elseif (preg_match("/^MODS/i", $exportFormat)) // if the export format name starts with 'MODS' (NOTE: the regex pattern must not match "SRW_MODS XML")
 					$exportFileName = "mods_export.xml";
 
-				elseif (eregi("^(OAI_)?DC", $exportFormat)) // if the export format starts contains 'OAI_DC' or 'DC' (NOTE: the regex pattern must not match "SRW_DC XML")
+				elseif (preg_match("/^(OAI_)?DC/i", $exportFormat)) // if the export format starts contains 'OAI_DC' or 'DC' (NOTE: the regex pattern must not match "SRW_DC XML")
 					$exportFileName = "oaidc_export.xml";
 
-				elseif (eregi("ODF|OpenDocument", $exportFormat)) // if the export format name contains 'ODF' or 'OpenDocument'
+				elseif (preg_match("/ODF|OpenDocument/", $exportFormat)) // if the export format name contains 'ODF' or 'OpenDocument'
 				{
-					if (eregi("file", $exportType)) {
+					if (preg_match("/file/i", $exportType)) {
 						$exportContentType="application/vnd.oasis.opendocument.spreadsheet";
 						$exportFileName="odf_export.ods";
 					}
@@ -1769,28 +1769,28 @@
 					}
 				}
 
-				elseif (eregi("Word", $exportFormat)) // if the export format name contains 'Word'
+				elseif (preg_match("/Word/i", $exportFormat)) // if the export format name contains 'Word'
 					$exportFileName = "msword_export.xml";
 
 				else
 					$exportFileName = "export.xml";
 			}
 
-			elseif (eregi("ADS|BibTeX|Endnote|ISI|RIS", $exportFormat)) // if the export format name contains either 'ADS', 'BibTeX', 'Endnote', 'ISI' or 'RIS'
+			elseif (preg_match("/ADS|BibTeX|Endnote|ISI|RIS/i", $exportFormat)) // if the export format name contains either 'ADS', 'BibTeX', 'Endnote', 'ISI' or 'RIS'
 			{
-				if (eregi("ADS", $exportFormat))
+				if (preg_match("/ADS/i", $exportFormat))
 					$exportFileName = "ads_export.txt";
 
-				elseif (eregi("BibTeX", $exportFormat))
+				elseif (preg_match("/BibTeX/i", $exportFormat))
 					$exportFileName = "bibtex_export.bib";
 
-				elseif (eregi("Endnote", $exportFormat))
+				elseif (preg_match("/Endnote/i", $exportFormat))
 					$exportFileName = "endnote_export.enw";
 
-				elseif (eregi("ISI", $exportFormat))
+				elseif (preg_match("/ISI/i", $exportFormat))
 					$exportFileName = "isi_export.txt";
 
-				elseif (eregi("RIS", $exportFormat))
+				elseif (preg_match("/RIS/i", $exportFormat))
 					$exportFileName = "ris_export.ris";
 			}
 
@@ -1814,13 +1814,13 @@
 		// set the appropriate mimetype & set the character encoding to the one given in '$contentTypeCharset':
 		setHeaderContentType($exportContentType, $contentTypeCharset); // function 'setHeaderContentType()' is defined in 'include.inc.php'
 
-		if (eregi("file", $exportType)) // instruct the browser to download the resulting XML file:
+		if (preg_match("/file/i", $exportType)) // instruct the browser to download the resulting XML file:
 			header('Content-Disposition: attachment; filename="' . $exportFileName . '"'); // Note that this doesn't seem to work with all browsers (notably not with Safari & OmniWeb on MacOSX Panther, but it does work with Mozilla & Camino as well as Safari on Tiger)
 
 
-		elseif (eregi("^(html|email)$", $exportType)) // output data as HTML, wrapped into <pre>...</pre> tags:
+		elseif (preg_match("/^(html|email)$/i", $exportType)) // output data as HTML, wrapped into <pre>...</pre> tags:
 		{
-			if (eregi("email", $exportType)) // send exported data to the user's login email address:
+			if (preg_match("/email/i", $exportType)) // send exported data to the user's login email address:
 			{
 				$emailRecipient = $_SESSION['loginEmail'];
 				$emailSubject = "Your records from the " . $officialDatabaseName . " (exported to " . $exportFormat . " format)";
@@ -1850,7 +1850,7 @@
 			$officialDatabaseName = $oldOfficialDatabaseName; // restore the database name as originally encoded
 		}
 
-		if ( (eregi("ODF|OpenDocument", $exportFormat)) && (eregi("file", $exportType)) ) {
+		if ( (preg_match("/ODF|OpenDocument/i", $exportFormat)) && (preg_match("/file/i", $exportType)) ) {
 			// This is a dirty hack to zip and return an ODF file.
 			// It may be desired to retun other non-textual formats in the future & to return these as attachments by email in the future.
 			// If this becomes needed, we should refactor the output.
@@ -1904,7 +1904,7 @@
 
 			if (empty($citeFormatFile))
 			{
-				if (eregi("^cli", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
+				if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
 					$citeType = "ASCII";
 				else
 					$citeType = "html";
@@ -1919,32 +1919,32 @@
 			$citationData = citeRecords($result, $rowsFound, $query, $queryURL, $showQuery, $showLinks, $rowOffset, $showRows, $previousOffset, $nextOffset, $wrapResults, $citeStyle, $citeOrder, $citeType, $orderBy, $headerMsg, $userID, $viewType);
 
 
-			if (eregi("^RTF$", $citeType)) // output references as RTF file
+			if (preg_match("/^RTF$/i", $citeType)) // output references as RTF file
 			{
 				$citeContentType = "application/rtf";
 				$citeFileName = "citations.rtf";
 			}
-			elseif (eregi("^PDF$", $citeType)) // output references as PDF file
+			elseif (preg_match("/^PDF$/i", $citeType)) // output references as PDF file
 			{
 				$citeContentType = "application/pdf";
 				$citeFileName = "citations.pdf";
 			}
-			elseif (eregi("^LaTeX$", $citeType)) // output references as LaTeX file
+			elseif (preg_match("/^LaTeX$/i", $citeType)) // output references as LaTeX file
 			{
 				$citeContentType = "application/x-latex";
 				$citeFileName = "citations.tex";
 			}
-			elseif (eregi("^LaTeX \.bbl$", $citeType)) // output references as LaTeX .bbl file (for use with LaTeX/BibTeX)
+			elseif (preg_match("/^LaTeX \.bbl$/i", $citeType)) // output references as LaTeX .bbl file (for use with LaTeX/BibTeX)
 			{
 				$citeContentType = "application/x-latex";
 				$citeFileName = "citations.bbl";
 			}
-			elseif (eregi("^Markdown$", $citeType)) // output references as Markdown TEXT (a plain text formatting syntax)
+			elseif (preg_match("/^Markdown$/i", $citeType)) // output references as Markdown TEXT (a plain text formatting syntax)
 			{
 				$citeContentType = "text/plain";
 				$citeFileName = "citations.txt";
 			}
-			elseif (eregi("^ASCII$", $citeType)) // output references as plain TEXT
+			elseif (preg_match("/^ASCII$/i", $citeType)) // output references as plain TEXT
 			{
 				$citeContentType = "text/plain";
 				$citeFileName = "citations.txt";
@@ -1955,11 +1955,11 @@
 				$citeFileName = "citations.html";
 			}
 
-			if (!eregi("^html$", $citeType))
+			if (!preg_match("/^html$/i", $citeType))
 				// set the appropriate mimetype & set the character encoding to the one given in '$contentTypeCharset' (which is defined in 'ini.inc.php'):
 				setHeaderContentType($citeContentType, $contentTypeCharset); // function 'setHeaderContentType()' is defined in 'include.inc.php'
 
-			if (eregi("^application", $citeContentType))
+			if (preg_match("/^application/i", $citeContentType))
 				// instruct the browser to download the resulting output as file:
 				header('Content-Disposition: attachment; filename="' . $citeFileName . '"'); // Note that this doesn't seem to work with all browsers (notably not with Safari & OmniWeb on MacOSX Panther, but it does work with Mozilla & Camino as well as Safari on Tiger)
 
@@ -1983,18 +1983,18 @@
 
 		global $loc; // defined in 'locales/core.php'
 
-		if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND ereg("(allow_cite|allow_user_groups|allow_export|allow_batch_export)", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND ereg("allow_cite|allow_export|allow_batch_export", $_SESSION['user_permissions'])))) // only the results footer if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
+		if (isset($_SESSION['user_permissions']) AND ((isset($_SESSION['loginEmail']) AND preg_match("/(allow_cite|allow_user_groups|allow_export|allow_batch_export)/", $_SESSION['user_permissions'])) OR (!isset($_SESSION['loginEmail']) AND preg_match("/allow_cite|allow_export|allow_batch_export/", $_SESSION['user_permissions'])))) // only the results footer if the 'user_permissions' session variable does contain any of the following: 'allow_cite' -AND- if logged in, aditionally: 'allow_user_groups', 'allow_export', 'allow_batch_export'...
 		{
 			$resultsFooterToggleText = "";
 
-			if (ereg("allow_cite", $_SESSION['user_permissions']))
+			if (preg_match("/allow_cite/", $_SESSION['user_permissions']))
 				$resultsFooterToggleText .= "Cite";
 
-			if (ereg("allow_user_groups", $_SESSION['user_permissions']))
+			if (preg_match("/allow_user_groups/", $_SESSION['user_permissions']))
 			{
-				if (ereg("allow_cite", $_SESSION['user_permissions']))
+				if (preg_match("/allow_cite/", $_SESSION['user_permissions']))
 				{
-					if (ereg("(allow_export|allow_batch_export)", $_SESSION['user_permissions']))
+					if (preg_match("/(allow_export|allow_batch_export)/", $_SESSION['user_permissions']))
 						$resultsFooterToggleText .= ", ";
 					else
 						$resultsFooterToggleText .= " & ";
@@ -2003,9 +2003,9 @@
 				$resultsFooterToggleText .= "Group";
 			}
 
-			if (!isset($_SESSION['loginEmail']) AND ($allowAnonymousGUIExport == "yes") OR (isset($_SESSION['loginEmail']) AND ereg("(allow_export|allow_batch_export)", $_SESSION['user_permissions'])))
+			if (!isset($_SESSION['loginEmail']) AND ($allowAnonymousGUIExport == "yes") OR (isset($_SESSION['loginEmail']) AND preg_match("/(allow_export|allow_batch_export)/", $_SESSION['user_permissions'])))
 			{
-				if (ereg("(allow_cite|allow_user_groups)", $_SESSION['user_permissions']))
+				if (preg_match("/(allow_cite|allow_user_groups)/", $_SESSION['user_permissions']))
 					$resultsFooterToggleText .= " & ";
 
 				$resultsFooterToggleText .= "Export";
@@ -2052,7 +2052,7 @@
 
 
 			// Cite functionality:
-			if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite', show form elements to build a reference list for the chosen records:
+			if (isset($_SESSION['user_permissions']) AND preg_match("/allow_cite/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite', show form elements to build a reference list for the chosen records:
 			{
 				if (!isset($_SESSION['user_styles']))
 					$citeStyleDisabled = " disabled"; // disable the style popup (and other form elements) if the session variable holding the user's styles isn't available
@@ -2085,17 +2085,17 @@
 				                   . "\n\t</fieldset>";
 
 				// Assign the 'selected' param to one of the main non-HTML citation output options (RTF, PDF, LaTeX):
-				if (eregi("<option>RTF</option>", $ResultsFooterRow))
-					$ResultsFooterRow = ereg_replace("<option>RTF</option>", "<option selected>RTF</option>", $ResultsFooterRow);
-				elseif (eregi("<option>PDF</option>", $ResultsFooterRow))
-					$ResultsFooterRow = ereg_replace("<option>PDF</option>", "<option selected>PDF</option>", $ResultsFooterRow);
-				elseif (eregi("<option>LaTeX</option>", $ResultsFooterRow))
-					$ResultsFooterRow = ereg_replace("<option>LaTeX</option>", "<option selected>LaTeX</option>", $ResultsFooterRow);
+				if (preg_match("/<option>RTF<\/option>/i", $ResultsFooterRow))
+					$ResultsFooterRow = preg_replace("/<option>RTF<\/option>/i", "<option selected>RTF</option>", $ResultsFooterRow);
+				elseif (preg_match("/<option>PDF<\/option>/i", $ResultsFooterRow))
+					$ResultsFooterRow = preg_replace("/<option>PDF<\/option>/i", "<option selected>PDF</option>", $ResultsFooterRow);
+				elseif (preg_match("/<option>LaTeX<\/option>/i", $ResultsFooterRow))
+					$ResultsFooterRow = preg_replace("/<option>LaTeX<\/option>/i", "<option selected>LaTeX</option>", $ResultsFooterRow);
 			}
 
 
 			// User groups functionality:
-			if (isset($_SESSION['loginEmail']) AND isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions'])) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', show form elements to add/remove the chosen records to/from a user's group:
+			if (isset($_SESSION['loginEmail']) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_user_groups/", $_SESSION['user_permissions'])) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', show form elements to add/remove the chosen records to/from a user's group:
 			{
 				if (!isset($_SESSION['userGroups']))
 				{
@@ -2147,7 +2147,7 @@
 
 
 			// Export functionality:
-			if ((!isset($_SESSION['loginEmail']) AND ($allowAnonymousGUIExport == "yes")) OR (isset($_SESSION['loginEmail']) AND isset($_SESSION['user_permissions']) AND ereg("(allow_export|allow_batch_export)", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains either 'allow_export' or 'allow_batch_export', show form elements to export the chosen records:
+			if ((!isset($_SESSION['loginEmail']) AND ($allowAnonymousGUIExport == "yes")) OR (isset($_SESSION['loginEmail']) AND isset($_SESSION['user_permissions']) AND preg_match("/(allow_export|allow_batch_export)/", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains either 'allow_export' or 'allow_batch_export', show form elements to export the chosen records:
 			{
 				if (!isset($_SESSION['user_export_formats']))
 					$exportFormatDisabled = " disabled"; // disable the format popup if the session variable holding the user's export formats isn't available
@@ -2248,7 +2248,7 @@
 		if (empty($sqlQuery))
 			$errors["sqlQuery"] = "You must specify a query string:"; // 'sqlQuery' must not be empty
 
-		elseif (!eregi("^SELECT", $sqlQuery))
+		elseif (!preg_match("/^SELECT/i", $sqlQuery))
 			$errors["sqlQuery"] = "You can only execute SELECT queries:";
 
 		// Check if there were any errors:
@@ -4888,11 +4888,11 @@
 
 		// Since the sort popup menus use empty fields as delimiters between groups of fields
 		// we'll have to trap the case that the user hasn't chosen any field names for sorting:
-		if (eregi("ORDER BY $", $query))
+		if (preg_match("/ORDER BY $/i", $query))
 			$query .= "author, year DESC, publication"; // use the default ORDER BY clause
 
 		// Finally, fix the wrong syntax where its says "ORDER BY, author, title, ..." instead of "ORDER BY author, title, ...":
-		$query = eregi_replace("ORDER BY , ","ORDER BY ",$query);
+		$query = preg_replace("/ORDER BY , /i","ORDER BY ",$query);
 
 
 		return $query;
@@ -4915,7 +4915,7 @@
 			// extract the 'WHERE' clause from the SQL query:
 			$queryWhereClause = extractWHEREclause($sqlQuery); // function 'extractWHEREclause()' is defined in 'include.inc.php'
 
-			if (eregi("^(Add|Remove)$", $displayType)) // the user clicked either the 'Add' or the 'Remove' button
+			if (preg_match("/^(Add|Remove)$/i", $displayType)) // the user clicked either the 'Add' or the 'Remove' button
 				 // get the serial numbers of all found records (which is required by function 'modifyUserGroups()'):
 				$recordSerialsArray = getFieldContents($tableRefs, "serial", $userID, $queryWhereClause); // function 'getFieldContents()' is defined in 'include.inc.php'
 		}
@@ -4928,7 +4928,7 @@
 			$queryWhereClause = "serial RLIKE " . quote_smart("^(" . implode("|", $recordSerialsArray) . ")$");
 		}
 
-		if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', extract form elements which add/remove the selected records to/from a user's group:
+		if (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_user_groups/", $_SESSION['user_permissions']))) // if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups', extract form elements which add/remove the selected records to/from a user's group:
 		{
 			$userGroupActionRadio = $_REQUEST['userGroupActionRadio']; // extract user option whether we're supposed to process an existing group name or any custom/new group name that was specified by the user
 
@@ -4953,7 +4953,7 @@
 
 		// Depending on the chosen output format, construct an appropriate SQL query:
 		// TODO: build the complete SQL query using functions 'buildFROMclause()' and 'buildORDERclause()'
-		if (eregi("^Cite$", $displayType)) // (if any form element is selected, hitting <enter> will act as if the user clicked the 'Cite' button)
+		if (preg_match("/^Cite$/i", $displayType)) // (if any form element is selected, hitting <enter> will act as if the user clicked the 'Cite' button)
 			{
 				$query = buildSELECTclause($displayType, $showLinks); // function 'buildSELECTclause()' is defined in 'include.inc.php'
 
@@ -4978,7 +4978,7 @@
 					$query .= " ORDER BY first_author, author_count, author, year, title";
 			}
 
-		elseif (eregi("^(Display|Export)$", $displayType))
+		elseif (preg_match("/^(Display|Export)$/i", $displayType))
 			{
 				$query = buildSELECTclause($displayType, $showLinks); // function 'buildSELECTclause()' is defined in 'include.inc.php'
 
@@ -4988,17 +4988,17 @@
 					$query .= " FROM $tableRefs WHERE " . $queryWhereClause . " ORDER BY $orderBy";
 			}
 
-		elseif (isset($_SESSION['loginEmail']) AND eregi("^(Add|Remove)$", $displayType)) // if a user (who's logged in) clicked the 'Add' or 'Remove' button...
+		elseif (isset($_SESSION['loginEmail']) AND preg_match("/^(Add|Remove)$/i", $displayType)) // if a user (who's logged in) clicked the 'Add' or 'Remove' button...
 			{
-				if (eregi("^(Add|Remove)$", $displayType) AND !empty($userGroup)) // the user clicked either the 'Add' or the 'Remove' button
+				if (preg_match("/^(Add|Remove)$/i", $displayType) AND !empty($userGroup)) // the user clicked either the 'Add' or the 'Remove' button
 					modifyUserGroups($tableUserData, $displayType, $recordSerialsArray, $userID, $userGroup); // add (remove) selected records to (from) the specified user group (function 'modifyUserGroups()' is defined in 'include.inc.php')
 
 				// re-apply the current sqlQuery:
-				$query = eregi_replace(" FROM $tableRefs",", orig_record FROM $tableRefs", $sqlQuery); // add 'orig_record' column (which is required in order to present visual feedback on duplicate records)
-				$query = eregi_replace(" FROM $tableRefs",", serial FROM $tableRefs", $query); // add 'serial' column (which is required in order to obtain unique checkbox names)
+				$query = preg_replace("/ FROM $tableRefs/i",", orig_record FROM $tableRefs", $sqlQuery); // add 'orig_record' column (which is required in order to present visual feedback on duplicate records)
+				$query = preg_replace("/ FROM $tableRefs/i",", serial FROM $tableRefs", $query); // add 'serial' column (which is required in order to obtain unique checkbox names)
 
 				if ($showLinks == "1")
-					$query = eregi_replace(" FROM $tableRefs",", file, url, doi, isbn, type FROM $tableRefs", $query); // add 'file', 'url', 'doi', 'isbn' & 'type columns
+					$query = preg_replace("/ FROM $tableRefs/i",", file, url, doi, isbn, type FROM $tableRefs", $query); // add 'file', 'url', 'doi', 'isbn' & 'type columns
 
 				// re-assign the correct display type if the user clicked the 'Add' or 'Remove' button of the 'queryResults' form:
 				$displayType = $originalDisplayType;
@@ -5161,9 +5161,9 @@
 		}
 
 		// Build SELECT clause:
-		if (eregi("^(Cite|Display)$", $displayType))
+		if (preg_match("/^(Cite|Display)$/i", $displayType))
 		{
-			if ((eregi("^Display$", $displayType)) AND (isset($_SESSION['lastDetailsViewQuery']))) // get SELECT clause from previous Details view query (if any):
+			if ((preg_match("/^Display$/i", $displayType)) AND (isset($_SESSION['lastDetailsViewQuery']))) // get SELECT clause from previous Details view query (if any):
 			{
 				$previousSelectClause = extractSELECTclause($_SESSION['lastDetailsViewQuery']); // function 'extractSELECTclause()' is defined in 'include.inc.php'
 				$query = buildSELECTclause($displayType, $showLinks, "", false, true, $previousSelectClause); // function 'buildSELECTclause()' is defined in 'include.inc.php'
@@ -5182,7 +5182,7 @@
 			{
 				// if the default list of "major" fields (to be displayed in List view) doesn't already contain the chosen field name...
 				// (which is e.g. the case for the 'keywords' & 'abstract' fields)
-				if (!ereg($quickSearchSelector, $defaultFieldsListViewMajor))
+				if (!preg_match("/$quickSearchSelector/", $defaultFieldsListViewMajor))
 					$additionalFields = $quickSearchSelector; // ...add chosen field to SELECT query
 				else
 					$additionalFields = $defaultFieldsListViewMinor; // ...otherwise, add further default columns
@@ -5267,9 +5267,9 @@
 				$displayType = $originalDisplayType;
 		}
 
-		if (eregi("^(Cite|Display)$", $displayType))
+		if (preg_match("/^(Cite|Display)$/i", $displayType))
 		{
-			if ((eregi("^Display$", $displayType)) AND (isset($_SESSION['lastDetailsViewQuery']))) // get SELECT clause from previous Details view query (if any):
+			if ((preg_match("/^Display$/i", $displayType)) AND (isset($_SESSION['lastDetailsViewQuery']))) // get SELECT clause from previous Details view query (if any):
 			{
 				$previousSelectClause = extractSELECTclause($_SESSION['lastDetailsViewQuery']); // function 'extractSELECTclause()' is defined in 'include.inc.php'
 				$query = buildSELECTclause($displayType, $showLinks, "", false, true, $previousSelectClause); // function 'buildSELECTclause()' is defined in 'include.inc.php'
@@ -5492,14 +5492,14 @@
 
 		// if the chosen field can contain multiple items...
 		// TODO: we really should check here if the corresponding 'ref_...' table exists!
-		if (eregi("^(author|keywords|editor|language|summary_language|area|location|user_keys|user_groups)$", $browseFieldSelector))
+		if (preg_match("/^(author|keywords|editor|language|summary_language|area|location|user_keys|user_groups)$/i", $browseFieldSelector))
 		{
 			list($refTableName, $browseFieldName) = buildRefTableAndFieldNames($browseFieldSelector); // get correct table name and field name for the 'ref_...' table that matches the chosen field
 
 			$browseFieldColumnName = " AS " . preg_replace("/^ref_(\w+)$/i", "\\1", $browseFieldName); // strip the 'ref_' prefix for the column name
 
 			$queryRefTableLeftJoinPart = " LEFT JOIN $refTableName ON serial = ref_id"; // ...add the appropriate 'LEFT JOIN...' part to the 'FROM' clause
-			if (eregi("^(user_keys|user_groups)$", $browseFieldSelector))
+			if (preg_match("/^(user_keys|user_groups)$/i", $browseFieldSelector))
 				$queryRefTableLeftJoinPart .= " AND ref_user_id = " . quote_smart($userID); // add the user's user_id as additional condition to this 'LEFT JOIN...' part
 		}
 		else
@@ -5512,7 +5512,7 @@
 		$query = buildSELECTclause("Browse", $showLinks, "", false, false, "", $browseFieldName . $browseFieldColumnName); // function 'buildSELECTclause()' is defined in 'include.inc.php'
 
 		// if a user specific field was chosen...
-		if (eregi("^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)$", $browseFieldSelector))
+		if (preg_match("/^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)$/i", $browseFieldSelector))
 			$query .= " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = " . $userID; // add FROM clause and the appropriate 'LEFT JOIN...' part
 		else
 			$query .= " FROM $tableRefs"; // add FROM clause
@@ -5563,7 +5563,7 @@
 
 		global $client;
 
-		if (eregi("^cli", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
+		if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
 		{
 			$nothingFoundFeedback = "Nothing found!\n\n"; // return plain text
 		}
@@ -5579,7 +5579,7 @@
 				// Report that nothing was found:
 				$nothingFoundFeedback .= "\n<tr>\n\t<td valign=\"top\">Sorry, but your query didn't produce any results!";
 
-				if (!eregi("^inc", $client))
+				if (!preg_match("/^inc/i", $client))
 					$nothingFoundFeedback .= "&nbsp;&nbsp;<a href=\"javascript:history.back()\" title=\"" . $loc["LinkTitle_GoBackToResults"] . "\">" . $loc["Go Back"] . "</a></td>\n</tr>";
 			}
 
@@ -5618,11 +5618,11 @@
 		$linkElementCounterLoggedOut = 0;
 
 		// if the 'user_permissions' session variable contains 'allow_details_view'...
-		if (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions']))
+		if (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions']))
 			$linkElementCounterLoggedOut = ($linkElementCounterLoggedOut + 1);
 
 		// if the 'user_permissions' session variable contains 'allow_edit'...
-		if (in_array("edit", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_edit", $_SESSION['user_permissions']))
+		if (in_array("edit", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_edit/", $_SESSION['user_permissions']))
 			$linkElementCounterLoggedOut = ($linkElementCounterLoggedOut + 1);
 
 		// if either the URL or the DOI field contain something
@@ -5640,23 +5640,23 @@
 		$linkElementCounterLoggedIn = $linkElementCounterLoggedOut;
 
 		// if a user is logged in and a FILE is associated with the current record
-		if (in_array("file", $showLinkTypes) AND ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]]))))
+		if (in_array("file", $showLinkTypes) AND ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]]))))
 			if (!empty($row["file"]))// if the 'file' field is NOT empty
 				$linkElementCounterLoggedIn = ($linkElementCounterLoggedIn + 1);
 
 
-		if (eregi("^inc", $client)) // we open links in a new browser window if refbase data are included somewhere else:
+		if (preg_match("/^inc/i", $client)) // we open links in a new browser window if refbase data are included somewhere else:
 			$target = " target=\"_blank\"";
 		else
 			$target = "";
 
-		if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+		if (preg_match("/^(cli|inc)/i", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
 			$baseURL = $databaseBaseURL;
 		else
 			$baseURL = "";
 
 
-		if (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_details_view'...
+		if (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_details_view'...
 		{
 			// display a link that opens the Details view for this record:
 			// NOTE: we use a 'show.php' URL here since it is much shorter and easier to bookmark as a permanent link; however,
@@ -5665,7 +5665,7 @@
 			$queryParametersArray = array("record" => $row["serial"]);
 
 			// we only add further parameters to the 'show.php' URL if their current value differs from the defaults used by 'show.php' or 'search.php':
-			if (!empty($viewType) AND !eregi("^Web$", $viewType))
+			if (!empty($viewType) AND !preg_match("/^Web$/i", $viewType))
 				$queryParametersArray["viewType"] = $viewType;
 
 			if ($showQuery == "1")
@@ -5701,10 +5701,10 @@
 //			        . "<img src=\"" . $baseURL . "img/details.gif\" alt=\"" . $loc["details"] . "\" title=\"" . $loc["LinkTitle_ShowDetails"] . "\" width=\"9\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 		}
 
-		if ((($linkElementCounterLoggedOut > 0) OR (isset($_SESSION['loginEmail']) AND $linkElementCounterLoggedIn > 0)) AND (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])))
+		if ((($linkElementCounterLoggedOut > 0) OR (isset($_SESSION['loginEmail']) AND $linkElementCounterLoggedIn > 0)) AND (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions'])))
 			$links .= "&nbsp;&nbsp;";
 
-		if (in_array("edit", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_edit", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_edit'...
+		if (in_array("edit", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_edit/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_edit'...
 			// ... display a link that opens the edit form for this record:
 			$links .= "\n\t\t<a href=\"" . $baseURL . "record.php"
 			        . "?serialNo=" . $row["serial"]
@@ -5712,9 +5712,9 @@
 			        . "\"" . $target . ">"
 			        . "<img src=\"" . $baseURL . "img/edit.gif\" alt=\"" . $loc["edit"] . "\" title=\"" . $loc["LinkTitle_EditRecord"] . "\" width=\"11\" height=\"17\" hspace=\"0\" border=\"0\"></a>";
 
-		if ((($linkElementCounterLoggedOut > 1) OR (isset($_SESSION['loginEmail']) AND $linkElementCounterLoggedIn > 1)) AND (in_array("edit", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_edit", $_SESSION['user_permissions'])))
+		if ((($linkElementCounterLoggedOut > 1) OR (isset($_SESSION['loginEmail']) AND $linkElementCounterLoggedIn > 1)) AND (in_array("edit", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_edit/", $_SESSION['user_permissions'])))
 		{
-			if (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions']))
+			if (in_array("details", $showLinkTypes) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions']))
 				$links .= "\n\t\t<br>";
 			else
 				$links .= "&nbsp;&nbsp;";
@@ -5725,18 +5725,18 @@
 		// - the variable '$fileVisibility' is set to 'login' AND the user is logged in
 		// - the variable '$fileVisibility' is set to 'user-specific' AND the 'user_permissions' session variable contains 'allow_download'
 		// - the array variable '$fileVisibilityException' (defined in 'ini.inc.php') contains a pattern (in array element 1) that matches the contents of the field given (in array element 0)
-		if (in_array("file", $showLinkTypes) AND ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]]))))
+		if (in_array("file", $showLinkTypes) AND ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]]))))
 		{
 			if (!empty($row["file"]))// if the 'file' field is NOT empty
 			{
-				if (ereg("^(https?|ftp|file)://", $row["file"])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
+				if (preg_match("/^(https?|ftp|file):\/\//", $row["file"])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
 					$URLprefix = ""; // we don't alter the URL given in the 'file' field
 				else // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
 				{
 					// use the base URL of the standard files directory as prefix:
-					if (ereg('^/', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
+					if (preg_match('/^\//', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
 					{
-						if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+						if (preg_match("/^(cli|inc)/i", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
 							$URLprefix = 'http://' . $_SERVER['HTTP_HOST'] . $filesBaseURL; // note that '$baseURL' cannot be used here since we need to prefix '$filesBaseURL' only with the host URL (and not the '$databaseBaseURL')
 						else
 							$URLprefix = $filesBaseURL;
@@ -5745,7 +5745,7 @@
 						$URLprefix = $baseURL . $filesBaseURL;
 				}
 
-				if (eregi("\.pdf$", $row["file"])) // if the 'file' field contains a link to a PDF file
+				if (preg_match("/\.pdf$/i", $row["file"])) // if the 'file' field contains a link to a PDF file
 					$links .= "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"" . $target . "><img src=\"" . $baseURL . "img/file_PDF.gif\" alt=\"" . $loc["pdf"] . "\" title=\"" . $loc["LinkTitle_DownloadPDFFile"] . "\" width=\"17\" height=\"17\" hspace=\"0\" border=\"0\"></a>"; // display a PDF file icon as download link
 				else
 					$links .= "\n\t\t<a href=\"" . $URLprefix . $row["file"] . "\"" . $target . "><img src=\"" . $baseURL . "img/file.gif\" alt=\"" . $loc["file"] . "\" title=\"" . $loc["LinkTitle_DownloadFile"] . "\" width=\"11\" height=\"15\" hspace=\"0\" border=\"0\"></a>"; // display a generic file icon as download link
@@ -5830,9 +5830,9 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	if (!eregi("^cli", $client) AND ($wrapResults != "0") AND (!(($displayType == "Cite") AND (!eregi("^html$", $citeType))) OR ($rowsFound == 0))) // we exclude the HTML page footer for citation formats other than HTML if something was found
+	if (!preg_match("/^cli/i", $client) AND ($wrapResults != "0") AND (!(($displayType == "Cite") AND (!preg_match("/^html$/i", $citeType))) OR ($rowsFound == 0))) // we exclude the HTML page footer for citation formats other than HTML if something was found
 	{
-		if ((!eregi("^(Print|Mobile)$", $viewType)) AND (!eregi("^inc", $client))) // Note: we omit the visible footer in print/mobile view ('viewType=Print' or 'viewType=Mobile') and for include mechanisms!
+		if ((!preg_match("/^(Print|Mobile)$/", $viewType)) AND (!preg_match("/^inc/i", $client))) // Note: we omit the visible footer in print/mobile view ('viewType=Print' or 'viewType=Mobile') and for include mechanisms!
 			showPageFooter($HeaderString);
 
 		displayHTMLfoot();
