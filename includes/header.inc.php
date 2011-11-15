@@ -56,13 +56,13 @@
 	<meta http-equiv="content-type" content="text/html; charset=<?php echo $contentTypeCharset; ?>">
 	<meta http-equiv="Content-Style-Type" content="text/css"><?php
 
-		if (eregi("^Print$", $viewType))
+		if (preg_match("/^Print$/i", $viewType))
 		{
 ?>
 
 	<link rel="stylesheet" href="<?php echo $printStyleSheet; ?>" type="text/css" title="CSS Definition"><?php
 		}
-		elseif (eregi("^Mobile$", $viewType))
+		elseif (preg_match("/^Mobile$/i", $viewType))
 		{
 ?>
 
