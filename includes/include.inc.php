@@ -222,7 +222,7 @@
 
 			// (2) Set the connection character set (if connected to MySQL 4.1.x or greater):
 			//     more info at <http://dev.mysql.com/doc/refman/5.1/en/charset-connection.html>
-			if (isset($_SESSION['mysqlVersion']) AND ereg("^(4\.1|5)", $_SESSION['mysqlVersion']))
+			if (isset($_SESSION['mysqlVersion']) AND preg_match("/^(4\.1|5)/", $_SESSION['mysqlVersion']))
 			{
 				if ($contentTypeCharset == "UTF-8")
 					queryMySQLDatabase("SET NAMES utf8"); // set the character set for this connection to 'utf8'
@@ -251,7 +251,7 @@
 		if (!($result = @ mysql_query($query, $connection)))
 			if (mysql_errno() != 0) // this works around a stupid(?) behaviour of the Roxen webserver that returns 'errno: 0' on success! ?:-(
 			{
-				if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
+				if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
 					// note that we also HTML encode the query for CLI clients since a malicious user could use the client parameter to perform a cross-site scripting (XSS) attack
 					showErrorMsg("Your query:\n\n" . encodeHTML($query) . "\n\ncaused the following error:");
 				else
@@ -343,11 +343,11 @@
 		{
 			// ... setup variables in order to facilitate "previous" & "next" browsing:
 			// a) Set '$rowOffset' to zero if not previously defined, or if a wrong number (<=0) was given
-			if (empty($rowOffset) || ($rowOffset <= 0) || ((($displayType != "Export") AND !($displayType == "Cite" AND (!eregi("^html$", $citeType)))) && ($showRows >= $rowsFound))) // the third condition is only necessary if '$rowOffset' gets embedded within the 'displayOptions' form (see function 'buildDisplayOptionsElements()' in 'include.inc.php')
+			if (empty($rowOffset) || ($rowOffset <= 0) || ((($displayType != "Export") AND !($displayType == "Cite" AND (!preg_match("/^html$/i", $citeType)))) && ($showRows >= $rowsFound))) // the third condition is only necessary if '$rowOffset' gets embedded within the 'displayOptions' form (see function 'buildDisplayOptionsElements()' in 'include.inc.php')
 				$rowOffset = 0;
 
 			// Adjust the '$showRows' value if not previously defined, or if a wrong number (<=0 or float) was given
-			if (empty($showRows) || ($showRows <= 0) || !ereg("^[0-9]+$", $showRows))
+			if (empty($showRows) || ($showRows <= 0) || !preg_match("/^[0-9]+$/", $showRows))
 				$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 			// Adjust '$rowOffset' if it's value exceeds the number of rows found:
@@ -360,7 +360,7 @@
 			}
 
 
-			if (($displayType != "Export") AND !($displayType == "Cite" AND (!eregi("^html$", $citeType)))) // we have to exclude '$displayType=Export' here since, for export, '$rowOffset' must always point to the first row number in the result set that should be returned
+			if (($displayType != "Export") AND !($displayType == "Cite" AND (!preg_match("/^html$/i", $citeType)))) // we have to exclude '$displayType=Export' here since, for export, '$rowOffset' must always point to the first row number in the result set that should be returned
 			{
 				// NOTE: The current value of '$rowOffset' is embedded as hidden tag within the 'displayOptions' form. By this, the current row offset can be re-applied
 				//       after the user pressed the 'Show'/'Hide' button within the 'displayOptions' form. But then, to avoid that browse links don't behave as expected,
@@ -412,7 +412,7 @@
 		$errorNo = mysql_errno();
 		$errorMsg = mysql_error();
 
-		if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
+		if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
 			// note that we also HTML encode the '$errorMsg' for CLI clients since a malicious user could use the client parameter to perform a cross-site scripting (XSS) attack
 			echo $headerMsg . "\n\nError " . $errorNo . ": " . encodeHTML($errorMsg) . "\n\n";
 		else
@@ -435,7 +435,7 @@
 	{
 		global $client;
 
-		if (eregi("^cli", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
+		if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the "refbase" CLI client ("cli-refbase-1.0")
 		{
 			$fullMsg = $message . "\n\n"; // for CLI clients, we just echo the message text
 			echo $fullMsg;
@@ -521,17 +521,17 @@
 		$recordSerialsString = "&marked[]=" . $recordSerialsString; // prefix also the very first record serial with "&marked[]="
 
 		// based on the refering script we adjust the parameters that get included in the link:
-		if (eregi("/(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_manager|duplicate_search|opensearch|query_history|extract|users|user_details|user_receipt)\.php", $scriptURL))
+		if (preg_match("/\/(index|install|update|simple_search|advanced_search|sql_search|library_search|duplicate_manager|duplicate_search|opensearch|query_history|extract|users|user_details|user_receipt)\.php/i", $scriptURL))
 			$referer = $scriptURL; // we don't need to provide any parameters if the user clicked login/logout on the main page, the install/update page or any of the search pages (we just need
 									// to re-locate back to these pages after successful login/logout). Logout on 'install.php', 'users.php', 'user_details.php' or 'user_receipt.php' will redirect to 'index.php'.
 
-		elseif (eregi("/user_options\.php", $scriptURL))
+		elseif (preg_match("/\/user_options\.php/i", $scriptURL))
 			$referer = $scriptURL . "?" . "userID=" . $loginUserID;
 
-		elseif (eregi("/(record|receipt)\.php", $scriptURL))
+		elseif (preg_match("/\/(record|receipt)\.php/i", $scriptURL))
 			$referer = $scriptURL . "?" . "recordAction=" . $recordAction . "&serialNo=" . $serialNo . "&headerMsg=" . rawurlencode($headerMsg);
 
-		elseif (eregi("/error\.php", $scriptURL))
+		elseif (preg_match("/\/error\.php/i", $scriptURL))
 			$referer = $scriptURL . "?" . "errorNo=" . $errorNo . "&errorMsg=" . rawurlencode($errorMsg) . "&headerMsg=" . rawurlencode($headerMsg);
 
 		else
@@ -559,7 +559,7 @@
 				{
 					$loginLinks .= "<a href=\"search.php?formType=myRefsSearch&amp;showQuery=0&amp;showLinks=1&amp;myRefsRadio=1\"" . addAccessKey("attribute", "my_refs") . " title=\"" . $loc["LinkTitle_MyRefs"] . addAccessKey("title", "my_refs") . "\">" . $loc["MyRefs"] . "</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
 
-					if (isset($_SESSION['user_permissions']) AND ereg("allow_modify_options", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_modify_options'...
+					if (isset($_SESSION['user_permissions']) AND preg_match("/allow_modify_options/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_modify_options'...
 						// ... include a link to 'user_receipt.php':
 						$loginLinks .= "<a href=\"user_receipt.php?userID=" . $loginUserID . "\"" . addAccessKey("attribute", "my_opt") . " title=\"" . $loc["LinkTitle_Options"] . addAccessKey("title", "my_opt") . "\">" . $loc["Options"] . "</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
 				}
@@ -567,7 +567,7 @@
 			}
 		else
 			{
-				if (eregi(".*(record|import[^.]*)\.php", $scriptURL))
+				if (preg_match("/.*(record|import[^.]*)\.php/i", $scriptURL))
 					$loginStatus = "<span class=\"warning\">" . $loc["Warning_LoginToSubmitForm"] . "!</span>";
 				else
 					$loginStatus = "";
@@ -1054,16 +1054,16 @@
 			                                  false); // 16.
 
 			// 'first_author' field:
-			$firstAuthor = ereg_replace("^([^;]+).*", "\\1", $author); // extract first author from 'author' field
+			$firstAuthor = preg_replace("/^([^;]+).*/", "\\1", $author); // extract first author from 'author' field
 			$firstAuthor = trim($firstAuthor); // remove leading & trailing whitespace (if any)
-			$firstAuthor = ereg_replace(" *\(eds?\)$", "", $firstAuthor); // remove any existing editor info from the 'first_author' string, i.e., kill any trailing " (ed)" or " (eds)"
+			$firstAuthor = preg_replace("/ *\(eds?\)$/", "", $firstAuthor); // remove any existing editor info from the 'first_author' string, i.e., kill any trailing " (ed)" or " (eds)"
 
 			// 'author_count' field:
-			if (!ereg(";", $author)) // if the 'author' field does NOT contain a ';' (which would delimit multiple authors) => single author
+			if (!preg_match("/;/", $author)) // if the 'author' field does NOT contain a ';' (which would delimit multiple authors) => single author
 				$authorCount = "1"; // indicates a single author
-			elseif (ereg("^[^;]+;[^;]+$", $author)) // the 'author' field does contain exactly one ';' => two authors
+			elseif (preg_match("/^[^;]+;[^;]+$/", $author)) // the 'author' field does contain exactly one ';' => two authors
 				$authorCount = "2"; // indicates two authors
-			elseif (ereg("^[^;]+;[^;]+;[^;]+", $author)) // the 'author' field does contain at least two ';' => more than two authors
+			elseif (preg_match("/^[^;]+;[^;]+;[^;]+/", $author)) // the 'author' field does contain at least two ';' => more than two authors
 				$authorCount = "3"; // indicates three (or more) authors
 		}
 		else
@@ -1075,8 +1075,8 @@
 		// 'first_page' field:
 		if (!empty($pages))
 		{
-			if (ereg("([0-9]+)", $pages)) // if the 'pages' field contains any numeric value(s)
-				$firstPage = ereg_replace("^[^0-9]*([0-9]+).*", "\\1", $pages); // extract first page from 'pages' field
+			if (preg_match("/([0-9]+)/", $pages)) // if the 'pages' field contains any numeric value(s)
+				$firstPage = preg_replace("/^[^0-9]*([0-9]+).*/", "\\1", $pages); // extract first page from 'pages' field
 			else
 				$firstPage = "";
 		}
@@ -1086,8 +1086,8 @@
 		// 'volume_numeric' field:
 		if (!empty($volume))
 		{
-			if (ereg("([0-9]+)", $volume)) // if the 'volume' field contains any numeric value(s)
-				$volumeNumeric = ereg_replace("^[^0-9]*([0-9]+).*", "\\1", $volume); // extract first number from 'volume' field
+			if (preg_match("/([0-9]+)/", $volume)) // if the 'volume' field contains any numeric value(s)
+				$volumeNumeric = preg_replace("/^[^0-9]*([0-9]+).*/", "\\1", $volume); // extract first number from 'volume' field
 			else
 				$volumeNumeric = "";
 		}
@@ -1097,8 +1097,8 @@
 		// 'series_volume_numeric' field:
 		if (!empty($seriesVolume))
 		{
-			if (ereg("([0-9]+)", $seriesVolume)) // if the 'series_volume' field contains any numeric value(s)
-				$seriesVolumeNumeric = ereg_replace("^[^0-9]*([0-9]+).*", "\\1", $seriesVolume); // extract first number from 'series_volume' field
+			if (preg_match("/([0-9]+)/", $seriesVolume)) // if the 'series_volume' field contains any numeric value(s)
+				$seriesVolumeNumeric = preg_replace("/^[^0-9]*([0-9]+).*/i", "\\1", $seriesVolume); // extract first number from 'series_volume' field
 			else
 				$seriesVolumeNumeric = "";
 		}
@@ -1305,7 +1305,7 @@
 		global $client;
 
 		// Setup the base URL:
-		if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+		if (preg_match("/^(cli|inc)/i", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
 			$baseURL = $databaseBaseURL;
 		else
 			$baseURL = "";
@@ -1350,29 +1350,29 @@
 
 		if ($orig_fieldname == "pages") // when original field name = 'pages' then...
 		{
-			$newORDER = eregi_replace("ORDER BY pages", "ORDER BY first_page DESC", $newORDER); // ...sort by 'first_page' instead
+			$newORDER = preg_replace("/ORDER BY pages/i", "ORDER BY first_page DESC", $newORDER); // ...sort by 'first_page' instead
 			$orig_fieldname = "first_page"; // adjust '$orig_fieldname' variable accordingly
 		}
 
 		if ($orig_fieldname == "volume") // when original field name = 'volume' then...
 		{
-			$newORDER = eregi_replace("ORDER BY volume", "ORDER BY volume_numeric DESC", $newORDER); // ...sort by 'volume_numeric' instead
+			$newORDER = preg_replace("/ORDER BY volume/i", "ORDER BY volume_numeric DESC", $newORDER); // ...sort by 'volume_numeric' instead
 			$orig_fieldname = "volume_numeric"; // adjust '$orig_fieldname' variable accordingly
 		}
 
 		if ($orig_fieldname == "series_volume") // when original field name = 'series_volume' then...
 		{
-			$newORDER = eregi_replace("ORDER BY series_volume", "ORDER BY series_volume_numeric DESC", $newORDER); // ...sort by 'series_volume_numeric' instead
+			$newORDER = preg_replace("/ORDER BY series_volume/i", "ORDER BY series_volume_numeric DESC", $newORDER); // ...sort by 'series_volume_numeric' instead
 			$orig_fieldname = "series_volume_numeric"; // adjust '$orig_fieldname' variable accordingly
 		}
 
 		if ($orig_fieldname == "marked") // when original field name = 'marked' then...
-			$newORDER = eregi_replace("ORDER BY marked", "ORDER BY marked DESC", $newORDER); // ...sort 'marked' column in DESCENDING order (so that 'yes' sorts before 'no')
+			$newORDER = preg_replace("/ORDER BY marked/i", "ORDER BY marked DESC", $newORDER); // ...sort 'marked' column in DESCENDING order (so that 'yes' sorts before 'no')
 
 		if ($orig_fieldname == "last_login") // when original field name = 'last_login' (defined in 'users' table) then...
-			$newORDER = eregi_replace("ORDER BY last_login", "ORDER BY last_login DESC", $newORDER); // ...sort 'last_login' column in DESCENDING order (so that latest date+time sorts first)
+			$newORDER = preg_replace("/ORDER BY last_login/i", "ORDER BY last_login DESC", $newORDER); // ...sort 'last_login' column in DESCENDING order (so that latest date+time sorts first)
 
-		$orderBy = eregi_replace("ORDER BY ", "", $newORDER); // remove 'ORDER BY ' phrase in order to store just the 'ORDER BY' field spec within the 'orderBy' variable
+		$orderBy = preg_replace("/ORDER BY /i", "", $newORDER); // remove 'ORDER BY ' phrase in order to store just the 'ORDER BY' field spec within the 'orderBy' variable
 
 		// call the 'newORDERclause()' function to replace the ORDER clause:
 		$queryURLNewOrder = newORDERclause($newORDER, $query);
@@ -1385,7 +1385,7 @@
 
 		// figure out if clicking on the current field name will sort in ascending or descending order:
 		// (note that for 1st-level sort attributes, this value will be modified again below)
-		if (eregi("ORDER BY [^ ]+ DESC", $newORDER)) // if 1st-level sort is in descending order...
+		if (preg_match("/ORDER BY [^ ]+ DESC/i", $newORDER)) // if 1st-level sort is in descending order...
 			$linkTitleSortOrder = $loc["descendingOrder"]; // ...sorting will be conducted in DESCending order
 		else
 			$linkTitleSortOrder = $loc["ascendingOrder"]; // ...sorting will be conducted in ASCending order
@@ -1459,7 +1459,7 @@
 		else // build a new SELECT clause that's suitable for the given '$displayType':
 		{
 			// Details view:
-			if (eregi("^(Display)$", $displayType)) // select all fields required to display record details:
+			if (preg_match("/^(Display)$/i", $displayType)) // select all fields required to display record details:
 			{
 				if ($showAdditionalFieldsDetailsViewDefault == "no") // omit additional fields:
 				{
@@ -1480,7 +1480,7 @@
 			}
 
 			// Edit mode & Export:
-			elseif (eregi("^(Edit|Export)$", $displayType)) // select all fields required to display record details (in edit mode) or to export a record:
+			elseif (preg_match("/^(Edit|Export)$/i", $displayType)) // select all fields required to display record details (in edit mode) or to export a record:
 			{
 				$querySELECTclause .= "author, title, type, year, publication, abbrev_journal, volume, issue, pages, keywords, abstract, address, corporate_author, thesis, publisher, place, editor, language, summary_language, orig_title, series_editor, series_title, abbrev_series_title, series_volume, series_issue, edition, issn, isbn, medium, area, expedition, conference, notes, approved";
 
@@ -1491,7 +1491,7 @@
 			}
 
 			// Citation view & RSS output:
-			elseif (eregi("^(Cite|RSS)$", $displayType)) // select all fields required to build proper record citations:
+			elseif (preg_match("/^(Cite|RSS)$/i", $displayType)) // select all fields required to build proper record citations:
 			{
 				$querySELECTclause .= "author, title, type, year, publication, abbrev_journal, volume, issue, pages, keywords, abstract, thesis, editor, publisher, place, abbrev_series_title, series_title, series_editor, series_volume, series_issue, edition, language, author_count, online_publication, online_citation, doi, serial";
 
@@ -1510,7 +1510,7 @@
 			}
 
 			// Browse view:
-			elseif (eregi("^Browse$", $displayType))
+			elseif (preg_match("/^Browse$/i", $displayType))
 			{
 				$querySELECTclause .= escapeSQL($browseByField) . ", COUNT(*) AS records";
 			}
@@ -1523,7 +1523,7 @@
 		}
 
 		// All views (except Browse view):
-		if (!eregi("^Browse$", $displayType))
+		if (!preg_match("/^Browse$/i", $displayType))
 		{
 			if (!empty($additionalFields))
 			{
@@ -1551,10 +1551,10 @@
 				//       'search.php' directly, function 'verifySQLQuery()' in 'include.inc.php' will add these columns.
 				$querySELECTclause .= ", orig_record, serial"; // add 'orig_record' and 'serial' columns
 
-				if ($showLinks == "1" OR (eregi("^(Edit|Export)$", $displayType)))
+				if ($showLinks == "1" OR (preg_match("/^(Edit|Export)$/i", $displayType)))
 					$querySELECTclause .= ", file, url, doi"; // add 'file', 'url' & 'doi' columns
 
-				if ($showLinks == "1" AND (!eregi("^(Edit|Export)$", $displayType)))
+				if ($showLinks == "1" AND (!preg_match("/^(Edit|Export)$/i", $displayType)))
 					$querySELECTclause .= ", isbn, type"; // add 'isbn' & 'type columns (for export and edit mode, these columns have already been added above)
 			}
 		}
@@ -1610,7 +1610,7 @@
 		// First, calculate the offset page number:
 		$pageOffset = ($rowOffset / $showRows);
 		// workaround for always rounding upward (since I don't know better! :-/):
-		if (ereg("[0-9]+\.[0-9+]",$pageOffset)) // if the result number is not an integer..
+		if (preg_match("/[0-9]+\.[0-9+]/",$pageOffset)) // if the result number is not an integer..
 			$pageOffset = (int) $pageOffset + 1; // we convert the number into an integer and add 1
 		// set the offset page number to a multiple of $maxPageNo:
 		$pageOffset = $maxPageNo * (int) ($pageOffset / $maxPageNo);
@@ -1618,16 +1618,16 @@
 		// Plus, calculate the maximum number of pages needed:
 		$lastPage = ($rowsFound / $showRows);
 		// workaround for always rounding upward (since I don't know better! :-/):
-		if (ereg("[0-9]+\.[0-9+]",$lastPage)) // if the result number is not an integer..
+		if (preg_match("/[0-9]+\.[0-9+]/",$lastPage)) // if the result number is not an integer..
 			$lastPage = (int) $lastPage + 1; // we convert the number into an integer and add 1
 
 		// Setup the base URL:
-		if (eregi("^(cli|inc)", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
+		if (preg_match("/^(cli|inc)/i", $client) OR ($wrapResults == "0")) // we use absolute links for CLI clients, for include mechanisms, or when returning only a partial document structure
 			$baseURL = $databaseBaseURL;
 		else
 			$baseURL = "";
 
-		if (eregi("^Mobile$", $viewType))
+		if (preg_match("/^Mobile$/i", $viewType))
 		{
 			$BrowseLinks = "\n<div class=\"resultnav\">";
 		}
@@ -1640,9 +1640,9 @@
 			$BrowseLinks .= "\n<tr>";
 		}
 
-		if (eregi("^Mobile$", $viewType))
+		if (preg_match("/^Mobile$/i", $viewType))
 			$BrowseLinks .= "\n\t<div class=\"mainnav\"><a href=\"" . $baseURL . "index.php\"" . addAccessKey("attribute", "home") . " title=\"" . $loc["LinkTitle_Home"] . addAccessKey("title", "home") . "\">" . $loc["Home"] . "</a></div>";
-		elseif (eregi("^Print$", $viewType) OR eregi("^cli", $client))
+		elseif (preg_match("/^Print$/i", $viewType) OR preg_match("/^cli/i", $client))
 			$BrowseLinks .= "\n\t<td class=\"mainnav\" align=\"left\" valign=\"bottom\" width=\"225\"><a href=\"" . $baseURL . "index.php\"" . addAccessKey("attribute", "home") . " title=\"" . $loc["LinkTitle_Home"] . addAccessKey("title", "home") . "\">" . $loc["Home"] . "</a></td>";
 		elseif (($href == "users.php") OR !isset($displayResultsFooterDefault[$displayType]) OR (isset($displayResultsFooterDefault[$displayType]) AND ($displayResultsFooterDefault[$displayType] != "hidden")))
 		{
@@ -1657,7 +1657,7 @@
 		}
 
 
-		if (eregi("^Mobile$", $viewType))
+		if (preg_match("/^Mobile$/i", $viewType))
 			$BrowseLinks .= "\n\t<div class=\"pagenav\">";
 		else
 			$BrowseLinks .= "\n\t<td class=\"pagenav\" align=\"center\" valign=\"bottom\">";
@@ -1788,12 +1788,12 @@
 				              . "\" title=\"" . $loc["LinkTitle_DisplayResultsPage"] . " " . $nextRangeFirstPage . " " . $loc["LinkTitle_DisplayLinksToResultsPages"] . " " . $nextRangeFirstPage . "&#8211;" . $nextRangeLastPage . "\"> [" . $nextRangeFirstPage . "&#8211;" . $nextRangeLastPage . "]</a>";
 			}
 
-		if (eregi("^Mobile$", $viewType))
+		if (preg_match("/^Mobile$/i", $viewType))
 			$BrowseLinks .= "\n\t</div>";
 		else
 			$BrowseLinks .= "\n\t</td>";
 
-		if (eregi("^Mobile$", $viewType))
+		if (preg_match("/^Mobile$/i", $viewType))
 			$BrowseLinks .= "\n\t<div class=\"viewnav\">";
 		else
 			$BrowseLinks .= "\n\t<td class=\"viewnav\" align=\"right\" valign=\"bottom\" width=\"225\">";
@@ -1801,11 +1801,11 @@
 		// Add view links:
 		$viewLinksArray = array();
 
-		if (($href == "search.php") AND !eregi("^Browse$", $displayType) AND !eregi("^Mobile$", $viewType))
+		if (($href == "search.php") AND !preg_match("/^Browse$/i", $displayType) AND !preg_match("/^Mobile$/i", $viewType))
 		{
-			if (isset($_SESSION['user_permissions']) AND ereg("allow_list_view", $_SESSION['user_permissions']))
+			if (isset($_SESSION['user_permissions']) AND preg_match("/allow_list_view/", $_SESSION['user_permissions']))
 			{
-				if (eregi("^(Cite|Display)$", $displayType)) // display a link to List view:
+				if (preg_match("/^(Cite|Display)$/i", $displayType)) // display a link to List view:
 				{
 					// Replace current SELECT clause with one that's appropriate for List view:
 					if (isset($_SESSION['lastListViewQuery']))
@@ -1836,9 +1836,9 @@
 					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"leftview\">" . $loc["ListView"] . "</div></div>";
 			}
 
-			if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions']))
+			if (isset($_SESSION['user_permissions']) AND preg_match("/allow_cite/", $_SESSION['user_permissions']))
 			{
-				if (!eregi("^Cite$", $displayType)) // display a link to Citation view:
+				if (!preg_match("/^Cite$/i", $displayType)) // display a link to Citation view:
 				{
 					// Replace current SELECT clause with one that's appropriate for Citation view:
 					$citeViewSelectClause = buildSELECTclause("Cite", $showLinks, "", false, false); // select all fields required to build proper record citations
@@ -1865,9 +1865,9 @@
 					$viewLinksArray[] = "<div class=\"activeview\"><div class=\"middleview\">" . $loc["Citations"] . "</div></div>";
 			}
 
-			if (isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions']))
+			if (isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions']))
 			{
-				if (!eregi("^Display$", $displayType)) // display a link to Details view:
+				if (!preg_match("/^Display$/i", $displayType)) // display a link to Details view:
 				{
 					// Replace current SELECT clause with one that's appropriate for Details view:
 					if (isset($_SESSION['lastDetailsViewQuery']))
@@ -1905,14 +1905,14 @@
 		}
 
 		// Note: we omit 'Web/Print View' links for include mechanisms!
-		if (!eregi("^inc", $client))
+		if (!preg_match("/^inc/i", $client))
 		{
 			$BrowseLinks .= "\n\t\t";
 
 			if (count($viewLinksArray) > 1)
 				$BrowseLinks .= "&nbsp;&nbsp;&nbsp;";
 
-			if (eregi("^(Print|Mobile)$", $viewType))
+			if (preg_match("/^(Print|Mobile)$/i", $viewType))
 			{
 				// i) create a 'Web View' link that will show the currently displayed result set in web view:
 				$BrowseLinks .= "<a class=\"toggleprint\" href=\"" . $baseURL . $href
@@ -1932,7 +1932,7 @@
 			}
 			else
 			{
-				if (isset($_SESSION['user_permissions']) AND ereg("allow_print_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_print_view'...
+				if (isset($_SESSION['user_permissions']) AND preg_match("/allow_print_view/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_print_view'...
 					// j) create a 'Print View' link that will show the currently displayed result set in print view:
 					$BrowseLinks .= "<a class=\"toggleprint\" href=\"" . $baseURL . $href
 					              . "?sqlQuery=" . rawurlencode($query)
@@ -1951,7 +1951,7 @@
 			}
 		}
 
-		if (eregi("^Mobile$", $viewType))
+		if (preg_match("/^Mobile$/i", $viewType))
 		{
 			$BrowseLinks .= "\n\t</div>"
 			              . "\n</div>";
@@ -1978,7 +1978,7 @@
 
 		global $client;
 
-		if (!eregi("^SELECT", $queryURL) OR !eregi("%20FROM%20" . $tableRefs . "%20", $queryURL)) // only include SELECT queries that query table 'refs'
+		if (!preg_match("/^SELECT/i", $queryURL) OR !preg_match("/%20FROM%20/i" . $tableRefs . "%20", $queryURL)) // only include SELECT queries that query table 'refs'
 			$queryURL = ""; // this excludes e.g. queries that query table 'users'
 
 		$encodedCiteStyle = rawurlencode($citeStyle);
@@ -2035,9 +2035,9 @@ EOF;
 		$optionTags = buildSelectMenuOptions($dropDownFieldNameArray, "", "\t\t\t\t\t\t\t", true);
 
 		if (!empty($firstField) AND in_array($firstField, $userMainFieldsArray)) // if the first field from the 'WHERE' clause is one of the main fields
-			$quickSearchForm .= ereg_replace("<option([^>]* value=\"$firstField\")", "<option\\1 selected", $optionTags); // we select that field by adding the 'selected' parameter to the appropriate <option> tag
+			$quickSearchForm .= preg_replace("/<option([^>]* value=\"$firstField\")/", "<option\\1 selected", $optionTags); // we select that field by adding the 'selected' parameter to the appropriate <option> tag
 		else
-			$quickSearchForm .= ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_MainFields"], "<option\\1 selected>" . $loc["DropDownFieldName_MainFields"], $optionTags); // select the 'main fields' menu entry ...
+			$quickSearchForm .= preg_replace("/<option([^>]*)>/" . $loc["DropDownFieldName_MainFields"], "<option\\1 selected>" . $loc["DropDownFieldName_MainFields"], $optionTags); // select the 'main fields' menu entry ...
 
 		$quickSearchForm .= <<<EOF
 
@@ -2100,7 +2100,7 @@ EOF;
 		// build correct option tags from the column items provided:
 		$optionTags = buildSelectMenuOptions($dropDownFieldsArray, "", "\t\t\t\t\t\t", true);
 
-		$optionTags = ereg_replace("<option([^>]* value=\"$dropDownFieldSelected\")", "<option\\1 selected", $optionTags); // add 'selected' attribute
+		$optionTags = preg_replace("/<option([^>]* value=\"$dropDownFieldSelected\")/", "<option\\1 selected", $optionTags); // add 'selected' attribute
 
 		$refineSearchForm .= $optionTags;
 
@@ -2147,7 +2147,7 @@ EOF;
 		// show the 'Show My Groups' form:
 		// - if the admin is logged in and calls 'users.php' (since only the admin will be allowed to call 'users.php', checking '$href' is sufficient here) -OR-
 		// - if a user is logged in AND the 'user_permissions' session variable contains 'allow_user_groups'
-		if (($href == "users.php") OR (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions']))))
+		if (($href == "users.php") OR (isset($_SESSION['loginEmail']) AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_user_groups/", $_SESSION['user_permissions']))))
 		{
 			if (($href == "search.php" AND isset($_SESSION['userGroups'])) OR ($href == "users.php" AND isset($_SESSION['adminUserGroups']))) // if the appropriate session variable is set
 			{
@@ -2343,7 +2343,7 @@ EOF;
 		// build correct option tags from the column items provided:
 		$optionTags = buildSelectMenuOptions($dropDownFieldsArray, "", "\t\t\t\t\t\t\t", true);
 
-		$optionTags = ereg_replace("<option([^>]* value=\"$dropDownFieldSelected\")", "<option\\1 selected", $optionTags); // add 'selected' attribute
+		$optionTags = preg_replace("/<option([^>]* value=\"$dropDownFieldSelected\")/", "<option\\1 selected", $optionTags); // add 'selected' attribute
 
 		$displayOptionsForm .= $optionTags;
 
@@ -2359,7 +2359,7 @@ EOF;
 						<input type="submit" name="submit" value="$submitValue" title="$submitTitle">
 EOF;
 
-		if (!eregi("^(Browse|Cite)$", $displayType))
+		if (!preg_match("/^(Browse|Cite)$/i", $displayType))
 			$displayOptionsForm .= "\n\t\t\t\t\t\t<input type=\"submit\" name=\"submit\" value=\"" . $loc["ButtonTitle_Hide"] . "\" title=\"$hideButtonTitle\"$hideButtonDisabled>";
 
 		$displayOptionsForm .= <<<EOF
@@ -2388,7 +2388,7 @@ EOF;
 			$citeOrderOptionTags = buildSelectMenuOptions($citeOrderItemsArray, "", "\t\t\t\t\t\t\t", true);
 
 			if (isset($citeOrderItemsArray[$citeOrder]))
-				$citeOrderOptionTags = ereg_replace("<option([^>]*)>(" . $citeOrderItemsArray[$citeOrder] . ")</option>", "<option\\1 selected>\\2</option>", $citeOrderOptionTags); // add 'selected' attribute to the currently chosen 'citeOrder' option
+				$citeOrderOptionTags = preg_replace("/<option([^>]*)>(/" . $citeOrderItemsArray[$citeOrder] . ")</option>", "<option\\1 selected>\\2</option>", $citeOrderOptionTags); // add 'selected' attribute to the currently chosen 'citeOrder' option
 			else // add & select a "(custom order)" option (which indicates that the current sort order matches none of the above 'citeOrder' options):
 				$citeOrderOptionTags = "\n\t\t\t\t\t\t\t<option value=\"\" selected>(" . $loc["DropDownFieldName_Custom"] . ")</option>" . $citeOrderOptionTags;
 
@@ -2469,7 +2469,7 @@ EOF;
 				$refineSearchActionCheckbox = "0"; // the user did NOT mark the checkbox next to "Exclude matches"
 		}
 
-		elseif (ereg("^(" . $loc["ButtonTitle_Show"] . "|" . $loc["ButtonTitle_Hide"] . "|" . $loc["ButtonTitle_Browse"] . ")$", $encodedDisplayType)) // the user clicked either the 'Browse' or 'Show'/'Hide' buttons of the "Display Options" form
+		elseif (preg_match("/^(/" . $loc["ButtonTitle_Show"] . "|" . $loc["ButtonTitle_Hide"] . "|" . $loc["ButtonTitle_Browse"] . ")$", $encodedDisplayType)) // the user clicked either the 'Browse' or 'Show'/'Hide' buttons of the "Display Options" form
 		// (hitting <enter> within the 'ShowRows' text entry field of the "Display Options" form will act as if the user clicked the 'Browse'/'Show' button)
 		{
 			if (isset($_REQUEST['displayOptionsSelector']))
@@ -2507,30 +2507,30 @@ EOF;
 				{
 					// for the fields 'marked=no', 'copy=false' and 'selected=no', force NULL values to be matched:
 					if (($fieldSelector == "marked" AND $refineSearchName == "no") OR ($fieldSelector == "copy" AND $refineSearchName == "false") OR ($fieldSelector == "selected" AND $refineSearchName == "no"))
-						$query = eregi_replace(" WHERE ", " WHERE ($fieldSelector RLIKE " . quote_smart($refineSearchName) . " OR $fieldSelector IS NULL) AND ", $query); // ...add search field name & value to the SQL query
+						$query = preg_replace("/ WHERE /i", " WHERE ($fieldSelector RLIKE " . quote_smart($refineSearchName) . " OR $fieldSelector IS NULL) AND ", $query); // ...add search field name & value to the SQL query
 					else // add default 'WHERE' clause:
-						$query = eregi_replace(" WHERE ", " WHERE $fieldSelector RLIKE " . quote_smart($refineSearchName) . " AND ", $query); // ...add search field name & value to the SQL query
+						$query = preg_replace("/ WHERE /i", " WHERE $fieldSelector RLIKE " . quote_smart($refineSearchName) . " AND ", $query); // ...add search field name & value to the SQL query
 				}
 				else // $refineSearchActionCheckbox == "1" // if the user marked the checkbox next to "Exclude matches"
 				{
-					$query = eregi_replace(" WHERE ", " WHERE ($fieldSelector NOT RLIKE " . quote_smart($refineSearchName) . " OR $fieldSelector IS NULL) AND ", $query); // ...add search field name & value to the SQL query
+					$query = preg_replace("/ WHERE /i", " WHERE ($fieldSelector NOT RLIKE " . quote_smart($refineSearchName) . " OR $fieldSelector IS NULL) AND ", $query); // ...add search field name & value to the SQL query
 				}
 
-				$query = eregi_replace(' AND serial RLIKE "\.\+"', '', $query); // remove any 'AND serial RLIKE ".+"' which isn't required anymore
+				$query = preg_replace('/ AND serial RLIKE "\.\+/i"', '', $query); // remove any 'AND serial RLIKE ".+"' which isn't required anymore
 			}
 			// else, if the user did NOT type a search string into the text entry field, we simply keep the old WHERE clause...
 		}
 
 
-		elseif (ereg("^(" . $loc["ButtonTitle_Show"] . "|" . $loc["ButtonTitle_Hide"] . ")$", $encodedDisplayType)) // the user clicked the 'Show'/'Hide' buttons of the "Display Options" form
+		elseif (preg_match("/^(/" . $loc["ButtonTitle_Show"] . "|" . $loc["ButtonTitle_Hide"] . ")$", $encodedDisplayType)) // the user clicked the 'Show'/'Hide' buttons of the "Display Options" form
 		{
-			if (eregi("^Cite$", $originalDisplayType)) // in case of Citation view, we regenerate the SELECT clause from scratch:
+			if (preg_match("/^Cite$/i", $originalDisplayType)) // in case of Citation view, we regenerate the SELECT clause from scratch:
 			{
 				// generate a SELECT clause that's appropriate for Citation view (or Details view):
 				$newSelectClause = buildSELECTclause($originalDisplayType, $showLinks, $additionalFields, false, $addRequiredFields);
 
 				// rebuild the current ORDER clause:
-				if (eregi("^(author|year|type|type-year|creation-date)$", $citeOrder))
+				if (preg_match("/^(author|year|type|type-year|creation-date)$/i", $citeOrder))
 				{
 					if ($citeOrder == "year") // sort records first by year (descending):
 						$newORDER = "ORDER BY year DESC, first_author, author_count, author, title";
@@ -2556,7 +2556,7 @@ EOF;
 				//       (to ensure correct sorting for output to bibliographic reference lists)
 			}
 
-			elseif (eregi("^Display$", $originalDisplayType)) // Details view
+			elseif (preg_match("/^Display$/i", $originalDisplayType)) // Details view
 			{
 				// NOTE: the below code for displaying & hiding of fields in Details view must be adopted if either layout or field names are changed!
 
@@ -2654,7 +2654,7 @@ EOF;
 		{
 			$previousField = preg_replace("/^SELECT (\w+).+/i", "\\1", $query); // extract the field that was previously used in Browse view
 
-			if (!eregi("^" . $fieldSelector . "$", $previousField)) // if the user did choose another field in Browse view...
+			if (!preg_match("/^/i" . $fieldSelector . "$", $previousField)) // if the user did choose another field in Browse view...
 			{
 				// ...modify the SQL query to show a summary for the new field that was chosen by the user:
 				// (NOTE: these replace patterns aren't 100% safe and may fail if the user has modified the query using 'sql_search.php'!)
@@ -2675,14 +2675,14 @@ EOF;
 		if ($queryTable == $tableRefs) // 'search.php':
 		{
 			// if the chosen field is one of the user-specific fields from table 'user_data': 'marked', 'copy', 'selected', 'user_keys', 'user_notes', 'user_file', 'user_groups', 'cite_key' or 'related'
-			if (eregi("^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related|my fields)$", $fieldSelector)) // 'my fields' is used in Details view as an alias for all user-specific fields
-				if (!eregi("LEFT JOIN $tableUserData", $query)) // ...and if the 'LEFT JOIN...' statement isn't already part of the 'FROM' clause...
-					$query = eregi_replace(" FROM $tableRefs", " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $userID", $query); // ...add the 'LEFT JOIN...' part to the 'FROM' clause
+			if (preg_match("/^(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related|my fields)$/i", $fieldSelector)) // 'my fields' is used in Details view as an alias for all user-specific fields
+				if (!preg_match("/LEFT JOIN $tableUserData/i", $query)) // ...and if the 'LEFT JOIN...' statement isn't already part of the 'FROM' clause...
+					$query = preg_replace("/ FROM $tableRefs/i", " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $userID", $query); // ...add the 'LEFT JOIN...' part to the 'FROM' clause
 		}
 		elseif ($queryTable == $tableUsers) // 'users.php':
 		{
 			// TODO: this wouldn't be necessary if function 'buildSELECTclause()' would handle the requirements of 'users.php' (see also above)
-			$query = eregi_replace(" FROM $tableUsers", ", user_id FROM $tableUsers", $query); // add 'user_id' column (although it won't be visible the 'user_id' column gets included in every search query)
+			$query = preg_replace("/ FROM $tableUsers/i", ", user_id FROM $tableUsers", $query); // add 'user_id' column (although it won't be visible the 'user_id' column gets included in every search query)
 			                                                                                 // (which is required in order to obtain unique checkbox names as well as for use in the 'getUserID()' function)
 		}
 
@@ -2787,7 +2787,7 @@ EOF;
 				$singleAuthorArray[1] = preg_replace("/(?<=[-$upper]) +(?=[-$upper])/$patternModifiers", "", $singleAuthorArray[1]);
 
 				// within initials, add a space after a hyphen, but only if ...
-				if (ereg(" $", $betweenInitialsDelim)) // ... the delimiter that separates initials ends with a space
+				if (preg_match("/ $/", $betweenInitialsDelim)) // ... the delimiter that separates initials ends with a space
 					$singleAuthorArray[1] = preg_replace("/-(?=[$upper])/$patternModifiers", "- ", $singleAuthorArray[1]);
 
 				// then, separate initials with the specified delimiter:
@@ -2815,7 +2815,7 @@ EOF;
 				// we'll append the string in '$customStringAfterFirstAuthors' to the number of authors given in '$includeNumberOfAuthors' if the total number of authors is greater than the number given in '$numberOfAuthorsTriggeringEtAl':
 				if ((($i + 1) == $includeNumberOfAuthors) AND ($authorCount > $numberOfAuthorsTriggeringEtAl))
 				{
-					if (ereg("__NUMBER_OF_AUTHORS__", $customStringAfterFirstAuthors))
+					if (preg_match("/__NUMBER_OF_AUTHORS__/", $customStringAfterFirstAuthors))
 						$customStringAfterFirstAuthors = preg_replace("/__NUMBER_OF_AUTHORS__/", ($authorCount - $includeNumberOfAuthors), $customStringAfterFirstAuthors); // resolve placeholder
 
 					$includeStringAfterFirstAuthor = true;
@@ -2957,7 +2957,7 @@ EOF;
 					// '<:secondAuthor:>' placeholder:
 					elseif (preg_match("/:secondAuthor:/i", $placeholderPart))
 					{
-						if (!empty($formVars['authorName']) AND ereg(";", $formVars['authorName'])) // if the 'author' field does contain at least one ';' => at least two authors
+						if (!empty($formVars['authorName']) AND preg_match("/;/", $formVars['authorName'])) // if the 'author' field does contain at least one ';' => at least two authors
 						{
 							$secondAuthor = $prefix;
 							// Call the 'extractAuthorsLastName()' function to extract the last name of a particular author (specified by position):
@@ -3507,7 +3507,7 @@ EOF;
 					{
 						// replace any colon ":" (optionally surrounded by whitespace) with " RLIKE " and enclose the search value with quotes:
 						// (as an example, 'author:steffens, m' will be transformed to 'author RLIKE "steffens, m"')
-						if (ereg(":",$relatedFieldArrayElement))
+						if (preg_match("/:/",$relatedFieldArrayElement))
 							$relatedFieldArrayElement = preg_replace("/ *: *(.+)/"," RLIKE \"\\1\"",$relatedFieldArrayElement);
 						// else we assume '$relatedFieldArrayElement' to contain a valid 'WHERE' clause!
 
@@ -3531,7 +3531,7 @@ EOF;
 		$relatedQuery = buildSELECTclause("", "", "", false, false);
 
 		// if any of the user-specific fields are present in the contents of the 'related' field, we'll add the 'LEFT JOIN...' part to the 'FROM' clause:
-		if (ereg("marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related",$queriesString))
+		if (preg_match("/marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related/",$queriesString))
 			$relatedQuery .= " FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $userID";
 		else // we skip the 'LEFT JOIN...' part of the 'FROM' clause:
 			$relatedQuery .= " FROM $tableRefs";
@@ -3593,7 +3593,7 @@ EOF;
 				{
 					$recordUserGroups = preg_replace("/^ *$userGroupQuoted *(?=;|$)/", "", $recordUserGroups); // the specified group is listed at the very beginning of the 'user_groups' field
 					$recordUserGroups = preg_replace("/ *; *$userGroupQuoted *(?=;|$)/", "", $recordUserGroups); // the specified group occurs after some other group name within the 'user_groups' field
-					$recordUserGroups = ereg_replace("^ *; *", "", $recordUserGroups); // remove any remaining group delimiters at the beginning of the 'user_groups' field
+					$recordUserGroups = preg_replace("/^ *; */", "", $recordUserGroups); // remove any remaining group delimiters at the beginning of the 'user_groups' field
 				}
 
 				if ($queryTable == $tableUserData) // for the current record & user ID, update the matching entry within the 'user_data' table:
@@ -3994,7 +3994,7 @@ EOF;
 
 		$selectedFormatsStylesTypes = implode("|", $selectedFormatsStylesTypesArray); // merge array of formats/styles/types that shall be selected
 
-		$optionTags = ereg_replace("<option([^>]*)>($selectedFormatsStylesTypes)</option>", "<option\\1 selected>\\2</option>", $optionTags); // select all formats/styles/types that are listed within '$selectedFormatsStylesTypesArray'
+		$optionTags = preg_replace("/<option([^>]*)>($selectedFormatsStylesTypes)</option>/", "<option\\1 selected>\\2</option>", $optionTags); // select all formats/styles/types that are listed within '$selectedFormatsStylesTypesArray'
 
 		return $optionTags;
 	}
@@ -4296,11 +4296,12 @@ EOF;
 		// 'allow_browse_view', 'allow_cite') in table 'user_permissions'
 
 		// Adopt the user's default view if he/she is NOT allowed to use the global default (given in '$defaultView'):
-		if (isset($viewsArray[$defaultView]) AND isset($_SESSION['user_permissions']) AND !ereg($viewsArray[$defaultView], $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain the '*_view' permission that corresponds to '$defaultView'
+		// Sam: Warning: the preg_match call below originally had $viewsArray[$defaultView] as its first argument. I added quotes and regex delimeters.
+		if (isset($viewsArray[$defaultView]) AND isset($_SESSION['user_permissions']) AND !preg_match("/$viewsArray[$defaultView]/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain the '*_view' permission that corresponds to '$defaultView'
 		{
 			foreach ($viewsArray as $viewType => $viewPermission) // use the next allowed view as default view
 			{
-				if (ereg($viewPermission, $_SESSION['user_permissions']))
+				if (preg_match("/$viewPermission/", $_SESSION['user_permissions']))
 				{
 					$userDefaultView = $viewType;
 					break;
@@ -4865,7 +4866,7 @@ EOF;
 				// Build correct option tags from the provided database values:
 				$optionTags .= buildSelectMenuOptions($resultBuffer, "", "\t\t\t", false);
 
-				$outputData .= ereg_replace("<option([^>]*)>($defaultValue)</option>", "<option\\1 selected>\\2</option>", $optionTags); // add 'selected' attribute
+				$outputData .= preg_replace("/<option([^>]*)>($defaultValue)</option>/", "<option\\1 selected>\\2</option>", $optionTags); // add 'selected' attribute
 
 				if ($wrapSearchSuggestions)
 					$outputData .= "\n\t\t</select>";
@@ -5057,7 +5058,7 @@ EOF;
 		$sourceString = str_replace('\"', '"', $sourceString); // replace any \" with "
 		$sourceString = str_replace("\\'", "'", $sourceString); // replace any \' with '
 		$sourceString = str_replace("\\\\", "\\", $sourceString);
-		// $sourceString = eregi_replace('(\\\\)+', '\\\\', $sourceString); // instead of the previous line, this would kinda work if SQL strings aren't quote_smart()ed
+		// $sourceString = preg_replace('/(\\\\)+/i', '\\\\', $sourceString); // instead of the previous line, this would kinda work if SQL strings aren't quote_smart()ed
 
 		return $sourceString;
 	}
@@ -5097,16 +5098,16 @@ EOF;
 	//       <http://dev.splitbrain.org/view/darcs/dokuwiki/inc/utf8.php>
 	function changeCase($transformation, $sourceString)
 	{
-		if (eregi("lower", $transformation)) // change source text to lower case
+		if (preg_match("/lower/i", $transformation)) // change source text to lower case
 			$sourceString = strtolower($sourceString);
 
-		elseif (eregi("upper", $transformation)) // change source text to upper case
+		elseif (preg_match("/upper/i", $transformation)) // change source text to upper case
 			$sourceString = strtoupper($sourceString);
 
-		elseif (eregi("title", $transformation)) // change source text to title case
+		elseif (preg_match("/title/i", $transformation)) // change source text to title case
 			$sourceString = preg_replace("/\b(\w)(\w+)/e", "strtoupper('\\1').strtolower('\\2')", $sourceString); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
-		elseif (eregi("heading", $transformation)) // change source text to heading case (opposed to 'title', we only touch words with more than 3 chars, and we only change the case of the first letter but not any subsequent ones)
+		elseif (preg_match("/heading/i", $transformation)) // change source text to heading case (opposed to 'title', we only touch words with more than 3 chars, and we only change the case of the first letter but not any subsequent ones)
 			$sourceString = preg_replace("/\b(\w)(\w{3,})/e", "strtoupper('\\1').'\\2'", $sourceString); // the 'e' modifier allows to execute PHP code within the replacement pattern
 
 		return $sourceString;
@@ -5618,7 +5619,7 @@ EOF;
 		// - the variable '$fileVisibility' (defined in 'ini.inc.php') is set to 'everyone'
 		// - the variable '$fileVisibility' is set to 'login' AND the user is logged in
 		// - the variable '$fileVisibility' is set to 'user-specific' AND the 'user_permissions' session variable contains 'allow_download'
-		if (!($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions'])))))
+		if (!($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions'])))))
 		{
 			// remove 'file' field from SQL query:
 			$sqlQuery = stripFieldFromSQLQuery($sqlQuery, "file", true);
@@ -5634,19 +5635,19 @@ EOF;
 		}
 
 		// supply generic 'WHERE' clause if it didn't exist in the SELECT query:
-		if (eregi("^SELECT", $sqlQuery) AND !eregi(" FROM " . $tableRefs . ".* WHERE ", $sqlQuery))
+		if (preg_match("/^SELECT/i", $sqlQuery) AND !preg_match("/ FROM /i" . $tableRefs . ".* WHERE ", $sqlQuery))
 			$sqlQuery = preg_replace("/(?= ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", " WHERE serial RLIKE \".+\"", $sqlQuery, 1);
 
 		// supply generic 'ORDER BY' clause if it didn't exist in the SELECT query:
 		// TODO: - add a suitable 'ORDER BY' clause for Browse view and if '$citeOrder != "author"'
-		if (eregi("^SELECT", $sqlQuery) AND !eregi(" FROM " . $tableRefs . ".* ORDER BY ", $sqlQuery) AND ($displayType != "Browse"))
+		if (preg_match("/^SELECT/i", $sqlQuery) AND !preg_match("/ FROM /i" . $tableRefs . ".* ORDER BY ", $sqlQuery) AND ($displayType != "Browse"))
 			$sqlQuery = preg_replace("/(?= LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", " ORDER BY author, year DESC, publication", $sqlQuery, 1);
 
 		// handle the display & querying of user-specific fields:
 		if (!isset($_SESSION['loginEmail'])) // if NO user is logged in...
 		{
 			// ... and any user-specific fields are part of the SELECT or ORDER BY statement...
-			if ((empty($referer) OR eregi(".+search\.php",$referer)) AND (eregi("(SELECT |ORDER BY |, *)(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)",$sqlQuery))) // if the calling script ends with 'search.php' (i.e., is NOT 'show.php' or 'sru.php', see note below!) AND any user-specific fields are part of the SELECT or ORDER BY clause
+			if ((empty($referer) OR preg_match("/.+search\.php/i",$referer)) AND (preg_match("/(SELECT |ORDER BY |, *)(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)/i",$sqlQuery))) // if the calling script ends with 'search.php' (i.e., is NOT 'show.php' or 'sru.php', see note below!) AND any user-specific fields are part of the SELECT or ORDER BY clause
 			{
 				// if the 'SELECT' clause contains any user-specific fields:
 				if (preg_match("/SELECT(.(?!FROM))+?(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)/i",$sqlQuery))
@@ -5656,20 +5657,20 @@ EOF;
 					$HeaderString = returnMsg($loc["Warning_DisplayUserSpecificFieldsOmitted"] . "!", "warning", "strong", "HeaderString");
 				}
 
-				$sqlQuery = eregi_replace("(SELECT|ORDER BY) (marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)( DESC)?", "\\1 ", $sqlQuery); // ...delete any user-specific fields from beginning of 'SELECT' or 'ORDER BY' clause
-				$sqlQuery = eregi_replace(", *(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)( DESC)?", "", $sqlQuery); // ...delete any remaining user-specific fields from 'SELECT' or 'ORDER BY' clause
-				$sqlQuery = eregi_replace("(SELECT|ORDER BY) *, *", "\\1 ", $sqlQuery); // ...remove any field delimiters that directly follow the 'SELECT' or 'ORDER BY' terms
+				$sqlQuery = preg_replace("/(SELECT|ORDER BY) (marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)( DESC)?/i", "\\1 ", $sqlQuery); // ...delete any user-specific fields from beginning of 'SELECT' or 'ORDER BY' clause
+				$sqlQuery = preg_replace("/, *(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)( DESC)?/i", "", $sqlQuery); // ...delete any remaining user-specific fields from 'SELECT' or 'ORDER BY' clause
+				$sqlQuery = preg_replace("/(SELECT|ORDER BY) *, */i", "\\1 ", $sqlQuery); // ...remove any field delimiters that directly follow the 'SELECT' or 'ORDER BY' terms
 
 				$sqlQuery = preg_replace("/SELECT *(?=FROM)/i", buildSELECTclause("", "", "", false, false) . " ", $sqlQuery); // ...supply generic 'SELECT' clause if it did ONLY contain user-specific fields
 				$sqlQuery = preg_replace("/ORDER BY *(?=LIMIT|GROUP BY|HAVING|PROCEDURE|FOR UPDATE|LOCK IN|$)/i", "ORDER BY author, year DESC, publication", $sqlQuery); // ...supply generic 'ORDER BY' clause if it did ONLY contain user-specific fields
 			}
 
 			// ... and the 'LEFT JOIN...' statement is part of the 'FROM' clause...
-			if ((eregi(".+search\.php",$referer)) AND (eregi("LEFT JOIN $tableUserData",$sqlQuery))) // if the calling script ends with 'search.php' (i.e., is NOT 'show.php' or 'sru.php', see note below!) AND the 'LEFT JOIN...' statement is part of the 'FROM' clause...
-				$sqlQuery = eregi_replace("FROM $tableRefs LEFT JOIN.+WHERE","FROM $tableRefs WHERE",$sqlQuery); // ...delete 'LEFT JOIN...' part from 'FROM' clause
+			if ((preg_match("/.+search\.php/i",$referer)) AND (preg_match("/LEFT JOIN $tableUserData/i",$sqlQuery))) // if the calling script ends with 'search.php' (i.e., is NOT 'show.php' or 'sru.php', see note below!) AND the 'LEFT JOIN...' statement is part of the 'FROM' clause...
+				$sqlQuery = preg_replace("/FROM $tableRefs LEFT JOIN.+WHERE/i","FROM $tableRefs WHERE",$sqlQuery); // ...delete 'LEFT JOIN...' part from 'FROM' clause
 
 			// ... and any user-specific fields are part of the WHERE clause...
-			if ((eregi(".+search\.php",$referer) OR eregi("^RSS$",$displayType)) AND (eregi("WHERE.+(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)",$sqlQuery))) // if a user who's NOT logged in tries to query user-specific fields (by use of 'sql_search.php')...
+			if ((preg_match("/.+search\.php/i",$referer) OR preg_match("/^RSS$/i",$displayType)) AND (preg_match("/WHERE.+(marked|copy|selected|user_keys|user_notes|user_file|user_groups|cite_key|related)/i",$sqlQuery))) // if a user who's NOT logged in tries to query user-specific fields (by use of 'sql_search.php')...
 			// Note that the script 'show.php' may query the user-specific field 'selected' (e.g., by URLs of the form: 'show.php?author=...&userID=...&only=selected')
 			// but since (in that case) the '$referer' variable is either empty or does not end with 'search.php' this if clause will not apply (which is ok since we want to allow 'show.php' to query the 'selected' field).
 			// The same applies in the case of 'sru.php' which may query the user-specific field 'cite_key' (e.g., by URLs like: 'sru.php?version=1.1&query=bib.citekey=...&x-info-2-auth1.0-authenticationToken=email=...')
@@ -5688,46 +5689,46 @@ EOF;
 
 		else // if a user is logged in...
 		{
-			if (eregi("LEFT JOIN $tableUserData",$sqlQuery)) // if the 'LEFT JOIN...' statement is part of the 'FROM' clause...
+			if (preg_match("/LEFT JOIN $tableUserData/i",$sqlQuery)) // if the 'LEFT JOIN...' statement is part of the 'FROM' clause...
 			{
 				// ...and any user-specific fields other(!) than the 'selected' or 'cite_key' field are part of the 'SELECT' or 'WHERE' clause...
 				// Note that we exclude the 'selected' field here (although it is user-specific). By that we allow the 'selected' field to be queried by every user who's logged in.
 				// This is done to support the 'show.php' script which may query the user-specific field 'selected' (e.g., by URLs of the form: 'show.php?author=...&userID=...&only=selected')
 				// Similarly, we exclude 'cite_key' here to allow every user to query other user's 'cite_key' fields using 'sru.php' (e.g., by URLs like: 'sru.php?version=1.1&query=bib.citekey=...&x-info-2-auth1.0-authenticationToken=email=...')
-				if (eregi(", (marked|copy|user_keys|user_notes|user_file|user_groups|related)",$sqlQuery) OR eregi("WHERE.+(marked|copy|user_keys|user_notes|user_file|user_groups|related)",$sqlQuery))
+				if (preg_match("/, (marked|copy|user_keys|user_notes|user_file|user_groups|related)/i",$sqlQuery) OR preg_match("/WHERE.+(marked|copy|user_keys|user_notes|user_file|user_groups|related)/i",$sqlQuery))
 				{
-					$sqlQuery = eregi_replace("user_id *= *[0-9]+","user_id = $loginUserID",$sqlQuery); // ...replace any other user ID with the ID of the currently logged in user
+					$sqlQuery = preg_replace("/user_id *= *[0-9]+/i","user_id = $loginUserID",$sqlQuery); // ...replace any other user ID with the ID of the currently logged in user
 
-					if (!empty($librarySearchPattern) AND !(eregi("^location$",$librarySearchPattern[0]) AND preg_match("/location RLIKE " . quote_smart($librarySearchPattern[1]) . "/i",$sqlQuery))) // don't replace the 'location' part of the WHERE clause if it stems from variable '$librarySearchPattern' in 'ini.inc.php' (NOTE: this is quite hacky! :-/)
+					if (!empty($librarySearchPattern) AND !(preg_match("/^location$/i",$librarySearchPattern[0]) AND preg_match("/location RLIKE " . quote_smart($librarySearchPattern[1]) . "/i",$sqlQuery))) // don't replace the 'location' part of the WHERE clause if it stems from variable '$librarySearchPattern' in 'ini.inc.php' (NOTE: this is quite hacky! :-/)
 						$sqlQuery = preg_replace("/location RLIKE .+?(?= (AND|OR)\b| ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i","location RLIKE " . quote_smart($loginEmail),$sqlQuery); // ...replace any other user email address with the login email address of the currently logged in user
 				}
 			}
 
 			// if we're going to display record details for a logged in user, we have to ensure the display of the 'location' field as well as the user-specific fields (which may have been deleted from a query due to a previous logout action);
 			// in 'Display Details' view, the 'call_number' and 'serial' fields are the last generic fields before any user-specific fields:
-			if (((eregi("^Display$",$displayType) AND ($showUserSpecificFieldsDetailsViewDefault == "yes")) OR (eregi("^Export$",$displayType))) AND (eregi(", call_number, serial FROM $tableRefs",$sqlQuery))) // if the user-specific fields are missing from the SELECT statement...
-				$sqlQuery = eregi_replace(", call_number, serial FROM $tableRefs",", call_number, serial, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related FROM $tableRefs",$sqlQuery); // ...add all user-specific fields to the 'SELECT' clause
+			if (((preg_match("/^Display$/i",$displayType) AND ($showUserSpecificFieldsDetailsViewDefault == "yes")) OR (preg_match("/^Export$/i",$displayType))) AND (preg_match("/, call_number, serial FROM $tableRefs/i",$sqlQuery))) // if the user-specific fields are missing from the SELECT statement...
+				$sqlQuery = preg_replace("/, call_number, serial FROM $tableRefs/i",", call_number, serial, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related FROM $tableRefs",$sqlQuery); // ...add all user-specific fields to the 'SELECT' clause
 
 			// in 'Display Details' view, the 'location' field should occur within the SELECT statement before the 'call_number' and 'serial' fields:
-//			if (((eregi("^Display$",$displayType) AND ($showAdditionalFieldsDetailsViewDefault == "yes")) OR (eregi("^Export$",$displayType))) AND (preg_match("/(?<!location,) call_number, serial(?=(, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related)? FROM $tableRefs)/i",$sqlQuery))) // if the 'location' field is missing from the SELECT statement...
+//			if (((preg_match("/^Display$/i",$displayType) AND ($showAdditionalFieldsDetailsViewDefault == "yes")) OR (preg_match("/^Export$/i",$displayType))) AND (preg_match("/(?<!location,) call_number, serial(?=(, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related)? FROM $tableRefs)/i",$sqlQuery))) // if the 'location' field is missing from the SELECT statement...
 //				$sqlQuery = preg_replace("/(?<!location), call_number, serial(?=(, marked, copy, selected, user_keys, user_notes, user_file, user_groups, cite_key, related)? FROM $tableRefs)/i",", location, call_number, serial",$sqlQuery); // ...add the 'location' field to the 'SELECT' clause
 			// NOTE: I've commented the above code block for now, since, for '$showAdditionalFieldsDetailsViewDefault=yes' with additional fields being hidden, it causes the 'location' field to appear when clicking any of the sort/browse/view links
 			//       The drawback is that the 'location' field isn't added to the SQL query now when a record in Details view is reloaded after an anonymous user did view the record in Details view and then decided to log in
 
-			if ((eregi("^(Cite|Display|Export|RSS)$",$displayType)) AND (!eregi("LEFT JOIN $tableUserData",$sqlQuery))) // if the 'LEFT JOIN...' statement isn't already part of the 'FROM' clause...
-				$sqlQuery = eregi_replace(" FROM $tableRefs"," FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $loginUserID",$sqlQuery); // ...add the 'LEFT JOIN...' part to the 'FROM' clause
+			if ((preg_match("/^(Cite|Display|Export|RSS)$/i",$displayType)) AND (!preg_match("/LEFT JOIN $tableUserData/i",$sqlQuery))) // if the 'LEFT JOIN...' statement isn't already part of the 'FROM' clause...
+				$sqlQuery = preg_replace("/ FROM $tableRefs/i"," FROM $tableRefs LEFT JOIN $tableUserData ON serial = record_id AND user_id = $loginUserID",$sqlQuery); // ...add the 'LEFT JOIN...' part to the 'FROM' clause
 		}
 
 
 		// restrict adding of columns to SELECT queries (so that 'DELETE FROM refs ...' statements won't get modified as well);
 		// we'll also exclude the Browse view since these links aren't needed (and would cause problems) in this view
-		if (eregi("^SELECT",$sqlQuery) AND ($displayType != "Browse"))
+		if (preg_match("/^SELECT/",$sqlQuery) AND ($displayType != "Browse"))
 		{
-			$sqlQuery = eregi_replace(" FROM $tableRefs",", orig_record FROM $tableRefs",$sqlQuery); // add 'orig_record' column (which is required in order to present visual feedback on duplicate records)
-			$sqlQuery = eregi_replace(" FROM $tableRefs",", serial FROM $tableRefs",$sqlQuery); // add 'serial' column (which is required in order to obtain unique checkbox names)
+			$sqlQuery = preg_replace("/ FROM $tableRefs/i",", orig_record FROM $tableRefs",$sqlQuery); // add 'orig_record' column (which is required in order to present visual feedback on duplicate records)
+			$sqlQuery = preg_replace("/ FROM $tableRefs/i",", serial FROM $tableRefs",$sqlQuery); // add 'serial' column (which is required in order to obtain unique checkbox names)
 
 			if ($showLinks == "1")
-				$sqlQuery = eregi_replace(" FROM $tableRefs",", file, url, doi, isbn, type FROM $tableRefs",$sqlQuery); // add 'file', 'url', 'doi', 'isbn' & 'type' columns
+				$sqlQuery = preg_replace("/ FROM $tableRefs/i",", file, url, doi, isbn, type FROM $tableRefs",$sqlQuery); // add 'file', 'url', 'doi', 'isbn' & 'type' columns
 		}
 
 		// fix escape sequences within the SQL query:
@@ -5746,7 +5747,7 @@ EOF;
 		// note that, upon multiple warnings, only the last warning message will be displayed
 
 		// if the given '$field' is part of the SELECT or ORDER BY statement...
-		if (eregi("(SELECT |ORDER BY |, *)" . $field, $sqlQuery))
+		if (preg_match("/(SELECT |ORDER BY |, *)/i" . $field, $sqlQuery))
 		{
 			// if the 'SELECT' clause contains '$field':
 			if ($issueWarning AND (preg_match("/SELECT(.(?!FROM))+?" . $field . "/i", $sqlQuery)))
@@ -5756,16 +5757,16 @@ EOF;
 				$HeaderString = returnMsg("Display of '" . $field . "' field was omitted!", "warning", "strong", "HeaderString");
 			}
 
-			$sqlQuery = eregi_replace("(SELECT|ORDER BY) " . $field . "( DESC)?", "\\1 ", $sqlQuery); // ...delete '$field' from beginning of 'SELECT' or 'ORDER BY' clause
-			$sqlQuery = eregi_replace(", *" . $field . "( DESC)?", "", $sqlQuery); // ...delete any other occurrences of '$field' from 'SELECT' or 'ORDER BY' clause
-			$sqlQuery = eregi_replace("(SELECT|ORDER BY) *, *", "\\1 ", $sqlQuery); // ...remove any field delimiters that directly follow the 'SELECT' or 'ORDER BY' terms
+			$sqlQuery = preg_replace("/(SELECT|ORDER BY) /i" . $field . "( DESC)?", "\\1 ", $sqlQuery); // ...delete '$field' from beginning of 'SELECT' or 'ORDER BY' clause
+			$sqlQuery = preg_replace("/, */i" . $field . "( DESC)?", "", $sqlQuery); // ...delete any other occurrences of '$field' from 'SELECT' or 'ORDER BY' clause
+			$sqlQuery = preg_replace("/(SELECT|ORDER BY) *, */i", "\\1 ", $sqlQuery); // ...remove any field delimiters that directly follow the 'SELECT' or 'ORDER BY' terms
 
 			$sqlQuery = preg_replace("/SELECT *(?=FROM)/i", buildSELECTclause("", "", "", false, false) . " ", $sqlQuery); // ...supply generic 'SELECT' clause if it did ONLY contain the given '$field'
 			$sqlQuery = preg_replace("/ORDER BY *(?=LIMIT|GROUP BY|HAVING|PROCEDURE|FOR UPDATE|LOCK IN|$)/i", "ORDER BY author, year DESC, publication", $sqlQuery); // ...supply generic 'ORDER BY' clause if it did ONLY contain the given '$field'
 		}
 
 		// if the given '$field' is part of the WHERE clause...
-		if (eregi("WHERE.+" . $field, $sqlQuery)) // this simple pattern works since we have already stripped any instance(s) of the given '$field' from the ORDER BY clause
+		if (preg_match("/WHERE.+/i" . $field, $sqlQuery)) // this simple pattern works since we have already stripped any instance(s) of the given '$field' from the ORDER BY clause
 		{
 			// Note: in the patterns below we'll attempt to account for parentheses but this won't catch all cases!
 			$sqlQuery = preg_replace("/WHERE( *\( *?)* *" . $field . ".+?(?= (AND|OR)\b| ORDER BY| LIMIT| GROUP BY| HAVING| PROCEDURE| FOR UPDATE| LOCK IN|$)/i", "WHERE\\1", $sqlQuery); // ...delete '$field' from 'WHERE' clause
@@ -5879,7 +5880,7 @@ EOF;
 		// fix escape sequences within the SQL query:
 		$translatedSQL = stripSlashesIfMagicQuotes($sourceSQLQuery);
 //		$translatedSQL = str_replace('\"','"',$sourceSQLQuery); // replace any \" with "
-//		$translatedSQL = ereg_replace('(\\\\)+','\\\\',$translatedSQL);
+//		$translatedSQL = preg_replace('/(\\\\)+/','\\\\',$translatedSQL);
 
 		// define an array of search & replace actions:
 		// (Note that the order of array elements IS important since it defines when a search/replace action gets executed)
@@ -5981,7 +5982,7 @@ EOF;
 
 		foreach ($searchArray as $searchArrayItem)
 		{
-			if (!ereg("\($", $query)) // add whitespace & any given boolean search operator if this item isn't the first one within a sub-array of query items
+			if (!preg_match("/\($/", $query)) // add whitespace & any given boolean search operator if this item isn't the first one within a sub-array of query items
 			{
 				$query .= " ";
 
@@ -6027,7 +6028,7 @@ EOF;
 		//       currently always export the entire result set. Also, 'rss.php' supports '$showRows', but not '$rowOffset', '$citeStyle' or '$citeOrder'.
 		if (!empty($rowOffset))
 		{
-			if (eregi("^((opensearch|sru|show|rss)\.php)$", $baseURL))
+			if (preg_match("/^((opensearch|sru|show|rss)\.php)$/i", $baseURL))
 				$queryParametersArray["startRecord"] = ($rowOffset + 1);
 			else
 				$queryParametersArray["rowOffset"] = $rowOffset;
@@ -6035,32 +6036,32 @@ EOF;
 
 		if (!empty($showRows))
 		{
-			if (eregi("^((opensearch|sru)\.php)$", $baseURL))
+			if (preg_match("/^((opensearch|sru)\.php)$/i", $baseURL))
 				$queryParametersArray["maximumRecords"] = $showRows;
 			else
 				$queryParametersArray["showRows"] = $showRows;
 		}
 
 		// Add parameters required by 'search.php' or the 'show.php' API:
-		if (eregi("^((search|show)\.php)$", $baseURL))
+		if (preg_match("/^((search|show)\.php)$/i", $baseURL))
 		{
 			// - all formats:
 			if (!empty($citeOrder) AND ($citeOrder != "author")) // 'citeOrder=author' is the default sort order
 				$queryParametersArray["citeOrder"] = $citeOrder;
 
 			// - all formats that (may) contain formatted citations:
-			if (eregi("^(html|Atom XML|OAI_DC XML|SRW_DC XML|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $urlType))
+			if (preg_match("/^(html|Atom XML|OAI_DC XML|SRW_DC XML|RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$/i", $urlType))
 			{
 				if (!empty($citeStyle) AND ($citeStyle != $defaultCiteStyle))
 					$queryParametersArray["citeStyle"] = $citeStyle;
 			}
 
 			// - export formats:
-			if (eregi("^(ADS|BibTeX|Endnote|RIS|ISI|Atom XML|MODS XML|OAI_DC XML|ODF XML|SRW_DC XML|SRW_MODS XML|Word XML)$", $urlType))
+			if (preg_match("/^(ADS|BibTeX|Endnote|RIS|ISI|Atom XML|MODS XML|OAI_DC XML|ODF XML|SRW_DC XML|SRW_MODS XML|Word XML)$/i", $urlType))
 			{
 				if (!isset($queryParametersArray["exportType"]))
 				{
-					if (eregi("XML", $urlType))
+					if (preg_match("/XML/i", $urlType))
 						$queryParametersArray["exportType"] = "xml";
 					else
 						$queryParametersArray["exportType"] = "file";
@@ -6072,7 +6073,7 @@ EOF;
 			}
 
 			// - citation formats:
-			elseif (eregi("^(RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$", $urlType))
+			elseif (preg_match("/^(RTF|PDF|LaTeX|Markdown|ASCII|LaTeX \.bbl)$/i", $urlType))
 			{
 				$queryParametersArray["submit"] = "Cite";
 
@@ -6231,7 +6232,7 @@ EOF;
 		global $loginUserID; // saved as session variable on login
 		global $tableRefs, $tableUserData; // defined in 'db.inc.php'
 
-		if (ereg("^(user_keys|user_notes|user_file|user_groups)$", $fieldName)) // for all user-specific fields that can contain multiple items (we ignore the 'related' field here since it won't get used for Browse view)
+		if (preg_match("/^(user_keys|user_notes|user_file|user_groups)$/", $fieldName)) // for all user-specific fields that can contain multiple items (we ignore the 'related' field here since it won't get used for Browse view)
 		{
 			$query = "SELECT $fieldName, record_id, user_id FROM $tableUserData"; // WHERE user_id = " . $loginUserID
 			$userIDTableSpec = "ref_user_id MEDIUMINT UNSIGNED NOT NULL, ";
@@ -6261,7 +6262,7 @@ EOF;
 						$fieldSubValue = trimTextPattern($fieldSubValue, " *\(eds?\)", false, true); // remove any existing editor info from the 'author' string, i.e., kill any trailing " (ed)" or " (eds)"
 
 					// copy the individual item (as string, ready for database insertion) to the array:
-					if (ereg("^(user_keys|user_notes|user_file|user_groups)$", $fieldName))
+					if (preg_match("/^(user_keys|user_notes|user_file|user_groups)$/", $fieldName))
 						$fieldValuesArray[] = "(NULL, \"". addslashes($fieldSubValue) . "\", $row[record_id], $row[user_id])";
 					else
 						$fieldValuesArray[] = "(NULL, \"". addslashes($fieldSubValue) . "\", $row[serial])";
@@ -6306,7 +6307,7 @@ EOF;
 			$tableName = "ref_addresses";
 			$fieldName = "ref_address";
 		}
-		elseif (!eregi("s$", $fieldName)) // field name does NOT end with an 's' (such as in 'author')
+		elseif (!preg_match("/s$/i", $fieldName)) // field name does NOT end with an 's' (such as in 'author')
 		{
 			$tableName = "ref_" . $fieldName . "s"; // e.g. 'ref_authors'
 			$fieldName = "ref_" . $fieldName; // e.g. 'ref_author'
