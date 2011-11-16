@@ -98,7 +98,7 @@
 		$sqlQuery = $_REQUEST['sqlQuery'];
 	else
 		$sqlQuery = "";
-	if (ereg("%20", $sqlQuery)) // if '$sqlQuery' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
+	if (preg_match("/%20/", $sqlQuery)) // if '$sqlQuery' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
 		$sqlQuery = rawurldecode($sqlQuery); // URL decode SQL query (it was URL encoded before incorporation into hidden tags of the 'groupSearch', 'refineSearch', 'displayOptions' and 'queryResults' forms to avoid any HTML syntax errors)
 											// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
 											//       But, opposed to that, URL encoded data that are included within a form by means of a hidden form tag will *NOT* get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
@@ -113,7 +113,7 @@
 	else
 		$showLinks = "1"; // show the links column by default
 
-	if (isset($_REQUEST['showRows']) AND ereg("^[1-9]+[0-9]*$", $_REQUEST['showRows']))
+	if (isset($_REQUEST['showRows']) AND preg_match("/^[1-9]+[0-9]*$/", $_REQUEST['showRows']))
 		$showRows = $_REQUEST['showRows'];
 	else
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
@@ -142,7 +142,7 @@
 	// --- Embedded sql query: ----------------------
 	if ($formType == "sqlSearch") // the admin used a link with an embedded sql query for searching...
 	{
-		$query = eregi_replace(" FROM $tableUsers",", user_id FROM $tableUsers",$sqlQuery); // add 'user_id' column (which is required in order to obtain unique checkbox names as well as for use in the 'getUserID()' function)
+		$query = preg_replace("/ FROM $tableUsers/i",", user_id FROM $tableUsers",$sqlQuery); // add 'user_id' column (which is required in order to obtain unique checkbox names as well as for use in the 'getUserID()' function)
 		$query = stripSlashesIfMagicQuotes($query);
 	}
 
@@ -181,7 +181,7 @@
 	// ----------------------------------------------
 
 	// (4a) DISPLAY header:
-	$query = eregi_replace(", user_id FROM $tableUsers"," FROM $tableUsers",$query); // strip 'user_id' column from SQL query (so that it won't get displayed in query strings)
+	$query = preg_replace("/, user_id FROM $tableUsers/i"," FROM $tableUsers",$query); // strip 'user_id' column from SQL query (so that it won't get displayed in query strings)
 
 	$queryURL = rawurlencode($query); // URL encode SQL query
 
@@ -195,7 +195,7 @@
 				$rowOffset = 0;
 
 			// Adjust the '$showRows' value if not previously defined, or if a wrong number (<=0 or float) was given
-			if (empty($showRows) || ($showRows <= 0) || !ereg("^[0-9]+$", $showRows))
+			if (empty($showRows) || ($showRows <= 0) || !preg_match("/^[0-9]+$/", $showRows))
 				$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
 
 			// NOTE: The current value of '$rowOffset' is embedded as hidden tag within the 'displayOptions' form. By this, the current row offset can be re-applied
@@ -259,7 +259,7 @@
 
 	// Then, call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 	displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Manage Users", "noindex,nofollow", "Administration page that lists users of the " . encodeHTML($officialDatabaseName) . ", with links for adding, editing or deleting any users", "", true, "", $viewType, array());
-	if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the visible header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+	if (!preg_match("/^(Print|Mobile)$/i", $viewType)) // Note: we omit the visible header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 		showPageHeader($HeaderString);
 
 	// (4b) DISPLAY results:
@@ -307,7 +307,7 @@
 				$NoColumns = (1+$fieldsToDisplay); // add checkbox column
 
 			// Note: we omit the results header in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
-			if (!eregi("^(Print|Mobile)$", $viewType))
+			if (!preg_match("/^(Print|Mobile)$/i", $viewType))
 			{
 				// Specify which colums are available in the popup menus of the results header:
 				$dropDownFieldsArray = array("first_name"            => "first_name",
@@ -366,7 +366,7 @@
 
 
 			// and insert a divider line (which separates the results header from the browse links & results data below):
-			if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the divider line in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+			if (!preg_match("/^(Print|Mobile)$/i", $viewType)) // Note: we omit the divider line in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 				echo "\n<hr class=\"resultsheader\" align=\"center\" width=\"93%\">";
 
 			// Build a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages
@@ -390,7 +390,7 @@
 			echo "\n<tr>";
 
 			// ... print a marker ('x') column (which will hold the checkboxes within the results part)
-			if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the marker column in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+			if (!preg_match("/^(Print|Mobile)$/i", $viewType)) // Note: we omit the marker column in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 				echo "\n\t<th align=\"left\" valign=\"top\">&nbsp;</th>";
 
 			// for each of the attributes in the result set...
@@ -443,7 +443,7 @@
 				echo "\n<tr class=\"" . $rowClass . "\">";
 
 				// ... print a column with a checkbox
-				if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the marker column in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+				if (!preg_match("/^(Print|Mobile)$/i", $viewType)) // Note: we omit the marker column in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 					echo "\n\t<td align=\"left\" valign=\"top\" width=\"10\"><input type=\"checkbox\" name=\"marked[]\" value=\"" . $row["user_id"] . "\"></td>";
 
 				// ... and print out each of the attributes
@@ -453,9 +453,9 @@
 					// fetch the current attribute name:
 					$orig_fieldname = getMySQLFieldInfo($result, $i, "name"); // function 'getMySQLFieldInfo()' is defined in 'include.inc.php'
 
-					if (ereg("^email$", $orig_fieldname))
+					if (preg_match("/^email$/", $orig_fieldname))
 						echo "\n\t<td valign=\"top\"><a href=\"mailto:" . $row["email"] . "\">" . $row["email"] . "</a></td>";
-					elseif (ereg("^url$", $orig_fieldname) AND !empty($row["url"]))
+					elseif (preg_match("/^url$/", $orig_fieldname) AND !empty($row["url"]))
 						echo "\n\t<td valign=\"top\"><a href=\"" . $row["url"] . "\">" . $row["url"] . "</a></td>";
 					else
 						echo "\n\t<td valign=\"top\">" . encodeHTML($row[$i]) . "</td>";
@@ -491,7 +491,7 @@
 
 			// BEGIN RESULTS FOOTER --------------------
 			// Note: we omit the results footer in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
-			if (!eregi("^(Print|Mobile)$", $viewType))
+			if (!preg_match("/^(Print|Mobile)$/i", $viewType))
 			{
 				// Again, insert the (already constructed) BROWSE LINKS
 				// (i.e., a TABLE with links for "previous" & "next" browsing, as well as links to intermediate pages)
@@ -697,11 +697,11 @@
 
 		if (!empty($recordSerialsArray))
 		{
-			if (ereg("^(Add|Remove)$", $displayType)) // (hitting <enter> within the 'userGroupName' text entry field will act as if the user clicked the 'Add' button)
+			if (preg_match("/^(Add|Remove)$/", $displayType)) // (hitting <enter> within the 'userGroupName' text entry field will act as if the user clicked the 'Add' button)
 			{
 				modifyUserGroups($tableUsers, $displayType, $recordSerialsArray, "", $userGroup); // add (remove) selected records to (from) the specified user group (function 'modifyUserGroups()' is defined in 'include.inc.php')
 			}
-			elseif (ereg("^(Allow|Disallow)$", $displayType))
+			elseif (preg_match("/^(Allow|Disallow)$/", $displayType))
 			{
 				if ($displayType == "Allow")
 					$userPermissionsArray = array("$userPermission" => "yes");
@@ -723,7 +723,7 @@
 		$displayType = $originalDisplayType;
 
 		// re-apply the current sqlQuery:
-		$query = eregi_replace(" FROM $tableUsers",", user_id FROM $tableUsers",$sqlQuery); // add 'user_id' column (which is required in order to obtain unique checkbox names)
+		$query = preg_replace("/ FROM $tableUsers/i",", user_id FROM $tableUsers",$sqlQuery); // add 'user_id' column (which is required in order to obtain unique checkbox names)
 
 		return array($query, $displayType);
 	}
@@ -732,7 +732,7 @@
 
 	// DISPLAY THE HTML FOOTER:
 	// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-	if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the visible footer in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
+	if (!preg_match("/^(Print|Mobile)$/i", $viewType)) // Note: we omit the visible footer in print/mobile view! ('viewType=Print' or 'viewType=Mobile')
 		showPageFooter($HeaderString);
 
 	displayHTMLfoot();

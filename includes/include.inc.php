@@ -1996,7 +1996,7 @@
 
 		global $client;
 
-		if (!preg_match("/^SELECT/i", $queryURL) OR !preg_match("/%20FROM%20/i" . $tableRefs . "%20", $queryURL)) // only include SELECT queries that query table 'refs'
+		if (!preg_match("/^SELECT/i", $queryURL) OR !preg_match("/%20FROM%20" . $tableRefs . "%20/i", $queryURL)) // only include SELECT queries that query table 'refs'
 			$queryURL = ""; // this excludes e.g. queries that query table 'users'
 
 		$encodedCiteStyle = rawurlencode($citeStyle);

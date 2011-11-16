@@ -110,7 +110,7 @@
 	// --------------------------------------------------------------------
 
 	// Check if the logged-in user is allowed to modify his account details:
-	if (isset($_SESSION['loginEmail']) AND ($userID != 0) AND isset($_SESSION['user_permissions']) AND !ereg("allow_modify_options", $_SESSION['user_permissions'])) // if a user is logged in but the 'user_permissions' session variable does NOT contain 'allow_modify_options'...
+	if (isset($_SESSION['loginEmail']) AND ($userID != 0) AND isset($_SESSION['user_permissions']) AND !preg_match("/allow_modify_options/", $_SESSION['user_permissions'])) // if a user is logged in but the 'user_permissions' session variable does NOT contain 'allow_modify_options'...
 	{
 		// save an error message:
 		$HeaderString = "<b><span class=\"warning\">You have no permission to modify your user account details!</span></b>";

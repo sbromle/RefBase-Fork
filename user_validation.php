@@ -52,7 +52,7 @@
 	// --------------------------------------------------------------------
 
 	// First of all, check if this script was called by something else than 'user_details.php':
-	if (!eregi("/user_details\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+	if (!preg_match("/\/user_details\.php/i", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
@@ -74,9 +74,9 @@
 		// First name cannot be a null string
 		$errors["firstName"] = "The first name field cannot be blank:";
 
-//	elseif (ereg("\(" . $adminLoginEmail . "\)$", empty($formVars["firstName"]))
+//	elseif (preg_match("/\(" . $adminLoginEmail . "\)$/", empty($formVars["firstName"]))
 
-//	elseif (!eregi("^[a-z'-]*$", $formVars["firstName"]))
+//	elseif (!preg_match("/^[a-z'-]*$/i", $formVars["firstName"]))
 //		// First name cannot contain white space
 //		$errors["firstName"] = "The first name can only contain alphabetic characters or \"-\" or \"'\":";
 
@@ -141,7 +141,7 @@
 
 
 	// Validate Zip code
-//	if (!ereg("^([0-9]{4,5})$", $formVars["zipCode"]))
+//	if (!preg_match("/^([0-9]{4,5})$/", $formVars["zipCode"]))
 //		$errors["zipCode"] = "The zip code must be 4 or 5 digits in length:";
 	if (strlen($formVars["zipCode"]) > 25)
 		$errors["zipCode"] = "The zip code can be no longer than 25 characters:";
@@ -156,14 +156,14 @@
 	if (strlen($formVars["phone"]) > 50)
 		$errors["phone"] = "The phone number can be no longer than 50 characters:";
 
-	elseif (!empty($formVars["phone"]) && !eregi("^[0-9 /+-]+$", $formVars["phone"])) // '+49 431/600-1233' would be a valid format
+	elseif (!empty($formVars["phone"]) && !preg_match("/^[0-9 \/+-]+$/i", $formVars["phone"])) // '+49 431/600-1233' would be a valid format
 		// The phone must match the above regular expression (i.e., it should only consist out of digits, the characters '/+-' and a space)
 		$errors["phone"] = "The phone number must consist out of digits plus the optional characters '+/- ',\n\t\t<br>\n\t\te.g., '+49 431/600-1233' would be a valid format:";
 
 //	// Phone is optional, but if it is entered it must have correct format
 //	$validPhoneExpr = "^([0-9]{2,3}[ ]?)?[0-9]{4}[ ]?[0-9]{4}$";
 
-//	if (!empty($formVars["phone"]) && !ereg($validPhoneExpr, $formVars["phone"]))
+//	if (!empty($formVars["phone"]) && !preg_match("/$validPhoneExpr/", $formVars["phone"]))
 //		$errors["phone"] = "The phone number must be 8 digits in length, with an optional 2 or 3 digit area code:";
 
 
@@ -184,7 +184,7 @@
 			// the user's email cannot be a null string
 			$errors["email"] = "You must supply an email address:";
 
-		elseif (!eregi($validEmailExpr, $formVars["email"]))
+		elseif (!preg_match("/$validEmailExpr/i", $formVars["email"]))
 			// The email must match the above regular expression
 			$errors["email"] = "The email address must be in the name@domain format:";
 
@@ -519,7 +519,7 @@
 
 		// Insert a row for this new user into the 'user_options' table:
 		$defaultUserOptionsString = implode("\", \"", $defaultUserOptions); // '$defaultUserOptions' is defined in 'ini.inc.php'
-		$defaultUserOptionsString = ereg_replace("\"\"", "NULL", $defaultUserOptionsString); // replace empty string with NULL
+		$defaultUserOptionsString = preg_replace("/\"\"/", "NULL", $defaultUserOptionsString); // replace empty string with NULL
 		// TODO: quote_smart()
 		$queryArray[] = "INSERT INTO $tableUserOptions VALUES (NULL, " . $userID . ", \"" . $defaultUserOptionsString . "\")";
 

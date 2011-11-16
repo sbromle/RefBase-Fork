@@ -165,7 +165,7 @@
 		// if the user isn't logged in -OR- any normal user is logged in (not the admin)...
 		if ((!isset($loginEmail)) OR ((isset($loginEmail)) AND ($loginEmail != $adminLoginEmail)))
 			// ...provide a generic info string within the (locked) 'location' field that informs the user about the automatic fill in of his user name & email address
-			// (IMPORTANT: if you change this information string you must also edit the corresponding 'ereg(...)' pattern in 'modify.php'!)
+			// (IMPORTANT: if you change this information string you must also edit the corresponding 'preg_match(...)' pattern in 'modify.php'!)
 			$locationName = $loc["your name & email address will be filled in automatically"];
 		else // if the admin is logged in...
 			$locationName = ""; // ...keep the 'location' field empty
@@ -365,9 +365,9 @@
 				// if a normal user is logged in, we'll only display the user's *own* call number within the 'call_number' field:
 				if ((isset($loginEmail)) AND ($loginEmail != $adminLoginEmail))
 				{
-					if (ereg("(^|.*;) *$callNumberPrefix *@ +([^@;]+)", $callNumberName)) // if the user's call number prefix occurs within the contents of the 'call_number' field
+					if (preg_match("/(^|.*;) *$callNumberPrefix *@ +([^@;]+)/", $callNumberName)) // if the user's call number prefix occurs within the contents of the 'call_number' field
 					{
-						$callNumberNameUserOnly = ereg_replace("(^|.*;) *$callNumberPrefix *@ +([^@;]+).*", "\\2", $callNumberName); // extract the user's *own* call number from the full contents of the 'call_number' field
+						$callNumberNameUserOnly = preg_replace("/(^|.*;) *$callNumberPrefix *@ +([^@;]+).*/", "\\2", $callNumberName); // extract the user's *own* call number from the full contents of the 'call_number' field
 						$callNumberNameUserOnly = encodeHTML($callNumberNameUserOnly);
 					}
 					else
@@ -437,7 +437,7 @@
 				// - the variable '$fileVisibility' (defined in 'ini.inc.php') is set to 'everyone'
 				// - the variable '$fileVisibility' is set to 'login' AND the user is logged in
 				// - the variable '$fileVisibility' is set to 'user-specific' AND the 'user_permissions' session variable contains 'allow_download'
-				if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))))
+				if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions']))))
 					$fileName = encodeHTML($row['file']);
 				else // if the user has no permission to download (and hence view) any files, 'modify.php' will take care that the empty form value won't overwrite any existing contents of the 'file' field
 					$fileName = "";
@@ -705,7 +705,7 @@
 				//       - should we accept local file paths/names from the import data? if so, how should we handle them?
 				//       - make sure that any recognized PDF files get renamed & filed according to the settings in 'initialize/ini.inc.php';
 				//         in case of remote file URLs, this may mean downloading the remote PDF, and filing/renaming it according to preference
-				if (isset($_REQUEST['file']) AND ereg("^(https?|ftp|file)://", $_REQUEST['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
+				if (isset($_REQUEST['file']) AND preg_match("/^(https?|ftp|file):\/\//", $_REQUEST['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://", "ftp://" or "file://")
 					$fileName = encodeHTML($_REQUEST['file']);
 				else
 					$fileName = "";
@@ -926,7 +926,7 @@
 					else
 						$callNumberName = "";
 
-					if (ereg("%40", $callNumberName)) // if '$callNumberName' still contains URL encoded data... ('%40' is the URL encoded form of the character '@', see note below!)
+					if (preg_match("/%40/", $callNumberName)) // if '$callNumberName' still contains URL encoded data... ('%40' is the URL encoded form of the character '@', see note below!)
 						$callNumberName = rawurldecode($callNumberName); // ...URL decode 'callNumberName' variable contents (it was URL encoded before incorporation into a hidden tag of the 'record' form to avoid any HTML syntax errors)
 																		// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_POST'!
 																		//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
@@ -1178,7 +1178,7 @@
 			. "\n\t\t" . fieldError("authorName", $errors) . "<input type=\"text\" id=\"authorName\" name=\"authorName\" value=\"$authorName\" size=\"60\" title=\"". $loc["DescriptionAuthor"]."\">" . $authorSuggestElements
 			. "\n\t</td>";
 
-	if ($isEditorCheckBox == "1" OR ereg(" *\(eds?\)$", $authorName)) // if the '$isEditorCheckBox' variable is set to 1 -OR- if 'author' field ends with either " (ed)" or " (eds)"
+	if ($isEditorCheckBox == "1" OR preg_match("/ *\(eds?\)$/", $authorName)) // if the '$isEditorCheckBox' variable is set to 1 -OR- if 'author' field ends with either " (ed)" or " (eds)"
 		$isEditorCheckBoxIsChecked = " checked"; // mark the 'is Editor' checkbox
 	else
 		$isEditorCheckBoxIsChecked = ""; // don't mark the 'is Editor' checkbox
@@ -1229,7 +1229,7 @@
 				. "\n\t</td>";
 
 	if (!empty($typeName))
-		$recordType = ereg_replace("<option>$typeName", "<option selected>$typeName", $recordType);
+		$recordType = preg_replace("/<option>$typeName/", "<option selected>$typeName", $recordType);
 	
 	echo "$recordType"
 			. "\n</tr>"
@@ -1383,9 +1383,9 @@
 
 	$approved = "\n\t<td align=\"right\" class=\"otherfieldsbg\"><input type=\"radio\" id=\"approvedRadioA\" name=\"approvedRadio\" value=\"yes\" title=\"". $loc["DescriptionApproved"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" id=\"approvedRadioB\" name=\"approvedRadio\" value=\"no\" title=\"". $loc["DescriptionApproved"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
 	if ($approvedRadio == "yes")
-		$approved = ereg_replace("name=\"approvedRadio\" value=\"yes\"", "name=\"approvedRadio\" value=\"yes\" checked", $approved);
+		$approved = preg_replace("/name=\"approvedRadio\" value=\"yes\"/", "name=\"approvedRadio\" value=\"yes\" checked", $approved);
 	else // ($approvedRadio == "no")
-		$approved = ereg_replace("name=\"approvedRadio\" value=\"no\"", "name=\"approvedRadio\" value=\"no\" checked", $approved);
+		$approved = preg_replace("/name=\"approvedRadio\" value=\"no\"/", "name=\"approvedRadio\" value=\"no\" checked", $approved);
 
 	echo "$approved"
 			. "\n</tr>"
@@ -1422,9 +1422,9 @@
 
 	$marked = "\n\t<td class=\"userfieldsbg\"><input type=\"radio\" id=\"markedRadioA\" name=\"markedRadio\" value=\"yes\" title=\"". $loc["DescriptionMarked"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" id=\"markedRadioB\" name=\"markedRadio\" value=\"no\" title=\"". $loc["DescriptionMarked"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
 	if ($markedRadio == "yes")
-		$marked = ereg_replace("name=\"markedRadio\" value=\"yes\"", "name=\"markedRadio\" value=\"yes\" checked", $marked);
+		$marked = preg_replace("/name=\"markedRadio\" value=\"yes\"/", "name=\"markedRadio\" value=\"yes\" checked", $marked);
 	else // ($markedRadio == "no")
-		$marked = ereg_replace("name=\"markedRadio\" value=\"no\"", "name=\"markedRadio\" value=\"no\" checked", $marked);
+		$marked = preg_replace("/name=\"markedRadio\" value=\"no\"/", "name=\"markedRadio\" value=\"no\" checked", $marked);
 
 	echo "$marked"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["Copy"]."</b></td>";
@@ -1438,9 +1438,9 @@
 
 	$selected = "\n\t<td align=\"right\" class=\"userfieldsbg\"><input type=\"radio\" id=\"selectedRadioA\" name=\"selectedRadio\" value=\"yes\" title=\"". $loc["DescriptionSelected"]."\">&nbsp;&nbsp;". $loc["yes"]."&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"radio\" id=\"selectedRadioB\" name=\"selectedRadio\" value=\"no\" title=\"". $loc["DescriptionSelected"]."\">&nbsp;&nbsp;". $loc["no"]."</td>";
 	if ($selectedRadio == "yes")
-		$selected = ereg_replace("name=\"selectedRadio\" value=\"yes\"", "name=\"selectedRadio\" value=\"yes\" checked", $selected);
+		$selected = preg_replace("/name=\"selectedRadio\" value=\"yes\"/", "name=\"selectedRadio\" value=\"yes\" checked", $selected);
 	else // ($selectedRadio == "no")
-		$selected = ereg_replace("name=\"selectedRadio\" value=\"no\"", "name=\"selectedRadio\" value=\"no\" checked", $selected);
+		$selected = preg_replace("/name=\"selectedRadio\" value=\"no\"/", "name=\"selectedRadio\" value=\"no\" checked", $selected);
 
 	echo "$selected"
 			. "\n</tr>"
@@ -1463,7 +1463,7 @@
 			. "\n<tr>"
 			. "\n\t<td width=\"74\" class=\"userfieldsbg\"><b>". $loc["UserGroups"]."</b></td>";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_user_groups", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_user_groups'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_user_groups/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_user_groups'...
 	// adjust the title string for the user groups text entry field:
 	{
 		$userGroupsFieldLock = "";
@@ -1493,7 +1493,7 @@
 			. "\n\t<td width=\"74\" class=\"otherfieldsbg\"><b>". $loc["File"]."</b></td>"
 			. "\n\t<td colspan=\"3\" class=\"otherfieldsbg\"><input type=\"text\" id=\"fileName\" name=\"fileName\" value=\"$fileName\" size=\"47\" title=\"". $loc["DescriptionFile"]."\"$fieldLock></td>";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_upload", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_upload'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_upload/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_upload'...
 	// adjust the title string for the upload button:
 	{
 		$uploadButtonLock = "";
@@ -1533,7 +1533,7 @@
 	if (isset($loginEmail)) // if a user is logged in...
 	{
 		// ...we'll show a checkbox where the user can state that the current publication stems form his own institution
-		if ($contributionIDCheckBox == "1" OR ereg("$abbrevInstitution", $contributionID)) // if the '$contributionIDCheckBox' variable is set to 1 -OR- if the currrent user's abbreviated institution name is listed within the 'contribution_id' field
+		if ($contributionIDCheckBox == "1" OR preg_match("/$abbrevInstitution/", $contributionID)) // if the '$contributionIDCheckBox' variable is set to 1 -OR- if the currrent user's abbreviated institution name is listed within the 'contribution_id' field
 			$contributionIDCheckBoxIsChecked = " checked";
 		else
 			$contributionIDCheckBoxIsChecked = "";
@@ -1567,7 +1567,7 @@
 	{
 		$locationSelector = preg_replace("/<option(.*?)>" . $loc["add"] . "/", "<option\\1 selected>" . $loc["add"], $locationSelector); // select the appropriate menu entry ...
 		if ((!isset($loginEmail)) OR ((isset($loginEmail)) AND ($loginEmail != $adminLoginEmail))) // ... and if the user isn't logged in -OR- any normal user is logged in (not the admin) ...
-			$locationSelector = ereg_replace("<select", "<select disabled", $locationSelector); // ... disable the popup menu. This is, since the current user & email address will be always written to the location field when adding new records. An orphaned record would be produced if the user could chose anything other than 'add'! (Note that the admin is permitted to override this behaviour)
+			$locationSelector = preg_replace("/<select/", "<select disabled", $locationSelector); // ... disable the popup menu. This is, since the current user & email address will be always written to the location field when adding new records. An orphaned record would be produced if the user could chose anything other than 'add'! (Note that the admin is permitted to override this behaviour)
 	}
 
 	echo "$locationSelector"
@@ -1577,7 +1577,7 @@
 	// This is, since otherwise the form would have no submit button at all, which would be pretty odd. The title string of the button explains why it is disabled.
 	if ($recordAction == "edit") // adjust the title string for the edit button
 	{
-		if (isset($_SESSION['user_permissions']) AND ereg("allow_edit", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_edit'...
+		if (isset($_SESSION['user_permissions']) AND preg_match("/allow_edit/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_edit'...
 		{
 			$addEditButtonLock = "";
 			$addEditTitle = $loc["DescriptionEditButton"];
@@ -1590,7 +1590,7 @@
 	}
 	else // if ($recordAction == "add") // adjust the title string for the add button
 	{
-		if (isset($_SESSION['user_permissions']) AND ereg("allow_add", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
+		if (isset($_SESSION['user_permissions']) AND preg_match("/allow_add/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
 		{
 			$addEditButtonLock = "";
 			$addEditTitle = $loc["DescriptionAddButton"];
@@ -1605,13 +1605,13 @@
 	// display an ADD/EDIT button:
 	echo "<input type=\"submit\" name=\"submit\" value=\"$addEditButtonTitle\"$addEditButtonLock title=\"$addEditTitle\">";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_delete", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_delete'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_delete/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_delete'...
 	// ... display a delete button:
 	{
 		if ($recordAction == "edit") // add a DELETE button (CAUTION: the delete button must be displayed *AFTER* the edit button, otherwise DELETE will be the default action if the user hits return!!)
 									// (this is since the first displayed submit button represents the default submit action in several browsers!! [like OmniWeb or Mozilla])
 		{
-			if (!isset($loginEmail) OR ((!ereg($loginEmail,$locationName) OR ereg(";",$rawLocationName)) AND ($loginEmail != $adminLoginEmail))) // if the user isn't logged in -OR- any normal user is logged in & the 'location' field doesn't list her email address -OR- if the 'location' field contains more than one user (which is indicated by a semicolon character)...
+			if (!isset($loginEmail) OR ((!preg_match("/$loginEmail/",$locationName) OR preg_match("/;/",$rawLocationName)) AND ($loginEmail != $adminLoginEmail))) // if the user isn't logged in -OR- any normal user is logged in & the 'location' field doesn't list her email address -OR- if the 'location' field contains more than one user (which is indicated by a semicolon character)...
 				// Note that we use '$rawLocationName' instead of the '$locationName' variable for those tests that check for the existence of a semicolon since for '$locationName' high ASCII characters were converted into HTML entities.
 				// E.g., the german umlaut 'ü' would be presented as '&uuml;', thus containing a semicolon character *within* the user's name!
 			{
@@ -1619,15 +1619,15 @@
 				if (!isset($loginEmail)) // if the user isn't logged in
 					$deleteTitle = $loc["DescriptionDeleteButtonDisabled"] . $loc["DescriptionDeleteButtonDisabledNotLoggedIn"];
 
-				elseif (!ereg($loginEmail, $locationName)) // if any normal user is logged in & the 'location' field doesn't list her email address
+				elseif (!preg_match("/$loginEmail/", $locationName)) // if any normal user is logged in & the 'location' field doesn't list her email address
 					$deleteTitle = $loc["DescriptionDeleteButtonDisabled"] . $loc["DescriptionDeleteButtonDisabledNotYours"];
 
-				elseif (ereg(";", $rawLocationName)) // if the 'location' field contains more than one user (which is indicated by a semicolon character)
+				elseif (preg_match("/;/", $rawLocationName)) // if the 'location' field contains more than one user (which is indicated by a semicolon character)
 				{
 					// if we made it here, the current user is listed within the 'location' field of this record
-					if (ereg("^[^;]+;[^;]+$", $rawLocationName)) // the 'location' field does contain exactly one ';' => two authors, i.e., there's only one "other user" listed within the 'location' field
+					if (preg_match("/^[^;]+;[^;]+$/", $rawLocationName)) // the 'location' field does contain exactly one ';' => two authors, i.e., there's only one "other user" listed within the 'location' field
 						$deleteTitle = $loc["DescriptionDeleteButtonDisabled"] . $loc["DescriptionDeleteButtonDisabledOtherUser"];
-					elseif (ereg("^[^;]+;[^;]+;[^;]+", $rawLocationName)) // the 'location' field does contain at least two ';' => more than two authors, i.e., there are two or more "other users" listed within the 'location' field
+					elseif (preg_match("/^[^;]+;[^;]+;[^;]+/", $rawLocationName)) // the 'location' field does contain at least two ';' => more than two authors, i.e., there are two or more "other users" listed within the 'location' field
 						$deleteTitle = $loc["DescriptionDeleteButtonDisabled"] . $loc["DescriptionDeleteButtonDisabledOtherUsers"];
 				}
 	

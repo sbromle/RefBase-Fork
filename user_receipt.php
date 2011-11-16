@@ -45,7 +45,7 @@
 	// --------------------------------------------------------------------
 
 	// Extract the 'userID' parameter from the request:
-	if (isset($_REQUEST['userID']) AND ereg("^-?[0-9]+$", $_REQUEST['userID']))
+	if (isset($_REQUEST['userID']) AND preg_match("/^-?[0-9]+$/", $_REQUEST['userID']))
 		$userID = $_REQUEST['userID'];
 	else
 		$userID = ""; // we do it for clarity reasons here (and in order to prevent any 'Undefined variable...' messages)
@@ -83,7 +83,7 @@
 	}
 
 	// Check if the logged-in user is allowed to modify his account details and options
-	if (isset($_SESSION['loginEmail']) AND preg_match("/^\d+$/", $userID) AND isset($_SESSION['user_permissions']) AND !ereg("allow_modify_options", $_SESSION['user_permissions'])) // if a user is logged in but the 'user_permissions' session variable does NOT contain 'allow_modify_options'...
+	if (isset($_SESSION['loginEmail']) AND preg_match("/^\d+$/", $userID) AND isset($_SESSION['user_permissions']) AND !preg_match("/allow_modify_options/", $_SESSION['user_permissions'])) // if a user is logged in but the 'user_permissions' session variable does NOT contain 'allow_modify_options'...
 	{
 		// save an error message:
 		$HeaderString = "<b><span class=\"warning\">You have no permission to modify your user account details and options!</span></b>";
