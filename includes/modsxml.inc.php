@@ -75,8 +75,8 @@
 
     // editor
     if (!empty($series_editor)) {
-      if (ereg(" *\(eds?\)$", $series_editor))
-        $series_editor = ereg_replace("[ \r\n]*\(eds?\)", "", $series_editor);
+      if (preg_match("/ *\(eds?\)$/", $series_editor))
+        $series_editor = preg_replace("/[ \r\n]*\(eds?\)/", "", $series_editor);
       $nameArray = separateNames("series_editor", "/\s*;\s*/", "/\s*,\s*/",
                                  "/(?<=^|[$word])[^-$word]+|(?<=^|[$upper])(?=$|[$upper])/$patternModifiers",
                                  $series_editor, "personal", "editor");
@@ -290,8 +290,8 @@
     // name
     //   author
     if (!empty($row['author'])) {
-      if (ereg(" *\(eds?\)$", $row['author'])) {
-        $author = ereg_replace("[ \r\n]*\(eds?\)", "", $row['author']);
+      if (preg_match("/ *\(eds?\)$/", $row['author'])) {
+        $author = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['author']);
         $nameArray = separateNames("author", "/\s*;\s*/", "/\s*,\s*/",
                                    "/(?<=^|[$word])[^-$word]+|(?<=^|[$upper])(?=$|[$upper])/$patternModifiers",
                                    $author, "personal", "editor");
@@ -322,7 +322,7 @@
 
       // Book Chapters and Journal Articles only have a dateIssued
       // (editions, places, and publishers are associated with the host)
-      if (!ereg("^(Book Chapter|Journal Article)$", $row['type'])) {
+      if (!preg_match("/^(Book Chapter|Journal Article)$/", $row['type'])) {
         // publisher
         if (!empty($row['publisher']))
           $origin->setTagContent(encodeField('publisher', $row['publisher']), "originInfo/publisher");
@@ -474,7 +474,7 @@
     // - the variable '$fileVisibility' is set to 'login' AND the user is logged in
     // - the variable '$fileVisibility' is set to 'user-specific' AND the 'user_permissions' session variable contains 'allow_download'
     // - the array variable '$fileVisibilityException' (defined in 'ini.inc.php') contains a pattern (in array element 1) that matches the contents of the field given (in array element 0)
-    if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
+    if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
     {
       //   file
       //   Note that when converting MODS to Endnote or RIS, Bibutils will include the above
@@ -483,12 +483,12 @@
       if (!empty($row['file'])) {
         $location = new XMLBranch("location");
 
-        if (ereg('^(https?|ftp|file)://', $row['file'])) { // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
+        if (preg_match('/^(https?|ftp|file):\/\//', $row['file'])) { // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
           $URLprefix = ""; // we don't alter the URL given in the 'file' field
         }
         else { // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
           // use the base URL of the standard files directory as prefix:
-          if (ereg('^/', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
+          if (preg_match('/^\//', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
             $URLprefix = 'http://' . $_SERVER['HTTP_HOST'] . $filesBaseURL;
           else // relative path -> file dir is located within refbase root dir
             $URLprefix = $databaseBaseURL . $filesBaseURL;
@@ -566,16 +566,16 @@
     //   | REPORT, and SOFTWARE have some info as a branch off the root, whereas ABSTRACT, BOOK CHAPTER,
     //   | CONFERENCE ARTICLE, JOURNAL ARTICLE, MAGAZINE ARTICLE and NEWSPAPER ARTICLE place it in the relatedItem branch.
 
-    if (!ereg("^(Abstract|Book Chapter|Conference Article|Journal Article|Magazine Article|Newspaper Article)$", $row['type'])) {
+    if (!preg_match("/^(Abstract|Book Chapter|Conference Article|Journal Article|Magazine Article|Newspaper Article)$/", $row['type'])) {
       // name
       //   editor
       if (!empty($row['editor'])) {
         $editor=$row['editor'];
         $author=$row['author'];
-        if (ereg(" *\(eds?\)$", $editor))
-          $editor = ereg_replace("[ \r\n]*\(eds?\)", "", $editor);
-        if (ereg(" *\(eds?\)$", $author))
-          $author = ereg_replace("[ \r\n]*\(eds?\)", "", $author);
+        if (preg_match("/ *\(eds?\)$/", $editor))
+          $editor = preg_replace("/[ \r\n]*\(eds?\)/", "", $editor);
+        if (preg_match("/ *\(eds?\)$/", $author))
+          $author = preg_replace("/[ \r\n]*\(eds?\)/", "", $author);
         if ($editor != $author) {
           $nameArray = separateNames("editor", "/\s*;\s*/", "/\s*,\s*/",
                                      "/(?<=^|[$word])[^-$word]+|(?<=^|[$upper])(?=$|[$upper])/$patternModifiers",
@@ -692,7 +692,7 @@
         $description = new XMLBranch("physicalDescription");
         $pages = new XMLBranch("extent");
         $pages->setTagAttribute("unit", "pages");
-        if (ereg("[0-9] *- *[0-9]", $row['pages'])) { // if a page range
+        if (preg_match("/[0-9] *- *[0-9]/", $row['pages'])) { // if a page range
           // split the page range into start and end pages
           list($pagestart, $pageend) = preg_split('/\s*[-]\s*/', $row['pages']);
           if ($pagestart < $pageend) { // extents MUST span multiple pages
@@ -752,7 +752,7 @@
     //   |       abbrev_journal, volume, and issue added.
     //   | A lot of info goes into the relatedItem branch.
 
-    else { // if (ereg("^(Abstract|Book Chapter|Conference Article|Journal Article|Magazine Article|Newspaper Article)$", $row['type']))
+    else { // if (preg_match("/^(Abstract|Book Chapter|Conference Article|Journal Article|Magazine Article|Newspaper Article)$/", $row['type']))
       // relatedItem
       $related = new XMLBranch("relatedItem");
       $related->setTagAttribute("type", "host");
@@ -774,8 +774,8 @@
       //   editor
       if (!empty($row['editor'])) {
         $editor=$row['editor'];
-        if (ereg(" *\(eds?\)$", $editor))
-          $editor = ereg_replace("[ \r\n]*\(eds?\)", "", $editor);
+        if (preg_match("/ *\(eds?\)$/", $editor))
+          $editor = preg_replace("/[ \r\n]*\(eds?\)/", "", $editor);
         $nameArray = separateNames("editor", "/\s*;\s*/", "/\s*,\s*/",
                                    "/(?<=^|[$word])[^-$word]+|(?<=^|[$upper])(?=$|[$upper])/$patternModifiers",
                                    $editor, "personal", "editor");
@@ -829,7 +829,7 @@
 
       // genre (and originInfo/issuance)
       if (empty($row['thesis'])) { // theses will get their own genre (see below)
-        if (ereg("^(Journal Article|Magazine Article)$", $row['type'])) {
+        if (preg_match("/^(Journal Article|Magazine Article)$/", $row['type'])) {
           $related->setTagContent("continuing",
                                   "relatedItem/originInfo/issuance");
           $genremarc = new XMLBranch("genre");
@@ -904,7 +904,7 @@
           $part->addXMLBranch($detailnumber);
         }
         if (!empty($row['pages'])) {
-          if (ereg("[0-9] *- *[0-9]", $row['pages'])) { // if a page range
+          if (preg_match("/[0-9] *- *[0-9]/", $row['pages'])) { // if a page range
             // split the page range into start and end pages
             list($pagestart, $pageend) = preg_split('/\s*[-]\s*/', $row['pages']);
             if ($pagestart < $pageend) { // extents MUST span multiple pages
