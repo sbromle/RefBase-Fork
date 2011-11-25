@@ -189,7 +189,7 @@
 								}
 
 								// if a comma (',') is used as keyword delimiter, we'll convert it into a semicolon (';'):
-								elseif (($recordFieldTag == "DE: Descriptors") AND (!ereg(";", $recordFieldData)))
+								elseif (($recordFieldTag == "DE: Descriptors") AND (!preg_match("/;/", $recordFieldData)))
 									$recordFieldData = preg_replace("/ *, */", "; ", $recordFieldData);
 
 								// if all of the record data is in uppercase letters, we attempt to convert the string to something more readable:
@@ -450,10 +450,10 @@
 				foreach ($fieldParametersArray as $fieldKey => $fieldData)
 				{
 					// Decode HTML special chars:
-					if (($fieldKey != "url") AND ereg('&(amp|quot|#0?39|lt|gt);', $fieldData))
+					if (($fieldKey != "url") AND preg_match('/&(amp|quot|#0?39|lt|gt);/', $fieldData))
 						$fieldParametersArray[$fieldKey] = decodeHTMLspecialchars($fieldData); // function 'decodeHTMLspecialchars()' is defined in 'include.inc.php'
 
-					elseif (($fieldKey == "url") AND ereg('&amp;', $fieldData)) // in case of the 'url' field, we just decode any ampersand characters
+					elseif (($fieldKey == "url") AND preg_match('/&amp;/', $fieldData)) // in case of the 'url' field, we just decode any ampersand characters
 						$fieldParametersArray[$fieldKey] = str_replace('&amp;', '&', $fieldData);
 				}
 
@@ -745,7 +745,7 @@
 					// -- journal:
 					$journalName = preg_replace("/^(.+?)(?= *(\(?\d+|[,;]|(v(ol)?\.?|volume) *\d+|$)).*/i", "\\1", $journalRefData); // extract journal name
 					$journalRefData = preg_replace("/^(.+?)(?= *(\(?\d+|[,;]|(v(ol)?\.?|volume) *\d+|$))[,; ]*/i", "", $journalRefData); // remove journal name from 'journal_ref' string
-					if (ereg("\.", $journalName))
+					if (preg_match("/\./", $journalName))
 						$fieldParametersArray['abbrev_journal'] = preg_replace("/(?<=\.)(?![ )]|$)/", " ", $journalName); // ensure that any dots are followed with a space
 					else
 						$fieldParametersArray['publication'] = $journalName;
@@ -813,14 +813,14 @@
 				{
 					// In case of a latin1-based database, attempt to convert UTF-8 data to refbase markup & latin1:
 					// (we exclude the 'author' and 'address' fields here since they have already been dealt with above)
-					if ((!ereg("^(author|address)$", $fieldKey)) AND ($contentTypeCharset == "ISO-8859-1") AND (detectCharacterEncoding($fieldData) == "UTF-8"))
+					if ((!preg_match("/^(author|address)$/", $fieldKey)) AND ($contentTypeCharset == "ISO-8859-1") AND (detectCharacterEncoding($fieldData) == "UTF-8"))
 						$fieldData = convertToCharacterEncoding("ISO-8859-1", "TRANSLIT", $fieldData, "UTF-8");
 
 					// Decode HTML special chars:
-					if (($fieldKey != "url") AND ereg('&(amp|quot|#0?39|lt|gt);', $fieldData))
+					if (($fieldKey != "url") AND preg_match('/&(amp|quot|#0?39|lt|gt);/', $fieldData))
 						$fieldParametersArray[$fieldKey] = decodeHTMLspecialchars($fieldData); // function 'decodeHTMLspecialchars()' is defined in 'include.inc.php'
 
-					elseif (($fieldKey == "url") AND ereg('&amp;', $fieldData)) // in case of the 'url' field, we just decode any ampersand characters
+					elseif (($fieldKey == "url") AND preg_match('/&amp;/', $fieldData)) // in case of the 'url' field, we just decode any ampersand characters
 						$fieldParametersArray[$fieldKey] = str_replace('&amp;', '&', $fieldData);
 				}
 
@@ -2213,7 +2213,7 @@
 					// Handle PubMed Medline errors:
 					// TODO: - improve identification of Medline errors
 					//       - handle PubMed XML
-					if (eregi("^\s*<html>", $recordArray[$i]) AND ereg("Error occurred:", $recordArray[$i])) // a PubMed error occurred, probably because an unrecognized PubMed ID was given
+					if (preg_match("/^\s*<html>/i", $recordArray[$i]) AND preg_match("/Error occurred:/", $recordArray[$i])) // a PubMed error occurred, probably because an unrecognized PubMed ID was given
 						$errorMessage .= preg_replace("/.*Error occurred: *([^<>]+).*/s", " PubMed error: \\1.", $recordArray[$i]); // attempt to extract PubMed error message
 					else
 					{
@@ -2303,7 +2303,7 @@
 						// extract individual items of tags that can occur multiple times:
 						foreach ($tagsMultipleArray as $tagMultiple)
 						{
-							if (eregi("^" . $tagMultiple . "$", $fieldLabel))
+							if (preg_match("/^/i" . $tagMultiple . "$", $fieldLabel))
 								$tagContentsMultipleArray[$tagsToRefbaseFieldsArray[$fieldLabel]][] = $fieldData;
 						}
 
@@ -2382,7 +2382,7 @@
 			foreach ($fieldParametersArray as $fieldKey => $fieldData) // for each field within the current record...
 			{
 				// if all of the field data is in uppercase letters, we attempt to convert the string to something more readable:
-				if ($transformCase AND (!ereg("^(type|issn|url|doi)$", $fieldKey))) // we exclude ISSN & DOI numbers, as well as URLs and reference types from any case transformations
+				if ($transformCase AND (!preg_match("/^(type|issn|url|doi)$/", $fieldKey))) // we exclude ISSN & DOI numbers, as well as URLs and reference types from any case transformations
 					// TODO: as above, we should probably only use Unicode-aware expressions here (i.e. something like "/^([$upper$digit]|[^$word])+$/$patternModifiers")
 					if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $fieldData))
 						// convert upper case to title case (converts e.g. "ELSEVIER SCIENCE BV" into "Elsevier Science Bv"):
@@ -2391,22 +2391,22 @@
 						$fieldParametersArray[$fieldKey] = changeCase('title', $fieldData); // function 'changeCase()' is defined in 'include.inc.php'
 			}
 
-			if (ereg("Thesis", $fieldParametersArray['type']))
+			if (preg_match("/Thesis/i", $fieldParametersArray['type']))
 			{
 				$fieldParametersArray['type'] = "Book Whole";
 
 				// standardize thesis names:
 				if (isset($fieldParametersArray['thesis']))
 				{
-					if (eregi("^Master'?s thesis$", $fieldParametersArray['thesis']))
+					if (preg_match("/^Master'?s thesis$/i", $fieldParametersArray['thesis']))
 						$fieldParametersArray['thesis'] = "Master's thesis";
-					elseif (eregi("^Bachelor'?s thesis$", $fieldParametersArray['thesis']))
+					elseif (preg_match("/^Bachelor'?s thesis$/i", $fieldParametersArray['thesis']))
 						$fieldParametersArray['thesis'] = "Bachelor's thesis";
-					elseif (eregi("^(Diploma thesis|Diplom(arbeit)?)$", $fieldParametersArray['thesis']))
+					elseif (preg_match("/^(Diploma thesis|Diplom(arbeit)?)$/i", $fieldParametersArray['thesis']))
 						$fieldParametersArray['thesis'] = "Diploma thesis";
-					elseif (eregi("^(Doctoral thesis|Dissertation|Doktor(arbeit)?)$", $fieldParametersArray['thesis']))
+					elseif (preg_match("/^(Doctoral thesis|Dissertation|Doktor(arbeit)?)$/i", $fieldParametersArray['thesis']))
 						$fieldParametersArray['thesis'] = "Doctoral thesis";
-					elseif (eregi("^Habilitation( thesis)?$", $fieldParametersArray['thesis']))
+					elseif (preg_match("/^Habilitation( thesis)?$/i", $fieldParametersArray['thesis']))
 						$fieldParametersArray['thesis'] = "Habilitation thesis";
 					else // if an unknown thesis name was given
 						$fieldParametersArray['thesis'] = "Ph.D. thesis"; // NOTE: this fallback may actually be not correct!
@@ -2440,7 +2440,7 @@
 				if (!empty($pages))
 					$fieldParametersArray['pages'] = implode("-", $pages);
 
-				if (ereg("Book Whole", $fieldParametersArray['type']) AND preg_match("/^\d+$/", $fieldParametersArray['pages']))
+				if (preg_match("/Book Whole/", $fieldParametersArray['type']) AND preg_match("/^\d+$/", $fieldParametersArray['pages']))
 					$fieldParametersArray['pages'] = $fieldParametersArray['pages'] . " pp"; // append "pp" identifier for whole books where the pages field contains a single number
 			}
 
@@ -2482,11 +2482,11 @@
 			}
 
 			// if the 'author' field is empty BUT the 'editor' field is not empty AND the record type is either a container item or a self-contained/independent item (such as 'Book Whole', 'Journal', 'Manuscript' or 'Map'):
-			if (empty($fieldParametersArray['author']) AND !empty($fieldParametersArray['editor']) AND ereg("^(Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software)$", $fieldParametersArray['type']))
+			if (empty($fieldParametersArray['author']) AND !empty($fieldParametersArray['editor']) AND preg_match("/^(Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software)$/", $fieldParametersArray['type']))
 			{
 				$fieldParametersArray['author'] = $fieldParametersArray['editor']; // duplicate field contents from 'editor' to 'author' field
 
-				if (!ereg(";", $fieldParametersArray['author'])) // if the 'author' field does NOT contain a ';' (which would delimit multiple authors) => single author
+				if (!preg_match("/;/", $fieldParametersArray['author'])) // if the 'author' field does NOT contain a ';' (which would delimit multiple authors) => single author
 					$fieldParametersArray['author'] .= " (ed)"; // append " (ed)" to the end of the 'author' string
 				else // the 'author' field does contain at least one ';' => multiple authors
 					$fieldParametersArray['author'] .= " (eds)"; // append " (eds)" to the end of the 'author' string
@@ -2695,7 +2695,7 @@
 			$pmidArray = array_unique($pmidArray);
 
 			// Define response format:
-			if (eregi("^Pubmed XML$", $sourceFormat))
+			if (preg_match("/^Pubmed XML$/i", $sourceFormat))
 				$fetchType = "xml";
 			else // by default, we'll use the "Pubmed Medline" format
 				$fetchType = "text";
@@ -2748,7 +2748,7 @@
 //			$sourceText = fetchDataFromURL($sourceURL);
 //
 //			// Handle errors:
-//			if (!preg_match("/^PMID- /m", $sourceText) AND ereg("Error occurred:", $sourceText)) // a PubMed error occurred, probably because only unrecognized PubMed IDs were given; TODO: handle PubMed XML
+//			if (!preg_match("/^PMID- /m", $sourceText) AND preg_match("/Error occurred:/", $sourceText)) // a PubMed error occurred, probably because only unrecognized PubMed IDs were given; TODO: handle PubMed XML
 //				$errors["sourceText"] = preg_replace("/.*Error occurred: *([^<>]+).*/s", "PubMed error: \\1", $sourceText); // attempt to extract PubMed error message
 		}
 
@@ -2879,7 +2879,7 @@
 			$itemArray = array_unique($itemArray);
 
 			// Define response format:
-//			if (eregi("^CrossRef XML$", $sourceFormat))
+//			if (preg_match("/^CrossRef XML$/i", $sourceFormat))
 //				$fetchType = "unixref";
 //			else // by default, we'll use the "unixref XML" format
 				$fetchType = "unixref";
@@ -3001,7 +3001,7 @@
 				// else if the current record is of type "Journal Article", "Report", etc (or wasn't specified) but the field "JN: Journal Name" is missing:
 				elseif (!preg_match("/^JN: Journal Name *[\r\n]+ {4,4}/m", $singleRecord)) // preg_match("/^(PT: Publication Type\s+(Journal Article|Report)|DT: Document Type\s+(J|R))/m", $singleRecord)
 				{
-					if (ereg("\[", $sourceField)) // if the source field data contain a square bracket we assume a format like: "Journal of Phycology [J. Phycol.]. Vol. 37, no. s3, pp. 18-18. Jun 2001."
+					if (preg_match("/\[/", $sourceField)) // if the source field data contain a square bracket we assume a format like: "Journal of Phycology [J. Phycol.]. Vol. 37, no. s3, pp. 18-18. Jun 2001."
 						$extractedSourceFieldData = preg_replace("/^([^.[]+).*/", "\\1", $sourceField); // attempt to extract the full journal name from the source field
 					else // source field format might be something like: "Phycologia, vol. 34, no. 2, pp. 135-144, 1995"
 						$extractedSourceFieldData = preg_replace("/^([^.,]+).*/", "\\1", $sourceField); // attempt to extract the full journal name from the source field
@@ -3044,7 +3044,7 @@
 
 
 				// Additionally, we extract the abbreviated journal name from the "SO: Source" field (if available):
-				if (ereg("\[", $sourceField)) // if the source field data contain a square bracket we assume a format like: "Journal of Phycology [J. Phycol.]. Vol. 37, no. s3, pp. 18-18. Jun 2001."
+				if (preg_match("/\[/", $sourceField)) // if the source field data contain a square bracket we assume a format like: "Journal of Phycology [J. Phycol.]. Vol. 37, no. s3, pp. 18-18. Jun 2001."
 				{
 					$extractedSourceFieldData = preg_replace("/.*\[(.+?)\].*/", "\\1", $sourceField); // attempt to extract the abbreviated journal name from the source field
 					$extractedSourceFieldData = preg_replace("/\./", "", $extractedSourceFieldData); // remove any dots from the abbreviated journal name
@@ -3070,21 +3070,21 @@
 					$fieldData = preg_replace("/\s{2,}/", " ", $fieldData); // remove any hard returns and extra spaces within the data string
 					$fieldData = trim($fieldData); // remove any preceeding and trailing whitespace from the field data
 
-					if (ereg("AU: Author", $fieldLabel))
+					if (preg_match("/AU: Author/", $fieldLabel))
 					{
 						$fieldData = preg_replace("/\*/", "", $fieldData); // remove any asterisk ("*")
 						$fieldData = standardizePersonNames($fieldData, true, " *; *", " *, *", true); // standardize person names
 					}
 
-					elseif (ereg("ED: Editor", $fieldLabel))
+					elseif (preg_match("/ED: Editor/", $fieldLabel))
 					{
 						$fieldData = preg_replace("/ \(eds?\)(?= *$| *;)/", "", $fieldData); // remove " (ed)" and/or " (eds)"
 						$fieldData = standardizePersonNames($fieldData, true, " *; *", " *, *", true); // standardize person names
 					}
 
-					elseif (ereg("TI: Title|AB: Abstract", $fieldLabel))
+					elseif (preg_match("/TI: Title|AB: Abstract/", $fieldLabel))
 					{
-						if (ereg("TI: Title", $fieldLabel))
+						if (preg_match("/TI: Title/", $fieldLabel))
 						{
 							$fieldData = preg_replace("/--/", "-", $fieldData); // remove en-dash markup
 							$fieldData = preg_replace("/ *\. *$/", "", $fieldData); // remove any dot from end of title
@@ -3101,17 +3101,17 @@
 					// build an array of key/value pairs:
 
 					// "AU: Author":
-					if (ereg("AU: Author", $fieldLabel))
+					if (preg_match("/AU: Author/", $fieldLabel))
 						$fieldParametersArray['author'] = $fieldData;
 
 					// "TI: Title":
-					elseif (ereg("TI: Title", $fieldLabel))
+					elseif (preg_match("/TI: Title/", $fieldLabel))
 						$fieldParametersArray['title'] = $fieldData;
 
 					// "PT: Publication Type":
-					elseif (ereg("PT: Publication Type", $fieldLabel)) // could also check for "DT: Document Type" (but DT was added only recently)
+					elseif (preg_match("/PT: Publication Type/", $fieldLabel)) // could also check for "DT: Document Type" (but DT was added only recently)
 					{
-						if (ereg("[;:,.]", $fieldData)) // if the "PT: Publication Type" field contains a delimiter (e.g. like: "Journal Article; Conference")
+						if (preg_match("/[;:,.]/", $fieldData)) // if the "PT: Publication Type" field contains a delimiter (e.g. like: "Journal Article; Conference")
 						{
 							$correctDocumentType = preg_replace("/(.+?)\s*[;:,.]\s*.*/", "\\1", $fieldData); // extract everything before this delimiter
 							$additionalDocumentTypeInfo = preg_replace("/.*?\s*[;:,.]\s*(.+)/", "\\1", $fieldData); // extract everything after this delimiter
@@ -3136,11 +3136,11 @@
 					}
 
 					// "PY: Publication Year":
-					elseif (ereg("PY: Publication Year", $fieldLabel))
+					elseif (preg_match("/PY: Publication Year/", $fieldLabel))
 						$fieldParametersArray['year'] = $fieldData;
 
 					// "JN: Journal Name":
-					elseif (ereg("JN: Journal Name", $fieldLabel))
+					elseif (preg_match("/JN: Journal Name/", $fieldLabel))
 					{
 						// if the current record is of type "Book Monograph" AND the field "JN: Journal Name" was given within the *original* record data (i.e., before adding stuff to it):
 						if (preg_match("/^(PT: Publication Type\s+Book Monograph|DT: Document Type\s+B)/m", $singleRecord) AND preg_match("/^JN: Journal Name *[\r\n]+ {4,4}/m", $singleRecord))
@@ -3151,7 +3151,7 @@
 					}
 
 					// "JA: Abbrev Journal Name":
-					elseif (ereg("JA: Abbrev Journal Name", $fieldLabel))
+					elseif (preg_match("/JA: Abbrev Journal Name/", $fieldLabel))
 					{
 						if (preg_match("/^(PT: Publication Type\s+Book Monograph|DT: Document Type\s+B)/m", $singleRecord)) // if the current record is of type "Book Monograph"
 							// for book monographs the publication title is given in "MT: Monograph Title"; if a "JA: Abbrev Journal Name" is provided as well, we assume, it's the abbreviated series title:
@@ -3161,7 +3161,7 @@
 					}
 
 					// "MT: Monograph Title":
-					elseif (ereg("MT: Monograph Title", $fieldLabel))
+					elseif (preg_match("/MT: Monograph Title/", $fieldLabel))
 					{
 						// if the source field contains some page specification like "213 pp." (AND NOT something like "pp. 76-82" or "p. 216")...
 						if (preg_match("/[\d,]+ *pp\b/i", $sourceField) AND !preg_match("/(?<=\W)pp?[. ]+[\w\/,-]+/i", $sourceField))
@@ -3172,7 +3172,7 @@
 					}
 
 					// "JV: Journal Volume":
-					elseif (ereg("JV: Journal Volume", $fieldLabel))
+					elseif (preg_match("/JV: Journal Volume/", $fieldLabel))
 					{
 						if (preg_match("/^(PT: Publication Type\s+Book Monograph|DT: Document Type\s+B)/m", $singleRecord)) // if the current record is of type "Book Monograph"
 							// for book monographs, if there's a volume given, we assume, it's the series volume:
@@ -3182,7 +3182,7 @@
 					}
 
 					// "JI: Journal Issue":
-					elseif (ereg("JI: Journal Issue", $fieldLabel))
+					elseif (preg_match("/JI: Journal Issue/", $fieldLabel))
 					{
 						if (preg_match("/^(PT: Publication Type\s+Book Monograph|DT: Document Type\s+B)/m", $singleRecord)) // if the current record is of type "Book Monograph"
 							// for book monographs, if there's an issue given, we assume, it's the series issue:
@@ -3192,27 +3192,27 @@
 					}
 
 					// "JP: Journal Pages":
-					elseif (ereg("JP: Journal Pages", $fieldLabel))
+					elseif (preg_match("/JP: Journal Pages/", $fieldLabel))
 						$fieldParametersArray['pages'] = $fieldData;
 
 					// "AF: Affiliation" & "AF: Author Affilition":
-					elseif (ereg("AF: (Author )?Affilia?tion", $fieldLabel))
+					elseif (preg_match("/AF: (Author )?Affilia?tion/", $fieldLabel))
 						$fieldParametersArray['address'] = $fieldData;
 
 					// "CA: Corporate Author":
-					elseif (ereg("CA: Corporate Author", $fieldLabel))
+					elseif (preg_match("/CA: Corporate Author/", $fieldLabel))
 						$fieldParametersArray['corporate_author'] = $fieldData;
 
 					// "DE: Descriptors":
-					elseif (ereg("DE: Descriptors", $fieldLabel)) // currently, the fields "KW: Keywords" and "ID: Identifiers" are ignored!
+					elseif (preg_match("/DE: Descriptors/", $fieldLabel)) // currently, the fields "KW: Keywords" and "ID: Identifiers" are ignored!
 						$fieldParametersArray['keywords'] = $fieldData;
 
 					// "AB: Abstract":
-					elseif (ereg("AB: Abstract", $fieldLabel))
+					elseif (preg_match("/AB: Abstract/", $fieldLabel))
 						$fieldParametersArray['abstract'] = $fieldData;
 
 					// "PB: Publisher":
-					elseif (ereg("PB: Publisher", $fieldLabel))
+					elseif (preg_match("/PB: Publisher/", $fieldLabel))
 					{
 						if (preg_match("/^[$upper\W\d]+$/$patternModifiers", $fieldData)) // if all of the words within the publisher name are uppercase, we attempt to convert the string to something more readable:
 							// perform case transformation (e.g. convert "ELSEVIER SCIENCE B.V." into "Elsevier Science B.V.")
@@ -3222,43 +3222,43 @@
 					}
 
 					// "ED: Editor":
-					elseif (ereg("ED: Editor", $fieldLabel))
+					elseif (preg_match("/ED: Editor/", $fieldLabel))
 						$fieldParametersArray['editor'] = $fieldData;
 
 					// "LA: Language":
-					elseif (ereg("LA: Language", $fieldLabel))
+					elseif (preg_match("/LA: Language/", $fieldLabel))
 						$fieldParametersArray['language'] = $fieldData;
 
 					// "SL: Summary Language":
-					elseif (ereg("SL: Summary Language", $fieldLabel))
+					elseif (preg_match("/SL: Summary Language/", $fieldLabel))
 						$fieldParametersArray['summary_language'] = $fieldData;
 
 					// "OT: Original Title":
-					elseif (ereg("OT: Original Title", $fieldLabel))
+					elseif (preg_match("/OT: Original Title/", $fieldLabel))
 						$fieldParametersArray['orig_title'] = $fieldData;
 
 					// "IS: ISSN":
-					elseif (ereg("IS: ISSN", $fieldLabel))
+					elseif (preg_match("/IS: ISSN/", $fieldLabel))
 						$fieldParametersArray['issn'] = $fieldData;
 
 					// "IB: ISBN":
-					elseif (ereg("IB: ISBN", $fieldLabel))
+					elseif (preg_match("/IB: ISBN/", $fieldLabel))
 						$fieldParametersArray['isbn'] = $fieldData;
 
 					// "ER: Environmental Regime":
-					elseif (ereg("ER: Environmental Regime", $fieldLabel))
+					elseif (preg_match("/ER: Environmental Regime/", $fieldLabel))
 						$environmentalRegime = $fieldData; // this info will be appended to any notes field data (see below)
 
 					// "CF: Conference":
-					elseif (ereg("CF: Conference", $fieldLabel))
+					elseif (preg_match("/CF: Conference/", $fieldLabel))
 						$fieldParametersArray['conference'] = $fieldData;
 
 					// "NT: Notes":
-					elseif (ereg("NT: Notes", $fieldLabel))
+					elseif (preg_match("/NT: Notes/", $fieldLabel))
 						$fieldParametersArray['notes'] = $fieldData;
 
 					// "DO: DOI":
-					elseif (ereg("DO: DOI", $fieldLabel))
+					elseif (preg_match("/DO: DOI/", $fieldLabel))
 						$fieldParametersArray['doi'] = $fieldData;
 				}
 				// (END LOOP OVER EACH FIELD)

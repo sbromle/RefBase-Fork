@@ -142,7 +142,7 @@
 				$typeTitle = $loc["Theses_Other"];
 		}
 
-		if (!eregi("^html$", $citeType)) // for citation formats other than HTML:
+		if (!preg_match("/^html$/i", $citeType)) // for citation formats other than HTML:
 			// apply dirty hack that reverses the HTML encoding of locales (which were HTML encoded globally in 'core.inc.php');
 			// note that function 'html_entity_decode' doesn't support multibyte character sets (such as UTF-8) in PHP versions < 5
 			// (see <http://www.php.net/manual/en/function.html-entity-decode.php>)

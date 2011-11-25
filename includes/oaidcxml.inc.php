@@ -208,11 +208,11 @@
 		$row['abstract'] = searchReplaceText($transtab_refbase_ascii, $row['abstract'], true);
 
 		// Strip any " (ed)" or " (eds)" suffix from author/editor string:
-		if (ereg(" *\(eds?\)$", $row['author']))
-			$row['author'] = ereg_replace("[ \r\n]*\(eds?\)", "", $row['author']);
+		if (preg_match("/ *\(eds?\)$/", $row['author']))
+			$row['author'] = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['author']);
 
-		if (ereg(" *\(eds?\)$", $row['editor']))
-			$row['editor'] = ereg_replace("[ \r\n]*\(eds?\)", "", $row['editor']);
+		if (preg_match("/ *\(eds?\)$/", $row['editor']))
+			$row['editor'] = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['editor']);
 
 		// Include a link to any corresponding file if one of the following conditions is met:
 		// - the variable '$fileVisibility' (defined in 'ini.inc.php') is set to 'everyone'
@@ -223,18 +223,18 @@
 		// TODO: - the URL-generating code should be made into a dedicated function (since it's shared with 'modsxml.inc.php' and 'atomxml.inc.php')
 		$printURL = false;
 
-		if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
+		if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
 		{
 			if (!empty($row['file']))
 			{
-				if (ereg('^(https?|ftp|file)://', $row['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
+				if (preg_match('/^(https?|ftp|file):\/\//', $row['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
 				{
 				  $URLprefix = ""; // we don't alter the URL given in the 'file' field
 				}
 				else // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
 				{
 					// use the base URL of the standard files directory as prefix:
-					if (ereg('^/', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
+					if (preg_match('/^\//', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
 						$URLprefix = 'http://' . $_SERVER['HTTP_HOST'] . $filesBaseURL;
 					else // relative path -> file dir is located within refbase root dir
 						$URLprefix = $databaseBaseURL . $filesBaseURL;

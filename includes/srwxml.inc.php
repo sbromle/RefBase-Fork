@@ -71,7 +71,7 @@
 			// Generate the export for each record and push them onto an array:
 			for ($rowCounter=0; (($rowCounter < $showRows) && ($row = @ mysql_fetch_array($result))); $rowCounter++)
 			{
-				if (eregi("DC", $exportFormat)) // export the current record as DC XML (i.e. simple Dublin Core):
+				if (preg_match("/DC/i", $exportFormat)) // export the current record as DC XML (i.e. simple Dublin Core):
 					$record = oaidcRecord($row, "srw_dc"); // function 'oaidcRecord()' is defined in 'oaidcxml.inc.php'
 				else  // by default, we export the current record as MODS XML:
 					$record = modsRecord($row); // function 'modsRecord()' is defined in 'modsxml.inc.php'
@@ -92,14 +92,14 @@
 
 				$srwRecordBranch = new XMLBranch("srw:record");
 
-				if (eregi("DC", $exportFormat))
+				if (preg_match("/DC/i", $exportFormat))
 					srwGeneratePackingSchema($srwRecordBranch, "xml", "dc");
 				else
 					srwGeneratePackingSchema($srwRecordBranch, "xml", "mods");
 
 				$srwRecordDataBranch = new XMLBranch("srw:recordData");
 
-				if (eregi("MODS", $exportFormat))
+				if (preg_match("/MODS/i", $exportFormat))
 				{
 					// NOTE: converting the MODS object into a string to perform search & replace actions
 					//       may be very clumsy but I don't know any better... ?:-/
@@ -632,7 +632,7 @@
 			$srwCollection->setTagAttribute("xmlns:diag", "http://www.loc.gov/zing/srw/diagnostic/");
 			$srwCollection->setTagAttribute("xmlns:xcql", "http://www.loc.gov/zing/cql/xcql/");
 
-			if (eregi("DC", $exportFormat)) // add namespace declarations for "SRW_DC XML":
+			if (preg_match("/DC/i", $exportFormat)) // add namespace declarations for "SRW_DC XML":
 			{
 				$srwCollection->setTagAttribute("xmlns:srw_dc", "info:srw/schema/1/dc-v1.1");
 				$srwCollection->setTagAttribute("xmlns:dc", "http://purl.org/dc/elements/1.1/");

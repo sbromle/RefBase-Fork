@@ -84,7 +84,7 @@
 				// Calculate the maximum number of pages needed:
 				$lastPage = ($rowsFound / $showRows);
 				// workaround for always rounding upward (since I don't know better! :-/):
-				if (ereg("[0-9]+\.[0-9+]", $lastPage)) // if the result number is not an integer
+				if (preg_match("/[0-9]+\.[0-9+]/", $lastPage)) // if the result number is not an integer
 					$lastPage = (int) $lastPage + 1; // we convert the number into an integer and add 1
 
 				// Calculate the offset of the first record that's displayed on the last results page:
@@ -481,11 +481,11 @@
 		$editorName = preg_replace("/(.+?) \([^)]+\)/", "\\1", $row['modified_by']);
 
 		// Strip any " (ed)" or " (eds)" suffix from author/editor string:
-		if (ereg(" *\(eds?\)$", $row['author']))
-			$row['author'] = ereg_replace("[ \r\n]*\(eds?\)", "", $row['author']);
+		if (preg_match("/ *\(eds?\)$/", $row['author']))
+			$row['author'] = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['author']);
 
-		if (ereg(" *\(eds?\)$", $row['editor']))
-			$row['editor'] = ereg_replace("[ \r\n]*\(eds?\)", "", $row['editor']);
+		if (preg_match("/ *\(eds?\)$/", $row['editor']))
+			$row['editor'] = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['editor']);
 
 		// Include a link to any corresponding file if one of the following conditions is met:
 		// - the variable '$fileVisibility' (defined in 'ini.inc.php') is set to 'everyone'
@@ -496,18 +496,18 @@
 		// TODO: - the URL-generating code should be made into a dedicated function (since it's shared with 'modsxml.inc.php' and 'oaidcxml.inc.php')
 		$printURL = false;
 
-		if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
+		if ($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions']))) OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]])))
 		{
 			if (!empty($row['file']))
 			{
-				if (ereg('^(https?|ftp|file)://', $row['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
+				if (preg_match('/^(https?|ftp|file):\/\//', $row['file'])) // if the 'file' field contains a full URL (starting with "http://", "https://",  "ftp://", or "file://")
 				{
 				  $URLprefix = ""; // we don't alter the URL given in the 'file' field
 				}
 				else // if the 'file' field contains only a partial path (like 'polarbiol/10240001.pdf') or just a file name (like '10240001.pdf')
 				{
 					// use the base URL of the standard files directory as prefix:
-					if (ereg('^/', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
+					if (preg_match('/^\//', $filesBaseURL)) // absolute path -> file dir is located outside of refbase root dir
 						$URLprefix = 'http://' . $_SERVER['HTTP_HOST'] . $filesBaseURL;
 					else // relative path -> file dir is located within refbase root dir
 						$URLprefix = $databaseBaseURL . $filesBaseURL;
@@ -917,46 +917,46 @@
 
 		// Define media types for the different formats:
 		// TODO: add types for ADS, ISI and Word XML
-		if (eregi("^HTML$", $linkFormat))
+		if (preg_match("/^HTML$/i", $linkFormat))
 			$linkType = "text/html";
 
-		elseif (eregi("^RTF$", $linkFormat))
+		elseif (preg_match("/^RTF$/i", $linkFormat))
 			$linkType = "application/rtf";
 
-		elseif (eregi("^BibTeX$", $linkFormat))
+		elseif (preg_match("/^BibTeX$/i", $linkFormat))
 			$linkType = "application/x-bibtex";
 
-		elseif (eregi("^Endnote$", $linkFormat))
+		elseif (preg_match("/^Endnote$/i", $linkFormat))
 			$linkType = "application/x-endnote-refer";
 
-		elseif (eregi("^RIS$", $linkFormat))
+		elseif (preg_match("/^RIS$/i", $linkFormat))
 			$linkType = "application/x-Research-Info-Systems";
 
-		elseif (eregi("^Atom([ _]?XML)?$", $linkFormat))
+		elseif (preg_match("/^Atom([ _]?XML)?$/i", $linkFormat))
 			$linkType = "application/atom+xml";
 
-		elseif (eregi("^RSS([ _]?XML)?$", $linkFormat))
+		elseif (preg_match("/^RSS([ _]?XML)?$/i", $linkFormat))
 			$linkType = "application/rss+xml";
 
-		elseif (eregi("^((MODS|(OAI_)?DC)([ _]?XML)?|SRW([ _]?(MODS|DC))?([ _]?XML)?|unAPI)$", $linkFormat))
+		elseif (preg_match("/^((MODS|(OAI_)?DC)([ _]?XML)?|SRW([ _]?(MODS|DC))?([ _]?XML)?|unAPI)$/i", $linkFormat))
 			$linkType = "application/xml";
 
-		elseif (eregi("^ODF([ _]?XML)?$", $linkFormat))
+		elseif (preg_match("/^ODF([ _]?XML)?$/i", $linkFormat))
 			$linkType = "application/vnd.oasis.opendocument.spreadsheet";
 
-		elseif (eregi("^OpenSearch$", $linkFormat))
+		elseif (preg_match("/^OpenSearch$/i", $linkFormat))
 			$linkType = "application/opensearchdescription+xml";
 
-		elseif (eregi("^RTF$", $linkFormat))
+		elseif (preg_match("/^RTF$/i", $linkFormat))
 			$linkType = "application/rtf";
 
-		elseif (eregi("^PDF$", $linkFormat))
+		elseif (preg_match("/^PDF$/i", $linkFormat))
 			$linkType = "application/pdf";
 
-		elseif (eregi("^LaTeX([ _]?\.?bbl)?$", $linkFormat))
+		elseif (preg_match("/^LaTeX([ _]?\.?bbl)?$/i", $linkFormat))
 			$linkType = "application/x-latex";
 
-		elseif (eregi("^(Markdown|ASCII)$", $linkFormat))
+		elseif (preg_match("/^(Markdown|ASCII)$/i", $linkFormat))
 			$linkType = "text/plain";
 
 

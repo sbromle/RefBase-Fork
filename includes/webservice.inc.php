@@ -76,7 +76,7 @@
 			if (!preg_match('/^[^\" <>=]+( +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/', $sruQuery))
 			{
 				 // if no context set/index name and relation was given we'll add meaningful defaults:
-				if (eregi("^suggest$", $operation))
+				if (preg_match("/^suggest$/i", $operation))
 					$sruQuery = "main_fields all " . $sruQuery; // for OpenSearch search suggestions, we use the special 'main_fields' index by default
 				else
 					$sruQuery = "cql.serverChoice all " . $sruQuery; // otherwise we currently use 'cql.serverChoice' (since 'main_fields' isn't yet supported for regular OpenSearch queries)
@@ -100,7 +100,7 @@
 				$contextSetIndexConnector = ".";
 				$contextSetLabel = "context set '" . $contextSet . "'";
 
-				if (!ereg("^(dc|bath|rec|bib|cql)$", $contextSet))
+				if (!preg_match("/^(dc|bath|rec|bib|cql)$/i", $contextSet))
 				{
 					returnDiagnostic(15, $contextSet); // unsupported context set (function 'returnDiagnostic()' is defined in 'opensearch.php' and 'sru.php')
 					exit;
@@ -148,7 +148,7 @@
 
 			// OpenSearch search suggestions ('$operation=suggest'): since CQL matches full words (not sub-strings),
 			// we need to make sure that every search term ends with the '*' masking character:
-			if (eregi("^suggest$", $operation) AND ($mainRelation != "exact"))
+			if (preg_match("/^suggest$/i", $operation) AND ($mainRelation != "exact"))
 				$searchTerm = preg_replace("/([$word]+)(?![?*^])/$patternModifiers", "\\1*", $searchTerm);
 
 			// escape meta characters (including '/' that is used as delimiter for the PCRE replace functions below and which gets passed as second argument):
@@ -185,7 +185,7 @@
 
 			if ($mainRelation == "all") // matches full words (not sub-strings); 'all' means "all of these words"
 			{
-				if (ereg(" ", $searchTerm))
+				if (preg_match("/ /", $searchTerm))
 				{
 					$searchTermArray = split(" +", $searchTerm);
 
@@ -285,7 +285,7 @@
 			// Preprocess element contents (if necessary):
 
 			// - 'creator', 'contributor':
-			if (ereg("^(creator|contributor)$", $elementName))
+			if (preg_match("/^(creator|contributor)$/", $elementName))
 				$elementContent = getPersons($elementContent); // get an array of all creators (i.e. authors) or contributors (e.g. editors)
 
 			// - 'identifier':
@@ -329,7 +329,7 @@
 			//   - OpenURL:
 			elseif ($elementName == "identifier" AND $elementType == "openurl")
 			{
-				if (!ereg("^openurl:", $elementContent))
+				if (!preg_match("/^openurl:/", $elementContent))
 					$elementContent = "openurl:" . $elementContent; // use "openurl:" prefix if doesn't already exist in the given OpenURL
 			}
 
@@ -381,7 +381,7 @@
 			// - 'type':
 			elseif ($elementName == "type")
 			{
-				if (eregi("^((Simple|oai)?[- _]?(dc|Dublin[- _]?Core)[- _]?(terms)?)$", $namespace))
+				if (preg_match("/^((Simple|oai)?[- _]?(dc|Dublin[- _]?Core)[- _]?(terms)?)$/i", $namespace))
 				{
 					// Map refbase types to the corresponding eprint/resource types suggested for Simple
 					// Dublin Core (<http://eprints-uk.rdn.ac.uk/project/docs/simpledc-guidelines/#type>):
@@ -482,7 +482,7 @@
 
 		$nameArray = array();
 
-		if (!ereg("^/.*/$", $betweenNamesDelim))
+		if (!preg_match("/^\/.*\/$/", $betweenNamesDelim))
 			$betweenNamesDelim = "/" . $betweenNamesDelim . "/"; // add search pattern delimiters
 
 		$nameArray = preg_split($betweenNamesDelim, $personString, -1, PREG_SPLIT_NO_EMPTY); // get a list of all authors/editors

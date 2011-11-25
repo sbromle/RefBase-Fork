@@ -36,24 +36,6 @@
 	else // we assume "ISO-8859-1" by default
 		include_once 'includes/transtab_latin1_charset.inc.php'; // include latin1 character case conversion tables
 
-	// ----------------- Create wrapper to avoid deprecated ergi (etc) -----------
-	function eregi0($a,$b)
-	{
-		return (preg_match("/$a/i",$b));
-	}
-	function ereg0($a,$b)
-	{
-		return (preg_match("/$a/",$b));
-	}
-	function eregi_replace0($a,$b)
-	{
-		return (preg_replace("/$a/i",$b));
-	}
-	function ereg_replace0($a,$b)
-	{
-		return (preg_replace("/$a/",$b));
-	}
-
 	// --------------------------------------------------------------------
 
 	// Untaint user data:
