@@ -110,7 +110,7 @@
 			. "\n</tr>"
 			. "\n<tr>\n\t<td>&nbsp;</td>\n\t<td>&nbsp;</td>";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_cite/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite'...
 	// adjust the title string for the show cite button
 	{
 		$citeButtonLock = "";

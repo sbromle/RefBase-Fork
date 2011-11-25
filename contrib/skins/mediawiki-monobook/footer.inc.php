@@ -53,7 +53,7 @@
 <?php
 
                 // -------------------------------------------------------
-                if (isset($_SESSION['user_permissions']) AND ereg("allow_add", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
+                if (isset($_SESSION['user_permissions']) AND preg_match("/allow_add/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
                 {
                 // ... include a link to 'record.php?recordAction=add...':
 ?>
@@ -66,7 +66,7 @@
                 <?php }
 
                 // -------------------------------------------------------
-                if (isset($_SESSION['user_permissions']) AND ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
+                if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_import|allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
                 {
                 // ... include a link to 'import.php':
 ?>
@@ -145,7 +145,7 @@ url(../skins/common/images/wiki.png);"
 <?php
 
                 // -------------------------------------------------------
-                if (isset($_SESSION['user_permissions']) AND ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
+                if (isset($_SESSION['user_permissions']) AND preg_match("/allow_sql_search/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
                 {
 // ... include a link to 'sql_search.php':
 ?>              
@@ -167,7 +167,7 @@ url(../skins/common/images/wiki.png);"
 <?php
 
                 // -------------------------------------------------------
-                if (isset($_SESSION['user_permissions']) AND ereg("allow_add", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
+                if (isset($_SESSION['user_permissions']) AND preg_match("/allow_add/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_add'...
                 {
                 // ... include a link to 'record.php?recordAction=add...':
 ?>
@@ -177,7 +177,7 @@ url(../skins/common/images/wiki.png);"
                 }
 
                 // -------------------------------------------------------
-                if (isset($_SESSION['user_permissions']) AND ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
+                if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_import|allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
                 {
                 // ... include a link to 'import.php':
 ?>
@@ -187,7 +187,7 @@ url(../skins/common/images/wiki.png);"
                 }
 
                 // -------------------------------------------------------
-                if (isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_details_view'...
+                if (isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_details_view'...
                 {
                 // ... include a link to 'show.php':
 ?>
@@ -201,7 +201,7 @@ url(../skins/common/images/wiki.png);"
    <LI><a href="show.php" title="display details for a particular record by entering its database serial number">Show Record</a>
                 <?php
                 }
- if (isset($_SESSION['user_permissions']) AND ereg("allow_cite", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite'...
+ if (isset($_SESSION['user_permissions']) AND preg_match("/allow_cite/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_cite'...
                 {
                 // ... include a link to 'extract.php':
 ?>

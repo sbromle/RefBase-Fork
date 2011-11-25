@@ -62,7 +62,7 @@
 	else
 		$client = "";
 
-	if (eregi("^jsb", $client)) // if data were sent via a bookmarklet, we set some variables directly
+	if (preg_match("/^jsb/i", $client)) // if data were sent via a bookmarklet, we set some variables directly
 	{
 		$formVars['formType'] = "import";
 		$formVars['importRecordsRadio'] = "all";
@@ -84,7 +84,7 @@
 //	saveSessionVariable("referer", $referer); // function 'saveSessionVariable()' is defined in 'include.inc.php'
 
 	// Set the default referrer if no referrer is available or if it just points to 'index.php' (or if the data were sent via a bookmarklet):
-//	if (empty($referer) OR ($referer == "index.php") OR eregi("^jsb", $client)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+//	if (empty($referer) OR ($referer == "index.php") OR preg_match("/^jsb/i", $client)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 		$referer = "import.php"; // on error, we'll (by default) redirect to the import form
 
 	// First of all, check if the user is logged in:
@@ -96,12 +96,12 @@
 	}
 
 	// now, check if the (logged in) user is allowed to import any record into the database:
-	if (isset($_SESSION['user_permissions']) AND !ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_import' or 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND !preg_match("/(allow_import|allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_import' or 'allow_batch_import'...
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForImport"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-		if (!eregi("^cli", $client))
+		if (!preg_match("/^cli/i", $client))
 			header("Location: index.php"); // redirect back to main page ('index.php')
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -145,7 +145,7 @@
 	else
 		$showSource = "";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_batch_import", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_batch_import/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 	{
 		// Check whether we're supposed to import all records ('all') or just particular ones ('only'):
 		if (isset($formVars['importRecordsRadio']))
@@ -217,10 +217,10 @@
 			else // a tmp file exists...
 			{
 				// prevent hackers from gaining access to the systems 'passwd' file (this should be prevented by the 'is_uploaded_file()' function but anyhow):
-				if (eregi("^passwd$", $uploadFile["name"])) // file name must not be 'passwd'
+				if (preg_match("/^passwd$/i", $uploadFile["name"])) // file name must not be 'passwd'
 					$errors["uploadFile"] = "This file name is not allowed!";
 				// check for invalid file name extensions:
-				elseif (eregi("\.(exe|com|bat|zip|php|phps|php3|cgi)$", $uploadFile["name"])) // file name has an invalid file name extension (adjust the regex pattern if you want more relaxed file name validation)
+				elseif (preg_match("/\.(exe|com|bat|zip|php|phps|php3|cgi)$/i", $uploadFile["name"])) // file name has an invalid file name extension (adjust the regex pattern if you want more relaxed file name validation)
 					$errors["uploadFile"] = "You cannot upload this type of file!"; // file name must not end with .exe, .com, .bat, .zip, .php, .phps, .php3 or .cgi
 				else
 					$tmpFilePath = $uploadFile["tmp_name"];
@@ -342,7 +342,7 @@
 	if (($formType == "importID") AND !empty($sourceIDs) AND !empty($sourceFormat))
 	{
 		// - PubMed IDs:
-		if (eregi("^Pubmed (Medline|XML)$", $sourceFormat) AND ereg("[0-9]", $sourceIDs))
+		if (preg_match("/^Pubmed (Medline|XML)$/i", $sourceFormat) AND preg_match("/[0-9]/", $sourceIDs))
 		{
 			// Split on any whitespace between PubMed IDs:
 			$idArray = preg_split("/\s+/", $sourceIDs, -1, PREG_SPLIT_NO_EMPTY);
@@ -352,7 +352,7 @@
 		}
 
 		// - arXiv IDs:
-		elseif (eregi("^arXiv XML$", $sourceFormat) AND preg_match("#(arXiv:|http://arxiv\.org/abs/)?([\w.-]+/\d{7}|\d{4}\.\d{4,})(v\d+)?#i", $sourceIDs))
+		elseif (preg_match("/^arXiv XML$/i", $sourceFormat) AND preg_match("#(arXiv:|http://arxiv\.org/abs/)?([\w.-]+/\d{7}|\d{4}\.\d{4,})(v\d+)?#i", $sourceIDs))
 		{
 			// Remove any "arXiv:" or "http://arxiv.org/abs/" prefixes from the ID string:
 			$sourceIDs = preg_replace("#(?<=^|\s)(arXiv:|http://arxiv\.org/abs/)#", "", $sourceIDs);
@@ -370,7 +370,7 @@
 
 		// - DOIs/OpenURLs:
 		//   TODO: - to support OpenURL context objects from COinS or Atom XML, we need to decode ampersand characters ('&amp;' -> '&'), and allow for OpenURLs that don't start with '?' or '&'
-		elseif (eregi("^CrossRef XML$", $sourceFormat) AND (preg_match("#(?<=^|\s)(doi:|http://dx\.doi\.org/)?10\.\d{4}/\S+?(?=$|\s)#i", $sourceIDs) OR preg_match("#(?<=^|\s)(openurl:|http://.+?(?=\?))?.*?(?<=[?&])ctx_ver=Z39\.88-2004(?=&|$).*?(?=$|\s)#i", $sourceIDs)))
+		elseif (preg_match("/^CrossRef XML$/i", $sourceFormat) AND (preg_match("#(?<=^|\s)(doi:|http://dx\.doi\.org/)?10\.\d{4}/\S+?(?=$|\s)#i", $sourceIDs) OR preg_match("#(?<=^|\s)(openurl:|http://.+?(?=\?))?.*?(?<=[?&])ctx_ver=Z39\.88-2004(?=&|$).*?(?=$|\s)#i", $sourceIDs)))
 		{
 			// Remove any prefixes (like "doi:", "openurl:", "http://dx.doi.org/" or "http://...?") from the ID string:
 			$sourceIDs = preg_replace("#(?<=^|\s)(doi:|http://dx\.doi\.org/)#", "", $sourceIDs);
@@ -463,7 +463,7 @@
 	elseif ($importRecordsRadio == "only") // ...if we're supposed to import only particular records
 	{
 		// ...make sure that some records were specified and that they are actually available in the input data:
-		if (empty($importRecords) OR !ereg("[0-9]", $importRecords)) // partial import requested but no record numbers given
+		if (empty($importRecords) OR !preg_match("/[0-9]/", $importRecords)) // partial import requested but no record numbers given
 		{
 			$errors["importRecords"] = "Record number(s) missing!";
 		}
@@ -526,7 +526,7 @@
 		{
 			// ...otherwise we'll present the error message(s):
 
-			if (eregi("^be", $client)) // if the query originated from a Bookends upload request ("be-bookends_import-1.0")
+			if (preg_match("/^be/i", $client)) // if the query originated from a Bookends upload request ("be-bookends_import-1.0")
 			{
 				// Include errors in redirection request:
 				$redirectURL = $referer . "?";
@@ -535,7 +535,7 @@
 
 				header("Location: " . $redirectURL);
 			}
-			elseif (eregi("^cli", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
+			elseif (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
 			{
 				echo "There were validation errors regarding the data you submitted:\n\n";
 
@@ -551,7 +551,7 @@
 
 				foreach ($errors as $varname => $value)
 				{
-					$value = ereg_replace("<br>", "\n           ", $value);
+					$value = preg_replace("/<br>/", "\n           ", $value);
 					echo $varname . ": " . $value . "\n\n";
 				}
 
@@ -579,7 +579,7 @@
 
 	$importedRecordsArray = array();
 
-	if ((count($importRecordNumbersRecognizedFormatArray) == 1) AND !eregi("^(cli|be)", $client)) // if this is the only record we'll need to import -AND- if the import didn't originate from a refbase command line client:
+	if ((count($importRecordNumbersRecognizedFormatArray) == 1) AND !preg_match("/^(cli|be)/i", $client)) // if this is the only record we'll need to import -AND- if the import didn't originate from a refbase command line client:
 	{
 		// If no specific cite key exists in the record data, any existing 'call_number' string gets also copied to the
 		// user-specific 'cite_key' field (which will ensure that this original call number/cite key is retained as
@@ -630,7 +630,7 @@
 			// implode consecutive serial numbers into a range (e.g. transform "150,151,152" into "150-152"):
 			if ($importedRecordsArray[$i] == ($importedRecordsArray[$i - 1] + 1)) // if this number is consecutive to the previous one
 			{
-				if (!ereg("-$", $recordSerialsQueryString))
+				if (!preg_match("/-$/", $recordSerialsQueryString))
 					$recordSerialsQueryString .= "-"; // start range
 
 				if ($i == ($importedRecordsCount - 1)) // if this is the last item in the array
@@ -638,7 +638,7 @@
 			}
 			else // this number is NOT consecutive to the previous one
 			{
-				if (ereg("-$", $recordSerialsQueryString))
+				if (preg_match("/-$/", $recordSerialsQueryString))
 					$recordSerialsQueryString .= $importedRecordsArray[$i - 1]; // end any previous range
 
 				$recordSerialsQueryString .= "," . $importedRecordsArray[$i]; // append this number using a comma as a delimiter
@@ -685,7 +685,7 @@
 	}
 	else // nothing imported
 	{
-		if (eregi("^cli", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
+		if (preg_match("/^cli/i", $client)) // if the query originated from a command line client such as the refbase CLI clients ("cli-refbase-1.1", "cli-refbase_import-1.0")
 		{
 			echo "No records imported!\n\n";
 		}

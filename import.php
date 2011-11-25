@@ -79,7 +79,7 @@
 	{
 		if (empty($errors)) // provide one of the default messages:
 		{
-			if (isset($_SESSION['user_permissions']) AND ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+			if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 				$HeaderString = "Import records:"; // Provide the default message
 			else
 				$HeaderString = "Import a record:"; // Provide the default message
@@ -96,7 +96,7 @@
 	}
 
 	// Adopt the page title & some labels according to the user's permissions:
-	if (isset($_SESSION['user_permissions']) AND !ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND !preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_batch_import'...
 	{
 		$pageTitle = " -- Import Record"; // adopt page title
 		$textEntryFormLabel = "Record"; // adopt the label for the text entry form
@@ -231,10 +231,10 @@
 			. "\n</tr>";
 
 	// the code for the next table row is kept a bit more modular than necessary to allow for easy changes in the future
-	if (isset($_SESSION['user_permissions']) AND ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 		echo "\n<tr>\n\t<td" . $rowSpan . ">&nbsp;</td>\n\t<td" . $rowSpan . ">&nbsp;</td>";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 	{
 		// display a file upload button:
 		$uploadButtonLock = "";
@@ -251,7 +251,7 @@
 //		echo "\n\t<td width=\"215\"" . $rowSpan . ">&nbsp;</td>";
 //	}
 
-	if (isset($_SESSION['user_permissions']) AND ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 	{
 		if ($importRecordsRadio == "all")
 		{
@@ -275,12 +275,12 @@
 //		echo "\n\t<td colspan=\"2\">&nbsp;</td>";
 //	}
 
-	if (isset($_SESSION['user_permissions']) AND ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 		echo "\n</tr>";
 
 	echo "\n<tr>\n\t<td>&nbsp;</td>\n\t<td>&nbsp;</td>";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_import|allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
 	// adjust the title string for the import button
 	{
 		$importButtonLock = "";

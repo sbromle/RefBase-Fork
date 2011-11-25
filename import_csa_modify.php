@@ -66,12 +66,12 @@
 	}
 
 	// now, check if the (logged in) user is allowed to import any record into the database:
-	if (isset($_SESSION['user_permissions']) AND !ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_import' or 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND !preg_match("/(allow_import|allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_import' or 'allow_batch_import'...
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForImport"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
 
-		if (!eregi("^cli", $client))
+		if (!preg_match("/^cli/i", $client))
 			header("Location: index.php"); // redirect back to main page ('index.php')
 
 		exit; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !EXIT! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -112,7 +112,7 @@
 	else
 		$showSource = "";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_batch_import", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_batch_import/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 	{
 		// Check whether we're supposed to import all records ('all') or just particular ones ('only'):
 		$importRecordsRadio = $formVars['importRecordsRadio'];
@@ -212,7 +212,7 @@
 	if ($importRecordsRadio == "only") // ...if we're supposed to import only particular records
 	{
 		// ...make sure that some records were specified and that they are actually available in the input data:
-		if (empty($importRecords) OR !ereg("[0-9]", $importRecords)) // partial import requested but no record numbers given
+		if (empty($importRecords) OR !preg_match("/[0-9]/", $importRecords)) // partial import requested but no record numbers given
 		{
 			$errors["importRecords"] = "Record number(s) missing!";
 		}
@@ -389,7 +389,7 @@
 			// else if the current record is of type "Journal Article", "Report", etc (or wasn't specified) but the field "JN: Journal Name" is missing:
 			elseif (!preg_match("/^JN: Journal Name *[\r\n]+ {4,4}/m", $singleRecord)) // preg_match("/^(PT: Publication Type\s+(Journal Article|Report)|DT: Document Type\s+(J|R))/m", $singleRecord)
 			{
-				if (ereg("\[", $sourceField)) // if the source field data contain a square bracket we assume a format like: "Journal of Phycology [J. Phycol.]. Vol. 37, no. s3, pp. 18-18. Jun 2001."
+				if (preg_match("/\[/", $sourceField)) // if the source field data contain a square bracket we assume a format like: "Journal of Phycology [J. Phycol.]. Vol. 37, no. s3, pp. 18-18. Jun 2001."
 					$extractedSourceFieldData = preg_replace("/^([^.[]+).*/", "\\1", $sourceField); // attempt to extract the full journal name from the source field
 				else // source field format might be something like: "Phycologia, vol. 34, no. 2, pp. 135-144, 1995"
 					$extractedSourceFieldData = preg_replace("/^([^.,]+).*/", "\\1", $sourceField); // attempt to extract the full journal name from the source field
@@ -431,7 +431,7 @@
 
 
 			// Additionally, we extract the abbreviated journal name from the "SO: Source" field (if available):
-			if (ereg("\[", $sourceField)) // if the source field data contain a square bracket we assume a format like: "Journal of Phycology [J. Phycol.]. Vol. 37, no. s3, pp. 18-18. Jun 2001."
+			if (preg_match("/\[/", $sourceField)) // if the source field data contain a square bracket we assume a format like: "Journal of Phycology [J. Phycol.]. Vol. 37, no. s3, pp. 18-18. Jun 2001."
 			{
 				$extractedSourceFieldData = preg_replace("/.*\[(.+?)\].*/", "\\1", $sourceField); // attempt to extract the abbreviated journal name from the source field
 				$extractedSourceFieldData = preg_replace("/\./", "", $extractedSourceFieldData); // remove any dots from the abbreviated journal name
@@ -453,15 +453,15 @@
 				$fieldLabelPlusDataArray[1] = preg_replace("/\s{2,}/", " ", $fieldLabelPlusDataArray[1]); // remove any hard returns and extra spaces within the data string
 				$fieldLabelPlusDataArray[1] = trim($fieldLabelPlusDataArray[1]); // remove any preceeding and trailing whitespace from the field data
 
-				if (ereg("AU: Author", $fieldLabelPlusDataArray[0]))
+				if (preg_match("/AU: Author/", $fieldLabelPlusDataArray[0]))
 					$fieldLabelPlusDataArray[1] = preg_replace("/\*/", "", $fieldLabelPlusDataArray[1]); // remove any asterisk ("*")
 
-				elseif (ereg("ED: Editor", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/ED: Editor/", $fieldLabelPlusDataArray[0]))
 					$fieldLabelPlusDataArray[1] = preg_replace("/ \(eds?\)(?= *$| *;)/", "", $fieldLabelPlusDataArray[1]); // remove " (ed)" and/or " (eds)"
 
-				elseif (ereg("TI: Title|AB: Abstract", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/TI: Title|AB: Abstract/", $fieldLabelPlusDataArray[0]))
 				{
-					if (ereg("TI: Title", $fieldLabelPlusDataArray[0]))
+					if (preg_match("/TI: Title/", $fieldLabelPlusDataArray[0]))
 					{
 						$fieldLabelPlusDataArray[1] = preg_replace("/--/", "-", $fieldLabelPlusDataArray[1]); // remove en-dash markup
 						$fieldLabelPlusDataArray[1] = preg_replace("/ *\. *$/", "", $fieldLabelPlusDataArray[1]); // remove any dot from end of title
@@ -478,17 +478,17 @@
 				// build an array of key/value pairs:
 
 				// "AU: Author":
-				if (ereg("AU: Author", $fieldLabelPlusDataArray[0]))
+				if (preg_match("/AU: Author/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['author'] = $fieldLabelPlusDataArray[1];
 
 				// "TI: Title":
-				elseif (ereg("TI: Title", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/TI: Title/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['title'] = $fieldLabelPlusDataArray[1];
 
 				// "PT: Publication Type":
-				elseif (ereg("PT: Publication Type", $fieldLabelPlusDataArray[0])) // could also check for "DT: Document Type" (but DT was added only recently)
+				elseif (preg_match("/PT: Publication Type/", $fieldLabelPlusDataArray[0])) // could also check for "DT: Document Type" (but DT was added only recently)
 				{
-					if (ereg("[;:,.]", $fieldLabelPlusDataArray[1])) // if the "PT: Publication Type" field contains a delimiter (e.g. like: "Journal Article; Conference")
+					if (preg_match("/[;:,.]/", $fieldLabelPlusDataArray[1])) // if the "PT: Publication Type" field contains a delimiter (e.g. like: "Journal Article; Conference")
 					{
 						$correctDocumentType = preg_replace("/(.+?)\s*[;:,.]\s*.*/", "\\1", $fieldLabelPlusDataArray[1]); // extract everything before this delimiter
 						$additionalDocumentTypeInfo = preg_replace("/.*?\s*[;:,.]\s*(.+)/", "\\1", $fieldLabelPlusDataArray[1]); // extract everything after this delimiter
@@ -513,11 +513,11 @@
 				}
 
 				// "PY: Publication Year":
-				elseif (ereg("PY: Publication Year", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/PY: Publication Year/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['year'] = $fieldLabelPlusDataArray[1];
 
 				// "JN: Journal Name":
-				elseif (ereg("JN: Journal Name", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/JN: Journal Name/", $fieldLabelPlusDataArray[0]))
 				{
 					// if the current record is of type "Book Monograph" AND the field "JN: Journal Name" was given within the *original* record data (i.e., before adding stuff to it):
 					if (preg_match("/^(PT: Publication Type\s+Book Monograph|DT: Document Type\s+B)/m", $singleRecord) AND preg_match("/^JN: Journal Name *[\r\n]+ {4,4}/m", $singleRecord))
@@ -528,7 +528,7 @@
 				}
 
 				// "JA: Abbrev Journal Name":
-				elseif (ereg("JA: Abbrev Journal Name", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/JA: Abbrev Journal Name/", $fieldLabelPlusDataArray[0]))
 				{
 					if (preg_match("/^(PT: Publication Type\s+Book Monograph|DT: Document Type\s+B)/m", $singleRecord)) // if the current record is of type "Book Monograph"
 						// for book monographs the publication title is given in "MT: Monograph Title"; if a "JA: Abbrev Journal Name" is provided as well, we assume, it's the abbreviated series title:
@@ -538,7 +538,7 @@
 				}
 
 				// "MT: Monograph Title":
-				elseif (ereg("MT: Monograph Title", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/MT: Monograph Title/", $fieldLabelPlusDataArray[0]))
 				{
 					// if the source field contains some page specification like "213 pp." (AND NOT something like "pp. 76-82" or "p. 216")...
 					if (preg_match("/[\d,]+ *pp\b/i", $sourceField) AND !preg_match("/(?<=\W)pp?[. ]+[\w\/,-]+/i", $sourceField))
@@ -549,7 +549,7 @@
 				}
 
 				// "JV: Journal Volume":
-				elseif (ereg("JV: Journal Volume", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/JV: Journal Volume/", $fieldLabelPlusDataArray[0]))
 				{
 					if (preg_match("/^(PT: Publication Type\s+Book Monograph|DT: Document Type\s+B)/m", $singleRecord)) // if the current record is of type "Book Monograph"
 						// for book monographs, if there's a volume given, we assume, it's the series volume:
@@ -559,7 +559,7 @@
 				}
 
 				// "JI: Journal Issue":
-				elseif (ereg("JI: Journal Issue", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/JI: Journal Issue/", $fieldLabelPlusDataArray[0]))
 				{
 					if (preg_match("/^(PT: Publication Type\s+Book Monograph|DT: Document Type\s+B)/m", $singleRecord)) // if the current record is of type "Book Monograph"
 						// for book monographs, if there's an issue given, we assume, it's the series issue:
@@ -569,67 +569,67 @@
 				}
 
 				// "JP: Journal Pages":
-				elseif (ereg("JP: Journal Pages", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/JP: Journal Pages/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['pages'] = $fieldLabelPlusDataArray[1];
 
 				// "AF: Affiliation" & "AF: Author Affilition":
-				elseif (ereg("AF: (Author )?Affilia?tion", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/AF: (Author )?Affilia?tion/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['address'] = $fieldLabelPlusDataArray[1];
 
 				// "CA: Corporate Author":
-				elseif (ereg("CA: Corporate Author", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/CA: Corporate Author/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['corporate_author'] = $fieldLabelPlusDataArray[1];
 
 				// "DE: Descriptors":
-				elseif (ereg("DE: Descriptors", $fieldLabelPlusDataArray[0])) // currently, the fields "KW: Keywords" and "ID: Identifiers" are ignored!
+				elseif (preg_match("/DE: Descriptors/", $fieldLabelPlusDataArray[0])) // currently, the fields "KW: Keywords" and "ID: Identifiers" are ignored!
 					$fieldParametersArray['keywords'] = $fieldLabelPlusDataArray[1];
 
 				// "AB: Abstract":
-				elseif (ereg("AB: Abstract", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/AB: Abstract/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['abstract'] = $fieldLabelPlusDataArray[1];
 
 				// "PB: Publisher":
-				elseif (ereg("PB: Publisher", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/PB: Publisher/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['publisher'] = $fieldLabelPlusDataArray[1];
 
 				// "ED: Editor":
-				elseif (ereg("ED: Editor", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/ED: Editor/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['editor'] = $fieldLabelPlusDataArray[1];
 
 				// "LA: Language":
-				elseif (ereg("LA: Language", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/LA: Language/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['language'] = $fieldLabelPlusDataArray[1];
 
 				// "SL: Summary Language":
-				elseif (ereg("SL: Summary Language", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/SL: Summary Language/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['summary_language'] = $fieldLabelPlusDataArray[1];
 
 				// "OT: Original Title":
-				elseif (ereg("OT: Original Title", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/OT: Original Title/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['orig_title'] = $fieldLabelPlusDataArray[1];
 
 				// "IS: ISSN":
-				elseif (ereg("IS: ISSN", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/IS: ISSN/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['issn'] = $fieldLabelPlusDataArray[1];
 
 				// "IB: ISBN":
-				elseif (ereg("IB: ISBN", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/IB: ISBN/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['isbn'] = $fieldLabelPlusDataArray[1];
 
 				// "ER: Environmental Regime":
-				elseif (ereg("ER: Environmental Regime", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/ER: Environmental Regime/", $fieldLabelPlusDataArray[0]))
 					$environmentalRegime = $fieldLabelPlusDataArray[1]; // this info will be appended to any notes field data (see below)
 
 				// "CF: Conference":
-				elseif (ereg("CF: Conference", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/CF: Conference/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['conference'] = $fieldLabelPlusDataArray[1];
 
 				// "NT: Notes":
-				elseif (ereg("NT: Notes", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/NT: Notes/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['notes'] = $fieldLabelPlusDataArray[1];
 
 				// "DO: DOI":
-				elseif (ereg("DO: DOI", $fieldLabelPlusDataArray[0]))
+				elseif (preg_match("/DO: DOI/", $fieldLabelPlusDataArray[0]))
 					$fieldParametersArray['doi'] = $fieldLabelPlusDataArray[1];
 			}
 			// (END LOOP OVER EACH FIELD)

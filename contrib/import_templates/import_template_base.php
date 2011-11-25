@@ -55,7 +55,7 @@
 	}
 
 	// now, check if the (logged in) user is allowed to import any record into the database:
-	if (isset($_SESSION['user_permissions']) AND !ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_import' or 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND !preg_match("/(allow_import|allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain either 'allow_import' or 'allow_batch_import'...
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["NoPermission"] . $loc["NoPermission_ForImport"] . "!", "warning", "strong", "HeaderString"); // function 'returnMsg()' is defined in 'include.inc.php'
@@ -149,7 +149,7 @@
 	$recordsCount = count($parsedRecordsArray); // count how many records are available
 
 	// check if the current user has batch import permission:
-	if (($recordsCount > 1) AND isset($_SESSION['user_permissions']) AND !ereg("allow_batch_import", $_SESSION['user_permissions'])) // if we're supposed to import several records BUT the 'user_permissions' session variable does NOT contain 'allow_batch_import'...
+	if (($recordsCount > 1) AND isset($_SESSION['user_permissions']) AND !preg_match("/allow_batch_import/", $_SESSION['user_permissions'])) // if we're supposed to import several records BUT the 'user_permissions' session variable does NOT contain 'allow_batch_import'...
 	{
 		// return an appropriate error message:
 		// (note that this error message will overwrite any '$headerMessage' that gets specified below)

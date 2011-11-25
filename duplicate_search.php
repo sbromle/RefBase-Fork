@@ -177,7 +177,7 @@
 		if (isset($_REQUEST['showLinks']) AND ($_REQUEST['showLinks'] == "0"))
 			$showLinks = "0";
 
-		if (isset($_REQUEST['showRows']) AND ereg("^[1-9]+[0-9]*$", $_REQUEST['showRows']))
+		if (isset($_REQUEST['showRows']) AND preg_match("/^[1-9]+[0-9]*$/", $_REQUEST['showRows']))
 			$showRows = $_REQUEST['showRows'];
 
 		if (isset($_REQUEST['citeStyle']))
@@ -314,7 +314,7 @@
 	// by default we select all fields that are listed within '$selectedFieldsArray':
 	$selectedFields = implode("|", $selectedFieldsArray); // merge array of fields that shall be selected
 
-	$matchFieldsOptionTags = ereg_replace("<option([^>]*)>($selectedFields)</option>", "<option\\1 selected>\\2</option>", $matchFieldsOptionTags);
+	$matchFieldsOptionTags = preg_replace("/<option([^>]*)>($selectedFields)<\/option>/", "<option\\1 selected>\\2</option>", $matchFieldsOptionTags);
 
 
 	// define variable holding the 'nonASCIIChars' drop-down elements:
@@ -326,7 +326,7 @@
 	$nonASCIICharsOptionTags = buildSelectMenuOptions($dropDownItemArray2, "", "\t\t\t\t", true);
 
 	// add 'selected' attribute:
-	$nonASCIICharsOptionTags = ereg_replace("<option([^>]*)>($dropDownItemArray2[$nonASCIICharsSelected])</option>", "<option\\1 selected>\\2</option>", $nonASCIICharsOptionTags);
+	$nonASCIICharsOptionTags = preg_replace("/<option([^>]*)>($dropDownItemArray2[$nonASCIICharsSelected])<\/option>/", "<option\\1 selected>\\2</option>", $nonASCIICharsOptionTags);
 
 	// --------------------------------------------------------------------
 

@@ -56,13 +56,13 @@
 	<meta http-equiv="content-type" content="text/html; charset=<?php echo $contentTypeCharset; ?>">
 	<meta http-equiv="Content-Style-Type" content="text/css"><?php
 
-		if (eregi("^Print$", $viewType))
+		if (preg_match("/^Print$/i", $viewType))
 		{
 ?>
 
 	<link rel="stylesheet" href="<?php echo $printStyleSheet; ?>" type="text/css" title="CSS Definition"><?php
 		}
-		elseif (eregi("^Mobile$", $viewType))
+		elseif (preg_match("/^Mobile$/i", $viewType))
 		{
 ?>
 
@@ -75,7 +75,7 @@
 	<link rel="stylesheet" href="<?php echo $defaultStyleSheet; ?>" type="text/css" title="CSS Definition"><?php
 		}
 
-		if (!empty($rssURLArray) AND isset($_SESSION['user_permissions']) AND ereg("allow_rss_feeds", $_SESSION['user_permissions'])) // if some RSS URLs were specified AND the 'user_permissions' session variable contains 'allow_rss_feeds'...
+		if (!empty($rssURLArray) AND isset($_SESSION['user_permissions']) AND preg_match("/allow_rss_feeds/", $_SESSION['user_permissions'])) // if some RSS URLs were specified AND the 'user_permissions' session variable contains 'allow_rss_feeds'...
 		{
 			foreach ($rssURLArray as $rssURL)
 			{

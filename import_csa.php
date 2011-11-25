@@ -71,7 +71,7 @@
 	{
 		if (empty($errors)) // provide one of the default messages:
 		{
-			if (isset($_SESSION['user_permissions']) AND ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+			if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 				$HeaderString = "Import records from Cambridge Scientific Abstracts:"; // Provide the default message
 			else
 				$HeaderString = "Import a record from Cambridge Scientific Abstracts:"; // Provide the default message
@@ -88,7 +88,7 @@
 	}
 
 	// Adopt the page title & some labels according to the user's permissions:
-	if (isset($_SESSION['user_permissions']) AND !ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND !preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does NOT contain 'allow_batch_import'...
 	{
 		$pageTitle = " -- Import CSA Record"; // adopt page title
 		$textEntryFormLabel = "Import CSA Full Record"; // adopt the label for the text entry form
@@ -199,7 +199,7 @@
 	echo "\n<tr>\n\t<td valign=\"top\"" . $rowSpan . "><b>Options:</b></td>\n\t<td" . $rowSpan . ">&nbsp;</td>"
 		. "\n\t<td width=\"215\" valign=\"top\"" . $rowSpan . "><input type=\"checkbox\" name=\"showSource\" value=\"1\"$showSourceCheckBoxIsChecked title=\"mark this checkbox if original source data shall be displayed alongside the parsed data for easy comparison\">&nbsp;&nbsp;Display original source data</td>";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("(allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_batch_import'...
 	{
 		if ($importRecordsRadio == "all")
 		{
@@ -227,7 +227,7 @@
 
 	echo "\n<tr>\n\t<td>&nbsp;</td>\n\t<td>&nbsp;</td>";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("(allow_import|allow_batch_import)", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/(allow_import|allow_batch_import)/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains either 'allow_import' or 'allow_batch_import'...
 	// adjust the title string for the import button
 	{
 		$importButtonLock = "";
