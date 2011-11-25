@@ -43,9 +43,9 @@
 		// (eventually, the '$formVars' array should use the MySQL field names as names for its array keys)
 		$formVars = buildFormVarsArray($row); // function 'buildFormVarsArray()' is defined in 'include.inc.php'
 
-		if (eregi("RTF|LaTeX", $citeType))
+		if (preg_match("/RTF|LaTeX/i", $citeType))
 		{
-			$textCitationFormat = ereg_replace("([{}])", "\\\\1", $textCitationFormat); // in case of RTF or LaTeX output we need to escape braces in placeholder strings
+			$textCitationFormat = preg_replace("/([{}])/", "\\\\1", $textCitationFormat); // in case of RTF or LaTeX output we need to escape braces in placeholder strings
 
 			$fallbackPlaceholderString = "<:authors[2| & | et al.]:>< :year:>< \{:recordIdentifier:\}>";
 		}

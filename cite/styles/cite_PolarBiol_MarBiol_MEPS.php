@@ -32,7 +32,7 @@
 
 		// --- BEGIN TYPE = JOURNAL ARTICLE / MAGAZINE ARTICLE / NEWSPAPER ARTICLE --------------------------------------------------------------
 
-		if (ereg("^(Journal Article|Magazine Article|Newspaper Article)$", $row['type']))
+		if (preg_match("/^(Journal Article|Magazine Article|Newspaper Article)$/", $row['type']))
 			{
 				if (!empty($row['author']))      // author
 					{
@@ -84,7 +84,7 @@
 				if (!empty($row['title']))      // title
 					{
 						$record .= $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 						$record .= " ";
 					}
@@ -132,7 +132,7 @@
 
 		// --- BEGIN TYPE = ABSTRACT / BOOK CHAPTER / CONFERENCE ARTICLE ------------------------------------------------------------------------
 
-		elseif (ereg("^(Abstract|Book Chapter|Conference Article)$", $row['type']))
+		elseif (preg_match("/^(Abstract|Book Chapter|Conference Article)$/", $row['type']))
 			{
 				if (!empty($row['author']))      // author
 					{
@@ -184,7 +184,7 @@
 				if (!empty($row['title']))      // title
 					{
 						$record .= $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 						$record .= " ";
 					}
@@ -231,13 +231,13 @@
 						                                  $encodeHTML); // 16.
 
 						$record .= "In: " . $editor;
-						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
+						if (preg_match("/^[^;\r\n]+(;[^;\r\n]+)+$/", $row['editor'])) // there are at least two editors (separated by ';')
 							$record .= " (eds)";
 						else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
 							$record .= " (ed)";
 					}
 
-				$publication = ereg_replace("[ \r\n]*\(Eds?:[^\)\r\n]*\)", "", $row['publication']);
+				$publication = preg_replace("/[ \r\n]*\(Eds?:[^\)\r\n]*\)/", "", $row['publication']);
 				if (!empty($publication))      // publication
 					$record .= " " . $publication . ". ";
 				else
@@ -275,7 +275,7 @@
 									$record .= ", ";
 								else
 								{
-									if (!ereg(",$", $row['publisher']))
+									if (!preg_match("/,$/", $row['publisher']))
 										$record .= ",";
 									$record .= " ";
 								}
@@ -286,7 +286,7 @@
 								$record .= $row['place'];
 								if (!empty($row['pages']))
 									{
-										if (!ereg(",$", $row['place']))
+										if (!preg_match("/,$/", $row['place']))
 											$record .= ",";
 										$record .= " ";
 									}
@@ -299,12 +299,12 @@
 
 		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / JOURNAL / MANUAL / MANUSCRIPT / MAP / MISCELLANEOUS / PATENT / REPORT / SOFTWARE ---
 
-		else // if (ereg("Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software", $row['type']))
+		else // if (preg_match("/Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software/", $row['type']))
 			// note that this also serves as a fallback: unrecognized resource types will be formatted similar to whole books
 			{
 				if (!empty($row['author']))      // author
 					{
-						$author = ereg_replace("[ \r\n]*\(eds?\)", "", $row['author']);
+						$author = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['author']);
 
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -354,7 +354,7 @@
 				if (!empty($row['title']))      // title
 					{
 						$record .= $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 						$record .= " ";
 					}
@@ -369,7 +369,7 @@
 							$record .= ", ";
 						else
 						{
-							if (!ereg(",$", $row['publisher']))
+							if (!preg_match("/,$/", $row['publisher']))
 								$record .= ",";
 							$record .= " ";
 						}
@@ -380,7 +380,7 @@
 						$record .= $row['place'];
 						if (!empty($row['abbrev_series_title']) || !empty($row['series_title']) || !empty($row['pages']))
 							{
-								if (!ereg(",$", $row['place']))
+								if (!preg_match("/,$/", $row['place']))
 									$record .= ",";
 								$record .= " ";
 							}
@@ -407,7 +407,7 @@
 
 						if (!empty($row['pages']))
 							{
-								if (!ereg(",$", $row['series_volume']))
+								if (!preg_match("/,$/", $row['series_volume']))
 									$record .= ",";
 								$record .= " ";
 							}
@@ -430,9 +430,9 @@
 		// --- BEGIN POST-PROCESSING -----------------------------------------------------------------------------------------------------------
 
 		// do some further cleanup:
-		$record = ereg_replace("[.,][ \r\n]*$", "", $record); // remove '.' or ',' at end of line
+		$record = preg_replace("/[.,][ \r\n]*$/", "", $record); // remove '.' or ',' at end of line
 		if ($citeStyle == "MEPS") // if '$citeStyle' = 'MEPS' ...
-			$record = ereg_replace("pp ([0-9]+)", "p \\1", $record); // ... replace 'pp' with 'p' in front of (book chapter) page numbers
+			$record = preg_replace("/pp ([0-9]+)/", "p \\1", $record); // ... replace 'pp' with 'p' in front of (book chapter) page numbers
 
 
 		return $record;

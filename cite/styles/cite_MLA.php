@@ -37,7 +37,7 @@
 
 		// --- BEGIN TYPE = JOURNAL ARTICLE / MAGAZINE ARTICLE / NEWSPAPER ARTICLE --------------------------------------------------------------
 
-		if (ereg("^(Journal Article|Magazine Article|Newspaper Article)$", $row['type']))
+		if (preg_match("/^(Journal Article|Magazine Article|Newspaper Article)$/", $row['type']))
 			{
 				if (!empty($row['author']))      // author
 					{
@@ -80,7 +80,7 @@
 						                                  ", et al.", // 15.
 						                                  $encodeHTML); // 16.
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -92,7 +92,7 @@
 							$record .= " ";
 
 						$record .= '"' . $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 						$record .= '"';
 					}
@@ -172,13 +172,13 @@
 					}
 				}
 
-				if (!ereg("\. *$", $record))
+				if (!preg_match("/\. *$/", $record))
 					$record .= ".";
 			}
 
 		// --- BEGIN TYPE = ABSTRACT / BOOK CHAPTER / CONFERENCE ARTICLE ------------------------------------------------------------------------
 
-		elseif (ereg("^(Abstract|Book Chapter|Conference Article)$", $row['type']))
+		elseif (preg_match("/^(Abstract|Book Chapter|Conference Article)$/", $row['type']))
 			{
 				if (!empty($row['author']))      // author
 					{
@@ -221,7 +221,7 @@
 						                                  ", et al.", // 15.
 						                                  $encodeHTML); // 16.
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -233,12 +233,12 @@
 							$record .= " ";
 
 						$record .= '"' . $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 						$record .= '"';
 					}
 
-				$publication = ereg_replace("[ \r\n]*\(Eds?:[^\)\r\n]*\)", "", $row['publication']);
+				$publication = preg_replace("/[ \r\n]*\(Eds?:[^\)\r\n]*\)/", "", $row['publication']);
 				if (!empty($publication))      // publication
 					$record .= " " . $markupPatternsArray["italic-prefix"] . $publication . $markupPatternsArray["italic-suffix"];
 
@@ -287,10 +287,10 @@
 						                                  ", et al.", // 15.
 						                                  $encodeHTML); // 16.
 
-						if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+						if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 							$record .= ".";
 
-						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
+						if (preg_match("/^[^;\r\n]+(;[^;\r\n]+)+$/", $row['editor'])) // there are at least two editors (separated by ';')
 							$record .= " Eds. " . $editor;
 						else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
 							$record .= " Ed. " . $editor;
@@ -298,7 +298,7 @@
 
 				if (!empty($row['edition']) && !preg_match("/^(1|1st|first|one)( ed\.?| edition)?$/i", $row['edition']))      // edition
 				{
-					if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 						$record .= ".";
 
 					if (preg_match("/^\d{1,3}$/", $row['edition'])) // if the edition field contains a number of up to three digits, we assume it's an edition number (such as "2nd ed.")
@@ -327,7 +327,7 @@
 
 				if (!empty($row['volume']))      // volume
 				{
-					if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 						$record .= ".";
 
 					$record .= " Vol. " . $row['volume'];
@@ -335,7 +335,7 @@
 
 				if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
 				{
-					if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 						$record .= ".";
 
 					$record .= " ";
@@ -357,7 +357,7 @@
 						$record .= "." . $row['series_issue']; // is it correct to format series issues similar to journal article issues?
 				}
 
-				if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+				if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 					$record .= ".";
 
 				if (!empty($row['place']))      // place
@@ -381,18 +381,18 @@
 				if (!empty($row['pages']))      // pages
 					$record .= ". " . formatPageInfo($row['pages'], $markupPatternsArray["endash"]); // function 'formatPageInfo()' is defined in 'cite.inc.php'
 
-				if (!ereg("\. *$", $record))
+				if (!preg_match("/\. *$/", $record))
 					$record .= ".";
 			}
 
 		// --- BEGIN TYPE = BOOK WHOLE / CONFERENCE VOLUME / JOURNAL / MANUAL / MANUSCRIPT / MAP / MISCELLANEOUS / PATENT / REPORT / SOFTWARE ---
 
-		else // if (ereg("Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software", $row['type']))
+		else // if (preg_match("/Book Whole|Conference Volume|Journal|Manual|Manuscript|Map|Miscellaneous|Patent|Report|Software/", $row['type']))
 			// note that this also serves as a fallback: unrecognized resource types will be formatted similar to whole books
 			{
 				if (!empty($row['author']))      // author
 					{
-						$author = ereg_replace("[ \r\n]*\(eds?\)", "", $row['author']);
+						$author = preg_replace("/[ \r\n]*\(eds?\)/", "", $row['author']);
 
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -436,12 +436,12 @@
 						// if the author is actually the editor of the resource we'll append ', ed' (or ', eds') to the author string:
 						// [to distinguish editors from authors in the 'author' field, the 'modify.php' script does append ' (ed)' or ' (eds)' if appropriate,
 						//  so we're just checking for these identifier strings here. Alternatively, we could check whether the editor field matches the author field]
-						if (ereg("[ \r\n]*\(ed\)", $row['author'])) // single editor
+						if (preg_match("/[ \r\n]*\(ed\)/", $row['author'])) // single editor
 							$author = $author . ", " . "ed";
-						elseif (ereg("[ \r\n]*\(eds\)", $row['author'])) // multiple editors
+						elseif (preg_match("/[ \r\n]*\(eds\)/", $row['author'])) // multiple editors
 							$author = $author . ", " . "eds";
 
-						if (!ereg("\. *$", $author))
+						if (!preg_match("/\. *$/", $author))
 							$record .= $author . ".";
 						else
 							$record .= $author;
@@ -455,7 +455,7 @@
 					if (!empty($row['thesis']))      // thesis
 					{
 						$record .= '"' . $row['title'];
-						if (!ereg("[?!.]$", $row['title']))
+						if (!preg_match("/[?!.]$/", $row['title']))
 							$record .= ".";
 						$record .= '"';
 					}
@@ -463,7 +463,7 @@
 						$record .= $markupPatternsArray["italic-prefix"] . $row['title'] . $markupPatternsArray["italic-suffix"];
 				}
 
-				if (!empty($row['editor']) && !ereg("[ \r\n]*\(eds?\)", $row['author']))      // editor (if different from author, see note above regarding the check for ' (ed)' or ' (eds)')
+				if (!empty($row['editor']) && !preg_match("/[ \r\n]*\(eds?\)/", $row['author']))      // editor (if different from author, see note above regarding the check for ' (ed)' or ' (eds)')
 					{
 						// Call the 'reArrangeAuthorContents()' function (defined in 'include.inc.php') in order to re-order contents of the author field. Required Parameters:
 						//   1. input:  contents of the author field
@@ -504,10 +504,10 @@
 						                                  ", et al.", // 15.
 						                                  $encodeHTML); // 16.
 
-						if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+						if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 							$record .= ".";
 
-						if (ereg("^[^;\r\n]+(;[^;\r\n]+)+$", $row['editor'])) // there are at least two editors (separated by ';')
+						if (preg_match("/^[^;\r\n]+(;[^;\r\n]+)+$/", $row['editor'])) // there are at least two editors (separated by ';')
 							$record .= " Eds. " . $editor;
 						else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
 							$record .= " Ed. " . $editor;
@@ -515,7 +515,7 @@
 
 				if (!empty($row['edition']) && !preg_match("/^(1|1st|first|one)( ed\.?| edition)?$/i", $row['edition']))      // edition
 				{
-					if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 						$record .= ".";
 
 					if (preg_match("/^\d{1,3}$/", $row['edition'])) // if the edition field contains a number of up to three digits, we assume it's an edition number (such as "2nd ed.")
@@ -544,7 +544,7 @@
 
 				if (!empty($row['volume']))      // volume
 				{
-					if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 						$record .= ".";
 
 					$record .= " Vol. " . $row['volume'];
@@ -552,7 +552,7 @@
 
 				if (!empty($row['abbrev_series_title']) OR !empty($row['series_title'])) // if there's either a full or an abbreviated series title
 				{
-					if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 						$record .= ".";
 
 					$record .= " ";
@@ -579,7 +579,7 @@
 					// TODO: a published dissertation needs to be formatted differently!
 					//       see e.g. example at: <http://web.csustan.edu/english/reuben/pal/append/AXI.HTML>
 
-					if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 						$record .= ".";
 
 					// TODO: I've also seen MLA examples that separate thesis name, name of institution and year by dots. ?:-|
@@ -590,7 +590,7 @@
 				}
 				else // not a thesis
 				{
-					if (!ereg("[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$", $record))
+					if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $record))
 						$record .= ".";
 
 					if (!empty($row['place']))      // place
@@ -614,7 +614,7 @@
 
 					if (!empty($row['online_citation']))      // online_citation
 					{
-						if (!ereg("\. *$", $record))
+						if (!preg_match("/\. *$/", $record))
 							$record .= ".";
 
 						$record .= " " . $row['online_citation'];
@@ -622,7 +622,7 @@
 
 					if (!empty($row['doi']))      // doi
 					{
-						if (!ereg("\. *$", $record))
+						if (!preg_match("/\. *$/", $record))
 							$record .= ".";
 
 						if ($encodeHTML)
@@ -632,7 +632,7 @@
 					}
 					elseif (!empty($row['url']))      // url
 					{
-						if (!ereg("\. *$", $record))
+						if (!preg_match("/\. *$/", $record))
 							$record .= ".";
 
 						if ($encodeHTML)
@@ -643,7 +643,7 @@
 
 				}
 
-				if (!ereg("\. *$", $record))
+				if (!preg_match("/\. *$/", $record))
 					$record .= ".";
 			}
 
