@@ -242,7 +242,7 @@
 	<td>
 		<select id="sortSelector1" name="sortSelector1"><?php
 
-$sortSelector1DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Author"], "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems3); // select the 'author' menu entry ...
+$sortSelector1DropDownItems = preg_replace("/<option([^>]*)>" . $loc["DropDownFieldName_Author"] . "/", "<option\\1 selected>" . $loc["DropDownFieldName_Author"], $dropDownItems3); // select the 'author' menu entry ...
 echo $sortSelector1DropDownItems;
 ?>
 
@@ -260,7 +260,7 @@ echo $sortSelector1DropDownItems;
 	<td>
 		<select id="sortSelector2" name="sortSelector2"><?php
 
-$sortSelector2DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Year"], "<option\\1 selected>" . $loc["DropDownFieldName_Year"], $dropDownItems3); // select the 'year' menu entry ...
+$sortSelector2DropDownItems = preg_replace("/<option([^>]*)>" . $loc["DropDownFieldName_Year"] . "/", "<option\\1 selected>" . $loc["DropDownFieldName_Year"], $dropDownItems3); // select the 'year' menu entry ...
 echo $sortSelector2DropDownItems;
 ?>
 
@@ -278,7 +278,7 @@ echo $sortSelector2DropDownItems;
 	<td>
 		<select id="sortSelector3" name="sortSelector3"><?php
 
-$sortSelector3DropDownItems = ereg_replace("<option([^>]*)>" . $loc["DropDownFieldName_Publication"], "<option\\1 selected>" . $loc["DropDownFieldName_Publication"], $dropDownItems3); // select the 'publication' menu entry ...
+$sortSelector3DropDownItems = preg_replace("/<option([^>]*)>" . $loc["DropDownFieldName_Publication"] . "/", "<option\\1 selected>" . $loc["DropDownFieldName_Publication"], $dropDownItems3); // select the 'publication' menu entry ...
 echo $sortSelector3DropDownItems;
 ?>
 

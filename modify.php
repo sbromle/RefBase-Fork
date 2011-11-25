@@ -77,7 +77,7 @@
 	$pageLoginStatus = $formVars['pageLoginStatus'];
 
 	// First of all, check if this script was called by something else than 'record.php':
-	if (!ereg("/record\.php\?.+", $referer))
+	if (!preg_match("/\/record\.php\?.+/", $referer))
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
@@ -140,7 +140,7 @@
 	// if the (logged in) user...
 	if ($recordAction == "edit") // ...wants to edit the current record...
 	{
-		if (isset($_SESSION['user_permissions']) AND !ereg("allow_edit", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_edit'...
+		if (isset($_SESSION['user_permissions']) AND !preg_match("/allow_edit/", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_edit'...
 		{
 			$notPermitted = true;
 			$HeaderString = $loc["NoPermission"] . $loc["NoPermission_ForEditRecord"] . "!";
@@ -148,7 +148,7 @@
 	}
 	elseif ($recordAction == "delet") // ...wants to delete the current record...
 	{	
-		if (isset($_SESSION['user_permissions']) AND !ereg("allow_delete", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_delete'...
+		if (isset($_SESSION['user_permissions']) AND !preg_match("/allow_delete/", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_delete'...
 		{
 			$notPermitted = true;
 			$HeaderString = $loc["NoPermission"] . $loc["NoPermission_ForDeleteRecord"] . "!";
@@ -156,7 +156,7 @@
 	}
 	else // if ($recordAction == "add" OR $recordAction == "") // ...wants to add the current record...
 	{	
-		if (isset($_SESSION['user_permissions']) AND !ereg("allow_add", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_add'...
+		if (isset($_SESSION['user_permissions']) AND !preg_match("/allow_add/", $_SESSION['user_permissions'])) // ...BUT the 'user_permissions' session variable does NOT contain 'allow_add'...
 		{
 			$notPermitted = true;
 			$HeaderString = $loc["NoPermission"] . $loc["NoPermission_ForAddRecords"] . "!";
@@ -365,7 +365,7 @@
 		$locationName = "";
 
 	$callNumberName = $formVars['callNumberName'];
-	if (ereg("%40|%20", $callNumberName)) // if '$callNumberName' still contains URL encoded data... ('%40' is the URL encoded form of the character '@', '%20' a space, see note below!)
+	if (preg_match("/%40|%20/", $callNumberName)) // if '$callNumberName' still contains URL encoded data... ('%40' is the URL encoded form of the character '@', '%20' a space, see note below!)
 		$callNumberName = rawurldecode($callNumberName); // ...URL decode 'callNumberName' variable contents (it was URL encoded before incorporation into a hidden tag of the 'record' form to avoid any HTML syntax errors)
 														// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_POST'!
 														//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
@@ -443,7 +443,7 @@
 	// - the variable '$fileVisibility' (defined in 'ini.inc.php') is set to 'everyone'
 	// - the variable '$fileVisibility' is set to 'login' AND the user is logged in
 	// - the variable '$fileVisibility' is set to 'user-specific' AND the 'user_permissions' session variable contains 'allow_download'
-	if (ereg("^(edit|delet)$", $recordAction) AND (!($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND ereg("allow_download", $_SESSION['user_permissions'])))))) // user has NO permission to download (and view) any files
+	if (preg_match("/^(edit|delet)$/", $recordAction) AND (!($fileVisibility == "everyone" OR ($fileVisibility == "login" AND isset($_SESSION['loginEmail'])) OR ($fileVisibility == "user-specific" AND (isset($_SESSION['user_permissions']) AND preg_match("/allow_download/", $_SESSION['user_permissions'])))))) // user has NO permission to download (and view) any files
 	{
 		$queryFile = "SELECT file FROM $tableRefs WHERE serial = " . quote_smart($serialNo);
 
@@ -557,9 +557,9 @@
 
 	// Validate fields that MUST not be empty:
 	// Validate the 'Call Number' field:
-	if (ereg("[@;]", $callNumberNameUserOnly))
+	if (preg_match("/[@;]/", $callNumberNameUserOnly))
 		$errors["callNumberNameUserOnly"] = "Your call number cannot contain the characters '@' and ';' (since they function as delimiters):"; // the user's personal reference ID cannot contain the characters '@' and ';' since they are used as delimiters (within or between call numbers)
-	elseif ($recordAction == "edit" AND !empty($callNumberNameUserOnly) AND !ereg("$loginEmail", $locationName) AND !ereg("^(add|remove)$", $locationSelectorName)) // if the user specified some reference ID within an 'edit' action -BUT- there's no existing call number for this user within the contents of the 'location' field -AND- the user doesn't want to add it either...
+	elseif ($recordAction == "edit" AND !empty($callNumberNameUserOnly) AND !preg_match("/$loginEmail/", $locationName) AND !preg_match("/^(add|remove)$/", $locationSelectorName)) // if the user specified some reference ID within an 'edit' action -BUT- there's no existing call number for this user within the contents of the 'location' field -AND- the user doesn't want to add it either...
 		$errors["callNumberNameUserOnly"] = "You cannot specify a call number unless you add this record to your personal literature set! This can be done by setting the 'Location Field' popup below to 'add'."; // warn the user that he/she has to set the Location Field popup to 'add' if he want's to add this record to his personal literature set
 
 	// Validate the 'uploadFile' field:
@@ -582,10 +582,10 @@
 			else // a tmp file exists...
 			{
 				// prevent hackers from gaining access to the systems 'passwd' file (this should be prevented by the 'is_uploaded_file()' function but anyhow):
-				if (eregi("^passwd$", $uploadFile["name"])) // file name must not be 'passwd'
+				if (preg_match("/^passwd$/i", $uploadFile["name"])) // file name must not be 'passwd'
 					$errors["uploadFile"] = "This file name is not allowed!";
 				// check for invalid file name extensions:
-				if (eregi("\.(exe|com|bat|zip|php|phps|php3|cgi)$", $uploadFile["name"])) // file name has an invalid file name extension (adjust the regex pattern if you want more relaxed file name validation)
+				if (preg_match("/\.(exe|com|bat|zip|php|phps|php3|cgi)$/i", $uploadFile["name"])) // file name has an invalid file name extension (adjust the regex pattern if you want more relaxed file name validation)
 					$errors["uploadFile"] = "You cannot upload this type of file!"; // file name must not end with .exe, .com, .bat, .zip, .php, .phps, .php3 or .cgi
 
 				if ($renameUploadedFiles != "yes") // if we do NOT rename files according to a standard naming scheme (variable '$renameUploadedFiles' is defined in 'ini.inc.php')
@@ -718,23 +718,23 @@
 
 	// provide some magic that figures out what do to depending on the state of the 'is Editor' check box
 	// and the content of the 'author', 'editor' and 'type' fields:
-	if ($isEditorCheckBox == "1" OR ereg("^(Book Whole|Conference Volume|Journal|Manuscript|Map)$", $typeName)) // if the user did mark the 'is Editor' checkbox -OR- if the record type is either 'Book Whole', 'Conference Volume', 'Journal', 'Map' or 'Manuscript'...
+	if ($isEditorCheckBox == "1" OR preg_match("/^(Book Whole|Conference Volume|Journal|Manuscript|Map)$/", $typeName)) // if the user did mark the 'is Editor' checkbox -OR- if the record type is either 'Book Whole', 'Conference Volume', 'Journal', 'Map' or 'Manuscript'...
 		if (!empty($editorName) AND empty($authorName)) // ...and if the 'Editor' field has some content while the 'Author' field is blank...
 		{
 			$authorName = $editorName; // duplicate field contents from 'editor' to 'author' field
 			$isEditorCheckBox = "1"; // since the user entered something in the 'editor' field (but not the 'author' field), we need to make sure that the 'is Editor' is marked
 		}
 
-	if ($isEditorCheckBox == "1" AND ereg("^(Book Whole|Conference Volume|Journal|Manuscript|Map)$", $typeName)) // if the user did mark the 'is Editor' checkbox -AND- the record type is either 'Book Whole', 'Conference Volume', 'Journal', 'Map' or 'Manuscript'...
+	if ($isEditorCheckBox == "1" AND preg_match("/^(Book Whole|Conference Volume|Journal|Manuscript|Map)$/", $typeName)) // if the user did mark the 'is Editor' checkbox -AND- the record type is either 'Book Whole', 'Conference Volume', 'Journal', 'Map' or 'Manuscript'...
 	{
-		$authorName = ereg_replace(" *\(eds?\)$","",$authorName); // ...remove any existing editor info from the 'author' string, i.e., kill any trailing " (ed)" or " (eds)"
+		$authorName = preg_replace("/ *\(eds?\)$/","",$authorName); // ...remove any existing editor info from the 'author' string, i.e., kill any trailing " (ed)" or " (eds)"
 
 		if (!empty($authorName)) // if the 'Author' field has some content...
 			$editorName = $authorName; // ...duplicate field contents from 'author' to 'editor' field (CAUTION: this will overwrite any existing contents in the 'editor' field!)
 
 		if (!empty($authorName)) // if 'author' field isn't empty
 		{
-			if (!ereg(";", $authorName)) // if the 'author' field does NOT contain a ';' (which would delimit multiple authors) => single author
+			if (!preg_match("/;/", $authorName)) // if the 'author' field does NOT contain a ';' (which would delimit multiple authors) => single author
 				$authorName .= " (ed)"; // append " (ed)" to the end of the 'author' string
 			else // the 'author' field does contain at least one ';' => multiple authors
 				$authorName .= " (eds)"; // append " (eds)" to the end of the 'author' string
@@ -742,8 +742,8 @@
 	}
 	else // the 'is Editor' checkbox is NOT checked -OR- the record type is NOT 'Book Whole', 'Conference Volume', 'Journal', 'Map' or 'Manuscript'...
 	{
-		if (ereg(" *\(eds?\)$", $authorName)) // if 'author' field ends with either " (ed)" or " (eds)"
-			$authorName = ereg_replace(" *\(eds?\)$","",$authorName); // remove any existing editor info from the 'author' string, i.e., kill any trailing " (ed)" or " (eds)"
+		if (preg_match("/ *\(eds?\)$/", $authorName)) // if 'author' field ends with either " (ed)" or " (eds)"
+			$authorName = preg_replace("/ *\(eds?\)$/","",$authorName); // remove any existing editor info from the 'author' string, i.e., kill any trailing " (ed)" or " (eds)"
 
 		if ($authorName == $editorName) // if the 'Author' field contents equal the 'Editor' field contents...
 			$editorName = ""; // ...clear contents of 'editor' field (that is, we assume that the user did uncheck the 'is Editor' checkbox, which was previously marked)
@@ -757,21 +757,21 @@
 
 
 	// manage 'location' field data:
-	if ((($locationSelectorName == "add") OR ($locationSelectorName == "")) AND (!ereg("$loginEmail", $locationName))) // add the current user to the 'location' field (if he/she isn't listed already within the 'location' field):
+	if ((($locationSelectorName == "add") OR ($locationSelectorName == "")) AND (!preg_match("/$loginEmail/", $locationName))) // add the current user to the 'location' field (if he/she isn't listed already within the 'location' field):
 	// note: if the current user is NOT logged in -OR- if any normal user is logged in, the value for '$locationSelectorName' will be always '' when performing an INSERT,
 	//       since the popup is fixed to 'add' and disabled (which, in turn, will result in an empty value to be returned)
 	{
 		// if the 'location' field is either completely empty -OR- does only contain the information string (that shows up on 'add' for normal users):
-		if (ereg("^(" . $loc["your name & email address will be filled in automatically"] . ")?$", encodeHTML($locationName))) // note that we need to HTML encode '$locationName' for comparison with the HTML encoded locales
-			$locationName = ereg_replace("^.*$", "$currentUser", $locationName);
+		if (preg_match("/^(" . $loc["your name & email address will be filled in automatically"] . ")?$/", encodeHTML($locationName))) // note that we need to HTML encode '$locationName' for comparison with the HTML encoded locales
+			$locationName = preg_replace("/^.*$/", "$currentUser", $locationName);
 		else // if the 'location' field does already contain some user content:
-			$locationName = ereg_replace("^(.+)$", "\\1; $currentUser", $locationName);
+			$locationName = preg_replace("/^(.+)$/", "\\1; $currentUser", $locationName);
 	}
 	elseif ($locationSelectorName == "remove") // remove the current user from the 'location' field:
 	{ // the only pattern that's really unique is the users email address, the user's name may change (since it can be modified by the user). This is why we dont use '$currentUser' here:
-		$locationName = ereg_replace("^[^;]*\( *$loginEmail *\) *; *", "", $locationName); // the current user is listed at the very beginning of the 'location' field
-		$locationName = ereg_replace(" *;[^;]*\( *$loginEmail *\) *", "", $locationName); // the current user occurs after some other user within the 'location' field
-		$locationName = ereg_replace("^[^;]*\( *$loginEmail *\) *$", "", $locationName); // the current user is the only one listed within the 'location' field
+		$locationName = preg_replace("/^[^;]*\( *$loginEmail *\) *; */", "", $locationName); // the current user is listed at the very beginning of the 'location' field
+		$locationName = preg_replace("/ *;[^;]*\( *$loginEmail *\) */", "", $locationName); // the current user occurs after some other user within the 'location' field
+		$locationName = preg_replace("/^[^;]*\( *$loginEmail *\) *$/", "", $locationName); // the current user is the only one listed within the 'location' field
 	}
 	// else if '$locationSelectorName' == "don't touch" -OR- if the user is already listed within the 'location' field, we just accept the contents of the 'location' field as entered by the user
 
@@ -779,7 +779,7 @@
 	// manage 'call_number' field data:
 	if ($loginEmail != $adminLoginEmail) // if any normal user is logged in (not the admin):
 	{
-		if (ereg("$loginEmail", $locationName)) // we only process the user's call number information if the current user is listed within the 'location' field:
+		if (preg_match("/$loginEmail/", $locationName)) // we only process the user's call number information if the current user is listed within the 'location' field:
 		{
 			// Note that, for normal users, we process the user's call number information even if the '$locationSelectorName' is NOT set to 'add'.
 			// This is done, since the user should be able to update his/her personal reference ID while the '$locationSelectorName' is set to 'don't touch'.
@@ -794,8 +794,8 @@
 			// insert or update the user's call number within the full contents of the 'call_number' field:
 			if ($callNumberName == "") // if the 'call_number' field is empty...
 				$callNumberName = $callNumberNameUserOnly; // ...insert the user's call number prefix
-			elseif (ereg("$callNumberPrefix", $callNumberName)) // if the user's call number prefix occurs within the contents of the 'call_number' field...
-				$callNumberName = ereg_replace("$callNumberPrefix *@ *[^@;]*", "$callNumberNameUserOnly", $callNumberName); // ...replace the user's *own* call number within the full contents of the 'call_number' field
+			elseif (preg_match("/$callNumberPrefix/", $callNumberName)) // if the user's call number prefix occurs within the contents of the 'call_number' field...
+				$callNumberName = preg_replace("/$callNumberPrefix *@ *[^@;]*/", "$callNumberNameUserOnly", $callNumberName); // ...replace the user's *own* call number within the full contents of the 'call_number' field
 			else // if the 'call_number' field does already have some content -BUT- there's no existing call number prefix for the current user...
 				$callNumberName = $callNumberName . "; " . $callNumberNameUserOnly; // ...append the user's call number to any existing call numbers
 		}
@@ -805,14 +805,14 @@
 		{
 			if ($callNumberName == "") // if there's no call number info provided by the admin...
 				$callNumberName = $callNumberPrefix . " @ "; // ...insert the admin's call number prefix
-			elseif (!ereg("@", $callNumberName)) // if there's a call number provided by the admin that does NOT contain any '@' already...
+			elseif (!preg_match("/@/", $callNumberName)) // if there's a call number provided by the admin that does NOT contain any '@' already...
 				$callNumberName = $callNumberPrefix . " @ " . $callNumberName; // ...then we assume the admin entered a personal refernce ID for this record which should be prefixed with his/her call number prefix
 			// the contents of the 'call_number' field do contain the '@' character, i.e. we assume one or more full call numbers to be present
-			elseif (!ereg("$callNumberPrefix", $callNumberName)) // if the admin's call number prefix does NOT already occur within the contents of the 'call_number' field...
+			elseif (!preg_match("/$callNumberPrefix/", $callNumberName)) // if the admin's call number prefix does NOT already occur within the contents of the 'call_number' field...
 			{
-				if (ereg("; *[^ @;][^@;]*$", $callNumberName)) // for the admin we offer autocompletion of the call number prefix if he/she just enters his/her reference ID after the last full call number (separated by '; ')
+				if (preg_match("/; *[^ @;][^@;]*$/", $callNumberName)) // for the admin we offer autocompletion of the call number prefix if he/she just enters his/her reference ID after the last full call number (separated by '; ')
 					// e.g., the string 'IPÖ @ mschmid @ 123; 1778' will be autocompleted to 'IPÖ @ mschmid @ 123; IPÖ @ msteffens @ 1778' (with 'msteffens' being the admin user)
-					$callNumberName = ereg_replace("^(.+); *([^@;]+)$", "\\1; $callNumberPrefix @ \\2", $callNumberName); // insert the admin's call number prefix before any reference ID that stand's at the end of the string of call numbers
+					$callNumberName = preg_replace("/^(.+); *([^@;]+)$/", "\\1; $callNumberPrefix @ \\2", $callNumberName); // insert the admin's call number prefix before any reference ID that stand's at the end of the string of call numbers
 				else
 					$callNumberName = $callNumberName . "; " . $callNumberPrefix . " @ "; // ...append the admin's call number prefix to any existing call numbers
 			}
@@ -821,14 +821,14 @@
 
 	if ($locationSelectorName == "remove") // remove the current user's call number from the 'call_number' field:
 	{
-		$callNumberName = ereg_replace("^ *$callNumberPrefix *@ *[^@;]*; *", "", $callNumberName); // the user's call number is listed at the very beginning of the 'call_number' field
-		$callNumberName = ereg_replace(" *; *$callNumberPrefix *@ *[^@;]*", "", $callNumberName); // the user's call number occurs after some other call number within the 'call_number' field
-		$callNumberName = ereg_replace("^ *$callNumberPrefix *@ *[^@;]*$", "", $callNumberName); // the user's call number is the only one listed within the 'call_number' field
+		$callNumberName = preg_replace("/^ *$callNumberPrefix *@ *[^@;]*; */", "", $callNumberName); // the user's call number is listed at the very beginning of the 'call_number' field
+		$callNumberName = preg_replace("/ *; *$callNumberPrefix *@ *[^@;]*/", "", $callNumberName); // the user's call number occurs after some other call number within the 'call_number' field
+		$callNumberName = preg_replace("/^ *$callNumberPrefix *@ *[^@;]*$/", "", $callNumberName); // the user's call number is the only one listed within the 'call_number' field
 	}
 
 
 	// handle file uploads:
-	if (ereg("^(edit|delet)$", $recordAction)) // we exclude '$recordAction = "add"' here, since file name generation needs to be done *after* the record has been created and a serial number is available
+	if (preg_match("/^(edit|delet)$/", $recordAction)) // we exclude '$recordAction = "add"' here, since file name generation needs to be done *after* the record has been created and a serial number is available
 	{
 		if (!empty($uploadFile) && !empty($uploadFile["tmp_name"])) // if there was a file uploaded successfully
 			// process information of any file that was uploaded, auto-generate a file name if required and move the file to the appropriate directory:
@@ -842,7 +842,7 @@
 	{
 		if (!empty($contributionID)) // if the 'contribution_id' field is NOT empty...
 		{
-			if (!ereg("$abbrevInstitution", $contributionID)) // ...and the current user's 'abbrev_institution' value isn't listed already within the 'contribution_id' field
+			if (!preg_match("/$abbrevInstitution/", $contributionID)) // ...and the current user's 'abbrev_institution' value isn't listed already within the 'contribution_id' field
 				$contributionID = $contributionID . "; " . $abbrevInstitution; // append the user's 'abbrev_institution' value to the end of the 'contribution_id' field
 		}
 		else // the 'contribution_id' field is empty
@@ -850,11 +850,11 @@
 	}
 	else // if present, remove the current user's abbreviated institution name from the 'contribution_id' field:
 	{
-		if (ereg("$abbrevInstitution", $contributionID)) // if the current user's 'abbrev_institution' value is listed within the 'contribution_id' field, we'll remove it:
+		if (preg_match("/$abbrevInstitution/", $contributionID)) // if the current user's 'abbrev_institution' value is listed within the 'contribution_id' field, we'll remove it:
 		{
-			$contributionID = ereg_replace("^ *$abbrevInstitution *[^;]*; *", "", $contributionID); // the user's abbreviated institution name is listed at the very beginning of the 'contribution_id' field
-			$contributionID = ereg_replace(" *; *$abbrevInstitution *[^;]*", "", $contributionID); // the user's abbreviated institution name occurs after some other institutional abbreviation within the 'contribution_id' field
-			$contributionID = ereg_replace("^ *$abbrevInstitution *[^;]*$", "", $contributionID); // the user's abbreviated institution name is the only one listed within the 'contribution_id' field
+			$contributionID = preg_replace("/^ *$abbrevInstitution *[^;]*; */", "", $contributionID); // the user's abbreviated institution name is listed at the very beginning of the 'contribution_id' field
+			$contributionID = preg_replace("/ *; *$abbrevInstitution *[^;]*/", "", $contributionID); // the user's abbreviated institution name occurs after some other institutional abbreviation within the 'contribution_id' field
+			$contributionID = preg_replace("/^ *$abbrevInstitution *[^;]*$/", "", $contributionID); // the user's abbreviated institution name is the only one listed within the 'contribution_id' field
 		}
 	}
 
@@ -882,7 +882,7 @@
 	$queryDeleted = ""; // initialize the '$queryDeleted' variable in order to prevent 'Undefined variable...' messages
 
 	// Is this an update?
-	if ($recordAction == "edit") // alternative method to check for an 'edit' action: if (ereg("^[0-9]+$",$serialNo)) // a valid serial number must be an integer
+	if ($recordAction == "edit") // alternative method to check for an 'edit' action: if (preg_match("/^[0-9]+$/",$serialNo)) // a valid serial number must be an integer
 								// yes, the form already contains a valid serial number, so we'll have to update the relevant record:
 	{
 			// UPDATE - construct queries to update the relevant record
@@ -1110,10 +1110,10 @@
 	// Apply some clean-up to the SQL query:
 	// - if a field of type=NUMBER is empty, we set it back to NULL (otherwise the empty string would be converted to "0")
 	// - if the 'thesis' field is empty, we also set it back to NULL (this ensures correct sorting when outputting citations with '$citeOrder="type"' or '$citeOrder="type-year"')
-	if (ereg("(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']", $queryRefs))
+	if (preg_match("/(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']/", $queryRefs))
 		$queryRefs = preg_replace("/(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']/", "\\1 = NULL", $queryRefs);
 
-	if (ereg("(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']", $queryDeleted))
+	if (preg_match("/(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']/", $queryDeleted))
 		$queryDeleted = preg_replace("/(year|volume_numeric|first_page|series_volume_numeric|edition|orig_record|thesis) = [\"']0?[\"']/", "\\1 = NULL", $queryDeleted);
 
 	// --------------------------------------------------------------------
@@ -1379,11 +1379,11 @@
 
 		// Perform any case transformations:
 		// change case of file name:
-		if (eregi("^(lower|upper)$", $changeCaseInFileNames))
+		if (preg_match("/^(lower|upper)$/i", $changeCaseInFileNames))
 			$newFileName = changeCase($changeCaseInFileNames, $newFileName); // function 'changeCase()' is defined in 'include.inc.php'
 
 		// change case of DIR name:
-		if (eregi("^(lower|upper)$", $changeCaseInDirNames) && !empty($subDirName))
+		if (preg_match("/^(lower|upper)$/i", $changeCaseInDirNames) && !empty($subDirName))
 			$subDirName = changeCase($changeCaseInDirNames, $subDirName);
 
 

@@ -113,7 +113,7 @@
 
 	// Extract optional parameters passed to the script:
 
-	if (isset($_REQUEST['operation']) AND eregi("^(explain|suggest|advanced|CQL)$", $_REQUEST['operation']))
+	if (isset($_REQUEST['operation']) AND preg_match("/^(explain|suggest|advanced|CQL)$/i", $_REQUEST['operation']))
 		$operation = $_REQUEST['operation'];
 	else
 		$operation = "";
@@ -171,9 +171,9 @@
 
 	// Set required variables based on the requested response format:
 
-	if (eregi("^srw([ _]?(mods|dc))?([ _]?xml)?$", $recordSchema)) // if SRW XML is requested as response format
+	if (preg_match("/^srw([ _]?(mods|dc))?([ _]?xml)?$/i", $recordSchema)) // if SRW XML is requested as response format
 	{
-		if (eregi("^srw[ _]?dc", $recordSchema))
+		if (preg_match("/^srw[ _]?dc/i", $recordSchema))
 		{
 			$exportFormat = "SRW_DC XML";
 			if ($exportStylesheet == "DEFAULT")
@@ -190,7 +190,7 @@
 		$exportContentType = "application/xml";
 		$citeOrder = "";
 	}
-	elseif (eregi("^rss([ _]?xml)?$", $recordSchema)) // if RSS XML is requested as response format
+	elseif (preg_match("/^rss([ _]?xml)?$/i", $recordSchema)) // if RSS XML is requested as response format
 	{
 		$exportFormat = "RSS XML";
 		$displayType = "Export";
@@ -199,11 +199,11 @@
 			$exportStylesheet = "";
 		$citeOrder = ""; // TODO/NOTE: currently, 'rss.php' always sorts records like as if '$citeOrder="creation-date"' was given, i.e. it sorts records such that newly added/edited records get listed top of the list; this means that Atom links to alternate formats (such as HTML or SRW XML) might return different records!
 	}
-	elseif (eregi("^html$", $recordSchema)) // if HTML is requested as response format
+	elseif (preg_match("/^html$/i", $recordSchema)) // if HTML is requested as response format
 	{
 		$exportFormat = ""; // since search results won't be routed thru the 'generateExport()' function, '$exportFormat' will be without effect (which is why we leave it blank)
 
-		if (eregi("^Mobile$", $viewType)) // for Mobile view, we enforce the compact Citation view
+		if (preg_match("/^Mobile$/i", $viewType)) // for Mobile view, we enforce the compact Citation view
 			$displayType = "Cite";
 		else
 			$displayType = ""; // if '$displayType' is empty, 'show.php' will use the default view that's given in session variable 'userDefaultView'
@@ -213,7 +213,7 @@
 			$exportStylesheet = "";
 		$citeOrder = "";
 	}
-	elseif (eregi("^json$", $recordSchema)) // if JSON is requested as response format
+	elseif (preg_match("/^json$/i", $recordSchema)) // if JSON is requested as response format
 	{
 		$exportFormat = "JSON";
 		$displayType = "Export";
@@ -235,7 +235,7 @@
 	// -------------------------------------------------------------------------------------------------------------------
 
 	// Handle the special index 'main_fields':
-	if (!(eregi("^suggest$", $operation) AND eregi("^(html|json)$", $recordSchema)) AND (preg_match("/^main_fields( +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/i", $cqlQuery))) // if the 'main_fields' index is used in conjunction with a non-"suggest" operation
+	if (!(preg_match("/^suggest$/i", $operation) AND preg_match("/^(html|json)$/i", $recordSchema)) AND (preg_match("/^main_fields( +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/i", $cqlQuery))) // if the 'main_fields' index is used in conjunction with a non-"suggest" operation
 		$cqlQuery = preg_replace("/^main_fields(?= +(all|any|exact|within) +| *(<>|<=|>=|<|>|=) *)/i", "cql.serverChoice", $cqlQuery); // replace 'main_fields' index (which, ATM, is only supported for search suggestions) with 'cql.serverChoice'
 
 	// Parse CQL query:
@@ -251,7 +251,7 @@
 
 	// Check that mandatory parameters have been passed:
 	// - if 'opensearch.php' was called with 'operation=explain', we'll return an appropriate OpenSearch description document:
-	if (eregi("^explain$", $operation))
+	if (preg_match("/^explain$/i", $operation))
 	{
 		// Use an appropriate default stylesheet:
 		if ($exportStylesheet == "DEFAULT")
@@ -266,7 +266,7 @@
 
 	// - if 'opensearch.php' was called with 'operation=suggest' and HTML (or JSON) as the requested response format,
 	//   we'll return search suggestions that match the 'WHERE' clause given in '$query':
-	elseif (eregi("^suggest$", $operation) AND eregi("^(html|json)$", $recordSchema))
+	elseif (preg_match("/^suggest$/i", $operation) AND preg_match("/^(html|json)$/i", $recordSchema))
 	{
 		// Set the appropriate mimetype & set the character encoding to the one given
 		// in '$contentTypeCharset' (which is defined in 'ini.inc.php'):
@@ -284,7 +284,7 @@
 		returnDiagnostic(7, "query"); // required 'query' parameter is missing
 
 	// - Currently, no other schemas than OpenSearch Atom XML, SRW_DC XML, SRW_MODS XML, RSS XML, HTML and JSON are supported:
-	elseif (!eregi("^((atom|rss)([ _]?xml)?|srw([ _]?(mods|dc))?([ _]?xml)?|html|json)$",$recordSchema))
+	elseif (!preg_match("/^((atom|rss)([ _]?xml)?|srw([ _]?(mods|dc))?([ _]?xml)?|html|json)$/i",$recordSchema))
 		returnDiagnostic(66, $recordSchema); // unknown record schema
 
 	// -------------------------------------------------------------------------------------------------------------------
@@ -330,12 +330,12 @@
 		// Set the appropriate mimetype & set the character encoding to the one given in '$contentTypeCharset':
 		setHeaderContentType($exportContentType, $contentTypeCharset); // function 'setHeaderContentType()' is defined in 'include.inc.php'
 
-		if (eregi("^srw([ _]?(mods|dc))?([ _]?xml)?$", $recordSchema))
+		if (preg_match("/^srw([ _]?(mods|dc))?([ _]?xml)?$/i", $recordSchema))
 			// Return SRW diagnostics (i.e. SRW error information) wrapped into SRW XML ('searchRetrieveResponse'):
 			echo srwDiagnostics($diagCode, $diagDetails, $exportStylesheet); // function 'srwDiagnostics()' is defined in 'srwxml.inc.php'
-//		elseif (eregi("^html$", $recordSchema))
+//		elseif (preg_match("/^html$/i", $recordSchema))
 			// TODO!
-//		elseif (eregi("^json$", $recordSchema))
+//		elseif (preg_match("/^json$/i", $recordSchema))
 			// TODO!
 		else
 			// Return OpenSearch diagnostics (i.e. OpenSearch error information) wrapped into OpenSearch Atom XML:
@@ -367,7 +367,7 @@
 		$origSearchSuggestionsField = preg_replace("/^[ ()]*(\w+).*/i", "\\1", $query);
 		$searchSuggestionsPattern = preg_replace("/.*? (?:RLIKE|[=<>]+) \"?(.+?)\"?(?=( *\) *?)*( +(AND|OR)\b|$)).*/i", "\\1", $query); // see NOTE above
 
-		if (eregi("^main_fields$", $origSearchSuggestionsField)) // fetch search suggestions for all of the user's "main fields"
+		if (preg_match("/^main_fields$/i", $origSearchSuggestionsField)) // fetch search suggestions for all of the user's "main fields"
 			$searchSuggestionsFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
 		else
 			$searchSuggestionsFieldsArray = array($origSearchSuggestionsField); // we only need to fetch search suggestions for one field
@@ -377,25 +377,25 @@
 		// Retrieve matching search suggestions for each field given in '$searchSuggestionsFieldsArray':
 		foreach ($searchSuggestionsFieldsArray as $searchSuggestionsField)
 		{
-			if (eregi("^main_fields$", $origSearchSuggestionsField))
+			if (preg_match("/^main_fields$/i", $origSearchSuggestionsField))
 				$searchSuggestionsQuery = preg_replace("/\bmain_fields\b/i", $searchSuggestionsField, $query); // replace 'main_fields' (which doesn't exist as SQL field name) with the current field
 			else
 				$searchSuggestionsQuery = $query;
 
 			// Check whether we need to split field values for this field:
-			if (eregi("^(author|keywords|abstract|address|corporate_author|place|editor|language|summary_language|series_editor|area|expedition|notes|location|call_number|created_by|modified_by|user_keys|user_notes|user_groups|related)$", $searchSuggestionsField))
+			if (preg_match("/^(author|keywords|abstract|address|corporate_author|place|editor|language|summary_language|series_editor|area|expedition|notes|location|call_number|created_by|modified_by|user_keys|user_notes|user_groups|related)$/i", $searchSuggestionsField))
 				$splitValues = true;
 			else
 				$splitValues = false;
 
 			// Define split patterns for this field:
-			if (eregi("^(author|corporate_author|editor|series_editor)$", $searchSuggestionsField))
+			if (preg_match("/^(author|corporate_author|editor|series_editor)$/i", $searchSuggestionsField))
 				$splitPattern = " *[;()/]+ *";
-			elseif (eregi("^abstract$", $searchSuggestionsField))
+			elseif (preg_match("/^abstract$/i", $searchSuggestionsField))
 				$splitPattern = "\s*[,.()/?!]+\s+|\s+[,.()/?!]\s*|\s+-\s+"; // TODO: can (or should) abstracts be splitted in a better way?
-			elseif (eregi("^(place|notes|location|user_notes|user_groups|related)$", $searchSuggestionsField))
+			elseif (preg_match("/^(place|notes|location|user_notes|user_groups|related)$/i", $searchSuggestionsField))
 				$splitPattern = " *[;]+ *";
-			elseif (eregi("^(call_number)$", $searchSuggestionsField))
+			elseif (preg_match("/^(call_number)$/i", $searchSuggestionsField))
 				$splitPattern = " *[;@]+ *";
 			else
 				$splitPattern = " *[,;()/]+ *";
@@ -435,7 +435,7 @@
 				// TODO: This will need to be revised if 'cql.serverChoice' is mapped to the user's preferred list
 				//       of "main fields". Even better would be if browsers would support alternate query URLs for
 				//       each suggestion in the completion list.
-				if (eregi("^json$", $recordSchema) AND eregi("^sug", $client)) // e.g. "sug-refbase_suggest-1.0"
+				if (preg_match("/^json$/i", $recordSchema) AND preg_match("/^sug/i", $client)) // e.g. "sug-refbase_suggest-1.0"
 					$searchSuggestionsArray = preg_replace('/^/', "$searchSuggestionsField = ", $searchSuggestionsArray);
 
 				$outputDataArray = array_merge($outputDataArray, $searchSuggestionsArray); // append this field's search suggestions to the array of found search suggestions
@@ -444,7 +444,7 @@
 
 		if (!empty($outputDataArray))
 		{
-			if (eregi("^main_fields$", $origSearchSuggestionsField)) // otherwise, data are already unique and ordered
+			if (preg_match("/^main_fields$/i", $origSearchSuggestionsField)) // otherwise, data are already unique and ordered
 			{
 				// Remove duplicate values from array:
 				$outputDataArray = array_unique($outputDataArray);	
@@ -452,7 +452,7 @@
 				sort($outputDataArray);
 			}
 
-			if (eregi("^json$", $recordSchema))
+			if (preg_match("/^json$/i", $recordSchema))
 				$outputData = '"' . implode('", "', $outputDataArray) . '"';
 			else // unordered HTML list
 				$outputData = "<li>" . implode("</li><li>", $outputDataArray) . "</li>";
@@ -460,7 +460,7 @@
 		else
 			$outputData = "";
 
-		if (eregi("^json$", $recordSchema)) // return JSON-formatted search suggestions:
+		if (preg_match("/^json$/i", $recordSchema)) // return JSON-formatted search suggestions:
 			return '["' . $cqlQuery . '", [' . $outputData . ']]'; // e.g.: ["fir", ["firefox", "first choice", "mozilla firefox"]]
 
 		else // return HTML-formatted search suggestions:
@@ -502,7 +502,7 @@
 		// DISPLAY header:
 		// call the 'displayHTMLhead()' and 'showPageHeader()' functions (which are defined in 'header.inc.php'):
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- " . $loc["Search"], "index,follow", "Search the " . encodeHTML($officialDatabaseName), "", true, "", $viewType, array());
-		if ((!eregi("^Mobile$", $viewType)) AND (!eregi("^inc", $client))) // Note: we omit the visible header in mobile view ('viewType=Mobile') and for include mechanisms!
+		if ((!preg_match("/^Mobile$/i", $viewType)) AND (!preg_match("/^inc/i", $client))) // Note: we omit the visible header in mobile view ('viewType=Mobile') and for include mechanisms!
 			showPageHeader($HeaderString);
 
 		// Define variables holding common drop-down elements, i.e. build properly formatted <option> tag elements:
@@ -616,7 +616,7 @@
 		// TODO: when the simple CQL Query Builder interface is done, a call to 'opensearch.php' (or 'opensearch.php?operation=simple')
 		//       should activate that simple GUI-based interface (currently, it activates the advanced interface that you'd normally only
 		//       get via 'opensearch.php?operation=cql' or 'opensearch.php?operation=advanced')
-//		if (eregi("^(advanced|CQL)$", $operation))
+//		if (preg_match("/^(advanced|CQL)$/i", $operation))
 			showQueryFormAdvanced($dropDownItems1, $dropDownItems2, $dropDownItems3, $dropDownItems4, $showRows, $rowOffset, $indexNamesArray, $viewType); // let's you enter a standard CQL query directly
 //		else
 //			showQueryFormSimple($dropDownItems1, $dropDownItems2, $dropDownItems3, $dropDownItems4, $showRows, $rowOffset, $indexNamesArray, $viewType); // let's you build a CQL query via dropdown menues
@@ -625,7 +625,7 @@
 
 		// DISPLAY THE HTML FOOTER:
 		// call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
-		if ((!eregi("^Mobile$", $viewType)) AND (!eregi("^inc", $client))) // Note: we omit the visible footer in mobile view ('viewType=Mobile') and for include mechanisms!
+		if ((!preg_match("/^Mobile$/i", $viewType)) AND (!preg_match("/^inc/i", $client))) // Note: we omit the visible footer in mobile view ('viewType=Mobile') and for include mechanisms!
 			showPageFooter($HeaderString);
 
 		displayHTMLfoot();
@@ -707,7 +707,7 @@
 	<td width="120" valign="top">
 		<div class="sect"><b><?php
 
-		if (eregi("^Mobile$", $viewType))
+		if (preg_match("/^Mobile$/i", $viewType))
 			echo $officialDatabaseName;
 		else
 			echo $loc["CQLQuery"];

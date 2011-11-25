@@ -80,7 +80,7 @@
 		echo "  </url>\n";
 		if ($fileVisibility == "everyone" OR (!empty($fileVisibilityException) AND preg_match($fileVisibilityException[1], $row[$fileVisibilityException[0]]))) {
 			if (!empty($row["file"])) { // if the 'file' field is NOT empty 
-				if (!ereg("^(https?|ftp|file)://", $row["file"])) { // if the 'file' field does not contain a full URL (starting with "http://", "https://", "ftp://" or "file://")
+				if (!preg_match("/^(https?|ftp|file):\/\//", $row["file"])) { // if the 'file' field does not contain a full URL (starting with "http://", "https://", "ftp://" or "file://")
 					echo "  <url>\n";
 					echo "    <loc>".$databaseBaseURL.$filesBaseURL.$row["file"]."</loc>\n";
 					if (!empty($datemod))

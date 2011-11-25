@@ -105,7 +105,7 @@
 	if ($wrapResults != "0")
 	{
 		displayHTMLhead(encodeHTML($officialDatabaseName) . " -- Query History", "noindex,nofollow", "Displays links to previous search results", "", false, "", $viewType, array());
-		if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the visible header in print/mobile view ('viewType=Print' or 'viewType=Mobile')
+		if (!preg_match("/^(Print|Mobile)$/i", $viewType)) // Note: we omit the visible header in print/mobile view ('viewType=Print' or 'viewType=Mobile')
 			showPageHeader($HeaderString);
 
 		echo "\n";
@@ -166,7 +166,7 @@
 	// Call the 'showPageFooter()' and 'displayHTMLfoot()' functions (which are defined in 'footer.inc.php')
 	if ($wrapResults != "0")
 	{
-		if (!eregi("^(Print|Mobile)$", $viewType)) // Note: we omit the visible footer in print/mobile view ('viewType=Print' or 'viewType=Mobile')
+		if (!preg_match("/^(Print|Mobile)$/i", $viewType)) // Note: we omit the visible footer in print/mobile view ('viewType=Print' or 'viewType=Mobile')
 			showPageFooter($HeaderString);
 
 		displayHTMLfoot();

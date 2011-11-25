@@ -123,7 +123,7 @@
 	   . "\n\t<td valign=\"top\">"
 	   . "\n\t\tChoose how to proceed:&nbsp;&nbsp;";
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_details_view'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable does contain 'allow_details_view'...
 	{
 		if ($recordAction != "delet")
 			echo "\n\t\t<a href=\"search.php?sqlQuery=" . $sqlQuery . "&amp;showQuery=0&amp;showLinks=1&amp;formType=sqlSearch&amp;submit=Display\">Show " . $recordAction . "ed record</a>";
@@ -135,7 +135,7 @@
 	if (!empty($oldMultiRecordQuery)) // only provide a link to any previous search results if '$oldMultiRecordQuery' isn't empty
 		echo "\n\t\t<a href=\"" . $oldMultiRecordQueryURL . "\">Display previous search results</a>";
 
-	if ((isset($_SESSION['user_permissions']) AND ereg("allow_details_view", $_SESSION['user_permissions']) AND ($recordAction != "delet")) || !empty($oldMultiRecordQuery))
+	if ((isset($_SESSION['user_permissions']) AND preg_match("/allow_details_view/", $_SESSION['user_permissions']) AND ($recordAction != "delet")) || !empty($oldMultiRecordQuery))
 		echo "\n\t\t&nbsp;&nbsp;-OR-&nbsp;&nbsp;";
 
 	echo "\n\t\t<a href=\"index.php\">Goto " . encodeHTML($officialDatabaseName) . " Home</a>"; // we include the link to the home page here so that "Choose how to proceed:" never stands without any link to go

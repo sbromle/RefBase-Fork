@@ -75,7 +75,7 @@
 	// --------------------------------------------------------------------
 
 	// First of all, check if this script was called by something else than 'user_options.php':
-	if (!eregi("/user_options\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+	if (!preg_match("/\/user_options\.php/i", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
@@ -101,7 +101,7 @@
 //		$errors["languageName"] = "The language field cannot be blank:";
 
 	// Validate the number of records per page
-	if (($_REQUEST['userID'] != 0) AND !ereg("^[1-9]+[0-9]*$", $formVars["recordsPerPageNo"])) // this form element is disabled for anonymous users ('userID=0')
+	if (($_REQUEST['userID'] != 0) AND !preg_match("/^[1-9]+[0-9]*$/", $formVars["recordsPerPageNo"])) // this form element is disabled for anonymous users ('userID=0')
 		$errors["recordsPerPageNo"] = "Please enter a number (positive integer greater than zero):";
 
 	// Note: currently, the user must select at least one item within the type/style/format lists. Alternatively, we could grey out the corresponding interface elements
@@ -312,7 +312,7 @@
 			// (note that, except hidden permission settings, only those permission settings were included in the '$formVars' array whose checkboxes were marked!)
 			$updatedUserPermissionsArray = array();
 			foreach($formVars as $itemKey => $itemValue)
-				if (eregi("^allow", $itemKey))
+				if (preg_match("/^allow/i", $itemKey))
 					$updatedUserPermissionsArray[$itemKey] = $itemValue; // allow the particular feature ('$itemValue' will be 'yes' anyhow)
 
 			// then, all permission settings that aren't contained within '$updatedUserPermissionsArray' must have been unchecked:

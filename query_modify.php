@@ -57,7 +57,7 @@
 	//       may expose yet another security hole...)
 
 	// First of all, check if this script was called by something else than 'query_manager.php':
-	if (!eregi("/query_manager\.php", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
+	if (!preg_match("/\/query_manager\.php/i", $referer)) // variable '$referer' is globally defined in function 'start_session()' in 'include.inc.php'
 	{
 		// return an appropriate error message:
 		$HeaderString = returnMsg($loc["Warning_InvalidCallToScript"] . " '" . scriptURL() . "'!", "warning", "strong", "HeaderString"); // functions 'returnMsg()' and 'scriptURL()' are defined in 'include.inc.php'
@@ -126,7 +126,7 @@
 	else
 		$showLinks = "";
 
-	if (isset($formVars['showRows']) AND ereg("^[1-9]+[0-9]*$", $formVars['showRows'])) // NOTE: we silently adjust the 'showRows' parameter if anything other than a positive integer was given
+	if (isset($formVars['showRows']) AND preg_match("/^[1-9]+[0-9]*$/", $formVars['showRows'])) // NOTE: we silently adjust the 'showRows' parameter if anything other than a positive integer was given
 		$showRows = $formVars['showRows'];
 	else
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user
@@ -135,7 +135,7 @@
 		$citeStyle = $formVars['citeStyle']; // get the cite style chosen by the user
 	else
 		$citeStyle = "";
-	if (ereg("%20", $citeStyle)) // if '$citeStyle' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
+	if (preg_match("/%20/", $citeStyle)) // if '$citeStyle' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
 		$citeStyle = rawurldecode($citeStyle); // ...URL decode 'citeStyle' statement (it was URL encoded before incorporation into a hidden tag of the 'sqlSearch' form to avoid any HTML syntax errors)
 													// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
 													//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
@@ -167,7 +167,7 @@
 	if (empty($queryName))
 		$errors["queryName"] = "You must specify a name for your query:"; // 'queryName' must not be empty
 
-	elseif (ereg(";", $queryName))
+	elseif (preg_match("/;/", $queryName))
 		$errors["queryName"] = "Your query name cannot contain a semicolon (';')<br>since this character is used as delimiter:"; // the user's query name cannot contain a semicolon (';') since this character is used as delimiter between query names within the 'userQueries' session variable (see function 'getUserQueries()' in 'include.inc.php')
 
 	if (($queryAction == "add") OR (($queryAction == "edit") AND ($queryName != $origQueryName))) // if the user did modify the query name, check if the new query name does already exist for this user:
@@ -185,7 +185,7 @@
 	if (empty($sqlQuery))
 		$errors["sqlQuery"] = "You must specify a query string:"; // 'sqlQuery' must not be empty
 
-	elseif (!eregi("^SELECT", $sqlQuery))
+	elseif (!preg_match("/^SELECT/i", $sqlQuery))
 		$errors["sqlQuery"] = "You can only save SELECT queries:"; // currently, the user is only allowed to save SELECT queries
 
 	// --------------------------------------------------------------------
@@ -259,7 +259,7 @@
 	// (3) RUN the query on the database through the connection:
 	$result = queryMySQLDatabase($query); // function 'queryMySQLDatabase()' is defined in 'include.inc.php'
 
-	if (ereg("^(edit|delet)$", $queryAction))
+	if (preg_match("/^(edit|delet)$/", $queryAction))
 	{
 		$affectedRows = ($result ? mysql_affected_rows ($connection) : 0); // get the number of rows that were modified (or return 0 if an error occurred)
 

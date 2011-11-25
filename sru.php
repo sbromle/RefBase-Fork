@@ -178,7 +178,7 @@
 
 	$displayType = "Export";
 
-	if (eregi("^((oai_|srw_)?dc|info:srw/schema/1/dc-v1\.1|http://purl\.org/dc/elements/1\.1/)$", $sruRecordSchema)) // simple Dublin Core was requested as record schema
+	if (preg_match("/^((oai_|srw_)?dc|info:srw\/schema\/1\/dc-v1\.1|http:\/\/purl\.org\/dc\/elements\/1\.1\/)$/i", $sruRecordSchema)) // simple Dublin Core was requested as record schema
 		$exportFormat = "SRW_DC XML";
 	else
 		$exportFormat = "SRW_MODS XML";
@@ -256,7 +256,7 @@
 	}
 
 	// if 'sru.php' was called without any valid (or with incorrect) parameters, we'll return appropriate 'diagnostics':
-	elseif (!eregi("^(explain|searchRetrieve)$",$sruOperation))
+	elseif (!preg_match("/^(explain|searchRetrieve)$/i",$sruOperation))
 		returnDiagnostic(4, "Only 'explain' and 'searchRetrieve' operations are supported");
 
 	elseif (empty($sruQuery))
@@ -268,10 +268,10 @@
 	elseif ($sruVersion != "1.1")
 		returnDiagnostic(5, "1.1"); // only SRW version 1.1 is supported
 
-	elseif (!eregi("^((srw_)?mods|info:srw/schema/1/mods-v3\.2|http://www\.loc\.gov/mods/v3)$",$sruRecordSchema) AND !eregi("^((oai_|srw_)?dc|info:srw/schema/1/dc-v1\.1|http://purl\.org/dc/elements/1\.1/)$",$sruRecordSchema))
+	elseif (!preg_match("@^((srw_)?mods|info:srw/schema/1/mods-v3\.2|http://www\.loc\.gov/mods/v3)$@i",$sruRecordSchema) AND !preg_match("@^((oai_|srw_)?dc|info:srw/schema/1/dc-v1\.1|http://purl\.org/dc/elements/1\.1/)$@i",$sruRecordSchema))
 		returnDiagnostic(66, $sruRecordSchema); // no other schema than MODS v3.2 or DC v1.1 (i.e. simple Dublin Core aka OAI_DC) is supported
 
-	elseif (!eregi("^xml$",$sruRecordPacking))
+	elseif (!preg_match("/^xml$/i",$sruRecordPacking))
 		returnDiagnostic(71, "Only 'recordPacking=xml' is supported"); // no other record packing than XML is supported
 
 	elseif (!empty($sruRecordXPath))
@@ -290,7 +290,7 @@
 		// use an appropriate default stylesheet:
 		if ($exportStylesheet == "DEFAULT")
 		{
-			if (eregi("^((oai_|srw_)?dc|info:srw/schema/1/dc-v1\.1|http://purl\.org/dc/elements/1\.1/)$", $sruRecordSchema)) // simple Dublin Core was requested as record schema
+			if (preg_match("@^((oai_|srw_)?dc|info:srw/schema/1/dc-v1\.1|http://purl\.org/dc/elements/1\.1/)$@i", $sruRecordSchema)) // simple Dublin Core was requested as record schema
 				$exportStylesheet = "srwdc2html.xsl"; // use a stylesheet that's appropriate for SRW+DC XML
 			else // use a stylesheet that's appropriate for SRW+MODS XML:
 				$exportStylesheet = "srwmods2html.xsl";

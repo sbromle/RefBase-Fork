@@ -102,41 +102,41 @@
 	// - 'markdown' => return as Markdown TEXT data with mime type 'text/plain'
 	// - 'text' or 'ascii' => return as ASCII TEXT data with mime type 'text/plain'
 	// TODO: add 'ADS', 'ISI', 'ODF XML' and 'Word XML'
-	if (isset($_REQUEST['format']) AND eregi("^(BibTeX|Endnote|RIS|Atom( XML)?|MODS( XML)?|(OAI_)?DC( XML)?|SRW( XML|_MODS|_DC)?|html|RTF|PDF|LaTeX|Markdown|ASCII|TEXT)$", $_REQUEST['format']))
+	if (isset($_REQUEST['format']) AND preg_match("/^(BibTeX|Endnote|RIS|Atom( XML)?|MODS( XML)?|(OAI_)?DC( XML)?|SRW( XML|_MODS|_DC)?|html|RTF|PDF|LaTeX|Markdown|ASCII|TEXT)$/i", $_REQUEST['format']))
 		$unapiFormat = $_REQUEST['format'];
 	else
 		$unapiFormat = "";
 
 	// Set some required parameters based on the requested format:
 
-	if (eregi("^(BibTeX|Endnote|RIS|Atom( XML)?|MODS( XML)?|(OAI_)?DC( XML)?|SRW( XML|_MODS|_DC)?)$", $unapiFormat))
+	if (preg_match("/^(BibTeX|Endnote|RIS|Atom( XML)?|MODS( XML)?|(OAI_)?DC( XML)?|SRW( XML|_MODS|_DC)?)$/i", $unapiFormat))
 	{
 		$displayType = "Export";
 
 		// Standardize XML export format names:
 		// NOTE: the below regex patterns are potentially too lax and might cause misbehaviour in case any custom export formats have been added
 		// TODO: add 'ODF XML' and 'Word XML' when they're supported by 'unapi.php'
-		if (eregi("^Atom", $unapiFormat))
+		if (preg_match("/^Atom/i", $unapiFormat))
 			$exportFormat = "Atom XML";
-		elseif (eregi("^MODS", $unapiFormat))
+		elseif (preg_match("/^MODS/i", $unapiFormat))
 			$exportFormat = "MODS XML";
-		elseif (eregi("^(OAI_)?DC", $unapiFormat))
+		elseif (preg_match("/^(OAI_)?DC/i", $unapiFormat))
 			$exportFormat = "OAI_DC XML";
-		elseif (eregi("^SRW_DC", $unapiFormat))
+		elseif (preg_match("/^SRW_DC/i", $unapiFormat))
 			$exportFormat = "SRW_DC XML";
-		elseif (eregi("^SRW", $unapiFormat))
+		elseif (preg_match("/^SRW/i", $unapiFormat))
 			$exportFormat = "SRW_MODS XML";
 		else
 			$exportFormat = $unapiFormat;
 
 		$citeType = "html";
 	}
-	elseif (eregi("^(html|RTF|PDF|LaTeX|Markdown|ASCII|TEXT)$", $unapiFormat))
+	elseif (preg_match("/^(html|RTF|PDF|LaTeX|Markdown|ASCII|TEXT)$/i", $unapiFormat))
 	{
 		$displayType = "Cite";
 		$exportFormat = "";
 
-		if (eregi("^TEXT", $unapiFormat))
+		if (preg_match("/^TEXT/i", $unapiFormat))
 			$citeType = "ASCII";
 		else
 			$citeType = $unapiFormat;

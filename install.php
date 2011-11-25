@@ -297,7 +297,7 @@
 			// The 'pathToMYSQL' field cannot be a null string
 			$errors["pathToMYSQL"] = "This field cannot be blank:";
 
-		elseif (ereg("[;|]", $formVars["pathToMYSQL"]))
+		elseif (preg_match("/[;|]/", $formVars["pathToMYSQL"]))
 			// For security reasons, the 'pathToMYSQL' field cannot contain the characters ';' or '|' (which would tie multiple shell commands together)
 			$errors["pathToMYSQL"] = "Due to security reasons this field cannot contain the characters ';' or '|':";
 
@@ -316,7 +316,7 @@
 //			// Check if the given file is executable
 //			$errors["pathToMYSQL"] = "This file does not appear to be an executable command:";
 
-//		elseif (!ereg("(^|.*/)mysql$", $formVars["pathToMYSQL"]))
+//		elseif (!preg_match("/(^|.*\/)mysql$/", $formVars["pathToMYSQL"]))
 //			// Make sure that the given file is 'mysql'
 //			$errors["pathToMYSQL"] = "This does not appear to be the 'mysql' command line interpreter:";
 
@@ -326,7 +326,7 @@
 			// The 'databaseStructureFile' field cannot be a null string
 			$errors["databaseStructureFile"] = "This field cannot be blank:";
 
-		elseif (ereg("[;|]", $formVars["databaseStructureFile"]))
+		elseif (preg_match("/[;|]/", $formVars["databaseStructureFile"]))
 			// For security reasons, the 'databaseStructureFile' field cannot contain the characters ';' or '|' (which would tie multiple shell commands together)
 			$errors["databaseStructureFile"] = "Due to security reasons this field cannot contain the characters ';' or '|':";
 
@@ -342,7 +342,7 @@
 		// Validate the 'pathToBibutils' field:
 		if (!empty($formVars["pathToBibutils"])) // we'll only validate the 'pathToBibutils' field if it isn't empty (installation of Bibutils is optional)
 		{
-			if (ereg("[;|]", $formVars["pathToBibutils"]))
+			if (preg_match("/[;|]/", $formVars["pathToBibutils"]))
 				// For security reasons, the 'pathToBibutils' field cannot contain the characters ';' or '|' (which would tie multiple shell commands together)
 				$errors["pathToBibutils"] = "Due to security reasons this field cannot contain the characters ';' or '|':";
 	

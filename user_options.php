@@ -87,7 +87,7 @@
 	// --------------------------------------------------------------------
 
 	// Set the '$userID' variable:
-	if (isset($_REQUEST['userID']) AND ereg("^[0-9]+$", $_REQUEST['userID'])) // for normal users NOT being logged in -OR- for the admin:
+	if (isset($_REQUEST['userID']) AND preg_match("/^[0-9]+$/", $_REQUEST['userID'])) // for normal users NOT being logged in -OR- for the admin:
 		$userID = $_REQUEST['userID'];
 	else
 		$userID = NULL; // '$userID = ""' wouldn't be correct here, since then any later 'isset($userID)' statement would resolve to true!
@@ -124,7 +124,7 @@
 	// --------------------------------------------------------------------
 
 	// Check if the logged-in user is allowed to modify his account options:
-	if (isset($_SESSION['loginEmail']) AND preg_match("/^\d+$/", $userID) AND isset($_SESSION['user_permissions']) AND !ereg("allow_modify_options", $_SESSION['user_permissions'])) // if a user is logged in but the 'user_permissions' session variable does NOT contain 'allow_modify_options'...
+	if (isset($_SESSION['loginEmail']) AND preg_match("/^\d+$/", $userID) AND isset($_SESSION['user_permissions']) AND !preg_match("/allow_modify_options/", $_SESSION['user_permissions'])) // if a user is logged in but the 'user_permissions' session variable does NOT contain 'allow_modify_options'...
 	{
 		// save an error message:
 		$HeaderString = "<b><span class=\"warning\">You have no permission to modify your user account options!</span></b>";
@@ -224,7 +224,7 @@
 
 	$languageOptionTags = buildSelectMenuOptions($languagesArray, " *; *", "\t\t\t", false); // build properly formatted <option> tag elements from language items returned by function 'getLanguages()'
 	$userLanguage = getLanguages($userID); // get the preferred language for the current user
-	$languageOptionTags = ereg_replace("<option>$userLanguage[0]", "<option selected>$userLanguage[0]", $languageOptionTags); // select the user's preferred language
+	$languageOptionTags = preg_replace("/<option>$userLanguage[0]/", "<option selected>$userLanguage[0]", $languageOptionTags); // select the user's preferred language
 
 	// Get the default number of records per page preferred by the current user:
 	// 'records_per_page' option:
@@ -281,7 +281,7 @@
 	// select all fields that shall be searched when the "main fields" search option is chosen:
 	// (these fields will also be included as separate entries in the "Quick Search drop-down menu)
 	foreach($userMainFieldsArray as $userMainField)
-		$mainFieldsOptionTags = ereg_replace("<option([^>]*)>" . $mainFieldsArray[$userMainField] . "</option>", "<option\\1 selected>" . $mainFieldsArray[$userMainField] . "</option>", $mainFieldsOptionTags);
+		$mainFieldsOptionTags = preg_replace("/<option([^>]*)>" . $mainFieldsArray[$userMainField] . "<\/option>/", "<option\\1 selected>" . $mainFieldsArray[$userMainField] . "</option>", $mainFieldsOptionTags);
 
 
 	// Cite Options:
@@ -355,7 +355,7 @@
 		$useCustomHandlingOfNonASCIICharsInCiteKeysChecked = " checked";
 
 		// select the drop down option chosen by the current user:
-		$nonASCIICharsInCiteKeysOptionTags = ereg_replace("<option([^>]*)>" . $userOptionsArray['nonascii_chars_in_cite_keys'], "<option\\1 selected>" . $userOptionsArray['nonascii_chars_in_cite_keys'], $nonASCIICharsInCiteKeysOptionTags);
+		$nonASCIICharsInCiteKeysOptionTags = preg_replace("/<option([^>]*)>" . $userOptionsArray['nonascii_chars_in_cite_keys'] . "/", "<option\\1 selected>" . $userOptionsArray['nonascii_chars_in_cite_keys'], $nonASCIICharsInCiteKeysOptionTags);
 	}
 	else
 		$useCustomHandlingOfNonASCIICharsInCiteKeysChecked = "";

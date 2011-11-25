@@ -54,7 +54,7 @@
 	else
 		$queryWhereClause = "";
 
-	if (isset($_REQUEST['showRows']) AND ereg("^[1-9]+[0-9]*$", $_REQUEST['showRows'])) // contains the desired number of search results (OpenSearch equivalent: '{count}')
+	if (isset($_REQUEST['showRows']) AND preg_match("/^[1-9]+[0-9]*$/", $_REQUEST['showRows'])) // contains the desired number of search results (OpenSearch equivalent: '{count}')
 		$showRows = $_REQUEST['showRows'];
 	else
 		$showRows = $_SESSION['userRecordsPerPage']; // get the default number of records per page preferred by the current user

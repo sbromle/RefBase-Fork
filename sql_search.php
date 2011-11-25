@@ -168,7 +168,7 @@
 	<td>&nbsp;</td>
 	<td>&nbsp;</td><?php
 
-	if (isset($_SESSION['user_permissions']) AND ereg("allow_sql_search", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
+	if (isset($_SESSION['user_permissions']) AND preg_match("/allow_sql_search/", $_SESSION['user_permissions'])) // if the 'user_permissions' session variable contains 'allow_sql_search'...
 	// adjust the title string for the search button
 	{
 		$sqlSearchButtonLock = "";

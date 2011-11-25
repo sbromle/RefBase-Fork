@@ -280,7 +280,7 @@
 			$citeStyle = $formVars['citeStyle'];
 		else
 			$citeStyle = "";
-		if (ereg("%20", $citeStyle)) // if '$citeStyle' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
+		if (preg_amtch("/%20/", $citeStyle)) // if '$citeStyle' still contains URL encoded data... ('%20' is the URL encoded form of a space, see note below!)
 			$citeStyle = rawurldecode($citeStyle); // ...URL decode 'citeStyle' statement (it was URL encoded before incorporation into a hidden tag of the 'sqlSearch' form to avoid any HTML syntax errors)
 														// NOTE: URL encoded data that are included within a *link* will get URL decoded automatically *before* extraction via '$_REQUEST'!
 														//       But, opposed to that, URL encoded data that are included within a form by means of a *hidden form tag* will NOT get URL decoded automatically! Then, URL decoding has to be done manually (as is done here)!
@@ -307,13 +307,13 @@
 	else
 		$checkLinks = "";
 
-	if (eregi("^Print$", $queryViewType))
+	if (preg_match("/^Print$/i", $queryViewType))
 	{
 		$webViewTypeSelected = "";
 		$printViewTypeSelected = " selected";
 		$mobileViewTypeSelected = "";
 	}
-	elseif (eregi("^Mobile$", $queryViewType))
+	elseif (preg_match("/^Mobile$/i", $queryViewType))
 	{
 		$webViewTypeSelected = "";
 		$printViewTypeSelected = "";
