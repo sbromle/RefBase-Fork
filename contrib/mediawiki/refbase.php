@@ -106,7 +106,7 @@
             if(!empty($aulast))
               $cite .= "authorlink=$aufirst $aulast"."|";
           }
-          $authorcount = count(split(" *; *", $author));
+          $authorcount = count(preg_split("/ *; */", $author));
           $au="";
           for ($i=0; $i < $authorcount-1; $i++){
             $aul = extractAuthorsLastName(" *; *", " *, *", $i+2, $author);
@@ -163,10 +163,10 @@
   //        3. position of the author whose last name shall be extracted (e.g., "1" will return the 1st author's last name) 
   //        4. contents of the author field 
   function extractAuthorsLastName($oldBetweenAuthorsDelim, $oldAuthorsInitialsDelim, $authorPosition, $authorContents) { 
-    $authorsArray = split($oldBetweenAuthorsDelim, $authorContents); // get a list of all authors for this record 
+    $authorsArray = preg_split("#" . $oldBetweenAuthorsDelim . "#", $authorContents); // get a list of all authors for this record 
     $authorPosition = ($authorPosition-1); // php array elements start with "0", so we decrease the authors position by 1 
     $singleAuthor = $authorsArray[$authorPosition]; // for the author in question, extract the full author name (last name & initials) 
-    $singleAuthorArray = split($oldAuthorsInitialsDelim, $singleAuthor); // then, extract author name & initials to separate list items 
+    $singleAuthorArray = preg_split("#" . $oldAuthorsInitialsDelim . "#", $singleAuthor); // then, extract author name & initials to separate list items 
     $singleAuthorsLastName = $singleAuthorArray[0]; // extract this author's last name into a new variable 
     return $singleAuthorsLastName; 
   } 
@@ -180,10 +180,10 @@
   //        3. position of the author whose last name shall be extracted (e.g., "1" will return the 1st author's last name) 
   //        4. contents of the author field 
   function extractAuthorsGivenName($oldBetweenAuthorsDelim, $oldAuthorsInitialsDelim, $authorPosition, $authorContents) { 
-    $authorsArray = split($oldBetweenAuthorsDelim, $authorContents); // get a list of all authors for this record 
+    $authorsArray = preg_split("#" . $oldBetweenAuthorsDelim . "#", $authorContents); // get a list of all authors for this record 
     $authorPosition = ($authorPosition-1); // php array elements start with "0", so we decrease the authors position by 1 
     $singleAuthor = $authorsArray[$authorPosition]; // for the author in question, extract the full author name (last name & initials) 
-    $singleAuthorArray = split($oldAuthorsInitialsDelim, $singleAuthor); // then, extract author name & initials to separate list items 
+    $singleAuthorArray = preg_split("#" . $oldAuthorsInitialsDelim . "#", $singleAuthor); // then, extract author name & initials to separate list items 
     if (!empty($singleAuthorArray[1])) 
       $singleAuthorsGivenName = $singleAuthorArray[1]; // extract this author's last name into a new variable 
     else 

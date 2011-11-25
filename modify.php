@@ -1350,7 +1350,7 @@
 			// remove any slashes (i.e., directory delimiter(s)) from the beginning or end of '$dirNamingScheme':
 			$dirNamingScheme = trimTextPattern($dirNamingScheme, "[\/\\\\]+", true, true); // function 'trimTextPattern()' is defined in 'include.inc.php'
 
-			$dirNamingSchemePartsArray = split("[/\\]+", $dirNamingScheme); // split on slashes to separate between multiple sub-directories
+			$dirNamingSchemePartsArray = preg_split("@[/\\]+@", $dirNamingScheme); // split on slashes to separate between multiple sub-directories
 
 			$subDirNamesArray = array(); // initialize array variable which will hold the generated sub-directory names
 

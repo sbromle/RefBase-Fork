@@ -517,6 +517,8 @@
 		//         $shortenGivenNames = true;
 		//       This would e.g. convert "Steven M. Kahn" into "Kahn, S.M.". But since function 'reArrangeAuthorContents()' currently
 		//       just uses 'split()', we'll pre-process each author string below (so that it is formatted like "Kahn, Steven M.").
+		// NOTE: Thu Nov 24 23:48:16 NST 2011: The function reArrangeAuthorContents() now does use preg_split. So the above
+		//                                     suggested change could be performed if you wish. Leaving things as is for now.
 		$familyNameGivenNameDelimiter = " *, *";
 
 		// Specifies whether the person's family name comes first within a person's name

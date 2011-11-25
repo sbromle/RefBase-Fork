@@ -1207,7 +1207,7 @@
 
 		if ($recordAction == "edit" || $mode == "import") // for the edit (or import) record form, the current type is added to the drop down if it isn't one of the user's types
 		{
-			$userTypes = split(" *; *", $_SESSION['user_types']);
+			$userTypes = preg_split("/ *; */", $_SESSION['user_types']);
 			$optionPresent = false;
 			foreach ($userTypes as $userType)
 			{

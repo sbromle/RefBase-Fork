@@ -336,7 +336,7 @@
 				{
 					$citationStylesArray = array();
 
-					$citationStylesTempArray = split(" *; *", $_SESSION['user_styles']); // get the user's list of citation styles
+					$citationStylesTempArray = preg_split("/ *; */", $_SESSION['user_styles']); // get the user's list of citation styles
 
 					foreach ($citationStylesTempArray as $citationStyle)
 						$citationStylesArray[$citationStyle] = $citationStyle;

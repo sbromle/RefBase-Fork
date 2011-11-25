@@ -368,7 +368,7 @@
 		$searchSuggestionsPattern = preg_replace("/.*? (?:RLIKE|[=<>]+) \"?(.+?)\"?(?=( *\) *?)*( +(AND|OR)\b|$)).*/i", "\\1", $query); // see NOTE above
 
 		if (preg_match("/^main_fields$/i", $origSearchSuggestionsField)) // fetch search suggestions for all of the user's "main fields"
-			$searchSuggestionsFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
+			$searchSuggestionsFieldsArray = preg_split("/ *, */", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
 		else
 			$searchSuggestionsFieldsArray = array($origSearchSuggestionsField); // we only need to fetch search suggestions for one field
 

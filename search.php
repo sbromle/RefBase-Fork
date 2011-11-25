@@ -5145,7 +5145,7 @@
 		$quickSearchSelector = $_REQUEST['quickSearchSelector']; // extract field name chosen by the user
 		$quickSearchName = $_REQUEST['quickSearchName']; // extract search text entered by the user
 
-		$userMainFieldsArray = split(" *, *", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
+		$userMainFieldsArray = preg_split("/ *, */", $_SESSION['userMainFields']); // get the list of "main fields" preferred by the current user
 
 		if (!empty($originalDisplayType))
 		{

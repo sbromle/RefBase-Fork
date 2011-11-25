@@ -187,7 +187,7 @@
 			{
 				if (preg_match("/ /", $searchTerm))
 				{
-					$searchTermArray = split(" +", $searchTerm);
+					$searchTermArray = preg_split("/ +/", $searchTerm);
 
 					foreach ($searchTermArray as $searchTermItem)
 						$whereClauseSubPartsArray[] = " RLIKE " . quote_smart("(^|[[:space:][:punct:]])" . $searchTermItem . "([[:space:][:punct:]]|$)");
@@ -218,7 +218,7 @@
 			{
 				if (preg_match("/[^ ]+ [^ ]+/", $searchTerm))
 				{
-					$searchTermArray = split(" +", $searchTerm);
+					$searchTermArray = preg_split("/ +/", $searchTerm);
 
 					$whereClausePart .= " >= " . quote_smart($searchTermArray[0]) . " AND " . $indexNamesArray[$contextSet . $contextSetIndexConnector . $indexName] . " <= " . quote_smart($searchTermArray[1]);
 				}

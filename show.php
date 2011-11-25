@@ -214,7 +214,7 @@
 			{
 				if (preg_match("/\d+-\d+/", $recordSerialsArray[$i])) // match serial number range
 				{
-					$recordSerialsRange = split("-", $recordSerialsArray[$i]); // extract start & end of serial number range into an array
+					$recordSerialsRange = preg_split("/-/", $recordSerialsArray[$i]); // extract start & end of serial number range into an array
 
 					// explode serial number range (e.g. transform "150-152" into "150,151,152")
 					$recordSerialsArray[$i] = $recordSerialsRange[0];

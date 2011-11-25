@@ -299,7 +299,7 @@
 		{
 			if (preg_match("/\d+-\d+/", $importRecordsElement)) // if we're dealing with a range of record numbers (such as '1-5')
 			{
-				$importRecordsElementArray = split("-", $importRecordsElement); // split input string on hyphen ("-") character
+				$importRecordsElementArray = preg_split("/-/", $importRecordsElement); // split input string on hyphen ("-") character
 
 				// generate an array that includes all numbers from start number to end number:
 				// (in case of incorrect input (such as '3-5-9') we'll only take the first two numbers and ignore anything else)
